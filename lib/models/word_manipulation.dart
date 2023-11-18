@@ -1,7 +1,55 @@
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:train_de_mots/models/configuration.dart';
 import 'package:train_de_mots/models/french_words.dart';
+import 'package:train_de_mots/models/misc.dart';
+
+class WordProblem {
+  String word;
+  List<Solution> solutions;
+
+  WordProblem._({required this.word, required this.solutions});
+
+  bool trySolution(String founder, String word) {
+    // Do some rapid validation
+    if (word.length < Configuration.instance.smallestWord) return false;
+    if (word.contains(' ')) return false;
+
+    final solution = Solution(word: word);
+    final found =
+        solutions.firstWhereOrNull((Solution e) => e.word == solution.word);
+    if (found != null) {
+      found.founder = founder;
+      return true;
+    }
+    return false;
+  }
+
+  ///
+  /// Generates a new word problem from a random word.
+  /// This is the main constructor
+  static Future<WordProblem> generate() async {
+    String candidate;
+    Set<String> subWords;
+    final c = Configuration.instance;
+
+    do {
+      candidate = randomLetters(
+          minLetters: c.minimumWordLetter, maxLetters: c.maximumWordLetter);
+      subWords = await _WordManipulation.instance.findsWords(
+          from: candidate,
+          nbLetters: c.smallestWord,
+          wordsCountLimit: c.maximumWordsNumber);
+    } while (subWords.length < c.minimumWordsNumber ||
+        subWords.length > c.maximumWordsNumber);
+
+    return WordProblem._(
+        word: candidate,
+        solutions: subWords.map((e) => Solution(word: e)).toList());
+  }
+}
 
 Future<Set<String>> _generateValidPermutations(
     Set<String> words, String word, int length, int? maxNumberWords) async {
@@ -60,13 +108,13 @@ String randomLetters({required int minLetters, required int maxLetters}) {
   return result;
 }
 
-class WordManipulation {
+class _WordManipulation {
   final Set<String> words;
 
-  static final WordManipulation _instance = WordManipulation._internal();
-  WordManipulation._internal()
+  static final _WordManipulation _instance = _WordManipulation._internal();
+  _WordManipulation._internal()
       : words = {...frenchWords.map((e) => removeDiacritics(e.toUpperCase()))};
-  static WordManipulation get instance => _instance;
+  static _WordManipulation get instance => _instance;
 
   Future<void> initialize() async {}
 

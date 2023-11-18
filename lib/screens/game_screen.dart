@@ -1,66 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/configuration.dart';
-import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/word_manipulation.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
+import 'package:twitch_manager/twitch_manager.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
+
+  static const route = '/game-screen';
 
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
 
 class _GameScreenState extends State<GameScreen> {
-  bool _hasWord = false;
+  WordProblem? _currentProblem;
+  TwitchManager? _twitchManager;
 
-  Future<Solution> _pickANewWord() async {
-    _hasWord = false;
-    String candidate;
-    Set<String> subWords;
-    debugPrint('Starting to find a new word');
-    do {
-      candidate = randomLetters(minLetters: 9, maxLetters: 9);
-      subWords = await WordManipulation.instance.findsWords(
-          from: candidate,
-          nbLetters: 4,
-          wordsCountLimit: Configuration.instance.maximumWordsNumber);
-    } while (subWords.length < Configuration.instance.minimumWordsNumber ||
-        subWords.length > Configuration.instance.maximumWordsNumber);
+  Future<void> _pickANewWord() async {
+    _currentProblem = null;
+    setState(() {});
 
-    debugPrint('Found a new word: $candidate');
-    _hasWord = true;
-    return Solution(word: candidate, solutions: subWords.toList());
+    _currentProblem = await WordProblem.generate();
+    setState(() {});
+  }
+
+  Future<void> _getTwitchManager() async {
+    _twitchManager = await showDialog<TwitchManager>(
+        context: context,
+        builder: (context) => TwitchAuthenticationScreen(
+              isMockActive: Configuration.instance.isTwitchMockActive,
+              debugPanelOptions: Configuration.instance.twitchDebugOptions,
+              onFinishedConnexion: (manager) {
+                Navigator.of(context).pop(manager);
+              },
+              appInfo: Configuration.instance.twitchAppInfo,
+              reload: false,
+            ));
+
+    // Register to chat callback
+    _twitchManager!.chat.onMessageReceived((sender, message) {
+      if (_currentProblem?.trySolution(sender, message) ?? false) {
+        setState(() {});
+      }
+    });
+    setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_twitchManager == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _getTwitchManager());
+    }
+    if (_currentProblem == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _pickANewWord());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      body: _twitchManager == null
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : TwitchDebugOverlay(
+              manager: _twitchManager!,
+              child: _buildGameScreen(),
+            ),
+    );
+  }
+
+  Widget _buildGameScreen() {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 20),
-          Center(
-            child: FutureBuilder<Solution>(
-                future: _pickANewWord(),
-                builder: (context, snapshot) {
-                  if (!_hasWord) {
-                    return const CircularProgressIndicator();
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      WordDisplayer(word: snapshot.data!.word),
-                      const SizedBox(height: 20),
-                      SolutionsDisplayer(solutions: snapshot.data!.solutions),
-                    ],
-                  );
-                }),
-          ),
+          _currentProblem == null
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    WordDisplayer(word: _currentProblem!.word),
+                    const SizedBox(height: 20),
+                    SolutionsDisplayer(solutions: _currentProblem!.solutions),
+                  ],
+                ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => setState(() {}),
+            onPressed: () => setState(() {
+              _pickANewWord();
+            }),
             child: const Text('New word'),
           )
         ],

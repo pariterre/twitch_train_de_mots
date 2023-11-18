@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/misc.dart';
 
 class WordDisplayer extends StatefulWidget {
   const WordDisplayer({super.key, required this.word});
@@ -13,7 +14,7 @@ class _WordDisplayerState extends State<WordDisplayer> {
   @override
   Widget build(BuildContext context) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      for (var letter in widget.word.split(''))
+      for (var letter in widget.word.split('').map<Letter>((e) => Letter(e)))
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: _Letter(letter: letter),
@@ -25,8 +26,7 @@ class _WordDisplayerState extends State<WordDisplayer> {
 class _Letter extends StatelessWidget {
   const _Letter({required this.letter});
 
-  final String letter;
-  final int value = 2;
+  final Letter letter;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class _Letter extends StatelessWidget {
         children: [
           Center(
             child: Text(
-              letter,
+              letter.data,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -56,7 +56,7 @@ class _Letter extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(2.0),
               child: Text(
-                value.toString(),
+                letter.value.toString(),
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
             ),
