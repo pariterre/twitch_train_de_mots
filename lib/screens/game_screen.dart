@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/configuration.dart';
 import 'package:train_de_mots/models/word_manipulation.dart';
+import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
 import 'package:twitch_manager/twitch_manager.dart';
@@ -74,31 +75,39 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildGameScreen() {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 20),
-          _currentProblem == null
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    WordDisplayer(word: _currentProblem!.word),
-                    const SizedBox(height: 20),
-                    SolutionsDisplayer(solutions: _currentProblem!.solutions),
-                  ],
-                ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => setState(() {
-              _pickANewWord();
-            }),
-            child: const Text('New word'),
-          )
-        ],
-      ),
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              _currentProblem == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        WordDisplayer(word: _currentProblem!.word),
+                        const SizedBox(height: 20),
+                        SolutionsDisplayer(
+                            solutions: _currentProblem!.solutions),
+                      ],
+                    ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => setState(() {
+                  _pickANewWord();
+                }),
+                child: const Text('New word'),
+              )
+            ],
+          ),
+        ),
+        Align(
+            alignment: Alignment.topRight,
+            child: LeaderBoard(wordProblem: _currentProblem))
+      ],
     );
   }
 }

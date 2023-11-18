@@ -10,6 +10,16 @@ class WordProblem {
   String word;
   List<Solution> solutions;
 
+  Set<String> get founders => solutions
+      .where((element) => element.isFound)
+      .map((e) => e.founder!)
+      .toSet();
+
+  int score(String founder) => solutions
+      .where((element) => element.isFound && element.founder == founder)
+      .map((e) => e.value)
+      .reduce((value, element) => value + element);
+
   WordProblem._({required this.word, required this.solutions});
 
   bool trySolution(String founder, String word) {
