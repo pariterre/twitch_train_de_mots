@@ -4,8 +4,8 @@ class Configuration {
   final int nbLetterInSmallestWord = 5;
   final int minimumWordLetter = 6;
   final int maximumWordLetter = 8;
-  final int minimumWordsNumber = 8;
-  final int maximumWordsNumber = 50;
+  final int minimumWordsNumber = 12;
+  final int maximumWordsNumber = 20;
 
   static final Configuration _instance = Configuration._internal();
   Configuration._internal();

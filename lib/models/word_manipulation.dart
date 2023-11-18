@@ -20,7 +20,21 @@ class WordProblem {
       .map((e) => e.value)
       .reduce((value, element) => value + element);
 
-  WordProblem._({required this.word, required this.solutions});
+  WordProblem._({required this.word, required this.solutions}) {
+    // Sort the letters of candidate into alphabetical order
+    final wordSorted = word.split('').toList()
+      ..sort()
+      ..join('');
+    word = wordSorted.join('');
+
+    // Sort the subWords by length and alphabetically
+    solutions.sort((a, b) {
+      if (a.word.length == b.word.length) {
+        return a.word.compareTo(b.word);
+      }
+      return a.word.length - b.word.length;
+    });
+  }
 
   bool trySolution(String founder, String word) {
     // Do some rapid validation
@@ -122,24 +136,9 @@ class WordProblem {
     } while (subWords.length < Configuration.instance.minimumWordsNumber ||
         subWords.length > Configuration.instance.maximumWordsNumber);
 
-    // Sort the letters of candidate into alphabetical order
-    final candidateSorted = candidate.split('').toList()
-      ..sort()
-      ..join('');
-    candidate = candidateSorted.join('');
-
-    // Sort the subWords by length and alphabetically
-    final subWordsAsList = subWords.toList()
-      ..sort((a, b) {
-        if (a.length == b.length) {
-          return a.compareTo(b);
-        }
-        return a.length - b.length;
-      });
-
     return WordProblem._(
         word: candidate,
-        solutions: subWordsAsList.map((e) => Solution(word: e)).toList());
+        solutions: subWords.map((e) => Solution(word: e)).toList());
   }
 }
 

@@ -23,7 +23,7 @@ class _GameScreenState extends State<GameScreen> {
     _currentProblem = null;
     setState(() {});
 
-    _currentProblem = await WordProblem.generateFromBuildingUp();
+    _currentProblem = await WordProblem.generateFromRandom();
     setState(() {});
   }
 
