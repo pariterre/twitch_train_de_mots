@@ -11,6 +11,7 @@ class SolutionsDisplayer extends StatefulWidget {
 }
 
 class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
+  int current = -1;
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -18,7 +19,21 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
         for (var solution in widget.solutions)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: _Solution(solution: solution),
+            child: Builder(builder: (context) {
+              bool showWriteCounter = solution.word.length != current;
+              current = solution.word.length;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showWriteCounter)
+                    Text(
+                      'Mots de $current lettres',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  _Solution(solution: solution),
+                ],
+              );
+            }),
           ),
       ],
     );

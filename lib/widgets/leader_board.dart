@@ -8,6 +8,9 @@ class LeaderBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final foundersSorted = [...(wordProblem?.founders ?? {})]
+      ..sort((a, b) => wordProblem!.score(b) - wordProblem!.score(a));
+
     return SizedBox(
       width: 300,
       child: Card(
@@ -31,8 +34,8 @@ class LeaderBoard extends StatelessWidget {
                   _buildFounderTile(
                       founder: 'Participants', score: 'Score', isTitle: true),
                   const SizedBox(height: 12.0),
-                  if (wordProblem?.founders.isNotEmpty ?? false)
-                    for (var founder in wordProblem!.founders)
+                  if (foundersSorted.isNotEmpty)
+                    for (var founder in foundersSorted)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
                         child: _buildFounderTile(

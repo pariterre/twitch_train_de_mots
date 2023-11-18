@@ -23,7 +23,7 @@ class _GameScreenState extends State<GameScreen> {
     _currentProblem = null;
     setState(() {});
 
-    _currentProblem = await WordProblem.generate();
+    _currentProblem = await WordProblem.generateFromBuildingUp();
     setState(() {});
   }
 
@@ -69,7 +69,7 @@ class _GameScreenState extends State<GameScreen> {
             )
           : TwitchDebugOverlay(
               manager: _twitchManager!,
-              child: _buildGameScreen(),
+              child: SingleChildScrollView(child: _buildGameScreen()),
             ),
     );
   }

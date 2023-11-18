@@ -1,11 +1,11 @@
 import 'package:twitch_manager/twitch_manager.dart';
 
 class Configuration {
-  final int smallestWord = 4;
+  final int nbLetterInSmallestWord = 5;
   final int minimumWordLetter = 6;
-  final int maximumWordLetter = 9;
+  final int maximumWordLetter = 8;
   final int minimumWordsNumber = 8;
-  final int maximumWordsNumber = 15;
+  final int maximumWordsNumber = 50;
 
   static final Configuration _instance = Configuration._internal();
   Configuration._internal();

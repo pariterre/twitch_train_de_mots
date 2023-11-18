@@ -24,7 +24,9 @@ class WordProblem {
 
   bool trySolution(String founder, String word) {
     // Do some rapid validation
-    if (word.length < Configuration.instance.smallestWord) return false;
+    if (word.length < Configuration.instance.nbLetterInSmallestWord) {
+      return false;
+    }
     if (word.contains(' ')) return false;
 
     final solution = Solution(word: word);
@@ -38,19 +40,18 @@ class WordProblem {
   }
 
   ///
-  /// Generates a new word problem from a random word.
-  /// This is the main constructor
-  static Future<WordProblem> generate() async {
+  /// Generates a new word problem from a random string of letters.
+  static Future<WordProblem> generateFromRandom() async {
     String candidate;
     Set<String> subWords;
     final c = Configuration.instance;
 
     do {
-      candidate = randomLetters(
+      candidate = _randomLetters(
           minLetters: c.minimumWordLetter, maxLetters: c.maximumWordLetter);
-      subWords = await _WordManipulation.instance.findsWords(
+      subWords = await _WordManipulation.instance._findsWords(
           from: candidate,
-          nbLetters: c.smallestWord,
+          nbLetters: c.nbLetterInSmallestWord,
           wordsCountLimit: c.maximumWordsNumber);
     } while (subWords.length < c.minimumWordsNumber ||
         subWords.length > c.maximumWordsNumber);
@@ -58,6 +59,87 @@ class WordProblem {
     return WordProblem._(
         word: candidate,
         solutions: subWords.map((e) => Solution(word: e)).toList());
+  }
+
+  ///
+  /// Generates a new word problem from picking a letter, then subsetting the
+  /// words and picking a new letter available in the remainning words.
+  static Future<WordProblem> generateFromBuildingUp() async {
+    final random = Random();
+    String candidate;
+    Set<String> subWords;
+
+    do {
+      candidate = '';
+      subWords = await _WordManipulation.wordsWithAtLeast(
+          Configuration.instance.nbLetterInSmallestWord);
+
+      String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      // String availableLetters = 'AELMSWX'; // Force a rapid solution for debug
+      do {
+        // Find a letter which is available
+        candidate += availableLetters[random.nextInt(availableLetters.length)];
+
+        // Reduce the subWords to only those containing the letters in candidate
+        List<String> mandatoryLetters = candidate.split('');
+        subWords = subWords
+            .where((word) =>
+                mandatoryLetters.every((letter) => word.contains(letter)))
+            .toSet();
+
+        // Find all the different letters in the subWords
+        final availableLettersInSubWords =
+            subWords.join('').split('').toSet().join('');
+
+        // Remove the letter from the available letters and intersect with the available letters in subWords
+        availableLetters = availableLetters
+            .replaceAll(candidate[candidate.length - 1], '')
+            .split('')
+            .where((letter) => availableLettersInSubWords.contains(letter))
+            .join('');
+
+        // Delay to avoid blocking the UI
+        await Future.delayed(const Duration(milliseconds: 1));
+
+        // Continue as long as there are letters to add
+      } while (availableLetters.isNotEmpty && subWords.length > 1);
+
+      // Take one of the remainning subWords and use it as the word
+      candidate = subWords.elementAt(random.nextInt(subWords.length));
+
+      // Put all the possible words from candidate in subWords
+      subWords = {};
+      if (candidate.length >= Configuration.instance.minimumWordLetter &&
+          candidate.length <= Configuration.instance.maximumWordLetter) {
+        // This takes time, only do it if the candidate is valid
+        subWords = (await _WordManipulation.instance._findsWords(
+          from: candidate,
+          nbLetters: Configuration.instance.nbLetterInSmallestWord,
+          wordsCountLimit: Configuration.instance.maximumWordsNumber,
+        ));
+      }
+      // Make sure the number of words as solution is valid
+    } while (subWords.length < Configuration.instance.minimumWordsNumber ||
+        subWords.length > Configuration.instance.maximumWordsNumber);
+
+    // Sort the letters of candidate into alphabetical order
+    final candidateSorted = candidate.split('').toList()
+      ..sort()
+      ..join('');
+    candidate = candidateSorted.join('');
+
+    // Sort the subWords by length and alphabetically
+    final subWordsAsList = subWords.toList()
+      ..sort((a, b) {
+        if (a.length == b.length) {
+          return a.compareTo(b);
+        }
+        return a.length - b.length;
+      });
+
+    return WordProblem._(
+        word: candidate,
+        solutions: subWordsAsList.map((e) => Solution(word: e)).toList());
   }
 }
 
@@ -69,7 +151,7 @@ Future<Set<String>> _generateValidPermutations(
 
   Future<void> generate(String prefix, String remaining, int len) async {
     // Add a delay to avoid blocking the UI
-    if (cmp % 5000 == 0) {
+    if (cmp % 1000 == 0) {
       await Future.delayed(const Duration(microseconds: 1));
     }
     cmp++;
@@ -95,7 +177,7 @@ Future<Set<String>> _generateValidPermutations(
 }
 
 /// Generates a random sequence of letters with the specified number of letters
-String randomLetters({required int minLetters, required int maxLetters}) {
+String _randomLetters({required int minLetters, required int maxLetters}) {
   if (minLetters <= 0 || maxLetters < minLetters) {
     throw ArgumentError(
         'Number of letters should be greater than zero and maxLetters should be higher than minLetters');
@@ -104,65 +186,57 @@ String randomLetters({required int minLetters, required int maxLetters}) {
       ? minLetters
       : Random().nextInt(maxLetters - minLetters) + minLetters;
 
-  Random random = Random();
   String result = '';
-
   for (int i = 0; i < nbLetters; i++) {
-    int randomNumber =
-        random.nextInt(26); // Generates a random number between 0 and 25
-    String capitalLetter = String.fromCharCode(
-        randomNumber + 65); // ASCII code for capital letters starts from 65 (A)
-    result += capitalLetter;
+    result += removeDiacritics(randomLetterFromFrequency.toUpperCase());
   }
-
   return result;
 }
 
 class _WordManipulation {
-  final Set<String> words;
+  final Map<int, Set<String>>
+      words; // -1 is all, the other are subset of exactly n letters
 
   static final _WordManipulation _instance = _WordManipulation._internal();
   _WordManipulation._internal()
-      : words = {...frenchWords.map((e) => removeDiacritics(e.toUpperCase()))};
+      : words = {
+          -1: frenchWords
+              .where((e) => !e.contains('-'))
+              .map((e) => removeDiacritics(e.toUpperCase()))
+              .toSet()
+        };
   static _WordManipulation get instance => _instance;
 
-  Future<void> initialize() async {}
+  static Future<Set<String>> wordsWithAtLeast(int nbLetters) async {
+    if (!_WordManipulation.instance.words.keys.contains(nbLetters)) {
+      // Create the cache if it does not exist
+      _WordManipulation.instance.words[nbLetters] = _WordManipulation
+          .instance.words[-1]!
+          .where((e) => e.length >= nbLetters)
+          .toSet();
+    }
 
-  ///
-  /// Pick a random word with at least [nbLetters]
-  Future<String> pickRandom({int nbLetters = 0}) async {
-    final reducedList = await wordsWithAtLeast(nbLetters: nbLetters);
-
-    return reducedList.elementAt(Random().nextInt(reducedList.length));
+    return _WordManipulation.instance.words[nbLetters]!;
   }
-
-  ///
-  /// Returns all words with exactly [nbLetters] in the list
-  Future<Set<String>> wordsWithExactly({required int nbLetters}) async =>
-      words.where((e) => e.length == nbLetters).toSet();
-
-  ///
-  /// Returns all words with at least [nbLetters] in the list
-  Future<Set<String>> wordsWithAtLeast({required int nbLetters}) async =>
-      nbLetters == 0
-          ? words
-          : words.where((e) => e.length >= nbLetters).toSet();
 
   ///
   /// Returns all valid words from the permutation of the letters of the word
   /// [from], with at least [nbLetters] and at most [from.length] letters.
   /// If [wordsCountLimit] is provided, the search terminate as soon as this
   /// limit is reached.
-  Future<Set<String>> findsWords({
+  Future<Set<String>> _findsWords({
     required String from,
     int? wordsCountLimit,
     int nbLetters = 0,
   }) async {
     final Set<String> permutations = {};
 
-    for (int i = nbLetters; i < from.length; i++) {
+    for (int i = from.length; i >= nbLetters; i--) {
       permutations.addAll(await _generateValidPermutations(
-          await wordsWithExactly(nbLetters: i), from, i, wordsCountLimit));
+          await wordsWithAtLeast(nbLetters), from, i, wordsCountLimit));
+
+      // Terminate prematurely if no words of length from.length are found
+      if (permutations.isEmpty) break;
 
       // Terminate prematurely if too many words are found
       if (wordsCountLimit != null && permutations.length > wordsCountLimit) {
