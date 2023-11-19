@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/configuration.dart';
-import 'package:train_de_mots/models/word_manipulation.dart';
+import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';

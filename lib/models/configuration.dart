@@ -1,3 +1,4 @@
+import 'package:train_de_mots/models/word_problem.dart';
 import 'package:twitch_manager/twitch_manager.dart';
 
 class Configuration {
@@ -11,7 +12,9 @@ class Configuration {
   Configuration._internal();
   static Configuration get instance => _instance;
 
-  Future<void> initialize() async {}
+  Future<void> initialize() async {
+    await WordProblem.initialize();
+  }
 
   final isTwitchMockActive = true;
   final twitchDebugOptions = TwitchDebugPanelOptions(chatters: [

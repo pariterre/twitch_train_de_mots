@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/word_manipulation.dart';
+import 'package:train_de_mots/models/word_problem.dart';
 
 class LeaderBoard extends StatelessWidget {
   const LeaderBoard({super.key, required this.wordProblem});
