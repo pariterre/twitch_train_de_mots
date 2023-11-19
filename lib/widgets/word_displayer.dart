@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/misc.dart';
+import 'package:train_de_mots/models/letter.dart';
 
 class WordDisplayer extends StatefulWidget {
   const WordDisplayer({super.key, required this.word});

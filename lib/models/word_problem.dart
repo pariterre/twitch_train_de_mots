@@ -4,11 +4,11 @@ import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/models/configuration.dart';
 import 'package:train_de_mots/models/french_words.dart';
-import 'package:train_de_mots/models/misc.dart';
+import 'package:train_de_mots/models/solution.dart';
 
 class WordProblem {
   String word;
-  List<Solution> solutions;
+  Solutions solutions;
 
   static initialize() async {
     await _WordGenerator.instance
@@ -32,13 +32,7 @@ class WordProblem {
       ..join('');
     word = wordSorted.join('');
 
-    // Sort the subWords by length and alphabetically
-    solutions.sort((a, b) {
-      if (a.word.length == b.word.length) {
-        return a.word.compareTo(b.word);
-      }
-      return a.word.length - b.word.length;
-    });
+    solutions = solutions.sort();
   }
 
   bool trySolution(String founder, String word) {
@@ -77,7 +71,7 @@ class WordProblem {
 
     return WordProblem._(
         word: candidate,
-        solutions: subWords.map((e) => Solution(word: e)).toList());
+        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()));
   }
 
   ///
@@ -143,7 +137,7 @@ class WordProblem {
 
     return WordProblem._(
         word: candidate,
-        solutions: subWords.map((e) => Solution(word: e)).toList());
+        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()));
   }
 }
 

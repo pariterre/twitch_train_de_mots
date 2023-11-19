@@ -1,39 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/misc.dart';
+import 'package:train_de_mots/models/solution.dart';
 
-class SolutionsDisplayer extends StatefulWidget {
+class SolutionsDisplayer extends StatelessWidget {
   const SolutionsDisplayer({super.key, required this.solutions});
 
-  final List<Solution> solutions;
+  final Solutions solutions;
 
-  @override
-  State<SolutionsDisplayer> createState() => _SolutionsDisplayerState();
-}
-
-class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
-  int current = -1;
   @override
   Widget build(BuildContext context) {
-    return Column(
+    List<Solutions> solutionsByLength = [];
+    for (var i = solutions.nbLettersInSmallest;
+        i <= solutions.nbLettersInLongest;
+        i++) {
+      solutionsByLength.add(solutions.solutionsOfLength(i));
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        for (var solution in widget.solutions)
+        for (var solutions in solutionsByLength)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: Builder(builder: (context) {
-              bool showWriteCounter = solution.word.length != current;
-              current = solution.word.length;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (showWriteCounter)
-                    Text(
-                      'Mots de $current lettres',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  _Solution(solution: solution),
-                ],
-              );
-            }),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Wrap(
+              direction: Axis.vertical,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  'Mots de ${solutions.first.word.length} lettres',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [...solutions.map((e) => _Solution(solution: e))],
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -49,7 +51,7 @@ class _Solution extends StatelessWidget {
   Widget build(BuildContext context) {
     // Create a letter that ressemble those on a Scrabble board
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
       child: SizedBox(
           width: 200,
           height: 30,

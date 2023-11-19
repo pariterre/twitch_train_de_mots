@@ -90,8 +90,11 @@ class _GameScreenState extends State<GameScreen> {
                       children: [
                         WordDisplayer(word: _currentProblem!.word),
                         const SizedBox(height: 20),
-                        SolutionsDisplayer(
-                            solutions: _currentProblem!.solutions),
+                        SizedBox(
+                          height: 600,
+                          child: SolutionsDisplayer(
+                              solutions: _currentProblem!.solutions),
+                        ),
                       ],
                     ),
               const SizedBox(height: 20),
