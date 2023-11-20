@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/configuration.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
-class LeaderBoard extends StatelessWidget {
-  const LeaderBoard({super.key, required this.wordProblem});
+class LeaderBoard extends StatefulWidget {
+  const LeaderBoard({super.key});
 
-  final WordProblem? wordProblem;
+  @override
+  State<LeaderBoard> createState() => _LeaderBoardState();
+}
+
+class _LeaderBoardState extends State<LeaderBoard> {
+  @override
+  void initState() {
+    super.initState();
+
+    GameManager.instance.onRoundIsReady(_refresh);
+    GameManager.instance.onSolutionFound(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    GameManager.instance.removeOnSolutionFound(_refresh);
+    GameManager.instance.removeOnSolutionFound(_refresh);
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final players = Configuration.instance.players.sort();
+    final gm = GameManager.instance;
+    final players = gm.players.sort();
+    WordProblem? problem = gm.problem;
 
     return SizedBox(
       width: 300,
@@ -41,7 +64,7 @@ class LeaderBoard extends StatelessWidget {
                         child: _buildPlayerTile(
                           player: player,
                           roundScore:
-                              wordProblem?.scoreOf(player).toString() ?? '0',
+                              problem?.scoreOf(player).toString() ?? '0',
                         ),
                       ),
                 ],
@@ -130,8 +153,16 @@ class _CoolDownClockState extends State<_CoolDownClock> {
   @override
   void initState() {
     super.initState();
-    widget.player.addListener(() => setState(() {}));
+    widget.player.addListener(_refresh);
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.player.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/configuration.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 
 class Player with ChangeNotifier {
   final String name;
@@ -14,7 +14,7 @@ class Player with ChangeNotifier {
   int cooldownPeriod = 0;
   bool get isInCooldownPeriod => cooldownPeriod > 0;
   void startCooldownPeriod() async {
-    cooldownPeriod = Configuration.instance.cooldownPeriod.inSeconds;
+    cooldownPeriod = GameManager.instance.cooldownPeriod.inSeconds;
     while (cooldownPeriod > 0) {
       await Future.delayed(const Duration(seconds: 1));
       cooldownPeriod--;

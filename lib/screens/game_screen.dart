@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/configuration.dart';
-import 'package:train_de_mots/models/word_problem.dart';
+import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
@@ -16,65 +16,73 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  WordProblem? _currentProblem;
-  TwitchManager? _twitchManager;
-
-  Future<void> _pickANewWord() async {
-    _currentProblem = null;
-    setState(() {});
-
-    _currentProblem = await WordProblem.generateFromRandom();
-    setState(() {});
+  Future<void> _resquestNextRound() async {
+    GameManager.instance.nextRound();
   }
 
-  Future<void> _getTwitchManager() async {
-    _twitchManager = await showDialog<TwitchManager>(
+  Future<void> _setTwitchManager() async {
+    final manager = await showDialog<TwitchManager>(
         context: context,
         builder: (context) => TwitchAuthenticationScreen(
-              isMockActive: Configuration.instance.isTwitchMockActive,
-              debugPanelOptions: Configuration.instance.twitchDebugOptions,
+              isMockActive: TwitchInterface.instance.isMockActive,
+              debugPanelOptions: TwitchInterface.instance.debugOptions,
               onFinishedConnexion: (manager) {
                 Navigator.of(context).pop(manager);
               },
-              appInfo: Configuration.instance.twitchAppInfo,
+              appInfo: TwitchInterface.instance.appInfo,
               reload: false,
             ));
+    if (manager == null) return;
+    TwitchInterface.instance.manager = manager;
 
-    // Register to chat callback
-    _twitchManager!.chat.onMessageReceived((sender, message) {
-      if (_currentProblem?.trySolution(sender, message) ?? false) {
-        setState(() {});
-      }
-    });
     setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    GameManager.instance.onRoundIsReady(_onRoundIsReady);
+    GameManager.instance.onSolutionFound(_onSolutionFound);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_twitchManager == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _getTwitchManager());
+    if (TwitchInterface.instance.hasNotManager) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
-    if (_currentProblem == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _pickANewWord());
+    if (GameManager.instance.hasNotAnActiveRound) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _resquestNextRound());
     }
   }
 
   @override
+  void dispose() {
+    super.dispose();
+
+    GameManager.instance.removeOnSolutionFound(_onRoundIsReady);
+    GameManager.instance.removeOnSolutionFound(_onSolutionFound);
+  }
+
+  void _onRoundIsReady() => setState(() {});
+  void _onSolutionFound() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _twitchManager == null
+      body: TwitchInterface.instance.hasNotManager
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : TwitchDebugOverlay(
-              manager: _twitchManager!,
-              child: SingleChildScrollView(child: _buildGameScreen()),
-            ),
+          : TwitchInterface.instance.debugOverlay(
+              child: SingleChildScrollView(child: _buildGameScreen())),
     );
   }
 
   Widget _buildGameScreen() {
+    final gm = GameManager.instance;
+
     return Stack(
       children: [
         SizedBox(
@@ -83,33 +91,31 @@ class _GameScreenState extends State<GameScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              _currentProblem == null
+              gm.hasNotAnActiveRound
                   ? const Center(child: CircularProgressIndicator())
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        WordDisplayer(word: _currentProblem!.word),
+                        WordDisplayer(word: gm.problem!.word),
                         const SizedBox(height: 20),
                         SizedBox(
                           height: 600,
                           child: SolutionsDisplayer(
-                              solutions: _currentProblem!.solutions),
+                              solutions: gm.problem!.solutions),
                         ),
                       ],
                     ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => setState(() {
-                  _pickANewWord();
+                  _resquestNextRound();
                 }),
                 child: const Text('New word'),
               )
             ],
           ),
         ),
-        Align(
-            alignment: Alignment.topRight,
-            child: LeaderBoard(wordProblem: _currentProblem))
+        const Align(alignment: Alignment.topRight, child: LeaderBoard())
       ],
     );
   }

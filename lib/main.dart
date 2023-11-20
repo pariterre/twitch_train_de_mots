@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/configuration.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
 
 void main() async {
   // Initialize singleton
-  await Configuration.instance.initialize();
+  await GameManager.instance.initialize();
 
   runApp(const MyApp());
 }
