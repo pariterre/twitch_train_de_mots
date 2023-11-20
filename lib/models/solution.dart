@@ -1,18 +1,21 @@
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/models/letter.dart';
+import 'package:train_de_mots/models/player.dart';
 
 class Solution {
   final String word;
-  String? founder;
+
+  bool isInGracePeriod = false;
+  Player? foundBy;
 
   int get value => word
       .split('')
       .map((e) => Letter.getValueOfLetter(e))
       .reduce((a, b) => a + b);
-  bool get isFound => founder != null;
+  bool get isFound => foundBy != null;
 
-  Solution({required String word, this.founder})
+  Solution({required String word, this.foundBy})
       : word = removeDiacritics(word.toUpperCase());
 }
 
@@ -63,4 +66,9 @@ class Solutions extends DelegatingList<Solution> {
       (previousValue, element) => previousValue > element.word.length
           ? previousValue
           : element.word.length);
+
+  ///
+  /// Get the maximum possible score for this solution
+  int get maximumPossibleScore => _solutions.fold<int>(
+      0, (previousValue, element) => previousValue + element.value);
 }

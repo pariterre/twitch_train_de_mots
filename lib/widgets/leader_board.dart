@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/configuration.dart';
+import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 class LeaderBoard extends StatelessWidget {
@@ -8,8 +10,7 @@ class LeaderBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foundersSorted = [...(wordProblem?.founders ?? {})]
-      ..sort((a, b) => wordProblem!.score(b) - wordProblem!.score(a));
+    final players = Configuration.instance.players.sort();
 
     return SizedBox(
       width: 300,
@@ -31,25 +32,26 @@ class LeaderBoard extends StatelessWidget {
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  _buildFounderTile(
-                      founder: 'Participants', score: 'Score', isTitle: true),
+                  _buildTitleTile(),
                   const SizedBox(height: 12.0),
-                  if (foundersSorted.isNotEmpty)
-                    for (var founder in foundersSorted)
+                  if (players.isNotEmpty)
+                    for (var player in players)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4.0),
-                        child: _buildFounderTile(
-                            founder: founder,
-                            score: wordProblem!.score(founder).toString()),
+                        child: _buildPlayerTile(
+                          player: player,
+                          roundScore:
+                              wordProblem?.scoreOf(player).toString() ?? '0',
+                        ),
                       ),
                 ],
               ),
             ),
-            if (wordProblem == null)
+            if (players.isEmpty)
               const Center(
                   child: Padding(
                 padding: EdgeInsets.only(bottom: 12.0),
-                child: Text('En attente d\'un mot',
+                child: Text('En attente de joueurs...',
                     style: TextStyle(color: Colors.white)),
               )),
             const SizedBox(height: 12.0),
@@ -59,19 +61,52 @@ class LeaderBoard extends StatelessWidget {
     );
   }
 
-  Widget _buildFounderTile(
-      {required String founder, required String score, bool isTitle = false}) {
+  Widget _buildTitleTile() {
+    return _buildGenericTile(
+      player: 'Participants',
+      roundScore: 'Ronde',
+      totalScore: 'Total',
+      isTitle: true,
+    );
+  }
+
+  Widget _buildPlayerTile({
+    required Player player,
+    required String roundScore,
+  }) {
+    return _buildGenericTile(
+      player: player.name,
+      roundScore: roundScore,
+      totalScore: player.score.toString(),
+      isTitle: false,
+      clock: _CoolDownClock(player: player),
+    );
+  }
+
+  Widget _buildGenericTile({
+    required String player,
+    required String roundScore,
+    required String totalScore,
+    required bool isTitle,
+    _CoolDownClock? clock,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(founder,
-            style: TextStyle(
-                color: Colors.white,
-                fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(player,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
+            if (clock != null) clock,
+          ],
+        ),
         SizedBox(
-          width: 40,
+          width: 100,
           child: Center(
-            child: Text(score,
+            child: Text('$roundScore ($totalScore)',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
@@ -79,5 +114,30 @@ class LeaderBoard extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _CoolDownClock extends StatefulWidget {
+  const _CoolDownClock({required this.player});
+
+  final Player player;
+
+  @override
+  State<_CoolDownClock> createState() => _CoolDownClockState();
+}
+
+class _CoolDownClockState extends State<_CoolDownClock> {
+  @override
+  void initState() {
+    super.initState();
+    widget.player.addListener(() => setState(() {}));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int value = widget.player.cooldownPeriod;
+    return value > 0
+        ? Text(' ($value)', style: const TextStyle(color: Colors.white))
+        : const SizedBox();
   }
 }

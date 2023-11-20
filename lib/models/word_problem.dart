@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/models/configuration.dart';
 import 'package:train_de_mots/models/french_words.dart';
+import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
 class WordProblem {
@@ -15,15 +16,15 @@ class WordProblem {
         .wordsWithAtLeast(Configuration.instance.nbLetterInSmallestWord);
   }
 
-  Set<String> get founders => solutions
+  Set<Player> get finders => solutions
       .where((element) => element.isFound)
-      .map((e) => e.founder!)
+      .map((e) => e.foundBy!)
       .toSet();
 
-  int score(String founder) => solutions
-      .where((element) => element.isFound && element.founder == founder)
+  int scoreOf(Player player) => solutions
+      .where((element) => element.isFound && element.foundBy! == player)
       .map((e) => e.value)
-      .reduce((value, element) => value + element);
+      .fold(0, (value, element) => value + element);
 
   WordProblem._({required this.word, required this.solutions}) {
     // Sort the letters of candidate into alphabetical order
@@ -35,21 +36,37 @@ class WordProblem {
     solutions = solutions.sort();
   }
 
-  bool trySolution(String founder, String word) {
+  bool trySolution(String finder, String word) {
     // Do some rapid validation
     if (word.length < Configuration.instance.nbLetterInSmallestWord) {
+      // If the word is shorted than the permitted shortest word, it is invalid
       return false;
     }
-    if (word.contains(' ')) return false;
+    // If the word contains any non letters, it is invalid
+    word = removeDiacritics(word.toUpperCase());
+    if (word.contains(RegExp(r'[^A-Z]'))) return false;
 
-    final solution = Solution(word: word);
-    final found =
-        solutions.firstWhereOrNull((Solution e) => e.word == solution.word);
-    if (found != null) {
-      found.founder = founder;
-      return true;
+    // Add the player to players list if it does not exist
+    if (Configuration.instance.players.hasNotPlayer(finder)) {
+      Configuration.instance.players.add(Player(name: finder));
     }
-    return false;
+    final player = Configuration.instance.players
+        .firstWhere((element) => element.name == finder);
+
+    // If the player is in cooldown, they are not allowed to answer
+    if (player.isInCooldownPeriod) {
+      return false;
+    }
+
+    final solution = solutions.firstWhereOrNull((Solution e) => e.word == word);
+    // If the proposed word is not a solution, it is invalid
+    if (solution == null) return false;
+
+    // Otherwise the solution is valid and is added to player score
+    solution.foundBy = player;
+    player.addScore(solution.value);
+    player.startCooldownPeriod();
+    return true;
   }
 
   ///

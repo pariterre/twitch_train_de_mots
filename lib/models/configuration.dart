@@ -1,7 +1,13 @@
+import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 import 'package:twitch_manager/twitch_manager.dart';
 
 class Configuration {
+  final Players players = Players();
+
+  final Duration roundDuration = const Duration(minutes: 3);
+  final Duration cooldownPeriod = const Duration(seconds: 5);
+
   final int nbLetterInSmallestWord = 5;
   final int minimumWordLetter = 6;
   final int maximumWordLetter = 8;

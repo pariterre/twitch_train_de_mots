@@ -58,7 +58,7 @@ class _Solution extends StatelessWidget {
           child: solution.isFound
               ? Center(
                   child: Text(
-                      '${solution.word} (${solution.founder} - ${solution.value} pts)'))
+                      '${solution.word} (${solution.foundBy!.name} - ${solution.value} pts)'))
               : Tooltip(
                   message: solution.word,
                   child: Container(
