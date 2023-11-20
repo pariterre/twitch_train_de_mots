@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
@@ -30,7 +31,7 @@ class _GameScreenState extends State<GameScreen> {
                 Navigator.of(context).pop(manager);
               },
               appInfo: TwitchInterface.instance.appInfo,
-              reload: false,
+              reload: true,
             ));
     if (manager == null) return;
     TwitchInterface.instance.manager = manager;
@@ -75,8 +76,9 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
-          ? const Center(
-              child: CircularProgressIndicator(),
+          ? Center(
+              child: CircularProgressIndicator(
+                  color: CustomColorScheme.instance.mainColor),
             )
           : TwitchInterface.instance.debugOverlay(
               child: SingleChildScrollView(child: _buildGameScreen())),
@@ -84,10 +86,17 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildGameScreen() {
+    final windowSize = MediaQuery.of(context).size;
     final gm = GameManager.instance;
 
     return Stack(
       children: [
+        Container(
+          width: windowSize.width,
+          height: windowSize.height,
+          decoration:
+              BoxDecoration(color: CustomColorScheme.instance.backgroundColor),
+        ),
         SizedBox(
           width: double.infinity,
           child: Column(
@@ -95,15 +104,28 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               const SizedBox(height: 20),
               Text(
+                'Le Train de mots! Tchou Tchou!',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 32,
+                    color: CustomColorScheme.instance.textColor),
+              ),
+              const SizedBox(height: 20),
+              Text(
                 GameManager.instance.gameTimer == null
                     ? 'Manche terminée!'
-                    : 'Temps restant: ${GameManager.instance.gameTimer}',
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    : 'Temps restant à la manche : ${GameManager.instance.gameTimer}',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    color: CustomColorScheme.instance.textColor),
               ),
               const SizedBox(height: 20),
               gm.hasNotAnActiveRound
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                      color: CustomColorScheme.instance.mainColor,
+                    ))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -118,9 +140,9 @@ class _GameScreenState extends State<GameScreen> {
                     ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => setState(() {
-                  _resquestNextRound();
-                }),
+                onPressed: () => setState(() => _resquestNextRound()),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomColorScheme.instance.mainColor),
                 child: const Text('New word'),
               )
             ],

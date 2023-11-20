@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/solution.dart';
 
 class SolutionsDisplayer extends StatelessWidget {
@@ -27,7 +28,9 @@ class SolutionsDisplayer extends StatelessWidget {
               children: [
                 Text(
                   'Mots de ${solutions.first.word.length} lettres',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: CustomColorScheme.instance.textColor),
                 ),
                 Wrap(
                   direction: Axis.vertical,
@@ -55,20 +58,30 @@ class _Solution extends StatelessWidget {
       child: SizedBox(
           width: 200,
           height: 30,
-          child: solution.isFound
-              ? Center(
-                  child: Text(
-                      '${solution.word} (${solution.foundBy!.name} - ${solution.value} pts)'))
-              : Tooltip(
-                  message: solution.word,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.black),
-                    ),
-                  ),
-                )),
+          child: Tooltip(
+            message: solution.isFound ? '' : solution.word,
+            child: Container(
+              decoration: BoxDecoration(
+                color: solution.isFound
+                    ? CustomColorScheme.instance.solutionSolvedBackgroundColor
+                    : CustomColorScheme
+                        .instance.solutionUnsolvedBackgroundColor,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.black),
+              ),
+              child: solution.isFound
+                  ? Center(
+                      child: Text(
+                        '${solution.word} (${solution.foundBy!.name} - ${solution.value} pts)',
+                        style: TextStyle(
+                            color: solution.isFound
+                                ? CustomColorScheme.instance.textSolvedColor
+                                : CustomColorScheme.instance.textUnsolvedColor),
+                      ),
+                    )
+                  : null,
+            ),
+          )),
     );
   }
 }

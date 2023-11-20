@@ -36,14 +36,15 @@ class TwitchInterface {
   ]);
   final appInfo = TwitchAppInfo(
     appName: 'Train de mots',
-    twitchAppId: 'YOUR_APP_ID_HERE',
+    twitchAppId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
     scope: const [
       TwitchScope.chatRead,
       TwitchScope.readFollowers,
     ],
-    redirectAddress: 'TO_FILL',
+    redirectAddress: 'https://twitchauthentication.pariterre.net:3000',
     useAuthenticationService: true,
-    authenticationServiceAddress: 'wss://localhost:3002',
+    authenticationServiceAddress:
+        'wss://twitchauthentication.pariterre.net:3002',
   );
 
   final _chatListeners =

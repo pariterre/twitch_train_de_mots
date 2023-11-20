@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/letter.dart';
 
 class WordDisplayer extends StatefulWidget {
@@ -44,8 +45,8 @@ class _Letter extends StatelessWidget {
           Center(
             child: Text(
               letter.data,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: CustomColorScheme.instance.textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 25,
               ),
@@ -57,7 +58,8 @@ class _Letter extends StatelessWidget {
               padding: const EdgeInsets.all(2.0),
               child: Text(
                 letter.value.toString(),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: TextStyle(
+                    color: CustomColorScheme.instance.textColor, fontSize: 12),
               ),
             ),
           )

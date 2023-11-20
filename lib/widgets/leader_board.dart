@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
@@ -38,17 +39,19 @@ class _LeaderBoardState extends State<LeaderBoard> {
     return SizedBox(
       width: 300,
       child: Card(
-        color: Colors.blueGrey,
+        color: CustomColorScheme.instance.mainColor,
         elevation: 10,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text('Tableau des meneurs',
-                    style: TextStyle(fontSize: 20, color: Colors.white)),
+                    style: TextStyle(
+                        fontSize: 20,
+                        color: CustomColorScheme.instance.textColor)),
               ),
             ),
             Padding(
@@ -71,11 +74,12 @@ class _LeaderBoardState extends State<LeaderBoard> {
               ),
             ),
             if (players.isEmpty)
-              const Center(
+              Center(
                   child: Padding(
-                padding: EdgeInsets.only(bottom: 12.0),
+                padding: const EdgeInsets.only(bottom: 12.0),
                 child: Text('En attente de joueurs...',
-                    style: TextStyle(color: Colors.white)),
+                    style:
+                        TextStyle(color: CustomColorScheme.instance.textColor)),
               )),
             const SizedBox(height: 12.0),
           ],
@@ -121,7 +125,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
           children: [
             Text(player,
                 style: TextStyle(
-                    color: Colors.white,
+                    color: CustomColorScheme.instance.textColor,
                     fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
             if (clock != null) clock,
           ],
@@ -131,7 +135,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
           child: Center(
             child: Text('$roundScore ($totalScore)',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: CustomColorScheme.instance.textColor,
                     fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
           ),
         ),
@@ -168,7 +172,8 @@ class _CoolDownClockState extends State<_CoolDownClock> {
   Widget build(BuildContext context) {
     int value = widget.player.cooldownPeriod;
     return value > 0
-        ? Text(' ($value)', style: const TextStyle(color: Colors.white))
+        ? Text(' ($value)',
+            style: TextStyle(color: CustomColorScheme.instance.textColor))
         : const SizedBox();
   }
 }
