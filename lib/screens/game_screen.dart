@@ -43,6 +43,7 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
 
     GameManager.instance.onRoundIsReady(_onRoundIsReady);
+    GameManager.instance.onTimerTicks(_onClockTicks);
     GameManager.instance.onSolutionFound(_onSolutionFound);
   }
 
@@ -61,10 +62,12 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     super.dispose();
 
-    GameManager.instance.removeOnSolutionFound(_onRoundIsReady);
+    GameManager.instance.removeOnRoundIsReady(_onRoundIsReady);
+    GameManager.instance.removeOnTimerTicks(_onClockTicks);
     GameManager.instance.removeOnSolutionFound(_onSolutionFound);
   }
 
+  void _onClockTicks() => setState(() {});
   void _onRoundIsReady() => setState(() {});
   void _onSolutionFound() => setState(() {});
 
@@ -90,6 +93,14 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 20),
+              Text(
+                GameManager.instance.gameTimer == null
+                    ? 'Manche terminée!'
+                    : 'Temps restant: ${GameManager.instance.gameTimer}',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
               const SizedBox(height: 20),
               gm.hasNotAnActiveRound
                   ? const Center(child: CircularProgressIndicator())

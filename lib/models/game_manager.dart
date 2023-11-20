@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -5,9 +7,11 @@ import 'package:train_de_mots/models/word_problem.dart';
 
 class GameManager {
   final Players players = Players();
+  int? _gameTimer;
+  int? get gameTimer => _gameTimer;
 
   final Duration roundDuration = const Duration(minutes: 3);
-  final Duration cooldownPeriod = const Duration(seconds: 5);
+  final Duration cooldownPeriod = const Duration(seconds: 15);
 
   final int nbLetterInSmallestWord = 5;
   final int minimumWordLetter = 6;
@@ -44,17 +48,30 @@ class GameManager {
     _currentProblem = null;
     _currentProblem = await WordProblem.generateFromRandom();
 
-    // TODO Start timer
+    _gameTimer = roundDuration.inSeconds;
+    Timer.periodic(const Duration(seconds: 1), _timerTick);
 
     _callOnRoundIsReady();
   }
 
   Future<void> _trySolution(String sender, String message) async {
-    if (problem == null) return;
+    if (problem == null || gameTimer == null) return;
 
-    if (problem!.trySolution(sender, message)) {
-      _callOnSolutionFound();
+    if (problem!.trySolution(sender, message)) _callOnSolutionFound();
+  }
+
+  void _timerTick(Timer timer) {
+    _callOnTimerTicks();
+    _gameTimer = _gameTimer! - 1;
+    if (_gameTimer! < 1) {
+      timer.cancel();
+      _roundIsOver();
     }
+  }
+
+  void _roundIsOver() {
+    _gameTimer = null;
+    _callOnRoundIsOver();
   }
 
   /// All the callbacks
@@ -68,12 +85,32 @@ class GameManager {
     }
   }
 
+  final List<VoidCallback> _onTimerTicks = [];
+  void onTimerTicks(VoidCallback callback) => _onTimerTicks.add(callback);
+  void removeOnTimerTicks(VoidCallback callback) =>
+      _onTimerTicks.removeWhere((e) => e == callback);
+  void _callOnTimerTicks() {
+    for (final callback in _onTimerTicks) {
+      callback();
+    }
+  }
+
   final List<VoidCallback> _onSolutionFound = [];
   void onSolutionFound(VoidCallback callback) => _onSolutionFound.add(callback);
   void removeOnSolutionFound(VoidCallback callback) =>
       _onSolutionFound.removeWhere((e) => e == callback);
   void _callOnSolutionFound() {
     for (final callback in _onSolutionFound) {
+      callback();
+    }
+  }
+
+  final List<VoidCallback> _onRoundIsOver = [];
+  void onRoundIsOver(VoidCallback callback) => _onRoundIsOver.add(callback);
+  void removeOnRoundIsOver(VoidCallback callback) =>
+      _onRoundIsOver.removeWhere((e) => e == callback);
+  void _callOnRoundIsOver() {
+    for (final callback in _onRoundIsOver) {
       callback();
     }
   }
