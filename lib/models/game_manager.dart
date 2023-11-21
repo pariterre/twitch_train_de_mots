@@ -81,6 +81,12 @@ class GameManager {
   /// unregister when the widget is disposed, otherwise it will leak memory.
   /// --------- ///
 
+  /// Callbacks for that tells listeners that the round is preparing
+  void onRoundIsPreparing(VoidCallback callback) =>
+      _onRoundIsPreparing.add(callback);
+  void removeOnRoundIsPreparing(VoidCallback callback) =>
+      _onRoundIsPreparing.removeWhere((e) => e == callback);
+
   ///
   /// Callbacks for that tells listeners that the round is ready to start
   void onRoundIsReady(VoidCallback callback) => _onRoundIsReady.add(callback);
@@ -128,6 +134,7 @@ class GameManager {
       _initializeTrySolutionCallback();
     }
     _gameStatus = GameStatus.preparingProblem;
+    _callOnRoundIsPreparing();
 
     _currentProblem = null;
     _currentProblem = await WordProblem.generateFromRandom();
@@ -175,6 +182,13 @@ class GameManager {
 
   ///
   /// Callbacks management (see API for description)
+  final List<VoidCallback> _onRoundIsPreparing = [];
+  void _callOnRoundIsPreparing() {
+    for (final callback in _onRoundIsPreparing) {
+      callback();
+    }
+  }
+
   final List<VoidCallback> _onRoundIsReady = [];
   void _callOnRoundIsReady() {
     for (final callback in _onRoundIsReady) {
