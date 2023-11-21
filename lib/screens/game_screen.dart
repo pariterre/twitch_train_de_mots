@@ -5,7 +5,6 @@ import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
-import 'package:twitch_manager/twitch_manager.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -17,25 +16,14 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  Future<void> _resquestNextRound() async {
-    GameManager.instance.nextRound();
-  }
+  Future<void> _resquestTerminateRound() async =>
+      await GameManager.instance.requestTerminateRound();
+
+  Future<void> _resquestStartNewRound() async =>
+      await GameManager.instance.requestStartNewRound();
 
   Future<void> _setTwitchManager() async {
-    final manager = await showDialog<TwitchManager>(
-        context: context,
-        builder: (context) => TwitchAuthenticationScreen(
-              isMockActive: TwitchInterface.instance.isMockActive,
-              debugPanelOptions: TwitchInterface.instance.debugOptions,
-              onFinishedConnexion: (manager) {
-                Navigator.of(context).pop(manager);
-              },
-              appInfo: TwitchInterface.instance.appInfo,
-              reload: true,
-            ));
-    if (manager == null) return;
-    TwitchInterface.instance.manager = manager;
-
+    await TwitchInterface.instance.showConnectManagerDialog(context);
     setState(() {});
   }
 
@@ -55,7 +43,8 @@ class _GameScreenState extends State<GameScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
     if (GameManager.instance.hasNotAnActiveRound) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _resquestNextRound());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _resquestStartNewRound());
     }
   }
 
@@ -140,10 +129,16 @@ class _GameScreenState extends State<GameScreen> {
                     ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => setState(() => _resquestNextRound()),
+                onPressed:
+                    GameManager.instance.gameStatus == GameStatus.roundStarted
+                        ? _resquestTerminateRound
+                        : _resquestStartNewRound,
                 style: ElevatedButton.styleFrom(
                     backgroundColor: CustomColorScheme.instance.mainColor),
-                child: const Text('New word'),
+                child: Text(
+                    GameManager.instance.gameStatus == GameStatus.roundStarted
+                        ? 'Terminer la manche'
+                        : 'Prochaine manche'),
               )
             ],
           ),

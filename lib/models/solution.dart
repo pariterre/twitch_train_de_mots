@@ -6,7 +6,6 @@ import 'package:train_de_mots/models/player.dart';
 class Solution {
   final String word;
 
-  bool isInGracePeriod = false;
   Player? foundBy;
 
   int get value => word
