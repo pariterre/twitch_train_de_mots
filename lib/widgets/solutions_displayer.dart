@@ -53,30 +53,34 @@ class _Solution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Create a letter that ressemble those on a Scrabble board
+    final scheme = CustomColorScheme.instance;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
       child: SizedBox(
-          width: 200,
-          height: 30,
+          width: 300,
+          height: 50,
           child: Tooltip(
             message: solution.isFound ? '' : solution.word,
             child: Container(
               decoration: BoxDecoration(
                 color: solution.isFound
-                    ? CustomColorScheme.instance.solutionSolvedBackgroundColor
-                    : CustomColorScheme
-                        .instance.solutionUnsolvedBackgroundColor,
+                    ? (solution.wasStealed
+                        ? scheme.solutionStealedColor
+                        : scheme.solutionSolvedColor)
+                    : scheme.solutionUnsolvedColor,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(color: Colors.black),
               ),
               child: solution.isFound
                   ? Center(
                       child: Text(
-                        '${solution.word} (${solution.foundBy!.name} - ${solution.value} pts)',
+                        '${solution.word} (${solution.foundBy!.name})',
                         style: TextStyle(
+                            fontSize: 24,
                             color: solution.isFound
-                                ? CustomColorScheme.instance.textSolvedColor
-                                : CustomColorScheme.instance.textUnsolvedColor),
+                                ? scheme.textSolvedColor
+                                : scheme.textUnsolvedColor),
                       ),
                     )
                   : null,

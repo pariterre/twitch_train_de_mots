@@ -1,26 +1,14 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/game_manager.dart';
 
-class Player with ChangeNotifier {
+class Player {
   final String name;
 
-  int _score = 0;
-  int get score => _score;
-  void addScore(int value) {
-    _score += value;
-  }
+  int score = 0;
 
-  int cooldownPeriod = 0;
-  bool get isInCooldownPeriod => cooldownPeriod > 0;
-  void startCooldownPeriod() async {
-    cooldownPeriod = GameManager.instance.cooldownPeriod.inSeconds;
-    while (cooldownPeriod > 0) {
-      await Future.delayed(const Duration(seconds: 1));
-      cooldownPeriod--;
-      notifyListeners();
-    }
-  }
+  bool isStealer = false;
+
+  int cooldownTimer = 0;
+  bool get isInCooldownPeriod => cooldownTimer > 0;
 
   Player({required this.name});
 }
@@ -43,6 +31,17 @@ class Players extends DelegatingList<Player> {
   ///
   /// Get if the player with the given name is not registered
   bool hasNotPlayer(String name) => !hasPlayer(name);
+
+  ///
+  /// This method behaves like [firstWhere] but if the player is not found, it
+  /// will add it to the list and return it.
+  Player firstWhereOrAdd(String name) {
+    return super.firstWhere((element) => element.name == name, orElse: () {
+      final newPlayer = Player(name: name);
+      _players.add(newPlayer);
+      return newPlayer;
+    });
+  }
 
   ///
   /// Sort by score (default)

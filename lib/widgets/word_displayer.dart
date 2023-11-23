@@ -33,8 +33,8 @@ class _Letter extends StatelessWidget {
   Widget build(BuildContext context) {
     // Create a letter that ressemble those on a Scrabble board
     return Container(
-      width: 50,
-      height: 60,
+      width: 60,
+      height: 70,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 200, 150, 0),
         border: Border.all(color: Colors.black),
@@ -48,18 +48,18 @@ class _Letter extends StatelessWidget {
               style: TextStyle(
                 color: CustomColorScheme.instance.textColor,
                 fontWeight: FontWeight.bold,
-                fontSize: 25,
+                fontSize: 36,
               ),
             ),
           ),
           Align(
             alignment: Alignment.bottomRight,
             child: Padding(
-              padding: const EdgeInsets.all(2.0),
+              padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
               child: Text(
                 letter.value.toString(),
                 style: TextStyle(
-                    color: CustomColorScheme.instance.textColor, fontSize: 12),
+                    color: CustomColorScheme.instance.textColor, fontSize: 16),
               ),
             ),
           )

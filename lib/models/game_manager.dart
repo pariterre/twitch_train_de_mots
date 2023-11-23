@@ -53,6 +53,7 @@ class GameManager {
   /// application.
   Future<void> initialize() async {
     await WordProblem.initialize();
+    Timer.periodic(const Duration(seconds: 1), _gameLoop);
   }
 
   ///
@@ -82,34 +83,12 @@ class GameManager {
   /// --------- ///
 
   /// Callbacks for that tells listeners that the round is preparing
-  void onRoundIsPreparing(VoidCallback callback) =>
-      _onRoundIsPreparing.add(callback);
-  void removeOnRoundIsPreparing(VoidCallback callback) =>
-      _onRoundIsPreparing.removeWhere((e) => e == callback);
-
-  ///
-  /// Callbacks for that tells listeners that the round is ready to start
-  void onRoundIsReady(VoidCallback callback) => _onRoundIsReady.add(callback);
-  void removeOnRoundIsReady(VoidCallback callback) =>
-      _onRoundIsReady.removeWhere((e) => e == callback);
-
-  ///
-  /// Callbacks for that tells listeners that the game timer has ticked
-  void onTimerTicks(VoidCallback callback) => _onTimerTicks.add(callback);
-  void removeOnTimerTicks(VoidCallback callback) =>
-      _onTimerTicks.removeWhere((e) => e == callback);
-
-  ///
-  /// Callbacks for that tells listeners that a solution has been found
-  void onSolutionFound(VoidCallback callback) => _onSolutionFound.add(callback);
-  void removeOnSolutionFound(VoidCallback callback) =>
-      _onSolutionFound.removeWhere((e) => e == callback);
-
-  ///
-  /// Callbacks for that tells listeners that the round is over
-  void onRoundIsOver(VoidCallback callback) => _onRoundIsOver.add(callback);
-  void removeOnRoundIsOver(VoidCallback callback) =>
-      _onRoundIsOver.removeWhere((e) => e == callback);
+  final onRoundIsPreparing = GameCallback();
+  final onRoundIsReady = GameCallback();
+  final onRoundIsOver = GameCallback();
+  final onTimerTicks = GameCallback();
+  final onSolutionFound = GameCallback();
+  final onPlayerUpdate = GameCallback();
 
   /// -------- ///
   /// INTERNAL ///
@@ -119,6 +98,11 @@ class GameManager {
   /// Declare the singleton
   static final GameManager _instance = GameManager._internal();
   GameManager._internal();
+
+  ///
+  /// As soon as anything changes, we need to notify the listeners of players.
+  /// Otherwise, the UI would be spammed with updates.
+  bool _hasAPlayerUpdate = false;
 
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
@@ -134,16 +118,15 @@ class GameManager {
       _initializeTrySolutionCallback();
     }
     _gameStatus = GameStatus.preparingProblem;
-    _callOnRoundIsPreparing();
+    onRoundIsPreparing._notifyListeners();
 
     _currentProblem = null;
     _currentProblem = await WordProblem.generateFromRandom();
 
     _gameTimer = roundDuration.inSeconds;
-    Timer.periodic(const Duration(seconds: 1), _timerTick);
 
     _gameStatus = GameStatus.roundStarted;
-    _callOnRoundIsReady();
+    onRoundIsReady._notifyListeners();
   }
 
   ///
@@ -158,18 +141,71 @@ class GameManager {
   Future<void> _trySolution(String sender, String message) async {
     if (problem == null || gameTimer == null) return;
 
-    if (problem!.trySolution(sender, message)) _callOnSolutionFound();
+    // Get the player from the players list
+    final player = GameManager.instance.players.firstWhereOrAdd(sender);
+
+    // If the player is in cooldown, they are not allowed to answer
+    if (player.isInCooldownPeriod) return;
+
+    // Find if the proposed word is valid
+    final solution = problem!.trySolution(message);
+    if (solution == null) return;
+
+    // Add to player score
+    int cooldownTimer = cooldownPeriod.inSeconds;
+    if (solution.isFound) {
+      // If the solution was already found, the player can steal it. It however
+      // provides half the score and doubles the cooldown period.
+
+      // Also, the player is only allowed to steal once per round
+      if (player.isStealer) return;
+
+      // First remove the score from the previous finder
+      cooldownTimer *= 2;
+      solution.foundBy!.score -= solution.value;
+
+      // Mark the solution as stolen and player as stealer and proceed as usual
+      solution.wasStealed = true;
+      player.isStealer = true;
+    }
+    solution.foundBy = player;
+    player.score += solution.value;
+    player.cooldownTimer = cooldownTimer;
+
+    // Call the listeners of solution found
+    onSolutionFound._notifyListeners();
+
+    // Also plan for an call to the listeners of players on next game loop
+    _hasAPlayerUpdate = true;
   }
 
   ///
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
-  void _timerTick(Timer timer) {
-    _gameTimer = _gameTimer! - 1;
-    _callOnTimerTicks();
-    if (_gameTimer! < 1 || _gameStatus == GameStatus.requestFinishRound) {
-      timer.cancel();
-      _roundIsOver();
+  void _gameLoop(Timer timer) {
+    if (_gameStatus == GameStatus.roundStarted) {
+      _gameTick();
     }
+  }
+
+  void _gameTick() {
+    _gameTimer = _gameTimer! - 1;
+    if (_gameTimer! < 1 || _gameStatus == GameStatus.requestFinishRound) {
+      _roundIsOver();
+      return;
+    }
+
+    for (final player in players) {
+      if (player.isInCooldownPeriod) {
+        player.cooldownTimer = player.cooldownTimer - 1;
+        _hasAPlayerUpdate = true;
+      }
+    }
+    if (_hasAPlayerUpdate) {
+      onPlayerUpdate._notifyListeners();
+      _hasAPlayerUpdate = false;
+    }
+
+    onTimerTicks._notifyListeners();
   }
 
   ///
@@ -177,42 +213,20 @@ class GameManager {
   void _roundIsOver() {
     _gameTimer = null;
     _gameStatus = GameStatus.roundOver;
-    _callOnRoundIsOver();
+    onRoundIsOver._notifyListeners();
   }
+}
 
-  ///
-  /// Callbacks management (see API for description)
-  final List<VoidCallback> _onRoundIsPreparing = [];
-  void _callOnRoundIsPreparing() {
-    for (final callback in _onRoundIsPreparing) {
-      callback();
-    }
-  }
+class GameCallback {
+  final List<VoidCallback> _listeners = [];
 
-  final List<VoidCallback> _onRoundIsReady = [];
-  void _callOnRoundIsReady() {
-    for (final callback in _onRoundIsReady) {
-      callback();
-    }
-  }
+  void addListener(VoidCallback callback) => _listeners.add(callback);
 
-  final List<VoidCallback> _onTimerTicks = [];
-  void _callOnTimerTicks() {
-    for (final callback in _onTimerTicks) {
-      callback();
-    }
-  }
+  void removeListener(VoidCallback callback) =>
+      _listeners.removeWhere((e) => e == callback);
 
-  final List<VoidCallback> _onSolutionFound = [];
-  void _callOnSolutionFound() {
-    for (final callback in _onSolutionFound) {
-      callback();
-    }
-  }
-
-  final List<VoidCallback> _onRoundIsOver = [];
-  void _callOnRoundIsOver() {
-    for (final callback in _onRoundIsOver) {
+  void _notifyListeners() {
+    for (final callback in _listeners) {
       callback();
     }
   }

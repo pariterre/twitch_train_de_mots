@@ -36,37 +36,17 @@ class WordProblem {
     solutions = solutions.sort();
   }
 
-  bool trySolution(String finder, String word) {
+  Solution? trySolution(String word) {
     // Do some rapid validation
     if (word.length < GameManager.instance.nbLetterInSmallestWord) {
       // If the word is shorted than the permitted shortest word, it is invalid
-      return false;
+      return null;
     }
     // If the word contains any non letters, it is invalid
     word = removeDiacritics(word.toUpperCase());
-    if (word.contains(RegExp(r'[^A-Z]'))) return false;
+    if (word.contains(RegExp(r'[^A-Z]'))) return null;
 
-    // Add the player to players list if it does not exist
-    if (GameManager.instance.players.hasNotPlayer(finder)) {
-      GameManager.instance.players.add(Player(name: finder));
-    }
-    final player = GameManager.instance.players
-        .firstWhere((element) => element.name == finder);
-
-    // If the player is in cooldown, they are not allowed to answer
-    if (player.isInCooldownPeriod) {
-      return false;
-    }
-
-    final solution = solutions.firstWhereOrNull((Solution e) => e.word == word);
-    // If the proposed word is not a solution, it is invalid
-    if (solution == null) return false;
-
-    // Otherwise the solution is valid and is added to player score
-    solution.foundBy = player;
-    player.addScore(solution.value);
-    player.startCooldownPeriod();
-    return true;
+    return solutions.firstWhereOrNull((Solution e) => e.word == word);
   }
 
   ///

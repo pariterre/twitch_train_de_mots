@@ -11,6 +11,13 @@ class CustomColorScheme {
   final textSolvedColor = Colors.black;
   final mainColor = Colors.blueGrey;
   final backgroundColor = Colors.teal[900];
-  final solutionUnsolvedBackgroundColor = Colors.green[700];
-  final solutionSolvedBackgroundColor = Colors.yellow[600];
+
+  final solutionUnsolvedColor = Colors.green[700];
+  final solutionSolvedColor = Colors.yellow[600];
+  final solutionStealedColor = Colors.red[700];
+
+  final leaderTitleSize = 26.0;
+  final leaderTextColor = Colors.white;
+  final leaderTextSize = 20.0;
+  final leaderStealerColor = Colors.red;
 }

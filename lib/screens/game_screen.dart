@@ -31,11 +31,11 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundIsPreparing(_onRoundIsPreparing);
-    GameManager.instance.onRoundIsReady(_onRoundIsReady);
-    GameManager.instance.onTimerTicks(_onClockTicks);
-    GameManager.instance.onSolutionFound(_onSolutionFound);
-    GameManager.instance.onRoundIsOver(_onRoundIsOver);
+    GameManager.instance.onRoundIsPreparing.addListener(_onRoundIsPreparing);
+    GameManager.instance.onRoundIsReady.addListener(_onRoundIsReady);
+    GameManager.instance.onTimerTicks.addListener(_onClockTicks);
+    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
+    GameManager.instance.onRoundIsOver.addListener(_onRoundIsOver);
   }
 
   @override
@@ -54,11 +54,11 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     super.dispose();
 
-    GameManager.instance.removeOnRoundIsPreparing(_onRoundIsPreparing);
-    GameManager.instance.removeOnRoundIsReady(_onRoundIsReady);
-    GameManager.instance.removeOnTimerTicks(_onClockTicks);
-    GameManager.instance.removeOnSolutionFound(_onSolutionFound);
-    GameManager.instance.removeOnRoundIsOver(_onRoundIsOver);
+    GameManager.instance.onRoundIsPreparing.removeListener(_onRoundIsPreparing);
+    GameManager.instance.onRoundIsReady.removeListener(_onRoundIsReady);
+    GameManager.instance.onTimerTicks.removeListener(_onClockTicks);
+    GameManager.instance.onSolutionFound.removeListener(_onSolutionFound);
+    GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
   void _onRoundIsPreparing() => setState(() {});

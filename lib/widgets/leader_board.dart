@@ -16,16 +16,16 @@ class _LeaderBoardState extends State<LeaderBoard> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundIsReady(_refresh);
-    GameManager.instance.onSolutionFound(_refresh);
+    GameManager.instance.onRoundIsReady.addListener(_refresh);
+    GameManager.instance.onSolutionFound.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    GameManager.instance.removeOnSolutionFound(_refresh);
-    GameManager.instance.removeOnSolutionFound(_refresh);
+    GameManager.instance.onRoundIsReady.removeListener(_refresh);
+    GameManager.instance.onSolutionFound.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -33,13 +33,25 @@ class _LeaderBoardState extends State<LeaderBoard> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final players = gm.players.sort();
-    WordProblem? problem = gm.problem;
+    final scheme = CustomColorScheme.instance;
 
-    return SizedBox(
-      width: 300,
+    WordProblem? problem = gm.problem;
+    // Sort players by round score then by total score if they are equal
+
+    final players = gm.players.sort((a, b) {
+      // Unless a round has not started, then sort only by total score
+      if (problem == null) return b.score - a.score;
+
+      final roundScore = problem.scoreOf(b) - problem.scoreOf(a);
+      if (roundScore != 0) return roundScore;
+      return b.score - a.score;
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      width: 400,
       child: Card(
-        color: CustomColorScheme.instance.mainColor,
+        color: scheme.mainColor,
         elevation: 10,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -50,8 +62,9 @@ class _LeaderBoardState extends State<LeaderBoard> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text('Tableau des meneurs',
                     style: TextStyle(
-                        fontSize: 20,
-                        color: CustomColorScheme.instance.textColor)),
+                      fontSize: scheme.leaderTitleSize,
+                      color: scheme.leaderTextColor,
+                    )),
               ),
             ),
             Padding(
@@ -78,8 +91,9 @@ class _LeaderBoardState extends State<LeaderBoard> {
                   child: Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: Text('En attente de joueurs...',
-                    style:
-                        TextStyle(color: CustomColorScheme.instance.textColor)),
+                    style: TextStyle(
+                        fontSize: scheme.leaderTextSize,
+                        color: scheme.leaderTextColor)),
               )),
             const SizedBox(height: 12.0),
           ],
@@ -107,6 +121,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
       totalScore: player.score.toString(),
       isTitle: false,
       clock: _CoolDownClock(player: player),
+      isStealer: player.isStealer,
     );
   }
 
@@ -115,8 +130,11 @@ class _LeaderBoardState extends State<LeaderBoard> {
     required String roundScore,
     required String totalScore,
     required bool isTitle,
+    bool isStealer = false,
     _CoolDownClock? clock,
   }) {
+    final scheme = CustomColorScheme.instance;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -125,17 +143,23 @@ class _LeaderBoardState extends State<LeaderBoard> {
           children: [
             Text(player,
                 style: TextStyle(
-                    color: CustomColorScheme.instance.textColor,
-                    fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
+                    fontSize: scheme.leaderTextSize,
+                    color: isStealer
+                        ? scheme.leaderStealerColor
+                        : scheme.leaderTextColor,
+                    fontWeight: isTitle || isStealer
+                        ? FontWeight.bold
+                        : FontWeight.normal)),
             if (clock != null) clock,
           ],
         ),
         SizedBox(
-          width: 100,
+          width: 150,
           child: Center(
             child: Text('$roundScore ($totalScore)',
                 style: TextStyle(
-                    color: CustomColorScheme.instance.textColor,
+                    fontSize: scheme.leaderTextSize,
+                    color: scheme.leaderTextColor,
                     fontWeight: isTitle ? FontWeight.bold : FontWeight.normal)),
           ),
         ),
@@ -157,23 +181,32 @@ class _CoolDownClockState extends State<_CoolDownClock> {
   @override
   void initState() {
     super.initState();
-    widget.player.addListener(_refresh);
+    GameManager.instance.onPlayerUpdate.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
-    widget.player.removeListener(_refresh);
+    GameManager.instance.onPlayerUpdate.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    int value = widget.player.cooldownPeriod;
+    final scheme = CustomColorScheme.instance;
+    int value = widget.player.cooldownTimer;
+
     return value > 0
         ? Text(' ($value)',
-            style: TextStyle(color: CustomColorScheme.instance.textColor))
+            style: TextStyle(
+                color: widget.player.isStealer
+                    ? scheme.leaderStealerColor
+                    : scheme.leaderTextColor,
+                fontSize: scheme.leaderTextSize,
+                fontWeight: widget.player.isStealer
+                    ? FontWeight.bold
+                    : FontWeight.normal))
         : const SizedBox();
   }
 }
