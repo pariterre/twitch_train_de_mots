@@ -189,7 +189,7 @@ class GameManager {
       solution.foundBy!.score -= solution.value;
 
       // Mark the solution as stolen and player as stealer and proceed as usual
-      solution.wasStealed = true;
+      solution.wasStolen = true;
       player.isStealer = true;
     }
     solution.foundBy = player;

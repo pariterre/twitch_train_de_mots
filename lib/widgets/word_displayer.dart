@@ -32,38 +32,50 @@ class _Letter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Create a letter that ressemble those on a Scrabble board
-    return Container(
-      width: 60,
-      height: 70,
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 200, 150, 0),
-        border: Border.all(color: Colors.black),
-        borderRadius: const BorderRadius.all(Radius.circular(5)),
-      ),
-      child: Stack(
-        children: [
-          Center(
-            child: Text(
-              letter.data,
-              style: TextStyle(
-                color: CustomColorScheme.instance.textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 36,
-              ),
-            ),
+    return Card(
+      elevation: 5,
+      child: Container(
+        width: 60,
+        height: 70,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              CustomColorScheme.instance.letterColorLight,
+              CustomColorScheme.instance.letterColorDark,
+            ],
+            stops: const [0, 0.4],
           ),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
+          border: Border.all(color: Colors.black),
+          borderRadius: const BorderRadius.all(Radius.circular(5)),
+        ),
+        child: Stack(
+          children: [
+            Center(
               child: Text(
-                letter.value.toString(),
+                letter.data,
                 style: TextStyle(
-                    color: CustomColorScheme.instance.textColor, fontSize: 16),
+                  color: CustomColorScheme.instance.textColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 36,
+                ),
               ),
             ),
-          )
-        ],
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
+                child: Text(
+                  letter.value.toString(),
+                  style: TextStyle(
+                      color: CustomColorScheme.instance.textColor,
+                      fontSize: 16),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

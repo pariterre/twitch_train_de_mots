@@ -98,27 +98,9 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
-              Text(
-                'Le Train de mots! Tchou Tchou!',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 32,
-                    color: CustomColorScheme.instance.textColor),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                gm.gameStatus == GameStatus.roundOver
-                    ? 'Manche terminée!'
-                    : gm.isNextProblemReady
-                        ? 'Prochaine manche prête!'
-                        : 'Temps restant à la manche : ${gm.gameTimer}',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: CustomColorScheme.instance.textColor),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
+              const _Header(),
+              const SizedBox(height: 32),
               gm.hasNotAnActiveRound
                   ? Center(
                       child: CircularProgressIndicator(
@@ -136,18 +118,22 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: gm.gameStatus == GameStatus.roundStarted
-                    ? _resquestTerminateRound
-                    : gm.isNextProblemReady
-                        ? _resquestStartNewRound
-                        : null,
-                style: CustomColorScheme.instance.elevatedButtonStyle,
-                child: Text(
-                  gm.gameStatus == GameStatus.roundStarted
-                      ? 'Terminer la manche'
-                      : 'Prochaine manche',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+              Card(
+                elevation: 10,
+                child: ElevatedButton(
+                  onPressed: gm.gameStatus == GameStatus.roundStarted
+                      ? _resquestTerminateRound
+                      : gm.isNextProblemReady
+                          ? _resquestStartNewRound
+                          : null,
+                  style: CustomColorScheme.instance.elevatedButtonStyle,
+                  child: Text(
+                    gm.gameStatus == GameStatus.roundStarted
+                        ? 'Terminer la manche'
+                        : 'Prochaine manche',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
                 ),
               )
             ],
@@ -155,6 +141,81 @@ class _GameScreenState extends State<GameScreen> {
         ),
         const Align(alignment: Alignment.topRight, child: LeaderBoard()),
       ],
+    );
+  }
+}
+
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Le Train de mots! Tchou Tchou!',
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+              color: CustomColorScheme.instance.textColor),
+        ),
+        const SizedBox(height: 20),
+        Card(
+          color: CustomColorScheme.instance.mainColor,
+          elevation: 10,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            child: _HeaderTimer(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeaderTimer extends StatefulWidget {
+  const _HeaderTimer();
+
+  @override
+  State<_HeaderTimer> createState() => _HeaderTimerState();
+}
+
+class _HeaderTimerState extends State<_HeaderTimer> {
+  @override
+  void initState() {
+    super.initState();
+
+    GameManager.instance.onRoundStarted.addListener(_onRoundStarted);
+    GameManager.instance.onTimerTicks.addListener(_onClockTicks);
+    GameManager.instance.onRoundIsOver.addListener(_onRoundIsOver);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    GameManager.instance.onRoundStarted.removeListener(_onRoundStarted);
+    GameManager.instance.onTimerTicks.removeListener(_onClockTicks);
+    GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
+  }
+
+  void _onRoundStarted() => setState(() {});
+  void _onClockTicks() => setState(() {});
+  void _onRoundIsOver() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+    return Text(
+      gm.gameStatus == GameStatus.roundOver
+          ? 'Manche terminée!'
+          : gm.isNextProblemReady
+              ? 'Prochaine manche prête!'
+              : 'Temps restant à la manche : ${gm.gameTimer}',
+      style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 26,
+          color: CustomColorScheme.instance.textColor),
     );
   }
 }

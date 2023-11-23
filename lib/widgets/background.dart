@@ -20,7 +20,7 @@ class _BackgroundState extends State<Background>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 60),
+      duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
 
     _animation = DecorationTween(

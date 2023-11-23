@@ -40,6 +40,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = CustomColorScheme.instance;
     final solutions = GameManager.instance.problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
@@ -55,23 +56,32 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
         for (var solutions in solutionsByLength)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Wrap(
-              direction: Axis.vertical,
-              crossAxisAlignment: WrapCrossAlignment.center,
+            child: Column(
               children: [
-                Text(
-                  'Mots de ${solutions.first.word.length} lettres',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: CustomColorScheme.instance.textColor),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    'Mots de ${solutions.first.word.length} lettres',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: scheme.textColor,
+                        fontSize: scheme.textSize),
+                  ),
                 ),
-                Stack(
-                  children: [
-                    _SolutionWrapper(solutions: solutions),
-                    _FireworksWrapper(
-                        solutions: solutions,
-                        fireworksControllers: _fireworksControllers),
-                  ],
+                Expanded(
+                  child: LayoutBuilder(builder: (context, constraint) {
+                    return SizedBox(
+                      height: constraint.maxHeight,
+                      child: Stack(
+                        children: [
+                          _SolutionWrapper(solutions: solutions),
+                          _FireworksWrapper(
+                              solutions: solutions,
+                              fireworksControllers: _fireworksControllers),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -149,15 +159,49 @@ class _SolutionTile extends StatelessWidget {
     if (fireworks != null) {
       child = Fireworks(key: fireworks!.key, controller: fireworks!);
     } else {
+      final unsolved = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          scheme.solutionUnsolvedColorLight!,
+          scheme.solutionUnsolvedColorDark!,
+        ],
+        stops: const [0, 0.6],
+      );
+      final solved = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          scheme.solutionSolvedColorLight!,
+          scheme.solutionSolvedColorDark!,
+        ],
+        stops: const [0.1, 1],
+      );
+      final stolen = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          scheme.solutionStolenColorLight!,
+          scheme.solutionStolenColorDark!,
+        ],
+        stops: const [0.1, 1],
+      );
+
       child = Container(
         decoration: BoxDecoration(
-          color: solution.isFound
-              ? (solution.wasStealed
-                  ? scheme.solutionStealedColor
-                  : scheme.solutionSolvedColor)
-              : scheme.solutionUnsolvedColor,
+          gradient: solution.isFound
+              ? (solution.wasStolen ? stolen : solved)
+              : unsolved,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.black),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 3.0,
+              spreadRadius: 0.0,
+              offset: const Offset(5.0, 5.0),
+            )
+          ],
         ),
         child: solution.isFound
             ? Center(
@@ -175,7 +219,7 @@ class _SolutionTile extends StatelessWidget {
     }
 
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
           width: 300,
           height: 50,

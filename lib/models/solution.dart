@@ -6,7 +6,7 @@ import 'package:train_de_mots/models/player.dart';
 class Solution {
   final String word;
 
-  bool wasStealed = false;
+  bool wasStolen = false;
   Player? foundBy;
 
   int get value =>
@@ -14,7 +14,7 @@ class Solution {
           .split('')
           .map((e) => Letter.getValueOfLetter(e))
           .reduce((a, b) => a + b) ~/
-      (wasStealed ? 2 : 1);
+      (wasStolen ? 2 : 1);
   bool get isFound => foundBy != null;
 
   Solution({required String word, this.foundBy})
