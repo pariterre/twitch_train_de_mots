@@ -10,6 +10,11 @@ class Player {
   int cooldownTimer = 0;
   bool get isInCooldownPeriod => cooldownTimer > 0;
 
+  void resetForNextRound() {
+    isStealer = false;
+    cooldownTimer = 0;
+  }
+
   Player({required this.name});
 }
 

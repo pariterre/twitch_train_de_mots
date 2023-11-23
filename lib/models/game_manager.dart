@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
@@ -28,7 +29,11 @@ class GameManager {
 
   bool get hasAnActiveRound => _currentProblem != null;
   bool get hasNotAnActiveRound => !hasAnActiveRound;
+
   WordProblem? _currentProblem;
+  WordProblem? _nextProblem;
+  bool _isSearchingForProblem = false;
+  bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
 
   final Duration roundDuration = const Duration(minutes: 3);
@@ -54,6 +59,7 @@ class GameManager {
   Future<void> initialize() async {
     await WordProblem.initialize();
     Timer.periodic(const Duration(seconds: 1), _gameLoop);
+    _searchForProblem();
   }
 
   ///
@@ -83,12 +89,13 @@ class GameManager {
   /// --------- ///
 
   /// Callbacks for that tells listeners that the round is preparing
-  final onRoundIsPreparing = GameCallback();
-  final onRoundIsReady = GameCallback();
-  final onRoundIsOver = GameCallback();
-  final onTimerTicks = GameCallback();
-  final onSolutionFound = GameCallback();
-  final onPlayerUpdate = GameCallback();
+  final onRoundIsPreparing = GameCallback<VoidCallback>();
+  final onNextProblemReady = GameCallback<VoidCallback>();
+  final onRoundStarted = GameCallback<VoidCallback>();
+  final onRoundIsOver = GameCallback<VoidCallback>();
+  final onTimerTicks = GameCallback<VoidCallback>();
+  final onSolutionFound = GameCallback<Function(Solution)>();
+  final onPlayerUpdate = GameCallback<VoidCallback>();
 
   /// -------- ///
   /// INTERNAL ///
@@ -104,12 +111,22 @@ class GameManager {
   /// Otherwise, the UI would be spammed with updates.
   bool _hasAPlayerUpdate = false;
 
+  Future<void> _searchForProblem() async {
+    if (_isSearchingForProblem || _nextProblem != null) return;
+
+    _isSearchingForProblem = true;
+    _nextProblem = await WordProblem.generateFromRandom();
+    _isSearchingForProblem = false;
+    onNextProblemReady._notifyListeners();
+  }
+
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
     if (_gameStatus != GameStatus.uninitialized &&
-        _gameStatus != GameStatus.roundOver) {
+        _gameStatus != GameStatus.roundOver &&
+        !isNextProblemReady) {
       return;
     }
 
@@ -120,13 +137,20 @@ class GameManager {
     _gameStatus = GameStatus.preparingProblem;
     onRoundIsPreparing._notifyListeners();
 
-    _currentProblem = null;
-    _currentProblem = await WordProblem.generateFromRandom();
+    _searchForProblem(); // It is already searching, but make sure
+    while (_isSearchingForProblem) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    _currentProblem = _nextProblem;
+    _nextProblem = null;
 
     _gameTimer = roundDuration.inSeconds;
+    for (final player in players) {
+      player.resetForNextRound();
+    }
 
     _gameStatus = GameStatus.roundStarted;
-    onRoundIsReady._notifyListeners();
+    onRoundStarted._notifyListeners();
   }
 
   ///
@@ -173,7 +197,7 @@ class GameManager {
     player.cooldownTimer = cooldownTimer;
 
     // Call the listeners of solution found
-    onSolutionFound._notifyListeners();
+    onSolutionFound._notifyListenersWithParameter(solution);
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerUpdate = true;
@@ -182,17 +206,19 @@ class GameManager {
   ///
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
   void _gameLoop(Timer timer) {
-    if (_gameStatus == GameStatus.roundStarted) {
-      _gameTick();
-    }
+    if (_gameStatus == GameStatus.uninitialized) return;
+
+    _gameTick();
+    _checkEndOfRound();
   }
 
+  ///
+  /// Tick the game timer and the cooldown timer of players. Call the
+  /// listeners if needed.
   void _gameTick() {
+    if (_gameStatus != GameStatus.roundStarted) return;
+
     _gameTimer = _gameTimer! - 1;
-    if (_gameTimer! < 1 || _gameStatus == GameStatus.requestFinishRound) {
-      _roundIsOver();
-      return;
-    }
 
     for (final player in players) {
       if (player.isInCooldownPeriod) {
@@ -210,24 +236,38 @@ class GameManager {
 
   ///
   /// Clear the current round
-  void _roundIsOver() {
+  void _checkEndOfRound() {
+    // End round no matter what if the request was made
+    if (_gameStatus != GameStatus.requestFinishRound) {
+      // Do not end round if we are not playing
+      if (_gameStatus != GameStatus.roundStarted || _gameTimer! > 0) return;
+    }
+
     _gameTimer = null;
     _gameStatus = GameStatus.roundOver;
     onRoundIsOver._notifyListeners();
+
+    _searchForProblem();
   }
 }
 
-class GameCallback {
-  final List<VoidCallback> _listeners = [];
+class GameCallback<T extends Function> {
+  final List<T> _listeners = [];
 
-  void addListener(VoidCallback callback) => _listeners.add(callback);
+  void addListener(T callback) => _listeners.add(callback);
 
-  void removeListener(VoidCallback callback) =>
+  void removeListener(T callback) =>
       _listeners.removeWhere((e) => e == callback);
 
   void _notifyListeners() {
     for (final callback in _listeners) {
       callback();
+    }
+  }
+
+  void _notifyListenersWithParameter(parameter) {
+    for (final callback in _listeners) {
+      callback(parameter);
     }
   }
 }

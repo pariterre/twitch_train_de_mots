@@ -16,19 +16,20 @@ class _LeaderBoardState extends State<LeaderBoard> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundIsReady.addListener(_refresh);
-    GameManager.instance.onSolutionFound.addListener(_refresh);
+    GameManager.instance.onRoundStarted.addListener(_refresh);
+    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    GameManager.instance.onRoundIsReady.removeListener(_refresh);
-    GameManager.instance.onSolutionFound.removeListener(_refresh);
+    GameManager.instance.onRoundStarted.removeListener(_refresh);
+    GameManager.instance.onSolutionFound.removeListener(_onSolutionFound);
   }
 
   void _refresh() => setState(() {});
+  void _onSolutionFound(_) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
+import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
+import 'package:train_de_mots/widgets/splash_screen.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
 
 class GameScreen extends StatefulWidget {
@@ -32,7 +34,8 @@ class _GameScreenState extends State<GameScreen> {
     super.initState();
 
     GameManager.instance.onRoundIsPreparing.addListener(_onRoundIsPreparing);
-    GameManager.instance.onRoundIsReady.addListener(_onRoundIsReady);
+    GameManager.instance.onNextProblemReady.addListener(_onRoundIsReady);
+    GameManager.instance.onRoundStarted.addListener(_onRoundStarted);
     GameManager.instance.onTimerTicks.addListener(_onClockTicks);
     GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
     GameManager.instance.onRoundIsOver.addListener(_onRoundIsOver);
@@ -44,10 +47,6 @@ class _GameScreenState extends State<GameScreen> {
     if (TwitchInterface.instance.hasNotManager) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
-    if (GameManager.instance.hasNotAnActiveRound) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _resquestStartNewRound());
-    }
   }
 
   @override
@@ -55,7 +54,8 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
 
     GameManager.instance.onRoundIsPreparing.removeListener(_onRoundIsPreparing);
-    GameManager.instance.onRoundIsReady.removeListener(_onRoundIsReady);
+    GameManager.instance.onNextProblemReady.removeListener(_onRoundIsReady);
+    GameManager.instance.onRoundStarted.removeListener(_onRoundStarted);
     GameManager.instance.onTimerTicks.removeListener(_onClockTicks);
     GameManager.instance.onSolutionFound.removeListener(_onSolutionFound);
     GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
@@ -63,12 +63,15 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onRoundIsPreparing() => setState(() {});
   void _onRoundIsReady() => setState(() {});
+  void _onRoundStarted() => setState(() {});
   void _onClockTicks() => setState(() {});
-  void _onSolutionFound() => setState(() {});
+  void _onSolutionFound(_) => setState(() {});
   void _onRoundIsOver() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
           ? Center(
@@ -76,22 +79,20 @@ class _GameScreenState extends State<GameScreen> {
                   color: CustomColorScheme.instance.mainColor),
             )
           : TwitchInterface.instance.debugOverlay(
-              child: SingleChildScrollView(child: _buildGameScreen())),
+              child: SingleChildScrollView(
+                  child: Background(
+              child: gm.gameStatus == GameStatus.uninitialized
+                  ? const SplashScreen()
+                  : _buildGameScreen(),
+            ))),
     );
   }
 
   Widget _buildGameScreen() {
-    final windowSize = MediaQuery.of(context).size;
     final gm = GameManager.instance;
 
     return Stack(
       children: [
-        Container(
-          width: windowSize.width,
-          height: windowSize.height,
-          decoration:
-              BoxDecoration(color: CustomColorScheme.instance.backgroundColor),
-        ),
         SizedBox(
           width: double.infinity,
           child: Column(
@@ -107,9 +108,11 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                GameManager.instance.gameTimer == null
+                gm.gameStatus == GameStatus.roundOver
                     ? 'Manche terminée!'
-                    : 'Temps restant à la manche : ${GameManager.instance.gameTimer}',
+                    : gm.isNextProblemReady
+                        ? 'Prochaine manche prête!'
+                        : 'Temps restant à la manche : ${gm.gameTimer}',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 26,
@@ -126,30 +129,31 @@ class _GameScreenState extends State<GameScreen> {
                       children: [
                         WordDisplayer(word: gm.problem!.word),
                         const SizedBox(height: 20),
-                        SizedBox(
+                        const SizedBox(
                           height: 600,
-                          child: SolutionsDisplayer(
-                              solutions: gm.problem!.solutions),
+                          child: SolutionsDisplayer(),
                         ),
                       ],
                     ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed:
-                    GameManager.instance.gameStatus == GameStatus.roundStarted
-                        ? _resquestTerminateRound
-                        : _resquestStartNewRound,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: CustomColorScheme.instance.mainColor),
+                onPressed: gm.gameStatus == GameStatus.roundStarted
+                    ? _resquestTerminateRound
+                    : gm.isNextProblemReady
+                        ? _resquestStartNewRound
+                        : null,
+                style: CustomColorScheme.instance.elevatedButtonStyle,
                 child: Text(
-                    GameManager.instance.gameStatus == GameStatus.roundStarted
-                        ? 'Terminer la manche'
-                        : 'Prochaine manche'),
+                  gm.gameStatus == GameStatus.roundStarted
+                      ? 'Terminer la manche'
+                      : 'Prochaine manche',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               )
             ],
           ),
         ),
-        const Align(alignment: Alignment.topRight, child: LeaderBoard())
+        const Align(alignment: Alignment.topRight, child: LeaderBoard()),
       ],
     );
   }
