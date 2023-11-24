@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/color_scheme.dart';
-import 'package:train_de_mots/models/game_manager.dart';
 
 class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, required this.onClickStart});
+
+  final Function() onClickStart;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30.0),
             ElevatedButton(
-              onPressed: () => GameManager.instance.requestStartNewRound(),
+              onPressed: onClickStart,
               style: CustomColorScheme.instance.elevatedButtonStyle,
               child: const Text(
                 'Démarrer la partie',

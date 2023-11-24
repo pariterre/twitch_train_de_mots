@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/models/color_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
@@ -18,6 +19,8 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  final _player = AudioPlayer();
+
   Future<void> _resquestTerminateRound() async =>
       await GameManager.instance.requestTerminateRound();
 
@@ -61,12 +64,22 @@ class _GameScreenState extends State<GameScreen> {
     GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
+  void _playMusic() async {
+    await _player.setReleaseMode(ReleaseMode.loop);
+    await _player.play(AssetSource('music/TheSwindler.mp3'), volume: 0.35);
+  }
+
   void _onRoundIsPreparing() => setState(() {});
   void _onRoundIsReady() => setState(() {});
   void _onRoundStarted() => setState(() {});
   void _onClockTicks() => setState(() {});
   void _onSolutionFound(_) => setState(() {});
   void _onRoundIsOver() => setState(() {});
+
+  void _onClickedBegin() async {
+    await GameManager.instance.requestStartNewRound();
+    _playMusic();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +95,7 @@ class _GameScreenState extends State<GameScreen> {
               child: SingleChildScrollView(
                   child: Background(
               child: gm.gameStatus == GameStatus.uninitialized
-                  ? const SplashScreen()
+                  ? SplashScreen(onClickStart: _onClickedBegin)
                   : _buildGameScreen(),
             ))),
     );
