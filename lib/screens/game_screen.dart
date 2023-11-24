@@ -19,7 +19,8 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  final _player = AudioPlayer();
+  final _musicPlayer = AudioPlayer();
+  final _congratulationPlayer = AudioPlayer();
 
   Future<void> _resquestTerminateRound() async =>
       await GameManager.instance.requestTerminateRound();
@@ -65,15 +66,22 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _playMusic() async {
-    await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.play(AssetSource('music/TheSwindler.mp3'), volume: 0.35);
+    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
+    await _musicPlayer.play(AssetSource('music/TheSwindler.mp3'), volume: 0.15);
   }
 
   void _onRoundIsPreparing() => setState(() {});
   void _onRoundIsReady() => setState(() {});
   void _onRoundStarted() => setState(() {});
   void _onClockTicks() => setState(() {});
-  void _onSolutionFound(_) => setState(() {});
+  void _onSolutionFound(solution) {
+    if (solution.word.length ==
+        GameManager.instance.problem!.solutions.nbLettersInLongest) {
+      _congratulationPlayer.play(AssetSource('music/TrainWhistle.mp3'));
+    }
+    setState(() {});
+  }
+
   void _onRoundIsOver() => setState(() {});
 
   void _onClickedBegin() async {
