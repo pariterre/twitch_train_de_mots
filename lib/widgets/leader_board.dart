@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/color_scheme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
-class LeaderBoard extends StatefulWidget {
+class LeaderBoard extends ConsumerStatefulWidget {
   const LeaderBoard({super.key});
 
   @override
-  State<LeaderBoard> createState() => _LeaderBoardState();
+  ConsumerState<LeaderBoard> createState() => _LeaderBoardState();
 }
 
-class _LeaderBoardState extends State<LeaderBoard> {
+class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   @override
   void initState() {
     super.initState();
@@ -34,7 +35,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final scheme = CustomColorScheme.instance;
+    final scheme = ref.watch(schemeProvider);
 
     WordProblem? problem = gm.problem;
     // Sort players by round score then by total score if they are equal
@@ -134,8 +135,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     bool isStealer = false,
     _CoolDownClock? clock,
   }) {
-    final scheme = CustomColorScheme.instance;
-
+    final scheme = ref.watch(schemeProvider);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -169,16 +169,16 @@ class _LeaderBoardState extends State<LeaderBoard> {
   }
 }
 
-class _CoolDownClock extends StatefulWidget {
+class _CoolDownClock extends ConsumerStatefulWidget {
   const _CoolDownClock({required this.player});
 
   final Player player;
 
   @override
-  State<_CoolDownClock> createState() => _CoolDownClockState();
+  ConsumerState<_CoolDownClock> createState() => _CoolDownClockState();
 }
 
-class _CoolDownClockState extends State<_CoolDownClock> {
+class _CoolDownClockState extends ConsumerState<_CoolDownClock> {
   @override
   void initState() {
     super.initState();
@@ -195,8 +195,8 @@ class _CoolDownClockState extends State<_CoolDownClock> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = CustomColorScheme.instance;
     int value = widget.player.cooldownTimer;
+    final scheme = ref.watch(schemeProvider);
 
     return value > 0
         ? Text(' ($value)',

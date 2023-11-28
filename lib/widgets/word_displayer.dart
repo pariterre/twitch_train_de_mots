@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/color_scheme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/letter.dart';
 
 class WordDisplayer extends StatefulWidget {
@@ -24,13 +25,15 @@ class _WordDisplayerState extends State<WordDisplayer> {
   }
 }
 
-class _Letter extends StatelessWidget {
+class _Letter extends ConsumerWidget {
   const _Letter({required this.letter});
 
   final Letter letter;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = ref.watch(schemeProvider);
+
     // Create a letter that ressemble those on a Scrabble board
     return Card(
       elevation: 5,
@@ -42,8 +45,8 @@ class _Letter extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              CustomColorScheme.instance.letterColorLight,
-              CustomColorScheme.instance.letterColorDark,
+              scheme.letterColorLight,
+              scheme.letterColorDark,
             ],
             stops: const [0, 0.4],
           ),
@@ -56,7 +59,7 @@ class _Letter extends StatelessWidget {
               child: Text(
                 letter.data,
                 style: TextStyle(
-                  color: CustomColorScheme.instance.textColor,
+                  color: scheme.textColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 36,
                 ),
@@ -68,9 +71,7 @@ class _Letter extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
                 child: Text(
                   letter.value.toString(),
-                  style: TextStyle(
-                      color: CustomColorScheme.instance.textColor,
-                      fontSize: 16),
+                  style: TextStyle(color: scheme.textColor, fontSize: 16),
                 ),
               ),
             )

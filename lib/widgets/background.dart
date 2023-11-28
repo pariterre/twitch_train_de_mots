@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/color_scheme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 
-class Background extends StatefulWidget {
+class Background extends ConsumerStatefulWidget {
   const Background({super.key, this.child});
 
   final Widget? child;
 
   @override
-  State<Background> createState() => _BackgroundState();
+  ConsumerState<Background> createState() => _BackgroundState();
 }
 
-class _BackgroundState extends State<Background>
+class _BackgroundState extends ConsumerState<Background>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Decoration> _animation;
@@ -22,6 +23,10 @@ class _BackgroundState extends State<Background>
       vsync: this,
       duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
+  }
+
+  void setupAnimation() {
+    final scheme = ref.watch(schemeProvider);
 
     _animation = DecorationTween(
       begin: BoxDecoration(
@@ -29,8 +34,8 @@ class _BackgroundState extends State<Background>
             begin: Alignment.topLeft,
             end: Alignment.bottomLeft,
             colors: [
-              CustomColorScheme.instance.backgroundColorLight,
-              CustomColorScheme.instance.backgroundColorDark,
+              scheme.backgroundColorLight,
+              scheme.backgroundColorDark,
             ]),
       ),
       end: BoxDecoration(
@@ -38,8 +43,8 @@ class _BackgroundState extends State<Background>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              CustomColorScheme.instance.backgroundColorLight,
-              CustomColorScheme.instance.backgroundColorDark,
+              scheme.backgroundColorLight,
+              scheme.backgroundColorDark,
             ]),
       ),
     ).animate(_controller);
@@ -47,6 +52,8 @@ class _BackgroundState extends State<Background>
 
   @override
   Widget build(BuildContext context) {
+    setupAnimation();
+
     return Stack(
       children: [
         AnimatedBuilder(

@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CustomColorScheme {
+final schemeProvider = ChangeNotifierProvider<_CustomScheme>((ref) {
+  return _CustomScheme.instance;
+});
+
+class _CustomScheme with ChangeNotifier {
   // Declare the singleton
-  static final CustomColorScheme _instance = CustomColorScheme._internal();
-  CustomColorScheme._internal();
-  static CustomColorScheme get instance => _instance;
+  static final _CustomScheme _instance = _CustomScheme._internal();
+  _CustomScheme._internal();
+  static _CustomScheme get instance => _instance;
 
   final textColor = Colors.white;
   final textSize = 26.0;
 
   final textUnsolvedColor = Colors.white;
   final textSolvedColor = Colors.black;
-  final mainColor = Colors.blueGrey;
+  Color _mainColor = Colors.blueGrey;
+  Color get mainColor => _mainColor;
+  set mainColor(Color color) {
+    _mainColor = color;
+    backgroundColorDark = color;
+    backgroundColorLight = Color(color.value.toInt() ~/ 3);
+    notifyListeners();
+  }
 
-  final backgroundColorDark = const Color.fromARGB(255, 3, 77, 66);
-  final backgroundColorLight = const Color.fromARGB(255, 195, 200, 202);
+  late Color backgroundColorDark = mainColor;
+  late Color backgroundColorLight = Color(mainColor.value.toInt() ~/ 3);
 
   final solutionUnsolvedColorLight = Colors.green[200];
   final solutionUnsolvedColorDark = Colors.green[700];
@@ -34,8 +46,8 @@ class CustomColorScheme {
   final leaderStealerColor = Colors.red;
 
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
-    backgroundColor: CustomColorScheme.instance.textColor,
-    foregroundColor: CustomColorScheme.instance.mainColor,
+    backgroundColor: textColor,
+    foregroundColor: mainColor,
     padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(15.0),

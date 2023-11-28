@@ -1,24 +1,26 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/color_scheme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/widgets/background.dart';
+import 'package:train_de_mots/widgets/configuration_drawer.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/splash_screen.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   static const route = '/game-screen';
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> {
   final _musicPlayer = AudioPlayer();
   final _congratulationPlayer = AudioPlayer();
 
@@ -92,25 +94,46 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    final scheme = ref.watch(schemeProvider);
 
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
           ? Center(
-              child: CircularProgressIndicator(
-                  color: CustomColorScheme.instance.mainColor),
+              child: CircularProgressIndicator(color: scheme.mainColor),
             )
           : TwitchInterface.instance.debugOverlay(
               child: SingleChildScrollView(
                   child: Background(
-              child: gm.gameStatus == GameStatus.uninitialized
-                  ? SplashScreen(onClickStart: _onClickedBegin)
-                  : _buildGameScreen(),
+              child: Stack(
+                children: [
+                  gm.gameStatus == GameStatus.uninitialized
+                      ? SplashScreen(onClickStart: _onClickedBegin)
+                      : _buildGameScreen(),
+                  Builder(builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: IconButton(
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                            icon: Icon(
+                              Icons.menu,
+                              color: scheme.mainColor,
+                              size: 32,
+                            )),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ))),
+      drawer: const ConfigurationDrawer(),
     );
   }
 
   Widget _buildGameScreen() {
     final gm = GameManager.instance;
+    final scheme = ref.watch(schemeProvider);
 
     return Stack(
       children: [
@@ -125,7 +148,7 @@ class _GameScreenState extends State<GameScreen> {
               gm.hasNotAnActiveRound
                   ? Center(
                       child: CircularProgressIndicator(
-                      color: CustomColorScheme.instance.mainColor,
+                      color: scheme.mainColor,
                     ))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -147,7 +170,7 @@ class _GameScreenState extends State<GameScreen> {
                       : gm.isNextProblemReady
                           ? _resquestStartNewRound
                           : null,
-                  style: CustomColorScheme.instance.elevatedButtonStyle,
+                  style: scheme.elevatedButtonStyle,
                   child: Text(
                     gm.gameStatus == GameStatus.roundStarted
                         ? 'Terminer la manche'
@@ -166,11 +189,13 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class _Header extends StatelessWidget {
+class _Header extends ConsumerWidget {
   const _Header();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = ref.watch(schemeProvider);
+
     return Column(
       children: [
         Text(
@@ -178,11 +203,11 @@ class _Header extends StatelessWidget {
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 32,
-              color: CustomColorScheme.instance.textColor),
+              color: scheme.textColor),
         ),
         const SizedBox(height: 20),
         Card(
-          color: CustomColorScheme.instance.mainColor,
+          color: scheme.mainColor,
           elevation: 10,
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
@@ -194,14 +219,14 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _HeaderTimer extends StatefulWidget {
+class _HeaderTimer extends ConsumerStatefulWidget {
   const _HeaderTimer();
 
   @override
-  State<_HeaderTimer> createState() => _HeaderTimerState();
+  ConsumerState<_HeaderTimer> createState() => _HeaderTimerState();
 }
 
-class _HeaderTimerState extends State<_HeaderTimer> {
+class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
   @override
   void initState() {
     super.initState();
@@ -227,6 +252,8 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    final scheme = ref.watch(schemeProvider);
+
     return Text(
       gm.gameStatus == GameStatus.roundOver
           ? 'Manche terminée!'
@@ -234,9 +261,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
               ? 'Prochaine manche prête!'
               : 'Temps restant à la manche : ${gm.gameTimer}',
       style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 26,
-          color: CustomColorScheme.instance.textColor),
+          fontWeight: FontWeight.bold, fontSize: 26, color: scheme.textColor),
     );
   }
 }

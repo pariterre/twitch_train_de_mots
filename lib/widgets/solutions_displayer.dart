@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/models/color_scheme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
 
-class SolutionsDisplayer extends StatefulWidget {
+class SolutionsDisplayer extends ConsumerStatefulWidget {
   const SolutionsDisplayer({super.key});
 
   @override
-  State<SolutionsDisplayer> createState() => _SolutionsDisplayerState();
+  ConsumerState<SolutionsDisplayer> createState() => _SolutionsDisplayerState();
 }
 
-class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
+class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   final _fireworksControllers = <Solution, FireworksController>{};
 
   @override
@@ -40,7 +41,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = CustomColorScheme.instance;
+    final scheme = ref.watch(schemeProvider);
     final solutions = GameManager.instance.problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
@@ -144,16 +145,16 @@ class _FireworksWrapper extends StatelessWidget {
   }
 }
 
-class _SolutionTile extends StatelessWidget {
+class _SolutionTile extends ConsumerWidget {
   const _SolutionTile({super.key, required this.solution, this.fireworks});
 
   final Solution solution;
   final FireworksController? fireworks;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Create a letter that ressemble those on a Scrabble board
-    final scheme = CustomColorScheme.instance;
+    final scheme = ref.watch(schemeProvider);
 
     late final Widget? child;
     if (fireworks != null) {
