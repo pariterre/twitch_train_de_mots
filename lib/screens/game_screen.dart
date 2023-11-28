@@ -116,9 +116,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         alignment: Alignment.topLeft,
                         child: IconButton(
                             onPressed: () => Scaffold.of(context).openDrawer(),
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.menu,
-                              color: scheme.mainColor,
+                              color: Colors.black,
                               size: 32,
                             )),
                       ),

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final schemeProvider = ChangeNotifierProvider<_CustomScheme>((ref) {
   return _CustomScheme.instance;
@@ -8,11 +11,20 @@ final schemeProvider = ChangeNotifierProvider<_CustomScheme>((ref) {
 class _CustomScheme with ChangeNotifier {
   // Declare the singleton
   static final _CustomScheme _instance = _CustomScheme._internal();
-  _CustomScheme._internal();
+  _CustomScheme._internal() {
+    _updateBackgroundColors();
+    _load();
+  }
   static _CustomScheme get instance => _instance;
 
   final textColor = Colors.white;
-  final textSize = 26.0;
+  double _textSize = 26.0;
+  double get textSize => _textSize;
+  set textSize(double size) {
+    _textSize = size;
+    _updateLeaderTextSizes();
+    _save();
+  }
 
   final textUnsolvedColor = Colors.white;
   final textSolvedColor = Colors.black;
@@ -20,13 +32,18 @@ class _CustomScheme with ChangeNotifier {
   Color get mainColor => _mainColor;
   set mainColor(Color color) {
     _mainColor = color;
-    backgroundColorDark = color;
-    backgroundColorLight = Color(color.value.toInt() ~/ 3);
-    notifyListeners();
+    _updateBackgroundColors();
+    _save();
   }
 
-  late Color backgroundColorDark = mainColor;
-  late Color backgroundColorLight = Color(mainColor.value.toInt() ~/ 3);
+  late Color _backgroundColorDark;
+  Color get backgroundColorDark => _backgroundColorDark;
+  late Color _backgroundColorLight;
+  Color get backgroundColorLight => _backgroundColorLight;
+  void _updateBackgroundColors() {
+    _backgroundColorDark = mainColor;
+    _backgroundColorLight = Color(mainColor.value.toInt() ~/ 3);
+  }
 
   final solutionUnsolvedColorLight = Colors.green[200];
   final solutionUnsolvedColorDark = Colors.green[700];
@@ -40,9 +57,17 @@ class _CustomScheme with ChangeNotifier {
   final letterColorLight = const Color.fromARGB(255, 247, 217, 127);
   final letterColorDark = const Color.fromARGB(255, 200, 150, 0);
 
-  final leaderTitleSize = 26.0;
+  double _leaderTitleSize = 26.0;
+  double get leaderTitleSize => _leaderTitleSize;
+  double _leaderTextSize = 20.0;
+  double get leaderTextSize => _leaderTextSize;
+  void _updateLeaderTextSizes() {
+    _leaderTitleSize = _textSize;
+    _leaderTextSize = _textSize * 0.75;
+    _save();
+  }
+
   final leaderTextColor = Colors.white;
-  final leaderTextSize = 20.0;
   final leaderStealerColor = Colors.red;
 
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
@@ -53,4 +78,37 @@ class _CustomScheme with ChangeNotifier {
       borderRadius: BorderRadius.circular(15.0),
     ),
   );
+
+  void _save() async {
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('colorScheme', jsonEncode(serialize()));
+  }
+
+  void _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('colorScheme');
+    if (data != null) {
+      final map = jsonDecode(data);
+      _textSize = map['textSize'];
+      _updateLeaderTextSizes();
+
+      _mainColor = Color(map['mainColor']);
+      _updateBackgroundColors();
+    }
+    notifyListeners();
+  }
+
+  void reset() {
+    _textSize = 26.0;
+    _mainColor = Colors.blueGrey;
+    _updateBackgroundColors();
+    _save();
+  }
+
+  Map<String, dynamic> serialize() => {
+        'textSize': _textSize,
+        'mainColor': _mainColor.value,
+      };
 }

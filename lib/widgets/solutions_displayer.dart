@@ -209,7 +209,7 @@ class _SolutionTile extends ConsumerWidget {
                 child: Text(
                   '${solution.word} (${solution.foundBy!.name})',
                   style: TextStyle(
-                      fontSize: 24,
+                      fontSize: ref.watch(schemeProvider).textSize,
                       color: solution.isFound
                           ? scheme.textSolvedColor
                           : scheme.textUnsolvedColor),
@@ -222,12 +222,14 @@ class _SolutionTile extends ConsumerWidget {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: 300,
+          width: ref.watch(schemeProvider).textSize * 12,
           height: 50,
           child: Tooltip(
             message: solution.isFound ? '' : solution.word,
             verticalOffset: -5,
-            textStyle: const TextStyle(fontSize: 24, color: Colors.white),
+            textStyle: TextStyle(
+                fontSize: ref.watch(schemeProvider).textSize,
+                color: Colors.white),
             child: child,
           ),
         ));

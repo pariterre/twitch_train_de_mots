@@ -155,7 +155,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
           ],
         ),
         SizedBox(
-          width: 150,
+          width: scheme.leaderTextSize * 7,
           child: Center(
             child: Text('$roundScore ($totalScore)',
                 style: TextStyle(
