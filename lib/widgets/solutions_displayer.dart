@@ -28,6 +28,8 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   }
 
   void _reinitializeFireworks() {
+    if (!mounted) return;
+
     _fireworksControllers.clear();
     final solutions = ref.read(gameManagerProvider).problem!.solutions;
     for (final solution in solutions) {

@@ -24,11 +24,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final _musicPlayer = AudioPlayer();
   final _congratulationPlayer = AudioPlayer();
 
-  Future<void> _resquestTerminateRound() async =>
-      await ref.read(gameManagerProvider).requestTerminateRound();
+  Future<void> _resquestTerminateRound() async {
+    if (!mounted) return;
+    await ref.read(gameManagerProvider).requestTerminateRound();
+  }
 
-  Future<void> _resquestStartNewRound() async =>
-      await ref.read(gameManagerProvider).requestStartNewRound();
+  Future<void> _resquestStartNewRound() async {
+    if (!mounted) return;
+    await ref.read(gameManagerProvider).requestStartNewRound();
+  }
 
   Future<void> _setTwitchManager() async {
     await TwitchInterface.instance.showConnectManagerDialog(context);
@@ -163,7 +167,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               const SizedBox(height: 32),
               const _Header(),
               const SizedBox(height: 32),
-              gm.hasNotAnActiveRound
+              gm.isPreparingProblem
                   ? Center(
                       child: CircularProgressIndicator(
                       color: scheme.mainColor,

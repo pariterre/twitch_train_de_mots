@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 
 class ConfigurationDrawer extends ConsumerWidget {
   const ConfigurationDrawer({super.key});
@@ -131,62 +132,107 @@ void _showFontSizePickerDialog(BuildContext context) {
   );
 }
 
-void _showGameConfiguration(BuildContext context) {
+void _showGameConfiguration(BuildContext context) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return const GameConfigurationDialog();
+      return Consumer(
+        builder: (context, ref, child) => WillPopScope(
+          onWillPop: () async {
+            ref.read(gameManagerProvider).finalizeConfigurationChanges();
+            return true;
+          },
+          child: AlertDialog(
+            title: const Text('Configuration du jeu'),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _IntegerInputField(
+                    label: 'Nombre de lettres des mots les plus courts',
+                    enabled: ref
+                        .watch(gameManagerProvider)
+                        .canChangeNbLetterInSmallestWord,
+                    initialValue: ref
+                        .read(gameManagerProvider)
+                        .nbLetterInSmallestWord
+                        .toString(),
+                    disabledTooltip:
+                        'Le nombre de lettres des mots les plus courts ne peut pas\n'
+                        'être changé en cours de partie ou le jeu chercher actuellement un mot',
+                    onChanged: (value) {
+                      ref.read(gameManagerProvider).nbLetterInSmallestWord =
+                          value;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _DoubleIntegerInputField(
+                      label: 'Nombre de lettres à piger',
+                      firstLabel: 'Minimum',
+                      secondLabel: 'Maximum',
+                      onChanged: (mininum, maximum) {}),
+                  const SizedBox(height: 24),
+                  _DoubleIntegerInputField(
+                      label: 'Nombre de mots à trouver',
+                      firstLabel: 'Minimum',
+                      secondLabel: 'Maximum',
+                      onChanged: (mininum, maximum) {}),
+                  const SizedBox(height: 24),
+                  _IntegerInputField(
+                    label: 'Durée d\'une manche (secondes)',
+                    initialValue: ref
+                        .read(gameManagerProvider)
+                        .roundDuration
+                        .inSeconds
+                        .toString(),
+                    enabled:
+                        ref.watch(gameManagerProvider).canChangeRoundDuration,
+                    onChanged: (value) {
+                      ref.read(gameManagerProvider).roundDuration =
+                          Duration(seconds: value);
+                    },
+                    disabledTooltip:
+                        'La durée d\'une manche ne peut pas être changée en cours de partie',
+                  ),
+                  const SizedBox(height: 24),
+                  _BooleanInputField(
+                      label: 'Voler un mot est permis', onChanged: (value) {}),
+                  const SizedBox(height: 24),
+                  if (true)
+                    _DoubleIntegerInputField(
+                        label: 'Période de récupération (seconds)',
+                        firstLabel: 'Normale',
+                        secondLabel: 'Voleur',
+                        onChanged: (normal, stealer) {}),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     },
   );
 }
 
-class GameConfigurationDialog extends StatelessWidget {
-  const GameConfigurationDialog({super.key});
+class _IntegerInputField extends StatelessWidget {
+  const _IntegerInputField({
+    required this.label,
+    this.enabled = true,
+    required this.initialValue,
+    required this.onChanged,
+    this.disabledTooltip,
+  });
+
+  final String label;
+  final bool enabled;
+  final String initialValue;
+  final Function(int) onChanged;
+  final String? disabledTooltip;
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Configuration du jeu'),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildIntegerInputField(
-                'Nombre de lettres des mots les plus courts',
-                onChanged: (value) {}),
-            const SizedBox(height: 24),
-            _buildDoubleIntegerInputField('Nombre de lettres à piger',
-                firstLabel: 'Minimum',
-                secondLabel: 'Maximum',
-                onChanged: (mininum, maximum) {}),
-            const SizedBox(height: 24),
-            _buildDoubleIntegerInputField('Nombre de mots à trouver',
-                firstLabel: 'Minimum',
-                secondLabel: 'Maximum',
-                onChanged: (mininum, maximum) {}),
-            const SizedBox(height: 24),
-            _buildIntegerInputField('Durée d\'une manche (secondes)',
-                onChanged: (value) {}),
-            const SizedBox(height: 24),
-            _buildBooleanInputField('Voler un mot est permis', (value) {
-              print(value);
-            }),
-            const SizedBox(height: 24),
-            if (true)
-              _buildDoubleIntegerInputField('Période de récupération (seconds)',
-                  firstLabel: 'Normale',
-                  secondLabel: 'Voleur',
-                  onChanged: (normal, stealer) {}),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIntegerInputField(String label,
-      {required Function(int) onChanged}) {
-    return Column(
+    final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -196,39 +242,44 @@ class GameConfigurationDialog extends StatelessWidget {
         ),
         SizedBox(
           width: 150,
-          child: TextField(
+          child: TextFormField(
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(border: OutlineInputBorder()),
-            onChanged: (String value) => onChanged(int.parse(value)),
+            initialValue: initialValue,
+            enabled: enabled,
+            onChanged: (String value) {
+              final newValue = int.tryParse(value);
+              if (newValue != null) onChanged(newValue);
+            },
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
         ),
       ],
     );
+    return disabledTooltip == null || enabled
+        ? child
+        : Tooltip(
+            message: disabledTooltip!,
+            child: child,
+          );
   }
+}
 
-  Widget _buildBooleanInputField(String label, Function(bool) onChanged) {
-    return GestureDetector(
-      onTap: () => onChanged(true),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Checkbox(
-            value: false,
-            onChanged: (value) => onChanged(true),
-          ),
-        ],
-      ),
-    );
-  }
+class _DoubleIntegerInputField extends StatelessWidget {
+  const _DoubleIntegerInputField({
+    required this.label,
+    required this.firstLabel,
+    required this.secondLabel,
+    required this.onChanged,
+  });
 
-  Widget _buildDoubleIntegerInputField(
-    String label, {
-    required String firstLabel,
-    required String secondLabel,
-    required Function(int minimum, int maximum) onChanged,
-  }) {
+  final String label;
+  final String firstLabel;
+  final String secondLabel;
+  final Function(int minimum, int maximum) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -271,6 +322,29 @@ class GameConfigurationDialog extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _BooleanInputField extends StatelessWidget {
+  const _BooleanInputField({required this.label, required this.onChanged});
+  final String label;
+  final Function(bool) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => onChanged(true),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Checkbox(
+            value: false,
+            onChanged: (value) => onChanged(true),
+          ),
+        ],
+      ),
     );
   }
 }

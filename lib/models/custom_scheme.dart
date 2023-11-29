@@ -93,18 +93,18 @@ class _CustomScheme with ChangeNotifier {
     notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('colorScheme', jsonEncode(serialize()));
+    prefs.setString('customScheme', jsonEncode(serialize()));
   }
 
   void _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString('colorScheme');
+    final data = prefs.getString('customScheme');
     if (data != null) {
       final map = jsonDecode(data);
-      _textSize = map['textSize'];
+      _textSize = map['textSize'] ?? 26.0;
       _updateLeaderTextSizes();
 
-      _mainColor = Color(map['mainColor']);
+      _mainColor = Color(map['mainColor'] ?? Colors.blueGrey.value);
       _updateBackgroundColors();
     }
     notifyListeners();

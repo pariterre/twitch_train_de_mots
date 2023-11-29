@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -33,7 +35,8 @@ class _GameManager with ChangeNotifier {
   int? _gameTimer;
   int? get gameTimer => _gameTimer;
 
-  bool get hasAnActiveRound => _currentProblem != null;
+  bool get isPreparingProblem => _gameStatus == GameStatus.preparingProblem;
+  bool get hasAnActiveRound => _gameStatus == GameStatus.roundStarted;
   bool get hasNotAnActiveRound => !hasAnActiveRound;
 
   WordProblem? _currentProblem;
@@ -44,6 +47,12 @@ class _GameManager with ChangeNotifier {
 
   ///
   /// Game configuration
+
+  void finalizeConfigurationChanges() {
+    // If [_forceRedraw] was set to true, it means we should redraw a problem
+    _searchForProblem();
+  }
+
   final _canSteal = true;
   bool get canSteal => _canSteal;
   final Future<WordProblem> Function({
@@ -54,14 +63,61 @@ class _GameManager with ChangeNotifier {
     required int maximumNbOfWords,
   }) _problemGenerator = WordProblem.generateFromRandom;
 
-  final Duration roundDuration = const Duration(minutes: 3);
+  Duration _roundDuration = const Duration(minutes: 3);
+  Duration get roundDuration => _roundDuration;
+  set roundDuration(Duration value) {
+    _roundDuration = value;
+    _saveConfiguration();
+  }
+
+  bool get canChangeRoundDuration => !hasAnActiveRound;
+
   final Duration cooldownPeriod = const Duration(seconds: 15);
 
-  final int nbLetterInSmallestWord = 5;
+  int _nbLetterInSmallestWord = 5;
+  int get nbLetterInSmallestWord => _nbLetterInSmallestWord;
+  set nbLetterInSmallestWord(int value) {
+    if (_nbLetterInSmallestWord == value) return;
+    _nbLetterInSmallestWord = value;
+    _forceRedraw = true;
+    _saveConfiguration();
+  }
+
+  bool get canChangeNbLetterInSmallestWord =>
+      !_isSearchingForProblem && !hasAnActiveRound;
+
   final int minimumWordLetter = 6;
   final int maximumWordLetter = 8;
   final int minimumWordsNumber = 15;
   final int maximumWordsNumber = 25;
+
+  Map<String, dynamic> serializeConfiguration() {
+    return {
+      'nbLetterInSmallestWord': nbLetterInSmallestWord,
+      'roundDuration': roundDuration.inSeconds,
+    };
+  }
+
+  void _saveConfiguration() async {
+    notifyListeners();
+
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('gameConfiguration', jsonEncode(serializeConfiguration()));
+  }
+
+  void _loadConfiguration() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('gameConfiguration');
+    if (data != null) {
+      final map = jsonDecode(data);
+      _nbLetterInSmallestWord = map['nbLetterInSmallestWord'] ?? 5;
+      _roundDuration = Duration(seconds: map['roundDuration'] ?? 180);
+
+      _forceRedraw = true;
+      _initializeWordProblem();
+    }
+    notifyListeners();
+  }
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -71,10 +127,16 @@ class _GameManager with ChangeNotifier {
   /// Initialize the game logic. This should be called at the start of the
   /// application.
   Future<void> initialize() async {
+    Timer.periodic(const Duration(seconds: 1), _gameLoop);
+    await _initializeWordProblem();
+  }
+
+  Future<void> _initializeWordProblem() async {
     await WordProblem.initialize(
         nbLetterInSmallestWord: nbLetterInSmallestWord);
-    Timer.periodic(const Duration(seconds: 1), _gameLoop);
-    _searchForProblem();
+    _isSearchingForProblem = false;
+    _nextProblem = null;
+    await _searchForProblem();
   }
 
   /// ----------- ///
@@ -116,15 +178,20 @@ class _GameManager with ChangeNotifier {
   /// Declare the singleton
   static _GameManager get instance => _instance;
   static final _GameManager _instance = _GameManager._internal();
-  _GameManager._internal();
+  _GameManager._internal() {
+    _loadConfiguration();
+  }
 
   ///
   /// As soon as anything changes, we need to notify the listeners of players.
   /// Otherwise, the UI would be spammed with updates.
+  bool _forceRedraw = false;
   bool _hasAPlayerUpdate = false;
 
   Future<void> _searchForProblem() async {
-    if (_isSearchingForProblem || _nextProblem != null) return;
+    if (_isSearchingForProblem) return;
+    if (_nextProblem != null && !_forceRedraw) return;
+    _forceRedraw = false;
 
     _isSearchingForProblem = true;
     _nextProblem = await _problemGenerator(
@@ -136,6 +203,7 @@ class _GameManager with ChangeNotifier {
     );
     _isSearchingForProblem = false;
     onNextProblemReady._notifyListeners();
+    notifyListeners();
   }
 
   ///
