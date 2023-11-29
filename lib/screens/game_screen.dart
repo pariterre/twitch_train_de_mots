@@ -25,10 +25,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final _congratulationPlayer = AudioPlayer();
 
   Future<void> _resquestTerminateRound() async =>
-      await GameManager.instance.requestTerminateRound();
+      await ref.read(gameManagerProvider).requestTerminateRound();
 
   Future<void> _resquestStartNewRound() async =>
-      await GameManager.instance.requestStartNewRound();
+      await ref.read(gameManagerProvider).requestStartNewRound();
 
   Future<void> _setTwitchManager() async {
     await TwitchInterface.instance.showConnectManagerDialog(context);
@@ -39,12 +39,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundIsPreparing.addListener(_onRoundIsPreparing);
-    GameManager.instance.onNextProblemReady.addListener(_onRoundIsReady);
-    GameManager.instance.onRoundStarted.addListener(_onRoundStarted);
-    GameManager.instance.onTimerTicks.addListener(_onClockTicks);
-    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
-    GameManager.instance.onRoundIsOver.addListener(_onRoundIsOver);
+    ref
+        .read(gameManagerProvider)
+        .onRoundIsPreparing
+        .addListener(_onRoundIsPreparing);
+    ref
+        .read(gameManagerProvider)
+        .onNextProblemReady
+        .addListener(_onRoundIsReady);
+    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
+    ref.read(gameManagerProvider).onTimerTicks.addListener(_onClockTicks);
+    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundIsOver);
   }
 
   @override
@@ -59,12 +65,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void dispose() {
     super.dispose();
 
-    GameManager.instance.onRoundIsPreparing.removeListener(_onRoundIsPreparing);
-    GameManager.instance.onNextProblemReady.removeListener(_onRoundIsReady);
-    GameManager.instance.onRoundStarted.removeListener(_onRoundStarted);
-    GameManager.instance.onTimerTicks.removeListener(_onClockTicks);
-    GameManager.instance.onSolutionFound.removeListener(_onSolutionFound);
-    GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
+    ref
+        .read(gameManagerProvider)
+        .onRoundIsPreparing
+        .removeListener(_onRoundIsPreparing);
+    ref
+        .read(gameManagerProvider)
+        .onNextProblemReady
+        .removeListener(_onRoundIsReady);
+    ref
+        .read(gameManagerProvider)
+        .onRoundStarted
+        .removeListener(_onRoundStarted);
+    ref.read(gameManagerProvider).onTimerTicks.removeListener(_onClockTicks);
+    ref
+        .read(gameManagerProvider)
+        .onSolutionFound
+        .removeListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
   void _playMusic() async {
@@ -78,7 +96,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _onClockTicks() => setState(() {});
   void _onSolutionFound(solution) {
     if (solution.word.length ==
-        GameManager.instance.problem!.solutions.nbLettersInLongest) {
+        ref.read(gameManagerProvider).problem!.solutions.nbLettersInLongest) {
       _congratulationPlayer.play(AssetSource('music/TrainWhistle.mp3'));
     }
     setState(() {});
@@ -87,13 +105,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _onRoundIsOver() => setState(() {});
 
   void _onClickedBegin() async {
-    await GameManager.instance.requestStartNewRound();
+    await ref.read(gameManagerProvider).requestStartNewRound();
     _playMusic();
   }
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
     return Scaffold(
@@ -132,7 +150,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Widget _buildGameScreen() {
-    final gm = GameManager.instance;
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
     return Stack(
@@ -231,18 +249,21 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundStarted.addListener(_onRoundStarted);
-    GameManager.instance.onTimerTicks.addListener(_onClockTicks);
-    GameManager.instance.onRoundIsOver.addListener(_onRoundIsOver);
+    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
+    ref.read(gameManagerProvider).onTimerTicks.addListener(_onClockTicks);
+    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundIsOver);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    GameManager.instance.onRoundStarted.removeListener(_onRoundStarted);
-    GameManager.instance.onTimerTicks.removeListener(_onClockTicks);
-    GameManager.instance.onRoundIsOver.removeListener(_onRoundIsOver);
+    ref
+        .read(gameManagerProvider)
+        .onRoundStarted
+        .removeListener(_onRoundStarted);
+    ref.read(gameManagerProvider).onTimerTicks.removeListener(_onClockTicks);
+    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
   void _onRoundStarted() => setState(() {});
@@ -251,7 +272,7 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
     return Text(

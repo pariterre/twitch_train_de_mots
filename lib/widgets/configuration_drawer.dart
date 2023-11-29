@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/models/custom_scheme.dart';
 
 class ConfigurationDrawer extends ConsumerWidget {
   const ConfigurationDrawer({super.key});
@@ -36,6 +37,12 @@ class ConfigurationDrawer extends ConsumerWidget {
                       title: const Text('Taille du thème'),
                       onTap: () {
                         _showFontSizePickerDialog(context);
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Configuration du jeu'),
+                      onTap: () {
+                        _showGameConfiguration(context);
                       },
                     ),
                   ],
@@ -122,4 +129,148 @@ void _showFontSizePickerDialog(BuildContext context) {
       });
     },
   );
+}
+
+void _showGameConfiguration(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return const GameConfigurationDialog();
+    },
+  );
+}
+
+class GameConfigurationDialog extends StatelessWidget {
+  const GameConfigurationDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Configuration du jeu'),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildIntegerInputField(
+                'Nombre de lettres des mots les plus courts',
+                onChanged: (value) {}),
+            const SizedBox(height: 24),
+            _buildDoubleIntegerInputField('Nombre de lettres à piger',
+                firstLabel: 'Minimum',
+                secondLabel: 'Maximum',
+                onChanged: (mininum, maximum) {}),
+            const SizedBox(height: 24),
+            _buildDoubleIntegerInputField('Nombre de mots à trouver',
+                firstLabel: 'Minimum',
+                secondLabel: 'Maximum',
+                onChanged: (mininum, maximum) {}),
+            const SizedBox(height: 24),
+            _buildIntegerInputField('Durée d\'une manche (secondes)',
+                onChanged: (value) {}),
+            const SizedBox(height: 24),
+            _buildBooleanInputField('Voler un mot est permis', (value) {
+              print(value);
+            }),
+            const SizedBox(height: 24),
+            if (true)
+              _buildDoubleIntegerInputField('Période de récupération (seconds)',
+                  firstLabel: 'Normale',
+                  secondLabel: 'Voleur',
+                  onChanged: (normal, stealer) {}),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntegerInputField(String label,
+      {required Function(int) onChanged}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4.0),
+          child:
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        SizedBox(
+          width: 150,
+          child: TextField(
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            onChanged: (String value) => onChanged(int.parse(value)),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBooleanInputField(String label, Function(bool) onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(true),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Checkbox(
+            value: false,
+            onChanged: (value) => onChanged(true),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDoubleIntegerInputField(
+    String label, {
+    required String firstLabel,
+    required String secondLabel,
+    required Function(int minimum, int maximum) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4.0),
+          child:
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: 150,
+              child: TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: firstLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 1,
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: secondLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter a value';
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

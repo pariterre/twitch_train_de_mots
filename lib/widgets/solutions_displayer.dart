@@ -19,14 +19,17 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundStarted.addListener(_reinitializeFireworks);
-    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
+    ref
+        .read(gameManagerProvider)
+        .onRoundStarted
+        .addListener(_reinitializeFireworks);
+    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
     _reinitializeFireworks();
   }
 
   void _reinitializeFireworks() {
     _fireworksControllers.clear();
-    final solutions = GameManager.instance.problem!.solutions;
+    final solutions = ref.read(gameManagerProvider).problem!.solutions;
     for (final solution in solutions) {
       _fireworksControllers[solution] = FireworksController(
           huge: solution.word.length == solutions.nbLettersInLongest);
@@ -42,7 +45,7 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   @override
   Widget build(BuildContext context) {
     final scheme = ref.watch(schemeProvider);
-    final solutions = GameManager.instance.problem!.solutions;
+    final solutions = ref.watch(gameManagerProvider).problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
     for (var i = solutions.nbLettersInSmallest;
@@ -92,20 +95,20 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   }
 }
 
-class _SolutionWrapper extends StatefulWidget {
+class _SolutionWrapper extends ConsumerStatefulWidget {
   const _SolutionWrapper({required this.solutions});
 
   final Solutions solutions;
 
   @override
-  State<_SolutionWrapper> createState() => _SolutionWrapperState();
+  ConsumerState<_SolutionWrapper> createState() => _SolutionWrapperState();
 }
 
-class _SolutionWrapperState extends State<_SolutionWrapper> {
+class _SolutionWrapperState extends ConsumerState<_SolutionWrapper> {
   @override
   void initState() {
     super.initState();
-    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
   }
 
   void _onSolutionFound(_) => setState(() {});

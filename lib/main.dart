@@ -5,9 +5,11 @@ import 'package:train_de_mots/screens/game_screen.dart';
 
 void main() async {
   // Initialize singleton
-  await GameManager.instance.initialize();
 
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(ProviderScope(child: Consumer(builder: (context, ref, child) {
+    ref.read(gameManagerProvider).initialize();
+    return const MyApp();
+  })));
 }
 
 class MyApp extends StatelessWidget {

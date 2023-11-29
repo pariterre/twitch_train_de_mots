@@ -17,16 +17,19 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onRoundStarted.addListener(_refresh);
-    GameManager.instance.onSolutionFound.addListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundStarted.addListener(_refresh);
+    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    GameManager.instance.onRoundStarted.removeListener(_refresh);
-    GameManager.instance.onSolutionFound.removeListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundStarted.removeListener(_refresh);
+    ref
+        .read(gameManagerProvider)
+        .onSolutionFound
+        .removeListener(_onSolutionFound);
   }
 
   void _refresh() => setState(() {});
@@ -34,7 +37,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
     WordProblem? problem = gm.problem;
@@ -182,13 +185,13 @@ class _CoolDownClockState extends ConsumerState<_CoolDownClock> {
   @override
   void initState() {
     super.initState();
-    GameManager.instance.onPlayerUpdate.addListener(_refresh);
+    ref.read(gameManagerProvider).onPlayerUpdate.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
-    GameManager.instance.onPlayerUpdate.removeListener(_refresh);
+    ref.read(gameManagerProvider).onPlayerUpdate.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});

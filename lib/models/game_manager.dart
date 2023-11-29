@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -15,7 +16,12 @@ enum GameStatus {
   roundOver,
 }
 
-class GameManager {
+// Declare the GameManager provider
+final gameManagerProvider = ChangeNotifierProvider<_GameManager>((ref) {
+  return _GameManager.instance;
+});
+
+class _GameManager with ChangeNotifier {
   /// ---------- ///
   /// GAME LOGIC ///
   /// ---------- ///
@@ -36,18 +42,26 @@ class GameManager {
   bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
 
-  final Duration roundDuration = const Duration(minutes: 3);
-  final Duration cooldownPeriod = const Duration(seconds: 15);
-
   ///
   /// Game configuration
-  ///
+  final _canSteal = true;
+  bool get canSteal => _canSteal;
+  final Future<WordProblem> Function({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+  }) _problemGenerator = WordProblem.generateFromRandom;
+
+  final Duration roundDuration = const Duration(minutes: 3);
+  final Duration cooldownPeriod = const Duration(seconds: 15);
 
   final int nbLetterInSmallestWord = 5;
   final int minimumWordLetter = 6;
   final int maximumWordLetter = 8;
-  final int minimumWordsNumber = 20;
-  final int maximumWordsNumber = 30;
+  final int minimumWordsNumber = 15;
+  final int maximumWordsNumber = 25;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -57,14 +71,11 @@ class GameManager {
   /// Initialize the game logic. This should be called at the start of the
   /// application.
   Future<void> initialize() async {
-    await WordProblem.initialize();
+    await WordProblem.initialize(
+        nbLetterInSmallestWord: nbLetterInSmallestWord);
     Timer.periodic(const Duration(seconds: 1), _gameLoop);
     _searchForProblem();
   }
-
-  ///
-  /// Provide a way to get the singleton
-  static GameManager get instance => _instance;
 
   /// ----------- ///
   /// INTERACTION ///
@@ -103,8 +114,9 @@ class GameManager {
 
   ///
   /// Declare the singleton
-  static final GameManager _instance = GameManager._internal();
-  GameManager._internal();
+  static _GameManager get instance => _instance;
+  static final _GameManager _instance = _GameManager._internal();
+  _GameManager._internal();
 
   ///
   /// As soon as anything changes, we need to notify the listeners of players.
@@ -115,7 +127,13 @@ class GameManager {
     if (_isSearchingForProblem || _nextProblem != null) return;
 
     _isSearchingForProblem = true;
-    _nextProblem = await WordProblem.generateFromRandom();
+    _nextProblem = await _problemGenerator(
+      nbLetterInSmallestWord: nbLetterInSmallestWord,
+      minLetters: minimumWordLetter,
+      maxLetters: maximumWordLetter,
+      minimumNbOfWords: minimumWordsNumber,
+      maximumNbOfWords: maximumWordsNumber,
+    );
     _isSearchingForProblem = false;
     onNextProblemReady._notifyListeners();
   }
@@ -166,13 +184,14 @@ class GameManager {
     if (problem == null || gameTimer == null) return;
 
     // Get the player from the players list
-    final player = GameManager.instance.players.firstWhereOrAdd(sender);
+    final player = players.firstWhereOrAdd(sender);
 
     // If the player is in cooldown, they are not allowed to answer
     if (player.isInCooldownPeriod) return;
 
     // Find if the proposed word is valid
-    final solution = problem!.trySolution(message);
+    final solution = problem!
+        .trySolution(message, nbLetterInSmallestWord: nbLetterInSmallestWord);
     if (solution == null) return;
 
     // Add to player score
@@ -181,7 +200,13 @@ class GameManager {
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
 
-      // Also, the player is only allowed to steal once per round
+      // The player cannot steal if the game is not configured to allow it
+      if (!canSteal) return;
+
+      // The player cannot steal from themselves
+      if (solution.foundBy == player) return;
+
+      // The player is only allowed to steal once per round
       if (player.isStealer) return;
 
       // First remove the score from the previous finder

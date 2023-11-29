@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/models/french_words.dart';
-import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
@@ -11,9 +10,8 @@ class WordProblem {
   String word;
   Solutions solutions;
 
-  static initialize() async {
-    await _WordGenerator.instance
-        .wordsWithAtLeast(GameManager.instance.nbLetterInSmallestWord);
+  static initialize({required int nbLetterInSmallestWord}) async {
+    await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
   }
 
   Set<Player> get finders => solutions
@@ -36,9 +34,9 @@ class WordProblem {
     solutions = solutions.sort();
   }
 
-  Solution? trySolution(String word) {
+  Solution? trySolution(String word, {required int nbLetterInSmallestWord}) {
     // Do some rapid validation
-    if (word.length < GameManager.instance.nbLetterInSmallestWord) {
+    if (word.length < nbLetterInSmallestWord) {
       // If the word is shorted than the permitted shortest word, it is invalid
       return null;
     }
@@ -51,20 +49,25 @@ class WordProblem {
 
   ///
   /// Generates a new word problem from a random string of letters.
-  static Future<WordProblem> generateFromRandom() async {
+  static Future<WordProblem> generateFromRandom({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+  }) async {
     String candidate;
     Set<String> subWords;
-    final gm = GameManager.instance;
 
     do {
       candidate = _WordGenerator.instance._randomStringOfLetters(
-          minLetters: gm.minimumWordLetter, maxLetters: gm.maximumWordLetter);
+          minLetters: minLetters, maxLetters: maxLetters);
       subWords = await _WordGenerator.instance._findsWordsFromPermutations(
           from: candidate,
-          nbLetters: gm.nbLetterInSmallestWord,
-          wordsCountLimit: gm.maximumWordsNumber);
-    } while (subWords.length < gm.minimumWordsNumber ||
-        subWords.length > gm.maximumWordsNumber);
+          nbLetters: nbLetterInSmallestWord,
+          wordsCountLimit: maximumNbOfWords);
+    } while (subWords.length < minimumNbOfWords ||
+        subWords.length > maximumNbOfWords);
 
     return WordProblem._(
         word: candidate,
@@ -74,16 +77,21 @@ class WordProblem {
   ///
   /// Generates a new word problem from picking a letter, then subsetting the
   /// words and picking a new letter available in the remainning words.
-  static Future<WordProblem> generateFromBuildingUp() async {
+  static Future<WordProblem> generateFromBuildingUp({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+  }) async {
     final random = Random();
     String candidate;
     Set<String> subWords;
-    final gm = GameManager.instance;
 
     do {
       candidate = '';
       subWords = await _WordGenerator.instance
-          .wordsWithAtLeast(gm.nbLetterInSmallestWord);
+          .wordsWithAtLeast(nbLetterInSmallestWord);
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       // String availableLetters = 'AELMSWX'; // Force a rapid solution for debug
@@ -120,18 +128,17 @@ class WordProblem {
 
       // Put all the possible words from candidate in subWords
       subWords = {};
-      if (candidate.length >= gm.minimumWordLetter &&
-          candidate.length <= gm.maximumWordLetter) {
+      if (candidate.length >= minLetters && candidate.length <= maxLetters) {
         // This takes time, only do it if the candidate is valid
         subWords = (await _WordGenerator.instance._findsWordsFromPermutations(
           from: candidate,
-          nbLetters: gm.nbLetterInSmallestWord,
-          wordsCountLimit: gm.maximumWordsNumber,
+          nbLetters: nbLetterInSmallestWord,
+          wordsCountLimit: maximumNbOfWords,
         ));
       }
       // Make sure the number of words as solution is valid
-    } while (subWords.length < gm.minimumWordsNumber ||
-        subWords.length > gm.maximumWordsNumber);
+    } while (subWords.length < minimumNbOfWords ||
+        subWords.length > maximumNbOfWords);
 
     return WordProblem._(
         word: candidate,

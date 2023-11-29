@@ -42,7 +42,17 @@ class _CustomScheme with ChangeNotifier {
   Color get backgroundColorLight => _backgroundColorLight;
   void _updateBackgroundColors() {
     _backgroundColorDark = mainColor;
-    _backgroundColorLight = Color(mainColor.value.toInt() ~/ 3);
+
+    final red = mainColor.red;
+    final green = mainColor.green;
+    final blue = mainColor.blue;
+    if (red >= green && red >= blue) {
+      _backgroundColorLight = const Color.fromARGB(255, 255, 200, 200);
+    } else if (green >= red && green >= blue) {
+      _backgroundColorLight = const Color.fromARGB(255, 200, 255, 200);
+    } else {
+      _backgroundColorLight = const Color.fromARGB(255, 200, 200, 255);
+    }
   }
 
   final solutionUnsolvedColorLight = Colors.green[200];
