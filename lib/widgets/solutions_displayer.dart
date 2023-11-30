@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/models/game_configuration.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
@@ -229,12 +230,22 @@ class _SolutionTile extends ConsumerWidget {
         child: SizedBox(
           width: ref.watch(schemeProvider).textSize * 12,
           height: 50,
-          child: Tooltip(
-            message: solution.isFound ? '' : solution.word,
-            verticalOffset: -5,
-            textStyle: TextStyle(
-                fontSize: ref.watch(schemeProvider).textSize,
-                color: Colors.white),
+          child: Consumer(
+            builder: (context, ref, child) {
+              final showTooltip =
+                  ref.watch(gameConfigurationProvider).showAnswersTooltip;
+
+              return showTooltip
+                  ? Tooltip(
+                      message: solution.isFound ? '' : solution.word,
+                      verticalOffset: -5,
+                      textStyle: TextStyle(
+                          fontSize: ref.watch(schemeProvider).textSize,
+                          color: Colors.white),
+                      child: child,
+                    )
+                  : child!;
+            },
             child: child,
           ),
         ));

@@ -214,6 +214,17 @@ void _showGameConfiguration(BuildContext context) async {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    _BooleanInputField(
+                        label: 'Montrer les réponses au survol\nde la souris',
+                        value: ref
+                            .watch(gameConfigurationProvider)
+                            .showAnswersTooltip,
+                        onChanged: (value) {
+                          ref
+                              .read(gameConfigurationProvider)
+                              .showAnswersTooltip = value;
+                        }),
+                    const SizedBox(height: 24),
                     _IntegerInputField(
                       label: 'Nombre de lettres des mots les plus courts',
                       initialValue: ref
@@ -530,20 +541,28 @@ class _BooleanInputField extends StatelessWidget {
     return Consumer(builder: (context, ref, child) {
       final scheme = ref.watch(schemeProvider);
 
-      return GestureDetector(
-        onTap: () => onChanged(!value),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: scheme.mainColor)),
-            Checkbox(
-              value: value,
-              onChanged: (_) => onChanged(!value),
-              fillColor: MaterialStateProperty.all(scheme.mainColor),
-            ),
-          ],
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () => onChanged(!value),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: scheme.mainColor)),
+              Checkbox(
+                value: value,
+                onChanged: (_) => onChanged(!value),
+                fillColor: MaterialStateProperty.resolveWith((state) {
+                  if (state.contains(MaterialState.selected)) {
+                    return scheme.mainColor;
+                  }
+                  return Colors.white;
+                }),
+              ),
+            ],
+          ),
         ),
       );
     });

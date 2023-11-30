@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
+const _showAnswersTooltipDefault = false;
+
 const _roundDurationDefault = 180;
 const _cooldownPeriodDefault = 15;
 const _cooldownPeriodAfterStealDefault = 30;
@@ -48,6 +50,13 @@ class _GameConfiguration with ChangeNotifier {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
   }) get problemGenerator => _problemGenerator;
+
+  bool _showAnswersTooltip = _showAnswersTooltipDefault;
+  bool get showAnswersTooltip => _showAnswersTooltip;
+  set showAnswersTooltip(bool value) {
+    _showAnswersTooltip = value;
+    _saveConfiguration();
+  }
 
   Duration _roundDuration = const Duration(seconds: _roundDurationDefault);
   Duration get roundDuration => _roundDuration;
@@ -148,6 +157,7 @@ class _GameConfiguration with ChangeNotifier {
   /// Serialize the configuration to a map
   Map<String, dynamic> serialize() {
     return {
+      'showAnswersTooltip': showAnswersTooltip,
       'roundDuration': roundDuration.inSeconds,
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
@@ -175,6 +185,9 @@ class _GameConfiguration with ChangeNotifier {
     final data = prefs.getString('gameConfiguration');
     if (data != null) {
       final map = jsonDecode(data);
+
+      _showAnswersTooltip =
+          map['showAnswersTooltip'] ?? _showAnswersTooltipDefault;
 
       _roundDuration =
           Duration(seconds: map['roundDuration'] ?? _roundDurationDefault);
@@ -204,6 +217,8 @@ class _GameConfiguration with ChangeNotifier {
   ///
   /// Reset the configuration to the default values
   void resetConfiguration() {
+    _showAnswersTooltip = _showAnswersTooltipDefault;
+
     _roundDuration = const Duration(seconds: _roundDurationDefault);
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
     _cooldownPeriodAfterSteal =
