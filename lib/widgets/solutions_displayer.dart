@@ -114,7 +114,10 @@ class _SolutionWrapperState extends ConsumerState<_SolutionWrapper> {
     ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
   }
 
-  void _onSolutionFound(_) => setState(() {});
+  void _onSolutionFound(_) {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
