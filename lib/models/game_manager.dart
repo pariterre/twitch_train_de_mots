@@ -122,7 +122,7 @@ class _GameManager {
     bool repickNow = false,
   }) {
     if (shoulRepickProblem) _forceRepickProblem = true;
-    if (repickNow) _initializeWordProblem();
+    if (repickNow && shoulRepickProblem) _initializeWordProblem();
   }
 
   ///
@@ -225,7 +225,7 @@ class _GameManager {
       if (player.isStealer) return;
 
       // First remove the score from the previous finder
-      cooldownTimer *= 2;
+      cooldownTimer = configuration.cooldownPeriodAfterSteal.inSeconds;
       solution.foundBy!.score -= solution.value;
 
       // Mark the solution as stolen and player as stealer and proceed as usual

@@ -53,12 +53,37 @@ class ConfigurationDrawer extends ConsumerWidget {
                     ListTile(
                       tileColor: Colors.red,
                       title: const Text('Réinitialiser la configuration'),
-                      onTap: () {
+                      enabled:
+                          ref.watch(gameConfigurationProvider).canChangeProblem,
+                      onTap: () async {
+                        final result = await showDialog<bool?>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                  title: const Text(
+                                      'Réinitialiser la configuration'),
+                                  content: const Text(
+                                      'Êtes-vous sûr de vouloir réinitialiser la configuration?'),
+                                  actions: [
+                                    TextButton(
+                                      child: const Text('Annuler'),
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                    ),
+                                    TextButton(
+                                      child: const Text('Réinitialiser'),
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                    ),
+                                  ],
+                                ));
+                        if (result == null || !result) return;
+
                         ref
                             .read(gameConfigurationProvider)
                             .resetConfiguration();
                         ref.read(schemeProvider).reset();
-                        Navigator.pop(context);
+
+                        if (context.mounted) Navigator.pop(context);
                       },
                     ),
                   ],
@@ -154,20 +179,20 @@ void _showGameConfiguration(BuildContext context) async {
                 children: [
                   _IntegerInputField(
                     label: 'Nombre de lettres des mots les plus courts',
-                    enabled:
-                        ref.watch(gameConfigurationProvider).canChangeProblem,
                     initialValue: ref
                         .read(gameConfigurationProvider)
                         .nbLetterInSmallestWord
                         .toString(),
-                    disabledTooltip:
-                        'Le nombre de lettres des mots les plus courts ne peut pas\n'
-                        'être changé en cours de partie ou le jeu chercher actuellement un mot',
                     onChanged: (value) {
                       ref
                           .read(gameConfigurationProvider)
                           .nbLetterInSmallestWord = value;
                     },
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeProblem,
+                    disabledTooltip:
+                        'Le nombre de lettres des mots les plus courts ne peut pas\n'
+                        'être changé en cours de partie ou lorsque le jeu cherche un mot',
                   ),
                   const SizedBox(height: 24),
                   _DoubleIntegerInputField(
@@ -190,15 +215,34 @@ void _showGameConfiguration(BuildContext context) async {
                     },
                     enabled:
                         ref.watch(gameConfigurationProvider).canChangeProblem,
+                    disabledTooltip:
+                        'Le nombre de lettres à piger ne peut pas\n'
+                        'être changé en cours de partie ou lorsque le jeu cherche un mot',
                   ),
                   const SizedBox(height: 24),
                   _DoubleIntegerInputField(
-                      label: 'Nombre de mots à trouver',
-                      firstLabel: 'Minimum',
-                      firstInitialValue: '0',
-                      secondLabel: 'Maximum',
-                      secondInitialValue: '0',
-                      onChanged: (mininum, maximum) {}),
+                    label: 'Nombre de mots à trouver',
+                    firstLabel: 'Minimum',
+                    firstInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .minimumWordsNumber
+                        .toString(),
+                    secondLabel: 'Maximum',
+                    secondInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .maximumWordsNumber
+                        .toString(),
+                    onChanged: (mininum, maximum) {
+                      ref.read(gameConfigurationProvider).minimumWordsNumber =
+                          mininum;
+                      ref.read(gameConfigurationProvider).maximumWordsNumber =
+                          maximum;
+                    },
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeProblem,
+                    disabledTooltip: 'Le nombre de mots à trouver ne peut pas\n'
+                        'être changé en cours de partie ou lorsque le jeu cherche un mot',
+                  ),
                   const SizedBox(height: 24),
                   _IntegerInputField(
                     label: 'Durée d\'une manche (secondes)',
@@ -207,27 +251,53 @@ void _showGameConfiguration(BuildContext context) async {
                         .roundDuration
                         .inSeconds
                         .toString(),
-                    enabled:
-                        ref.watch(gameConfigurationProvider).canChangeDurations,
                     onChanged: (value) {
                       ref.read(gameConfigurationProvider).roundDuration =
                           Duration(seconds: value);
                     },
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeDurations,
                     disabledTooltip:
                         'La durée d\'une manche ne peut pas être changée en cours de partie',
                   ),
                   const SizedBox(height: 24),
                   _BooleanInputField(
-                      label: 'Voler un mot est permis', onChanged: (value) {}),
+                    label: 'Voler un mot est permis',
+                    value: ref.watch(gameConfigurationProvider).canSteal,
+                    onChanged: (value) {
+                      ref.read(gameConfigurationProvider).canSteal = value;
+                    },
+                  ),
                   const SizedBox(height: 24),
-                  if (true)
-                    _DoubleIntegerInputField(
-                        label: 'Période de récupération (secondes)',
-                        firstLabel: 'Normale',
-                        firstInitialValue: '0',
-                        secondLabel: 'Voleur',
-                        secondInitialValue: '0',
-                        onChanged: (normal, stealer) {}),
+                  _DoubleIntegerInputField(
+                    label: 'Période de récupération (secondes)',
+                    firstLabel: 'Normale',
+                    firstInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .cooldownPeriod
+                        .inSeconds
+                        .toString(),
+                    secondLabel: 'Voleur',
+                    secondInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .cooldownPeriodAfterSteal
+                        .inSeconds
+                        .toString(),
+                    enableSecond: ref.watch(gameConfigurationProvider).canSteal,
+                    onChanged: (normal, stealer) {
+                      ref.read(gameConfigurationProvider).cooldownPeriod =
+                          Duration(seconds: normal);
+                      ref
+                              .read(gameConfigurationProvider)
+                              .cooldownPeriodAfterSteal =
+                          Duration(seconds: stealer);
+                    },
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeDurations,
+                    disabledTooltip:
+                        'Les périodes de récupération ne peuvent pas être\n'
+                        'changées en cours de partie',
+                  ),
                 ],
               ),
             ),
@@ -241,16 +311,16 @@ void _showGameConfiguration(BuildContext context) async {
 class _IntegerInputField extends StatelessWidget {
   const _IntegerInputField({
     required this.label,
-    this.enabled = true,
     required this.initialValue,
     required this.onChanged,
+    this.enabled = true,
     this.disabledTooltip,
   });
 
   final String label;
-  final bool enabled;
   final String initialValue;
   final Function(int) onChanged;
+  final bool enabled;
   final String? disabledTooltip;
 
   @override
@@ -259,7 +329,7 @@ class _IntegerInputField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 4.0),
+          padding: const EdgeInsets.only(bottom: 8.0),
           child:
               Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
@@ -293,19 +363,23 @@ class _DoubleIntegerInputField extends StatefulWidget {
     required this.label,
     required this.firstLabel,
     required this.firstInitialValue,
+    this.enableSecond = true,
     required this.secondLabel,
     required this.secondInitialValue,
-    this.enabled = true,
     required this.onChanged,
+    this.enabled = true,
+    this.disabledTooltip,
   });
 
   final String label;
   final String firstLabel;
   final String firstInitialValue;
+  final bool enableSecond;
   final String secondLabel;
   final String secondInitialValue;
-  final bool enabled;
   final Function(int minimum, int maximum) onChanged;
+  final bool enabled;
+  final String? disabledTooltip;
 
   @override
   State<_DoubleIntegerInputField> createState() =>
@@ -320,11 +394,11 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 4.0),
+          padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(widget.label,
               style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
@@ -367,32 +441,40 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
                   _second = second;
                   _callOnChanged();
                 },
-                enabled: widget.enabled,
+                enabled: widget.enabled && widget.enableSecond,
               ),
             ),
           ],
         ),
       ],
     );
+    return widget.disabledTooltip == null || widget.enabled
+        ? child
+        : Tooltip(
+            message: widget.disabledTooltip!,
+            child: child,
+          );
   }
 }
 
 class _BooleanInputField extends StatelessWidget {
-  const _BooleanInputField({required this.label, required this.onChanged});
+  const _BooleanInputField(
+      {required this.label, required this.value, required this.onChanged});
   final String label;
+  final bool value;
   final Function(bool) onChanged;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onChanged(true),
+      onTap: () => onChanged(!value),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           Checkbox(
-            value: false,
-            onChanged: (value) => onChanged(true),
+            value: value,
+            onChanged: (_) => onChanged(!value),
           ),
         ],
       ),

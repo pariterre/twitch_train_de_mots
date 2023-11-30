@@ -6,10 +6,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
-const _nbLetterInSmallestWordDefault = 5;
 const _roundDurationDefault = 180;
+const _cooldownPeriodDefault = 15;
+const _cooldownPeriodAfterStealDefault = 30;
+
+const _nbLetterInSmallestWordDefault = 5;
 const _minimumWordLetterDefault = 6;
 const _maximumWordLetterDefault = 8;
+const _minimumWordsNumberDefault = 15;
+const _maximumWordsNumberDefault = 25;
+
+const _canStealDefault = true;
 
 // Declare the GameConfiguration provider
 final gameConfigurationProvider =
@@ -27,8 +34,6 @@ class _GameConfiguration with ChangeNotifier {
     _listenToGameManagerEvents();
   }
 
-  final _canSteal = true;
-  bool get canSteal => _canSteal;
   final Future<WordProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
@@ -51,7 +56,20 @@ class _GameConfiguration with ChangeNotifier {
     _saveConfiguration();
   }
 
-  final Duration cooldownPeriod = const Duration(seconds: 15);
+  Duration _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
+  Duration get cooldownPeriod => _cooldownPeriod;
+  set cooldownPeriod(Duration value) {
+    _cooldownPeriod = value;
+    _saveConfiguration();
+  }
+
+  Duration _cooldownPeriodAfterSteal =
+      const Duration(seconds: _cooldownPeriodAfterStealDefault);
+  Duration get cooldownPeriodAfterSteal => _cooldownPeriodAfterSteal;
+  set cooldownPeriodAfterSteal(Duration value) {
+    _cooldownPeriodAfterSteal = value;
+    _saveConfiguration();
+  }
 
   int _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
   int get nbLetterInSmallestWord => _nbLetterInSmallestWord;
@@ -84,8 +102,34 @@ class _GameConfiguration with ChangeNotifier {
     _saveConfiguration();
   }
 
-  final int minimumWordsNumber = 15;
-  final int maximumWordsNumber = 25;
+  int _minimumWordsNumber = _minimumWordsNumberDefault;
+  int get minimumWordsNumber => _minimumWordsNumber;
+  set minimumWordsNumber(int value) {
+    if (_minimumWordsNumber == value) return;
+    if (value > maximumWordsNumber) return;
+    _minimumWordsNumber = value;
+
+    _tellGameManagerToRepickProblem();
+    _saveConfiguration();
+  }
+
+  int _maximumWordsNumber = _maximumWordsNumberDefault;
+  int get maximumWordsNumber => _maximumWordsNumber;
+  set maximumWordsNumber(int value) {
+    if (_maximumWordsNumber == value) return;
+    if (value < minimumWordsNumber) return;
+    _maximumWordsNumber = value;
+
+    _tellGameManagerToRepickProblem();
+    _saveConfiguration();
+  }
+
+  bool _canSteal = _canStealDefault;
+  bool get canSteal => _canSteal;
+  set canSteal(bool value) {
+    _canSteal = value;
+    _saveConfiguration();
+  }
 
   //// LISTEN TO GAME MANAGER ////
   void _listenToGameManagerEvents() {
@@ -105,9 +149,14 @@ class _GameConfiguration with ChangeNotifier {
   Map<String, dynamic> serialize() {
     return {
       'roundDuration': roundDuration.inSeconds,
+      'cooldownPeriod': cooldownPeriod.inSeconds,
+      'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
       'nbLetterInSmallestWord': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
       'maximumWordLetter': maximumWordLetter,
+      'minimumWordsNumber': minimumWordsNumber,
+      'maximumWordsNumber': maximumWordsNumber,
+      'canSteal': canSteal,
     };
   }
 
@@ -116,6 +165,7 @@ class _GameConfiguration with ChangeNotifier {
   void _saveConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('gameConfiguration', jsonEncode(serialize()));
+    notifyListeners();
   }
 
   ///
@@ -125,14 +175,28 @@ class _GameConfiguration with ChangeNotifier {
     final data = prefs.getString('gameConfiguration');
     if (data != null) {
       final map = jsonDecode(data);
+
       _roundDuration =
           Duration(seconds: map['roundDuration'] ?? _roundDurationDefault);
+      _cooldownPeriod =
+          Duration(seconds: map['cooldownPeriod'] ?? _cooldownPeriodDefault);
+      _cooldownPeriodAfterSteal = Duration(
+          seconds: map['cooldownPeriodAfterSteal'] ??
+              _cooldownPeriodAfterStealDefault);
+
       _nbLetterInSmallestWord =
           map['nbLetterInSmallestWord'] ?? _nbLetterInSmallestWordDefault;
       _minimumWordLetter =
           map['minimumWordLetter'] ?? _minimumWordLetterDefault;
       _maximumWordLetter =
           map['maximumWordLetter'] ?? _maximumWordLetterDefault;
+      _minimumWordsNumber =
+          map['minimumWordsNumber'] ?? _minimumWordsNumberDefault;
+      _maximumWordsNumber =
+          map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
+
+      _canSteal = map['canSteal'] ?? _canStealDefault;
+
       _tellGameManagerToRepickProblem();
     }
   }
@@ -141,9 +205,17 @@ class _GameConfiguration with ChangeNotifier {
   /// Reset the configuration to the default values
   void resetConfiguration() {
     _roundDuration = const Duration(seconds: _roundDurationDefault);
+    _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
+    _cooldownPeriodAfterSteal =
+        const Duration(seconds: _cooldownPeriodAfterStealDefault);
+
     _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
     _minimumWordLetter = _minimumWordLetterDefault;
     _maximumWordLetter = _maximumWordLetterDefault;
+    _minimumWordsNumber = _minimumWordsNumberDefault;
+    _maximumWordsNumber = _maximumWordsNumberDefault;
+
+    _canSteal = _canStealDefault;
 
     _tellGameManagerToRepickProblem();
     _saveConfiguration();
