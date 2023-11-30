@@ -65,6 +65,15 @@ class _BackgroundState extends ConsumerState<Background>
             );
           },
         ),
+        Align(
+          alignment: Alignment.topCenter,
+          child: Image.asset(
+            'assets/images/splash_screen.png',
+            height: MediaQuery.of(context).size.height,
+            opacity: const AlwaysStoppedAnimation(0.05),
+            fit: BoxFit.cover,
+          ),
+        ),
         if (widget.child != null) widget.child!,
       ],
     );
