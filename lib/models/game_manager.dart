@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/game_configuration.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -19,11 +19,11 @@ enum GameStatus {
 }
 
 // Declare the GameManager provider
-final gameManagerProvider = ChangeNotifierProvider<_GameManager>((ref) {
+final gameManagerProvider = Provider<_GameManager>((ref) {
   return _GameManager.instance;
 });
 
-class _GameManager with ChangeNotifier {
+class _GameManager {
   /// ---------- ///
   /// GAME LOGIC ///
   /// ---------- ///
@@ -42,82 +42,9 @@ class _GameManager with ChangeNotifier {
   WordProblem? _currentProblem;
   WordProblem? _nextProblem;
   bool _isSearchingForProblem = false;
+  bool get isSearchingForProblem => _isSearchingForProblem;
   bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
-
-  ///
-  /// Game configuration
-
-  void finalizeConfigurationChanges() {
-    // If [_forceRedraw] was set to true, it means we should redraw a problem
-    _searchForProblem();
-  }
-
-  final _canSteal = true;
-  bool get canSteal => _canSteal;
-  final Future<WordProblem> Function({
-    required int nbLetterInSmallestWord,
-    required int minLetters,
-    required int maxLetters,
-    required int minimumNbOfWords,
-    required int maximumNbOfWords,
-  }) _problemGenerator = WordProblem.generateFromRandom;
-
-  Duration _roundDuration = const Duration(minutes: 3);
-  Duration get roundDuration => _roundDuration;
-  set roundDuration(Duration value) {
-    _roundDuration = value;
-    _saveConfiguration();
-  }
-
-  bool get canChangeRoundDuration => !hasAnActiveRound;
-
-  final Duration cooldownPeriod = const Duration(seconds: 15);
-
-  int _nbLetterInSmallestWord = 5;
-  int get nbLetterInSmallestWord => _nbLetterInSmallestWord;
-  set nbLetterInSmallestWord(int value) {
-    if (_nbLetterInSmallestWord == value) return;
-    _nbLetterInSmallestWord = value;
-    _forceRedraw = true;
-    _saveConfiguration();
-  }
-
-  bool get canChangeNbLetterInSmallestWord =>
-      !_isSearchingForProblem && !hasAnActiveRound;
-
-  final int minimumWordLetter = 6;
-  final int maximumWordLetter = 8;
-  final int minimumWordsNumber = 15;
-  final int maximumWordsNumber = 25;
-
-  Map<String, dynamic> serializeConfiguration() {
-    return {
-      'nbLetterInSmallestWord': nbLetterInSmallestWord,
-      'roundDuration': roundDuration.inSeconds,
-    };
-  }
-
-  void _saveConfiguration() async {
-    notifyListeners();
-
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('gameConfiguration', jsonEncode(serializeConfiguration()));
-  }
-
-  void _loadConfiguration() async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = prefs.getString('gameConfiguration');
-    if (data != null) {
-      final map = jsonDecode(data);
-      _nbLetterInSmallestWord = map['nbLetterInSmallestWord'] ?? 5;
-      _roundDuration = Duration(seconds: map['roundDuration'] ?? 180);
-
-      _forceRedraw = true;
-      _initializeWordProblem();
-    }
-    notifyListeners();
-  }
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -132,8 +59,10 @@ class _GameManager with ChangeNotifier {
   }
 
   Future<void> _initializeWordProblem() async {
+    final configuration = ProviderContainer().read(gameConfigurationProvider);
+
     await WordProblem.initialize(
-        nbLetterInSmallestWord: nbLetterInSmallestWord);
+        nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
     _isSearchingForProblem = false;
     _nextProblem = null;
     await _searchForProblem();
@@ -162,13 +91,13 @@ class _GameManager with ChangeNotifier {
   /// --------- ///
 
   /// Callbacks for that tells listeners that the round is preparing
-  final onRoundIsPreparing = GameCallback<VoidCallback>();
-  final onNextProblemReady = GameCallback<VoidCallback>();
-  final onRoundStarted = GameCallback<VoidCallback>();
-  final onRoundIsOver = GameCallback<VoidCallback>();
-  final onTimerTicks = GameCallback<VoidCallback>();
-  final onSolutionFound = GameCallback<Function(Solution)>();
-  final onPlayerUpdate = GameCallback<VoidCallback>();
+  final onRoundIsPreparing = CustomCallback<VoidCallback>();
+  final onNextProblemReady = CustomCallback<VoidCallback>();
+  final onRoundStarted = CustomCallback<VoidCallback>();
+  final onRoundIsOver = CustomCallback<VoidCallback>();
+  final onTimerTicks = CustomCallback<VoidCallback>();
+  final onSolutionFound = CustomCallback<Function(Solution)>();
+  final onPlayerUpdate = CustomCallback<VoidCallback>();
 
   /// -------- ///
   /// INTERNAL ///
@@ -178,32 +107,46 @@ class _GameManager with ChangeNotifier {
   /// Declare the singleton
   static _GameManager get instance => _instance;
   static final _GameManager _instance = _GameManager._internal();
-  _GameManager._internal() {
-    _loadConfiguration();
+  _GameManager._internal();
+
+  ///
+  /// This is a method to tell the game manager that the rules have changed and
+  /// some things may need to be updated
+  /// [shoulRepickProblem] is used to tell the game manager that the problem
+  /// picker rules have changed and that it should repick a problem.
+  /// [repickNow] is used to tell the game manager that it should repick a
+  /// problem now or wait a future call. That is to wait until all the changes
+  /// to the rules are made before repicking a problem.
+  void rulesHasChanged({
+    bool shoulRepickProblem = false,
+    bool repickNow = false,
+  }) {
+    if (shoulRepickProblem) _forceRepickProblem = true;
+    if (repickNow) _initializeWordProblem();
   }
 
   ///
   /// As soon as anything changes, we need to notify the listeners of players.
   /// Otherwise, the UI would be spammed with updates.
-  bool _forceRedraw = false;
+  bool _forceRepickProblem = false;
   bool _hasAPlayerUpdate = false;
 
   Future<void> _searchForProblem() async {
     if (_isSearchingForProblem) return;
-    if (_nextProblem != null && !_forceRedraw) return;
-    _forceRedraw = false;
+    if (_nextProblem != null && !_forceRepickProblem) return;
+    _forceRepickProblem = false;
 
+    final configuration = ProviderContainer().read(gameConfigurationProvider);
     _isSearchingForProblem = true;
-    _nextProblem = await _problemGenerator(
-      nbLetterInSmallestWord: nbLetterInSmallestWord,
-      minLetters: minimumWordLetter,
-      maxLetters: maximumWordLetter,
-      minimumNbOfWords: minimumWordsNumber,
-      maximumNbOfWords: maximumWordsNumber,
+    _nextProblem = await configuration.problemGenerator(
+      nbLetterInSmallestWord: configuration.nbLetterInSmallestWord,
+      minLetters: configuration.minimumWordLetter,
+      maxLetters: configuration.maximumWordLetter,
+      minimumNbOfWords: configuration.minimumWordsNumber,
+      maximumNbOfWords: configuration.maximumWordsNumber,
     );
     _isSearchingForProblem = false;
-    onNextProblemReady._notifyListeners();
-    notifyListeners();
+    onNextProblemReady.notifyListeners();
   }
 
   ///
@@ -221,7 +164,7 @@ class _GameManager with ChangeNotifier {
       _initializeTrySolutionCallback();
     }
     _gameStatus = GameStatus.preparingProblem;
-    onRoundIsPreparing._notifyListeners();
+    onRoundIsPreparing.notifyListeners();
 
     _searchForProblem(); // It is already searching, but make sure
     while (_isSearchingForProblem) {
@@ -230,13 +173,16 @@ class _GameManager with ChangeNotifier {
     _currentProblem = _nextProblem;
     _nextProblem = null;
 
-    _gameTimer = roundDuration.inSeconds;
+    _gameTimer = ProviderContainer()
+        .read(gameConfigurationProvider)
+        .roundDuration
+        .inSeconds;
     for (final player in players) {
       player.resetForNextRound();
     }
 
     _gameStatus = GameStatus.roundStarted;
-    onRoundStarted._notifyListeners();
+    onRoundStarted.notifyListeners();
   }
 
   ///
@@ -250,6 +196,7 @@ class _GameManager with ChangeNotifier {
   /// Twitch chatter.
   Future<void> _trySolution(String sender, String message) async {
     if (problem == null || gameTimer == null) return;
+    final configuration = ProviderContainer().read(gameConfigurationProvider);
 
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
@@ -258,18 +205,18 @@ class _GameManager with ChangeNotifier {
     if (player.isInCooldownPeriod) return;
 
     // Find if the proposed word is valid
-    final solution = problem!
-        .trySolution(message, nbLetterInSmallestWord: nbLetterInSmallestWord);
+    final solution = problem!.trySolution(message,
+        nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
     if (solution == null) return;
 
     // Add to player score
-    int cooldownTimer = cooldownPeriod.inSeconds;
+    int cooldownTimer = configuration.cooldownPeriod.inSeconds;
     if (solution.isFound) {
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
 
       // The player cannot steal if the game is not configured to allow it
-      if (!canSteal) return;
+      if (!configuration.canSteal) return;
 
       // The player cannot steal from themselves
       if (solution.foundBy == player) return;
@@ -290,7 +237,7 @@ class _GameManager with ChangeNotifier {
     player.cooldownTimer = cooldownTimer;
 
     // Call the listeners of solution found
-    onSolutionFound._notifyListenersWithParameter(solution);
+    onSolutionFound.notifyListenersWithParameter(solution);
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerUpdate = true;
@@ -320,11 +267,11 @@ class _GameManager with ChangeNotifier {
       }
     }
     if (_hasAPlayerUpdate) {
-      onPlayerUpdate._notifyListeners();
+      onPlayerUpdate.notifyListeners();
       _hasAPlayerUpdate = false;
     }
 
-    onTimerTicks._notifyListeners();
+    onTimerTicks.notifyListeners();
   }
 
   ///
@@ -338,29 +285,8 @@ class _GameManager with ChangeNotifier {
 
     _gameTimer = null;
     _gameStatus = GameStatus.roundOver;
-    onRoundIsOver._notifyListeners();
+    onRoundIsOver.notifyListeners();
 
     _searchForProblem();
-  }
-}
-
-class GameCallback<T extends Function> {
-  final List<T> _listeners = [];
-
-  void addListener(T callback) => _listeners.add(callback);
-
-  void removeListener(T callback) =>
-      _listeners.removeWhere((e) => e == callback);
-
-  void _notifyListeners() {
-    for (final callback in _listeners) {
-      callback();
-    }
-  }
-
-  void _notifyListenersWithParameter(parameter) {
-    for (final callback in _listeners) {
-      callback(parameter);
-    }
   }
 }

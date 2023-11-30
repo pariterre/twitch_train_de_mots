@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/models/game_configuration.dart';
 
 class ConfigurationDrawer extends ConsumerWidget {
   const ConfigurationDrawer({super.key});
@@ -52,8 +52,11 @@ class ConfigurationDrawer extends ConsumerWidget {
                   children: [
                     ListTile(
                       tileColor: Colors.red,
-                      title: const Text('Réinitialiser le thème'),
+                      title: const Text('Réinitialiser la configuration'),
                       onTap: () {
+                        ref
+                            .read(gameConfigurationProvider)
+                            .resetConfiguration();
                         ref.read(schemeProvider).reset();
                         Navigator.pop(context);
                       },
@@ -139,7 +142,7 @@ void _showGameConfiguration(BuildContext context) async {
       return Consumer(
         builder: (context, ref, child) => WillPopScope(
           onWillPop: () async {
-            ref.read(gameManagerProvider).finalizeConfigurationChanges();
+            ref.read(gameConfigurationProvider).finalizeConfigurationChanges();
             return true;
           },
           child: AlertDialog(
@@ -151,45 +154,63 @@ void _showGameConfiguration(BuildContext context) async {
                 children: [
                   _IntegerInputField(
                     label: 'Nombre de lettres des mots les plus courts',
-                    enabled: ref
-                        .watch(gameManagerProvider)
-                        .canChangeNbLetterInSmallestWord,
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeProblem,
                     initialValue: ref
-                        .read(gameManagerProvider)
+                        .read(gameConfigurationProvider)
                         .nbLetterInSmallestWord
                         .toString(),
                     disabledTooltip:
                         'Le nombre de lettres des mots les plus courts ne peut pas\n'
                         'être changé en cours de partie ou le jeu chercher actuellement un mot',
                     onChanged: (value) {
-                      ref.read(gameManagerProvider).nbLetterInSmallestWord =
-                          value;
+                      ref
+                          .read(gameConfigurationProvider)
+                          .nbLetterInSmallestWord = value;
                     },
                   ),
                   const SizedBox(height: 24),
                   _DoubleIntegerInputField(
-                      label: 'Nombre de lettres à piger',
-                      firstLabel: 'Minimum',
-                      secondLabel: 'Maximum',
-                      onChanged: (mininum, maximum) {}),
+                    label: 'Nombre de lettres à piger',
+                    firstLabel: 'Minimum',
+                    firstInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .minimumWordLetter
+                        .toString(),
+                    secondLabel: 'Maximum',
+                    secondInitialValue: ref
+                        .read(gameConfigurationProvider)
+                        .maximumWordLetter
+                        .toString(),
+                    onChanged: (mininum, maximum) {
+                      ref.read(gameConfigurationProvider).minimumWordLetter =
+                          mininum;
+                      ref.read(gameConfigurationProvider).maximumWordLetter =
+                          maximum;
+                    },
+                    enabled:
+                        ref.watch(gameConfigurationProvider).canChangeProblem,
+                  ),
                   const SizedBox(height: 24),
                   _DoubleIntegerInputField(
                       label: 'Nombre de mots à trouver',
                       firstLabel: 'Minimum',
+                      firstInitialValue: '0',
                       secondLabel: 'Maximum',
+                      secondInitialValue: '0',
                       onChanged: (mininum, maximum) {}),
                   const SizedBox(height: 24),
                   _IntegerInputField(
                     label: 'Durée d\'une manche (secondes)',
                     initialValue: ref
-                        .read(gameManagerProvider)
+                        .read(gameConfigurationProvider)
                         .roundDuration
                         .inSeconds
                         .toString(),
                     enabled:
-                        ref.watch(gameManagerProvider).canChangeRoundDuration,
+                        ref.watch(gameConfigurationProvider).canChangeDurations,
                     onChanged: (value) {
-                      ref.read(gameManagerProvider).roundDuration =
+                      ref.read(gameConfigurationProvider).roundDuration =
                           Duration(seconds: value);
                     },
                     disabledTooltip:
@@ -201,9 +222,11 @@ void _showGameConfiguration(BuildContext context) async {
                   const SizedBox(height: 24),
                   if (true)
                     _DoubleIntegerInputField(
-                        label: 'Période de récupération (seconds)',
+                        label: 'Période de récupération (secondes)',
                         firstLabel: 'Normale',
+                        firstInitialValue: '0',
                         secondLabel: 'Voleur',
+                        secondInitialValue: '0',
                         onChanged: (normal, stealer) {}),
                 ],
               ),
@@ -265,18 +288,35 @@ class _IntegerInputField extends StatelessWidget {
   }
 }
 
-class _DoubleIntegerInputField extends StatelessWidget {
+class _DoubleIntegerInputField extends StatefulWidget {
   const _DoubleIntegerInputField({
     required this.label,
     required this.firstLabel,
+    required this.firstInitialValue,
     required this.secondLabel,
+    required this.secondInitialValue,
+    this.enabled = true,
     required this.onChanged,
   });
 
   final String label;
   final String firstLabel;
+  final String firstInitialValue;
   final String secondLabel;
+  final String secondInitialValue;
+  final bool enabled;
   final Function(int minimum, int maximum) onChanged;
+
+  @override
+  State<_DoubleIntegerInputField> createState() =>
+      _DoubleIntegerInputFieldState();
+}
+
+class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
+  late int _first = int.parse(widget.firstInitialValue);
+  late int _second = int.parse(widget.secondInitialValue);
+
+  void _callOnChanged() => widget.onChanged(_first, _second);
 
   @override
   Widget build(BuildContext context) {
@@ -285,38 +325,49 @@ class _DoubleIntegerInputField extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 4.0),
-          child:
-              Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(widget.label,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             SizedBox(
               width: 150,
-              child: TextField(
+              child: TextFormField(
                 keyboardType: TextInputType.number,
+                initialValue: widget.firstInitialValue,
                 decoration: InputDecoration(
-                  labelText: firstLabel,
+                  labelText: widget.firstLabel,
                   border: const OutlineInputBorder(),
                 ),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  final first = int.tryParse(value);
+                  if (first == null) return;
+                  _first = first;
+                  _callOnChanged();
+                },
+                enabled: widget.enabled,
               ),
             ),
             const SizedBox(width: 16),
-            Expanded(
-              flex: 1,
+            SizedBox(
+              width: 150,
               child: TextFormField(
                 keyboardType: TextInputType.number,
+                initialValue: widget.secondInitialValue,
                 decoration: InputDecoration(
-                  labelText: secondLabel,
+                  labelText: widget.secondLabel,
                   border: const OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter a value';
-                  }
-                  return null;
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  final second = int.tryParse(value);
+                  if (second == null) return;
+                  _second = second;
+                  _callOnChanged();
                 },
+                enabled: widget.enabled,
               ),
             ),
           ],

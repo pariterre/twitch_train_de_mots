@@ -8,6 +8,9 @@ final schemeProvider = ChangeNotifierProvider<_CustomScheme>((ref) {
   return _CustomScheme.instance;
 });
 
+const _textSizeDefault = 26.0;
+const _mainColorDefault = Colors.blueGrey;
+
 class _CustomScheme with ChangeNotifier {
   // Declare the singleton
   static final _CustomScheme _instance = _CustomScheme._internal();
@@ -18,7 +21,7 @@ class _CustomScheme with ChangeNotifier {
   static _CustomScheme get instance => _instance;
 
   final textColor = Colors.white;
-  double _textSize = 26.0;
+  double _textSize = _textSizeDefault;
   double get textSize => _textSize;
   set textSize(double size) {
     _textSize = size;
@@ -28,7 +31,7 @@ class _CustomScheme with ChangeNotifier {
 
   final textUnsolvedColor = Colors.white;
   final textSolvedColor = Colors.black;
-  Color _mainColor = Colors.blueGrey;
+  Color _mainColor = _mainColorDefault;
   Color get mainColor => _mainColor;
   set mainColor(Color color) {
     _mainColor = color;
@@ -101,18 +104,19 @@ class _CustomScheme with ChangeNotifier {
     final data = prefs.getString('customScheme');
     if (data != null) {
       final map = jsonDecode(data);
-      _textSize = map['textSize'] ?? 26.0;
+      _textSize = map['textSize'] ?? _textSizeDefault;
       _updateLeaderTextSizes();
 
-      _mainColor = Color(map['mainColor'] ?? Colors.blueGrey.value);
+      _mainColor = Color(map['mainColor'] ?? _mainColorDefault.value);
       _updateBackgroundColors();
     }
     notifyListeners();
   }
 
   void reset() {
-    _textSize = 26.0;
-    _mainColor = Colors.blueGrey;
+    _textSize = _textSizeDefault;
+    _mainColor = _mainColorDefault;
+
     _updateBackgroundColors();
     _save();
   }
