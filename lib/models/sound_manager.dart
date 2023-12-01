@@ -7,7 +7,7 @@ class SoundManager {
   final _gameMusic = AudioPlayer();
 
   final _roundStarted = AudioPlayer();
-  //final _lettersScrambled = AudioPlayer();
+  final _lettersScrambling = AudioPlayer();
 
   final _normalSolutionFound = AudioPlayer();
   final _bestSolutionFound = AudioPlayer();
@@ -50,8 +50,8 @@ class SoundManager {
   }
 
   Future<void> _onLettersScrambled() async {
-    // _lettersScrambled.play(AssetSource('sounds/LettersScrambled.mp3'),
-    //     volume: 0.2);
+    _lettersScrambling.play(AssetSource('sounds/LettersScrambling.mp3'),
+        volume: 0.2);
   }
 
   Future<void> _onSolutionFound(solution) async {
