@@ -91,11 +91,13 @@ class _GameManager {
   /// --------- ///
 
   /// Callbacks for that tells listeners that the round is preparing
+  final onGameIsInitializing = CustomCallback<VoidCallback>();
   final onRoundIsPreparing = CustomCallback<VoidCallback>();
   final onNextProblemReady = CustomCallback<VoidCallback>();
   final onRoundStarted = CustomCallback<VoidCallback>();
   final onRoundIsOver = CustomCallback<VoidCallback>();
   final onTimerTicks = CustomCallback<VoidCallback>();
+  final onScrablingLetters = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(Solution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
 
@@ -129,7 +131,7 @@ class _GameManager {
   /// As soon as anything changes, we need to notify the listeners of players.
   /// Otherwise, the UI would be spammed with updates.
   bool _forceRepickProblem = false;
-  bool _hasAPlayerUpdate = false;
+  bool _hasAPlayerBeenUpdate = false;
 
   Future<void> _searchForProblem() async {
     if (_isSearchingForProblem) return;
@@ -145,6 +147,9 @@ class _GameManager {
       minimumNbOfWords: configuration.minimumWordsNumber,
       maximumNbOfWords: configuration.maximumWordsNumber,
     );
+    _nextProblem!.cooldownScrambleTimer =
+        configuration.timeBeforeScramblingLetters.inSeconds;
+
     _isSearchingForProblem = false;
     onNextProblemReady.notifyListeners();
   }
@@ -161,6 +166,7 @@ class _GameManager {
 
     if (_gameStatus == GameStatus.uninitialized) {
       _gameStatus = GameStatus.initializing;
+      onGameIsInitializing.notifyListeners();
       _initializeTrySolutionCallback();
     }
     _gameStatus = GameStatus.preparingProblem;
@@ -240,7 +246,7 @@ class _GameManager {
     onSolutionFound.notifyListenersWithParameter(solution);
 
     // Also plan for an call to the listeners of players on next game loop
-    _hasAPlayerUpdate = true;
+    _hasAPlayerBeenUpdate = true;
   }
 
   ///
@@ -257,18 +263,29 @@ class _GameManager {
   /// listeners if needed.
   void _gameTick() {
     if (_gameStatus != GameStatus.roundStarted) return;
+    final configuration = ProviderContainer().read(gameConfigurationProvider);
 
     _gameTimer = _gameTimer! - 1;
 
+    // Manager players cooling down
     for (final player in players) {
       if (player.isInCooldownPeriod) {
-        player.cooldownTimer = player.cooldownTimer - 1;
-        _hasAPlayerUpdate = true;
+        player.cooldownTimer -= 1;
+        _hasAPlayerBeenUpdate = true;
       }
     }
-    if (_hasAPlayerUpdate) {
+    if (_hasAPlayerBeenUpdate) {
       onPlayerUpdate.notifyListeners();
-      _hasAPlayerUpdate = false;
+      _hasAPlayerBeenUpdate = false;
+    }
+
+    // Manager letter swapping in the problem
+    _currentProblem!.cooldownScrambleTimer -= 1;
+    if (_currentProblem!.cooldownScrambleTimer <= 0) {
+      _currentProblem!.cooldownScrambleTimer =
+          configuration.timeBeforeScramblingLetters.inSeconds;
+      _currentProblem!.scrambleLetters();
+      onScrablingLetters.notifyListeners();
     }
 
     onTimerTicks.notifyListeners();

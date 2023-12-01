@@ -11,6 +11,7 @@ const _showAnswersTooltipDefault = false;
 const _roundDurationDefault = 180;
 const _cooldownPeriodDefault = 15;
 const _cooldownPeriodAfterStealDefault = 30;
+const _timeBeforeScramblingLettersDefault = 15;
 
 const _nbLetterInSmallestWordDefault = 5;
 const _minimumWordLetterDefault = 6;
@@ -77,6 +78,14 @@ class _GameConfiguration with ChangeNotifier {
   Duration get cooldownPeriodAfterSteal => _cooldownPeriodAfterSteal;
   set cooldownPeriodAfterSteal(Duration value) {
     _cooldownPeriodAfterSteal = value;
+    _saveConfiguration();
+  }
+
+  Duration _timeBeforeScramblingLetters =
+      const Duration(seconds: _timeBeforeScramblingLettersDefault);
+  Duration get timeBeforeScramblingLetters => _timeBeforeScramblingLetters;
+  set timeBeforeScramblingLetters(Duration value) {
+    _timeBeforeScramblingLetters = value;
     _saveConfiguration();
   }
 
@@ -161,6 +170,7 @@ class _GameConfiguration with ChangeNotifier {
       'roundDuration': roundDuration.inSeconds,
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
+      'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
       'nbLetterInSmallestWord': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
       'maximumWordLetter': maximumWordLetter,
@@ -196,6 +206,9 @@ class _GameConfiguration with ChangeNotifier {
       _cooldownPeriodAfterSteal = Duration(
           seconds: map['cooldownPeriodAfterSteal'] ??
               _cooldownPeriodAfterStealDefault);
+      _timeBeforeScramblingLetters = Duration(
+          seconds: map['timeBeforeScramblingLetters'] ??
+              _timeBeforeScramblingLettersDefault);
 
       _nbLetterInSmallestWord =
           map['nbLetterInSmallestWord'] ?? _nbLetterInSmallestWordDefault;
@@ -223,6 +236,8 @@ class _GameConfiguration with ChangeNotifier {
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
     _cooldownPeriodAfterSteal =
         const Duration(seconds: _cooldownPeriodAfterStealDefault);
+    _timeBeforeScramblingLetters =
+        const Duration(seconds: _timeBeforeScramblingLettersDefault);
 
     _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
     _minimumWordLetter = _minimumWordLetterDefault;

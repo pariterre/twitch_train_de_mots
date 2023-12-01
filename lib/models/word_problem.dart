@@ -7,8 +7,15 @@ import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
 class WordProblem {
-  String word;
-  Solutions solutions;
+  String _word;
+  String get word => _word;
+
+  List<int> _scrambleIndices = [];
+  List<int> get scrambleIndices => _scrambleIndices;
+  int cooldownScrambleTimer = 0;
+
+  Solutions _solutions;
+  Solutions get solutions => _solutions;
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
@@ -24,16 +31,19 @@ class WordProblem {
       .map((e) => e.value)
       .fold(0, (value, element) => value + element);
 
-  WordProblem._({required this.word, required this.solutions}) {
+  WordProblem._({required String word, required Solutions solutions})
+      : _word = word,
+        _solutions = solutions {
     // Sort the letters of candidate into alphabetical order
-    final wordSorted = word.split('').toList()
-      ..sort()
-      ..join('');
-    word = wordSorted.join('');
+    final wordSorted = word.split('').toList()..sort();
+    _word = wordSorted.join('');
+    _scrambleIndices = List.generate(word.length, (index) => index);
 
-    solutions = solutions.sort();
+    _solutions = _solutions.sort();
   }
 
+  ///
+  /// Returns the solution if the word is a solution, null otherwise
   Solution? trySolution(String word, {required int nbLetterInSmallestWord}) {
     // Do some rapid validation
     if (word.length < nbLetterInSmallestWord) {
@@ -45,6 +55,22 @@ class WordProblem {
     if (word.contains(RegExp(r'[^A-Z]'))) return null;
 
     return solutions.firstWhereOrNull((Solution e) => e.word == word);
+  }
+
+  ///
+  /// Scamble the letters of the word by swapping two letters at random
+  void scrambleLetters() {
+    final random = Random();
+
+    final index1 = random.nextInt(_scrambleIndices.length);
+    int index2;
+    do {
+      index2 = random.nextInt(_scrambleIndices.length);
+    } while (index1 == index2);
+
+    final temp = _scrambleIndices[index1];
+    _scrambleIndices[index1] = _scrambleIndices[index2];
+    _scrambleIndices[index2] = temp;
   }
 
   ///

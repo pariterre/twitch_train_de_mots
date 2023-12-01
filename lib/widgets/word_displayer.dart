@@ -1,45 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/letter.dart';
+import 'package:train_de_mots/models/word_problem.dart';
 
-class WordDisplayer extends StatefulWidget {
-  const WordDisplayer({super.key, required this.word});
+double _letterWidth = 60;
+double _letterHeight = 70;
+double _letterPadding = 4;
 
-  final String word;
+class WordDisplayer extends ConsumerStatefulWidget {
+  const WordDisplayer({super.key, required this.problem});
+
+  final WordProblem problem;
 
   @override
-  State<WordDisplayer> createState() => _WordDisplayerState();
+  ConsumerState<WordDisplayer> createState() => _WordDisplayerState();
 }
 
-class _WordDisplayerState extends State<WordDisplayer> {
+class _WordDisplayerState extends ConsumerState<WordDisplayer> {
+  @override
+  void initState() {
+    super.initState();
+    ref
+        .read(gameManagerProvider)
+        .onScrablingLetters
+        .addListener(_onScrablingLetters);
+  }
+
+  @override
+  void dispose() {
+    ref
+        .read(gameManagerProvider)
+        .onScrablingLetters
+        .removeListener(_onScrablingLetters);
+    super.dispose();
+  }
+
+  void _onScrablingLetters() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      for (var letter in widget.word.split('').map<Letter>((e) => Letter(e)))
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-          child: _Letter(letter: letter),
-        ),
-    ]);
+    final word = widget.problem.word;
+    final scrambleIndices = widget.problem.scrambleIndices;
+
+    final displayerWidth =
+        _letterWidth * word.length + 2 * _letterPadding * (word.length);
+
+    return SizedBox(
+      width: displayerWidth,
+      height: _letterHeight * 1.2,
+      child: Stack(alignment: Alignment.center, children: [
+        for (var index in word.split('').asMap().keys)
+          AnimatedPositioned(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              left:
+                  (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
+              child: _Letter(letter: word[index])),
+      ]),
+    );
   }
 }
 
 class _Letter extends ConsumerWidget {
   const _Letter({required this.letter});
 
-  final Letter letter;
+  final String letter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = ref.watch(schemeProvider);
+    final letterWidget = Letter(letter);
 
     // Create a letter that ressemble those on a Scrabble board
     return Card(
       elevation: 5,
       child: Container(
-        width: 60,
-        height: 70,
+        width: _letterWidth,
+        height: _letterHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -57,7 +99,7 @@ class _Letter extends ConsumerWidget {
           children: [
             Center(
               child: Text(
-                letter.data,
+                letterWidget.data,
                 style: TextStyle(
                   color: scheme.textColor,
                   fontWeight: FontWeight.bold,
@@ -70,7 +112,7 @@ class _Letter extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
                 child: Text(
-                  letter.value.toString(),
+                  letterWidget.value.toString(),
                   style: TextStyle(color: scheme.textColor, fontSize: 16),
                 ),
               ),

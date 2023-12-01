@@ -1,4 +1,3 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
@@ -21,9 +20,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  final _musicPlayer = AudioPlayer();
-  final _congratulationPlayer = AudioPlayer();
-
   Future<void> _resquestTerminateRound() async {
     if (!mounted) return;
     await ref.read(gameManagerProvider).requestTerminateRound();
@@ -89,29 +85,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
-  void _playMusic() async {
-    await _musicPlayer.setReleaseMode(ReleaseMode.loop);
-    await _musicPlayer.play(AssetSource('music/TheSwindler.mp3'), volume: 0.15);
-  }
-
   void _onRoundIsPreparing() => setState(() {});
   void _onRoundIsReady() => setState(() {});
   void _onRoundStarted() => setState(() {});
   void _onClockTicks() => setState(() {});
-  void _onSolutionFound(solution) {
-    if (solution.word.length ==
-        ref.read(gameManagerProvider).problem!.solutions.nbLettersInLongest) {
-      _congratulationPlayer.play(AssetSource('music/TrainWhistle.mp3'));
-    }
-    setState(() {});
-  }
+  void _onSolutionFound(solution) => setState(() {});
 
   void _onRoundIsOver() => setState(() {});
 
-  void _onClickedBegin() async {
-    await ref.read(gameManagerProvider).requestStartNewRound();
-    _playMusic();
-  }
+  void _onClickedBegin() =>
+      ref.read(gameManagerProvider).requestStartNewRound();
 
   @override
   Widget build(BuildContext context) {
@@ -175,11 +158,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        WordDisplayer(word: gm.problem!.word),
+                        WordDisplayer(problem: gm.problem!),
                         const SizedBox(height: 20),
                         const SizedBox(
                           height: 600,
-                          child: SolutionsDisplayer(),
+                          child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SolutionsDisplayer()),
                         ),
                       ],
                     ),

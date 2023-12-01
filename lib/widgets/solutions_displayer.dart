@@ -162,7 +162,6 @@ class _SolutionTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Create a letter that ressemble those on a Scrabble board
     final scheme = ref.watch(schemeProvider);
 
     late final Widget? child;
@@ -215,13 +214,27 @@ class _SolutionTile extends ConsumerWidget {
         ),
         child: solution.isFound
             ? Center(
-                child: Text(
-                  '${solution.word} (${solution.foundBy!.name})',
-                  style: TextStyle(
-                      fontSize: ref.watch(schemeProvider).textSize,
-                      color: solution.isFound
-                          ? scheme.textSolvedColor
-                          : scheme.textUnsolvedColor),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      solution.word,
+                      style: TextStyle(
+                          fontSize: ref.watch(schemeProvider).textSize,
+                          fontWeight: FontWeight.bold,
+                          color: solution.isFound
+                              ? scheme.textSolvedColor
+                              : scheme.textUnsolvedColor),
+                    ),
+                    Text(
+                      ' (${solution.foundBy!.name})',
+                      style: TextStyle(
+                          fontSize: ref.watch(schemeProvider).textSize,
+                          color: solution.isFound
+                              ? scheme.textSolvedColor
+                              : scheme.textUnsolvedColor),
+                    ),
+                  ],
                 ),
               )
             : null,

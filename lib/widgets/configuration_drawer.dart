@@ -11,6 +11,7 @@ class ConfigurationDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = ref.watch(schemeProvider);
+
     return Drawer(
       child: Column(
         children: [
@@ -196,6 +197,7 @@ void _showGameConfiguration(BuildContext context) async {
       return Consumer(
         builder: (context, ref, child) {
           final scheme = ref.watch(schemeProvider);
+          final config = ref.watch(gameConfigurationProvider);
 
           return WillPopScope(
             onWillPop: () async {
@@ -216,15 +218,13 @@ void _showGameConfiguration(BuildContext context) async {
                   children: [
                     _BooleanInputField(
                         label: 'Montrer les réponses au survol\nde la souris',
-                        value: ref
-                            .watch(gameConfigurationProvider)
-                            .showAnswersTooltip,
+                        value: config.showAnswersTooltip,
                         onChanged: (value) {
                           ref
                               .read(gameConfigurationProvider)
                               .showAnswersTooltip = value;
                         }),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _IntegerInputField(
                       label: 'Nombre de lettres des mots les plus courts',
                       initialValue: ref
@@ -236,13 +236,12 @@ void _showGameConfiguration(BuildContext context) async {
                             .read(gameConfigurationProvider)
                             .nbLetterInSmallestWord = value;
                       },
-                      enabled:
-                          ref.watch(gameConfigurationProvider).canChangeProblem,
+                      enabled: config.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de lettres des mots les plus courts ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _DoubleIntegerInputField(
                       label: 'Nombre de lettres à piger',
                       firstLabel: 'Minimum',
@@ -261,13 +260,12 @@ void _showGameConfiguration(BuildContext context) async {
                         ref.read(gameConfigurationProvider).maximumWordLetter =
                             maximum;
                       },
-                      enabled:
-                          ref.watch(gameConfigurationProvider).canChangeProblem,
+                      enabled: config.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de lettres à piger ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _DoubleIntegerInputField(
                       label: 'Nombre de mots à trouver',
                       firstLabel: 'Minimum',
@@ -286,13 +284,12 @@ void _showGameConfiguration(BuildContext context) async {
                         ref.read(gameConfigurationProvider).maximumWordsNumber =
                             maximum;
                       },
-                      enabled:
-                          ref.watch(gameConfigurationProvider).canChangeProblem,
+                      enabled: config.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de mots à trouver ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _IntegerInputField(
                       label: 'Durée d\'une manche (secondes)',
                       initialValue: ref
@@ -304,13 +301,26 @@ void _showGameConfiguration(BuildContext context) async {
                         ref.read(gameConfigurationProvider).roundDuration =
                             Duration(seconds: value);
                       },
-                      enabled: ref
-                          .watch(gameConfigurationProvider)
-                          .canChangeDurations,
+                      enabled: config.canChangeDurations,
                       disabledTooltip:
                           'La durée d\'une manche ne peut pas être changée en cours de partie',
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+                    _IntegerInputField(
+                      label: 'Temps avant de mélanger les lettres (secondes)',
+                      initialValue: ref
+                          .read(gameConfigurationProvider)
+                          .timeBeforeScramblingLetters
+                          .inSeconds
+                          .toString(),
+                      onChanged: (value) {
+                        ref
+                                .read(gameConfigurationProvider)
+                                .timeBeforeScramblingLetters =
+                            Duration(seconds: value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     _BooleanInputField(
                       label: 'Voler un mot est permis',
                       value: ref.watch(gameConfigurationProvider).canSteal,
@@ -318,7 +328,7 @@ void _showGameConfiguration(BuildContext context) async {
                         ref.read(gameConfigurationProvider).canSteal = value;
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _DoubleIntegerInputField(
                       label: 'Période de récupération (secondes)',
                       firstLabel: 'Normale',
@@ -343,9 +353,7 @@ void _showGameConfiguration(BuildContext context) async {
                                 .cooldownPeriodAfterSteal =
                             Duration(seconds: stealer);
                       },
-                      enabled: ref
-                          .watch(gameConfigurationProvider)
-                          .canChangeDurations,
+                      enabled: config.canChangeDurations,
                       disabledTooltip:
                           'Les périodes de récupération ne peuvent pas être\n'
                           'changées en cours de partie',
