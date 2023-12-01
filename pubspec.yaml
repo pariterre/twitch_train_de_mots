@@ -28,5 +28,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/splash_screen.png
-    - assets/music/TheSwindler.mp3
-    - assets/music/TrainWhistle.mp3
+
+    - assets/sounds/SolutionFound.mp3
+    - assets/sounds/BestSolutionFound.mp3
+    - assets/sounds/TheSwindler.mp3
+    - assets/sounds/GameStarted.mp3

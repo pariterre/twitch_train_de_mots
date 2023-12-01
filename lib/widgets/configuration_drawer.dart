@@ -217,6 +217,14 @@ void _showGameConfiguration(BuildContext context) async {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _BooleanInputField(
+                        label: 'Activer la musique',
+                        value: config.musicEnabled,
+                        onChanged: (value) {
+                          ref.read(gameConfigurationProvider).musicEnabled =
+                              value;
+                        }),
+                    const SizedBox(height: 12),
+                    _BooleanInputField(
                         label: 'Montrer les réponses au survol\nde la souris',
                         value: config.showAnswersTooltip,
                         onChanged: (value) {

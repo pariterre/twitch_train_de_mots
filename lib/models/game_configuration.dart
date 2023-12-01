@@ -21,6 +21,8 @@ const _maximumWordsNumberDefault = 25;
 
 const _canStealDefault = true;
 
+const _musicEnabledDefault = true;
+
 // Declare the GameConfiguration provider
 final gameConfigurationProvider =
     ChangeNotifierProvider<_GameConfiguration>((ref) {
@@ -149,6 +151,13 @@ class _GameConfiguration with ChangeNotifier {
     _saveConfiguration();
   }
 
+  bool _musicEnabled = _musicEnabledDefault;
+  bool get musicEnabled => _musicEnabled;
+  set musicEnabled(bool value) {
+    _musicEnabled = value;
+    _saveConfiguration();
+  }
+
   //// LISTEN TO GAME MANAGER ////
   void _listenToGameManagerEvents() {
     final gm = ProviderContainer().read(gameManagerProvider);
@@ -177,6 +186,7 @@ class _GameConfiguration with ChangeNotifier {
       'minimumWordsNumber': minimumWordsNumber,
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
+      'musicEnabled': musicEnabled,
     };
   }
 
@@ -223,6 +233,8 @@ class _GameConfiguration with ChangeNotifier {
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
+      _musicEnabled = map['musicEnabled'] ?? _musicEnabledDefault;
+
       _tellGameManagerToRepickProblem();
     }
   }
@@ -246,6 +258,8 @@ class _GameConfiguration with ChangeNotifier {
     _maximumWordsNumber = _maximumWordsNumberDefault;
 
     _canSteal = _canStealDefault;
+
+    _musicEnabled = _musicEnabledDefault;
 
     _tellGameManagerToRepickProblem();
     _saveConfiguration();
