@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
+import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/configuration_drawer.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
@@ -191,6 +192,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         ),
         const Align(alignment: Alignment.topRight, child: LeaderBoard()),
+        const AnimationOverlay(),
       ],
     );
   }
