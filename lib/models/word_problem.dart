@@ -16,6 +16,7 @@ class WordProblem {
 
   Solutions _solutions;
   Solutions get solutions => _solutions;
+  bool get isAllSolutionsFound => _solutions.every((e) => e.isFound);
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);

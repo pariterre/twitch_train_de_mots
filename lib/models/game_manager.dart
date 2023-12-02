@@ -51,7 +51,7 @@ class _GameManager {
   bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
 
-  bool _shouldEndTheRound = false;
+  bool _forceEndTheRound = false;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -88,7 +88,7 @@ class _GameManager {
   /// Provide a way to request the premature end of the round
   Future<void> requestTerminateRound() async {
     if (_gameStatus != GameStatus.roundStarted) return;
-    _shouldEndTheRound = true;
+    _forceEndTheRound = true;
   }
 
   /// --------- ///
@@ -309,13 +309,19 @@ class _GameManager {
   ///
   /// Clear the current round
   void _checkEndOfRound() {
-    // End round no matter what if the request was made
-    if (!_shouldEndTheRound) {
-      // Do not end round if we are not playing
-      if (_gameStatus != GameStatus.roundStarted || timeRemaining! > 0) return;
-    }
+    // Do not end the round if we are not playing
+    if (_gameStatus != GameStatus.roundStarted) return;
 
-    _shouldEndTheRound = false;
+    // End round
+    // if the request was made
+    // if the timer is over
+    // if all the words have been found
+    bool shouldEndTheRound = _forceEndTheRound ||
+        timeRemaining! <= 0 ||
+        _currentProblem!.isAllSolutionsFound;
+    if (!shouldEndTheRound) return;
+
+    _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
     _gameStatus = GameStatus.roundPreparing;
