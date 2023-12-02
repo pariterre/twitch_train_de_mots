@@ -25,6 +25,7 @@ class SoundManager {
 
     final gc = ProviderContainer().read(gameConfigurationProvider);
     gc.onGameMusicConfigurationChanged.addListener(_manageGameMusic);
+    gc.onSoundMusicConfigurationChanged.addListener(_onLettersScrambled);
   }
 
   Future<void> _manageGameMusic() async {
@@ -41,21 +42,30 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    await _roundStarted.play(AssetSource('sounds/GameStarted.mp3'));
+    final volume =
+        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    await _roundStarted.play(AssetSource('sounds/GameStarted.mp3'),
+        volume: volume);
   }
 
   Future<void> _onLettersScrambled() async {
+    final volume =
+        ProviderContainer().read(gameConfigurationProvider).soundVolume;
     _lettersScrambling.play(AssetSource('sounds/LettersScrambling.mp3'),
-        volume: 0.2);
+        volume: volume);
   }
 
   Future<void> _onSolutionFound(solution) async {
     final gm = ProviderContainer().read(gameManagerProvider);
+    final volume =
+        ProviderContainer().read(gameConfigurationProvider).soundVolume;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      _bestSolutionFound.play(AssetSource('sounds/BestSolutionFound.mp3'));
+      _bestSolutionFound.play(AssetSource('sounds/BestSolutionFound.mp3'),
+          volume: volume);
     } else {
-      _normalSolutionFound.play(AssetSource('sounds/SolutionFound.mp3'));
+      _normalSolutionFound.play(AssetSource('sounds/SolutionFound.mp3'),
+          volume: volume);
     }
   }
 }

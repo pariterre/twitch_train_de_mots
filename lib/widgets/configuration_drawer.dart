@@ -113,6 +113,16 @@ void _showThemeConfiguration(context) {
                         thumbLabel: '${(config.musicVolume * 100).toInt()}%',
                       ),
                       const SizedBox(height: 12),
+                      _SliderInputField(
+                        label: 'Volume des sons',
+                        value: config.soundVolume,
+                        onChanged: (value) {
+                          ref.read(gameConfigurationProvider).soundVolume =
+                              value;
+                        },
+                        thumbLabel: '${(config.soundVolume * 100).toInt()}%',
+                      ),
+                      const SizedBox(height: 12),
                       _BooleanInputField(
                           label: 'Montrer les réponses au survol\nde la souris',
                           value: config.showAnswersTooltip,

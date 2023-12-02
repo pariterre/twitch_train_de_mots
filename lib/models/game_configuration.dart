@@ -23,6 +23,7 @@ const _maximumWordsNumberDefault = 25;
 const _canStealDefault = true;
 
 const _musicVolumeDefault = 0.3;
+const _soundVolumeDefault = 1.0;
 
 // Declare the GameConfiguration provider
 final gameConfigurationProvider =
@@ -39,8 +40,6 @@ class _GameConfiguration with ChangeNotifier {
     _loadConfiguration();
     _listenToGameManagerEvents();
   }
-
-  final onGameMusicConfigurationChanged = CustomCallback();
 
   final Future<WordProblem> Function({
     required int nbLetterInSmallestWord,
@@ -154,11 +153,22 @@ class _GameConfiguration with ChangeNotifier {
     _saveConfiguration();
   }
 
+  final onGameMusicConfigurationChanged = CustomCallback();
+  final onSoundMusicConfigurationChanged = CustomCallback();
+
   double _musicVolume = _musicVolumeDefault;
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
     _musicVolume = value;
     onGameMusicConfigurationChanged.notifyListeners();
+    _saveConfiguration();
+  }
+
+  double _soundVolume = _soundVolumeDefault;
+  double get soundVolume => _soundVolume;
+  set soundVolume(double value) {
+    _soundVolume = value;
+    onSoundMusicConfigurationChanged.notifyListeners();
     _saveConfiguration();
   }
 
@@ -191,6 +201,7 @@ class _GameConfiguration with ChangeNotifier {
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
       'musicVolume': musicVolume,
+      'soundVolume': soundVolume,
     };
   }
 
@@ -238,6 +249,7 @@ class _GameConfiguration with ChangeNotifier {
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
+      _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
 
       _tellGameManagerToRepickProblem();
     }
@@ -264,6 +276,7 @@ class _GameConfiguration with ChangeNotifier {
     _canSteal = _canStealDefault;
 
     _musicVolume = _musicVolumeDefault;
+    _soundVolume = _soundVolumeDefault;
 
     _tellGameManagerToRepickProblem();
     _saveConfiguration();
