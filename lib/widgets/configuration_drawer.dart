@@ -32,14 +32,8 @@ class ConfigurationDrawer extends ConsumerWidget {
                 Column(
                   children: [
                     ListTile(
-                      title: const Text('Couleur du thème'),
-                      onTap: () => _showColorPickerDialog(context),
-                    ),
-                    ListTile(
-                      title: const Text('Taille du thème'),
-                      onTap: () {
-                        _showFontSizePickerDialog(context);
-                      },
+                      title: const Text('Configuration du thème'),
+                      onTap: () => _showThemeConfiguration(context),
                     ),
                     ListTile(
                       title: const Text('Configuration du jeu'),
@@ -81,31 +75,91 @@ class ConfigurationDrawer extends ConsumerWidget {
   }
 }
 
-class _AreYouSureDialog extends StatelessWidget {
-  const _AreYouSureDialog();
+void _showThemeConfiguration(context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Consumer(
+        builder: (context, ref, child) {
+          final config = ref.watch(gameConfigurationProvider);
+          final scheme = ref.watch(schemeProvider);
+
+          return AlertDialog(
+            title: Text(
+              'Configuration du thème',
+              style: TextStyle(color: scheme.mainColor),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _ColorPickerInputField(
+                    label: 'Choisir la couleur du temps'),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: 400,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const _FontSizePickerInputField(
+                          label: 'Choisir la taille du thème'),
+                      const SizedBox(height: 12),
+                      _SliderInputField(
+                        label: 'Volume de la musique',
+                        value: config.musicVolume,
+                        onChanged: (value) {
+                          ref.read(gameConfigurationProvider).musicVolume =
+                              value;
+                        },
+                        thumbLabel: '${(config.musicVolume * 100).toInt()}%',
+                      ),
+                      const SizedBox(height: 12),
+                      _BooleanInputField(
+                          label: 'Montrer les réponses au survol\nde la souris',
+                          value: config.showAnswersTooltip,
+                          onChanged: (value) {
+                            ref
+                                .read(gameConfigurationProvider)
+                                .showAnswersTooltip = value;
+                          }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+class _ColorPickerInputField extends StatelessWidget {
+  const _ColorPickerInputField({
+    required this.label,
+  });
+
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
       final scheme = ref.watch(schemeProvider);
 
-      return AlertDialog(
-        title: Text('Réinitialiser la configuration',
-            style: TextStyle(color: scheme.mainColor)),
-        content: Text(
-            'Êtes-vous sûr de vouloir réinitialiser la configuration?',
-            style: TextStyle(color: scheme.mainColor)),
-        actions: [
-          TextButton(
-            child: Text('Annuler', style: TextStyle(color: scheme.mainColor)),
-            onPressed: () => Navigator.pop(context, false),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text(label,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: scheme.mainColor)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: scheme.mainColor,
-                foregroundColor: scheme.textColor),
-            child: const Text('Réinitialiser'),
-            onPressed: () => Navigator.pop(context, true),
+          ColorPicker(
+            pickerColor: scheme.mainColor,
+            onColorChanged: (Color color) {
+              ref.read(schemeProvider).mainColor = color;
+            },
           ),
         ],
       );
@@ -113,81 +167,37 @@ class _AreYouSureDialog extends StatelessWidget {
   }
 }
 
-void _showColorPickerDialog(context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Consumer(builder: (context, ref, child) {
-        final scheme = ref.watch(schemeProvider);
-        return AlertDialog(
-          title: Text(
-            'Choisir la couleur du temps',
-            style: TextStyle(color: scheme.mainColor),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ColorPicker(
-                pickerColor: scheme.mainColor,
-                onColorChanged: (Color color) {
-                  ref.read(schemeProvider).mainColor = color;
-                },
-              ),
-            ],
-          ),
-        );
-      });
-    },
-  );
-}
+class _FontSizePickerInputField extends StatelessWidget {
+  const _FontSizePickerInputField({required this.label});
 
-void _showFontSizePickerDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Consumer(builder: (context, ref, child) {
-        final scheme = ref.watch(schemeProvider);
-        final currentSize = scheme.textSize;
+  final String label;
 
-        late String sizeCategory;
-        if (currentSize < 18) {
-          sizeCategory = 'Petit';
-        } else if (currentSize < 28) {
-          sizeCategory = 'Moyen';
-        } else if (currentSize < 38) {
-          sizeCategory = 'Grand';
-        } else {
-          sizeCategory = 'Très grand';
-        }
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(builder: (context, ref, child) {
+      final currentSize = ref.watch(schemeProvider).textSize;
 
-        return Consumer(builder: (context, ref, child) {
-          final scheme = ref.watch(schemeProvider);
-
-          return AlertDialog(
-            title: Text(
-              'Choisir la taille du thème',
-              style: TextStyle(color: scheme.mainColor),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Slider(
-                  value: currentSize,
-                  activeColor: scheme.mainColor,
-                  min: 12,
-                  max: 48,
-                  divisions: 36,
-                  label: 'Taille du thème: $sizeCategory',
-                  onChanged: (value) =>
-                      ref.read(schemeProvider).textSize = value,
-                ),
-              ],
-            ),
-          );
-        });
-      });
-    },
-  );
+      late String sizeCategory;
+      if (currentSize < 18) {
+        sizeCategory = 'Petit';
+      } else if (currentSize < 28) {
+        sizeCategory = 'Moyen';
+      } else if (currentSize < 38) {
+        sizeCategory = 'Grand';
+      } else {
+        sizeCategory = 'Très grand';
+      }
+      return _SliderInputField(
+        label: label,
+        value: currentSize,
+        min: 12,
+        max: 48,
+        divisions: 36,
+        thumbLabel: 'Taille du thème: $sizeCategory',
+        onChanged: (value) => ref.read(schemeProvider).textSize = value,
+      );
+    });
+  }
 }
 
 void _showGameConfiguration(BuildContext context) async {
@@ -216,23 +226,6 @@ void _showGameConfiguration(BuildContext context) async {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _BooleanInputField(
-                        label: 'Activer la musique',
-                        value: config.musicEnabled,
-                        onChanged: (value) {
-                          ref.read(gameConfigurationProvider).musicEnabled =
-                              value;
-                        }),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                        label: 'Montrer les réponses au survol\nde la souris',
-                        value: config.showAnswersTooltip,
-                        onChanged: (value) {
-                          ref
-                              .read(gameConfigurationProvider)
-                              .showAnswersTooltip = value;
-                        }),
-                    const SizedBox(height: 12),
                     _IntegerInputField(
                       label: 'Nombre de lettres des mots les plus courts',
                       initialValue: ref
@@ -580,6 +573,91 @@ class _BooleanInputField extends StatelessWidget {
             ],
           ),
         ),
+      );
+    });
+  }
+}
+
+class _SliderInputField extends StatelessWidget {
+  const _SliderInputField({
+    required this.label,
+    required this.value,
+    this.min = 0.0,
+    this.max = 1.0,
+    this.divisions = 100,
+    required this.thumbLabel,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final String thumbLabel;
+  final Function(double) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(builder: (context, ref, child) {
+      final scheme = ref.watch(schemeProvider);
+
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: scheme.mainColor,
+              ),
+            ),
+            Slider(
+              value: value,
+              onChanged: onChanged,
+              min: min,
+              max: max,
+              divisions: divisions,
+              label: thumbLabel,
+              activeColor: scheme.mainColor,
+              inactiveColor: Colors.grey,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _AreYouSureDialog extends StatelessWidget {
+  const _AreYouSureDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(builder: (context, ref, child) {
+      final scheme = ref.watch(schemeProvider);
+
+      return AlertDialog(
+        title: Text('Réinitialiser la configuration',
+            style: TextStyle(color: scheme.mainColor)),
+        content: Text(
+            'Êtes-vous sûr de vouloir réinitialiser la configuration?',
+            style: TextStyle(color: scheme.mainColor)),
+        actions: [
+          TextButton(
+            child: Text('Annuler', style: TextStyle(color: scheme.mainColor)),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: scheme.mainColor,
+                foregroundColor: scheme.textColor),
+            child: const Text('Réinitialiser'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+        ],
       );
     });
   }
