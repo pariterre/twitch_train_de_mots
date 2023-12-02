@@ -34,10 +34,11 @@ class _GameManager {
   int? get timeRemaining => _roundDuration == null
       ? null
       : (_roundDuration! -
-              (DateTime.now().millisecondsSinceEpoch - _roundStartedAt!)) ~/
+              (DateTime.now().millisecondsSinceEpoch -
+                  _roundStartedAt!.millisecondsSinceEpoch)) ~/
           1000;
-  int? _roundStartedAt;
-  int _nextTickAt = 0;
+  DateTime? _roundStartedAt;
+  DateTime? _nextTickAt;
 
   bool get hasAnActiveRound => _gameStatus == GameStatus.roundStarted;
   bool get hasNotAnActiveRound => !hasAnActiveRound;
@@ -192,8 +193,8 @@ class _GameManager {
     _searchForProblem();
 
     _gameStatus = GameStatus.roundStarted;
-    _roundStartedAt = DateTime.now().millisecondsSinceEpoch;
-    _nextTickAt = _roundStartedAt! + 1000;
+    _roundStartedAt = DateTime.now();
+    _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     onRoundStarted.notifyListeners();
   }
 
@@ -222,31 +223,33 @@ class _GameManager {
     if (solution == null) return;
 
     // Add to player score
-    int cooldownTimer = configuration.cooldownPeriod.inSeconds;
+    Duration cooldownTimer = configuration.cooldownPeriod;
     if (solution.isFound) {
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
 
-      // The player cannot steal if the game is not configured to allow it
-      if (!configuration.canSteal) return;
+      // The player cannot steal
+      // if the game is not configured to allow it
+      // or if the word was already stolen once
+      // or the player is trying to steal from themselves
+      // or the player has already stolen once during this round
+      if (!configuration.canSteal ||
+          solution.wasStolen ||
+          solution.foundBy == player ||
+          player.isAStealer) return;
 
-      // The player cannot steal from themselves
-      if (solution.foundBy == player) return;
-
-      // The player is only allowed to steal once per round
-      if (player.isStealer) return;
-
-      // First remove the score from the previous finder
-      cooldownTimer = configuration.cooldownPeriodAfterSteal.inSeconds;
-      solution.foundBy!.score -= solution.value;
-
-      // Mark the solution as stolen and player as stealer and proceed as usual
-      solution.wasStolen = true;
-      player.isStealer = true;
+      // Remove the score to original founder and override the cooldown
+      solution.foundBy.score -= solution.value;
+      cooldownTimer = configuration.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
+    if (solution.wasStolen) {
+      solution.foundBy.isAStealer = true;
+      solution.stolenFrom.resetCooldown();
+    }
+
     player.score += solution.value;
-    player.cooldownTimer = cooldownTimer;
+    player.startCooldown(duration: cooldownTimer);
 
     // Call the listeners of solution found
     onSolutionFound.notifyListenersWithParameter(solution);
@@ -271,17 +274,14 @@ class _GameManager {
     if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) return;
 
     // Wait for a full second to pass before ticking
-    if (DateTime.now().millisecondsSinceEpoch < _nextTickAt) return;
-    _nextTickAt += 1000;
+    if (DateTime.now().isBefore(_nextTickAt!)) return;
+    _nextTickAt = _nextTickAt!.add(const Duration(seconds: 1));
 
     final configuration = ProviderContainer().read(gameConfigurationProvider);
 
     // Manager players cooling down
     for (final player in players) {
-      if (player.isInCooldownPeriod) {
-        player.cooldownTimer -= 1;
-        _hasAPlayerBeenUpdate = true;
-      }
+      if (player.isInCooldownPeriod) _hasAPlayerBeenUpdate = true;
     }
     if (_hasAPlayerBeenUpdate) {
       onPlayerUpdate.notifyListeners();

@@ -227,7 +227,7 @@ class _SolutionTile extends ConsumerWidget {
                               : scheme.textUnsolvedColor),
                     ),
                     Text(
-                      ' (${solution.foundBy!.name})',
+                      ' (${solution.foundBy.name})',
                       style: TextStyle(
                           fontSize: ref.watch(schemeProvider).textSize,
                           color: solution.isFound

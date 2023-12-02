@@ -23,11 +23,11 @@ class WordProblem {
 
   Set<Player> get finders => solutions
       .where((element) => element.isFound)
-      .map((e) => e.foundBy!)
+      .map((e) => e.foundBy)
       .toSet();
 
   int scoreOf(Player player) => solutions
-      .where((element) => element.isFound && element.foundBy! == player)
+      .where((element) => element.isFound && element.foundBy == player)
       .map((e) => e.value)
       .fold(0, (value, element) => value + element);
 

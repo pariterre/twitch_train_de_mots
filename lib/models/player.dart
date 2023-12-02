@@ -5,14 +5,18 @@ class Player {
 
   int score = 0;
 
-  bool isStealer = false;
+  bool isAStealer = false;
 
-  int cooldownTimer = 0;
-  bool get isInCooldownPeriod => cooldownTimer > 0;
+  void resetCooldown() => _cooldownEndAt = DateTime.now();
+  void startCooldown({required Duration duration}) =>
+      _cooldownEndAt = DateTime.now().add(duration);
+  DateTime _cooldownEndAt = DateTime.now();
+  Duration get cooldownRemaining => _cooldownEndAt.difference(DateTime.now());
+  bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
 
   void resetForNextRound() {
-    isStealer = false;
-    cooldownTimer = 0;
+    isAStealer = false;
+    _cooldownEndAt = DateTime.now();
   }
 
   Player({required this.name});

@@ -126,7 +126,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
       totalScore: player.score.toString(),
       isTitle: false,
       clock: _CoolDownClock(player: player),
-      isStealer: player.isStealer,
+      isStealer: player.isAStealer,
     );
   }
 
@@ -198,17 +198,17 @@ class _CoolDownClockState extends ConsumerState<_CoolDownClock> {
 
   @override
   Widget build(BuildContext context) {
-    int value = widget.player.cooldownTimer;
+    int value = widget.player.cooldownRemaining.inSeconds;
     final scheme = ref.watch(schemeProvider);
 
     return value > 0
         ? Text(' ($value)',
             style: TextStyle(
-                color: widget.player.isStealer
+                color: widget.player.isAStealer
                     ? scheme.leaderStealerColor
                     : scheme.leaderTextColor,
                 fontSize: scheme.leaderTextSize,
-                fontWeight: widget.player.isStealer
+                fontWeight: widget.player.isAStealer
                     ? FontWeight.bold
                     : FontWeight.normal))
         : const SizedBox();

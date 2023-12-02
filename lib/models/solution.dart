@@ -6,8 +6,18 @@ import 'package:train_de_mots/models/player.dart';
 class Solution {
   final String word;
 
-  bool wasStolen = false;
-  Player? foundBy;
+  bool get isFound => _foundBy != null;
+  Player? _foundBy;
+  Player get foundBy => _foundBy!;
+  set foundBy(Player player) {
+    // If the word was already found, it is now stolen
+    if (_foundBy != null) _stolenFrom = _foundBy!;
+    _foundBy = player;
+  }
+
+  bool get wasStolen => _stolenFrom != null;
+  Player? _stolenFrom;
+  Player get stolenFrom => _stolenFrom!;
 
   int get value =>
       word
@@ -15,9 +25,8 @@ class Solution {
           .map((e) => Letter.getValueOfLetter(e))
           .reduce((a, b) => a + b) ~/
       (wasStolen ? 2 : 1);
-  bool get isFound => foundBy != null;
 
-  Solution({required String word, this.foundBy})
+  Solution({required String word})
       : word = removeDiacritics(word.toUpperCase());
 }
 
