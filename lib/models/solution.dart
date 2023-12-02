@@ -13,7 +13,11 @@ class Solution {
     // If the word was already found, it is now stolen
     if (_foundBy != null) _stolenFrom = _foundBy!;
     _foundBy = player;
+    _foundAt = DateTime.now();
   }
+
+  DateTime? _foundAt;
+  DateTime get foundAt => _foundAt!;
 
   bool get wasStolen => _stolenFrom != null;
   Player? _stolenFrom;

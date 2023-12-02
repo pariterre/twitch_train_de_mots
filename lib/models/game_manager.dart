@@ -106,6 +106,7 @@ class _GameManager {
   final onTimerTicks = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(Solution)>();
+  final onSolutionWasStolen = CustomCallback<Function(Solution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
 
   /// -------- ///
@@ -233,10 +234,14 @@ class _GameManager {
       // or if the word was already stolen once
       // or the player is trying to steal from themselves
       // or the player has already stolen once during this round
+      // or was stolen in less than the cooldown of the previous founder
       if (!configuration.canSteal ||
           solution.wasStolen ||
           solution.foundBy == player ||
-          player.isAStealer) return;
+          player.isAStealer ||
+          DateTime.now().isBefore(solution.foundAt.add(cooldownTimer))) {
+        return;
+      }
 
       // Remove the score to original founder and override the cooldown
       solution.foundBy.score -= solution.value;
@@ -246,6 +251,7 @@ class _GameManager {
     if (solution.wasStolen) {
       solution.foundBy.isAStealer = true;
       solution.stolenFrom.resetCooldown();
+      onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 
     player.score += solution.value;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/bouncy_container.dart';
 
 class AnimationOverlay extends ConsumerStatefulWidget {
@@ -11,7 +12,7 @@ class AnimationOverlay extends ConsumerStatefulWidget {
 }
 
 class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
-  final _congratulationController = BouncyContainerController(
+  final _solutionStolenController = BouncyContainerController(
     minScale: 0.5,
     bouncyScale: 1.4,
     maxScale: 1.5,
@@ -23,23 +24,23 @@ class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
     super.initState();
     ref
         .read(gameManagerProvider)
-        .onRoundStarted
-        .addListener(_showCongratulation);
+        .onSolutionWasStolen
+        .addListener(_showSolutionWasStolen);
   }
 
   @override
   void dispose() {
-    _congratulationController.dispose();
+    _solutionStolenController.dispose();
     ref
         .read(gameManagerProvider)
-        .onRoundStarted
-        .removeListener(_showCongratulation);
+        .onSolutionWasStolen
+        .removeListener(_showSolutionWasStolen);
     super.dispose();
   }
 
-  void _showCongratulation() {
-    _congratulationController
-        .triggerAnimation(const _HasStolen(stealer: 'Moi'));
+  void _showSolutionWasStolen(Solution solution) {
+    _solutionStolenController
+        .triggerAnimation(_ASolutionWasStolen(solution: solution));
   }
 
   @override
@@ -52,7 +53,7 @@ class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
         children: [
           Positioned(
             top: MediaQuery.of(context).size.height * 0.19,
-            child: BouncyContainer(controller: _congratulationController),
+            child: BouncyContainer(controller: _solutionStolenController),
           ),
         ],
       ),
@@ -60,10 +61,10 @@ class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
   }
 }
 
-class _HasStolen extends StatelessWidget {
-  const _HasStolen({required this.stealer});
+class _ASolutionWasStolen extends StatelessWidget {
+  const _ASolutionWasStolen({required this.solution});
 
-  final String stealer;
+  final Solution solution;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +82,7 @@ class _HasStolen extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            'C\'est un vol! $stealer',
+            '${solution.foundBy.name} a volé le mot de ${solution.stolenFrom.name}',
             style: const TextStyle(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
