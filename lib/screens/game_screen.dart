@@ -112,7 +112,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   child: Background(
               child: Stack(
                 children: [
-                  gm.gameStatus == GameStatus.uninitialized
+                  gm.gameStatus == GameStatus.initializing
                       ? SplashScreen(onClickStart: _onClickedBegin)
                       : _buildGameScreen(),
                   Builder(builder: (context) {
@@ -266,12 +266,23 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
     final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
+    late String text;
+    switch (gm.gameStatus) {
+      case GameStatus.roundStarted:
+        text = 'Temps restant à la manche : ${gm.timeRemaining}';
+        break;
+      case GameStatus.roundPreparing:
+        text = 'Préparation de la manche...';
+        break;
+      case GameStatus.roundReady:
+        text = 'Prochaine manche prête!';
+        break;
+      default:
+        text = 'Erreur';
+    }
+
     return Text(
-      gm.gameStatus == GameStatus.roundOver
-          ? 'Manche terminée!'
-          : gm.isNextProblemReady
-              ? 'Prochaine manche prête!'
-              : 'Temps restant à la manche : ${gm.gameTimer}',
+      text,
       style: TextStyle(
           fontWeight: FontWeight.bold, fontSize: 26, color: scheme.textColor),
     );

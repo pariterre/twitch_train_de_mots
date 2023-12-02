@@ -293,7 +293,7 @@ class _GameConfiguration with ChangeNotifier {
   /// If it is currently possible to change the problem picker rules
   bool get canChangeProblem {
     final gm = ProviderContainer().read(gameManagerProvider);
-    return !gm.isSearchingForProblem && !gm.hasAnActiveRound;
+    return !gm.isPreparingProblem && !gm.hasAnActiveRound;
   }
 
   void _tellGameManagerToRepickProblem() {

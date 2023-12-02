@@ -10,12 +10,10 @@ import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 enum GameStatus {
-  uninitialized,
   initializing,
-  preparingProblem,
+  roundPreparing,
+  roundReady,
   roundStarted,
-  requestFinishRound,
-  roundOver,
 }
 
 // Declare the GameManager provider
@@ -30,21 +28,29 @@ class _GameManager {
 
   final Players players = Players();
 
-  GameStatus _gameStatus = GameStatus.uninitialized;
+  GameStatus _gameStatus = GameStatus.initializing;
   GameStatus get gameStatus => _gameStatus;
-  int? _gameTimer;
-  int? get gameTimer => _gameTimer;
+  int? _roundDuration;
+  int? get timeRemaining => _roundDuration == null
+      ? null
+      : (_roundDuration! -
+              (DateTime.now().millisecondsSinceEpoch - _roundStartedAt!)) ~/
+          1000;
+  int? _roundStartedAt;
+  int _nextTickAt = 0;
 
-  bool get isPreparingProblem => _gameStatus == GameStatus.preparingProblem;
   bool get hasAnActiveRound => _gameStatus == GameStatus.roundStarted;
   bool get hasNotAnActiveRound => !hasAnActiveRound;
 
   WordProblem? _currentProblem;
   WordProblem? _nextProblem;
-  bool _isSearchingForProblem = false;
-  bool get isSearchingForProblem => _isSearchingForProblem;
+  bool _isSearchingNextProblem = false;
+  bool get isPreparingProblem =>
+      _gameStatus == GameStatus.roundPreparing && _isSearchingNextProblem;
   bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
+
+  bool _shouldEndTheRound = false;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -54,7 +60,7 @@ class _GameManager {
   /// Initialize the game logic. This should be called at the start of the
   /// application.
   Future<void> initialize() async {
-    Timer.periodic(const Duration(seconds: 1), _gameLoop);
+    Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
     await _initializeWordProblem();
   }
 
@@ -63,7 +69,7 @@ class _GameManager {
 
     await WordProblem.initialize(
         nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
-    _isSearchingForProblem = false;
+    _isSearchingNextProblem = false;
     _nextProblem = null;
     await _searchForProblem();
   }
@@ -81,7 +87,7 @@ class _GameManager {
   /// Provide a way to request the premature end of the round
   Future<void> requestTerminateRound() async {
     if (_gameStatus != GameStatus.roundStarted) return;
-    _gameStatus = GameStatus.requestFinishRound;
+    _shouldEndTheRound = true;
   }
 
   /// --------- ///
@@ -134,12 +140,13 @@ class _GameManager {
   bool _hasAPlayerBeenUpdate = false;
 
   Future<void> _searchForProblem() async {
-    if (_isSearchingForProblem) return;
+    if (_isSearchingNextProblem) return;
     if (_nextProblem != null && !_forceRepickProblem) return;
+
     _forceRepickProblem = false;
+    _isSearchingNextProblem = true;
 
     final configuration = ProviderContainer().read(gameConfigurationProvider);
-    _isSearchingForProblem = true;
     _nextProblem = await configuration.problemGenerator(
       nbLetterInSmallestWord: configuration.nbLetterInSmallestWord,
       minLetters: configuration.minimumWordLetter,
@@ -150,7 +157,7 @@ class _GameManager {
     _nextProblem!.cooldownScrambleTimer =
         configuration.timeBeforeScramblingLetters.inSeconds;
 
-    _isSearchingForProblem = false;
+    _isSearchingNextProblem = false;
     onNextProblemReady.notifyListeners();
   }
 
@@ -158,36 +165,35 @@ class _GameManager {
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
-    if (_gameStatus != GameStatus.uninitialized &&
-        _gameStatus != GameStatus.roundOver &&
-        !isNextProblemReady) {
+    if (_gameStatus != GameStatus.roundPreparing && !isNextProblemReady) {
       return;
     }
 
-    if (_gameStatus == GameStatus.uninitialized) {
-      _gameStatus = GameStatus.initializing;
+    if (_gameStatus == GameStatus.initializing) {
       onGameIsInitializing.notifyListeners();
       _initializeTrySolutionCallback();
     }
-    _gameStatus = GameStatus.preparingProblem;
-    onRoundIsPreparing.notifyListeners();
+    _gameStatus = GameStatus.roundPreparing;
 
-    _searchForProblem(); // It is already searching, but make sure
-    while (_isSearchingForProblem) {
+    onRoundIsPreparing.notifyListeners();
+    while (_isSearchingNextProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
     _currentProblem = _nextProblem;
     _nextProblem = null;
 
-    _gameTimer = ProviderContainer()
+    _roundDuration = ProviderContainer()
         .read(gameConfigurationProvider)
         .roundDuration
-        .inSeconds;
+        .inMilliseconds;
     for (final player in players) {
       player.resetForNextRound();
     }
+    _searchForProblem();
 
     _gameStatus = GameStatus.roundStarted;
+    _roundStartedAt = DateTime.now().millisecondsSinceEpoch;
+    _nextTickAt = _roundStartedAt! + 1000;
     onRoundStarted.notifyListeners();
   }
 
@@ -201,7 +207,7 @@ class _GameManager {
   /// Try to solve the problem from a [message] sent by a [sender], that is a
   /// Twitch chatter.
   Future<void> _trySolution(String sender, String message) async {
-    if (problem == null || gameTimer == null) return;
+    if (problem == null || timeRemaining == null) return;
     final configuration = ProviderContainer().read(gameConfigurationProvider);
 
     // Get the player from the players list
@@ -252,7 +258,7 @@ class _GameManager {
   ///
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
   void _gameLoop(Timer timer) {
-    if (_gameStatus == GameStatus.uninitialized) return;
+    if (_gameStatus == GameStatus.initializing) return;
 
     _gameTick();
     _checkEndOfRound();
@@ -262,10 +268,13 @@ class _GameManager {
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   void _gameTick() {
-    if (_gameStatus != GameStatus.roundStarted) return;
-    final configuration = ProviderContainer().read(gameConfigurationProvider);
+    if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) return;
 
-    _gameTimer = _gameTimer! - 1;
+    // Wait for a full second to pass before ticking
+    if (DateTime.now().millisecondsSinceEpoch < _nextTickAt) return;
+    _nextTickAt += 1000;
+
+    final configuration = ProviderContainer().read(gameConfigurationProvider);
 
     // Manager players cooling down
     for (final player in players) {
@@ -295,13 +304,15 @@ class _GameManager {
   /// Clear the current round
   void _checkEndOfRound() {
     // End round no matter what if the request was made
-    if (_gameStatus != GameStatus.requestFinishRound) {
+    if (!_shouldEndTheRound) {
       // Do not end round if we are not playing
-      if (_gameStatus != GameStatus.roundStarted || _gameTimer! > 0) return;
+      if (_gameStatus != GameStatus.roundStarted || timeRemaining! > 0) return;
     }
 
-    _gameTimer = null;
-    _gameStatus = GameStatus.roundOver;
+    _shouldEndTheRound = false;
+    _roundDuration = null;
+    _roundStartedAt = null;
+    _gameStatus = GameStatus.roundPreparing;
     onRoundIsOver.notifyListeners();
 
     _searchForProblem();
