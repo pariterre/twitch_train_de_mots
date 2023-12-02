@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
@@ -21,7 +22,7 @@ const _maximumWordsNumberDefault = 25;
 
 const _canStealDefault = true;
 
-const _musicVolumeDefault = 1.0;
+const _musicVolumeDefault = 0.3;
 
 // Declare the GameConfiguration provider
 final gameConfigurationProvider =
@@ -38,6 +39,8 @@ class _GameConfiguration with ChangeNotifier {
     _loadConfiguration();
     _listenToGameManagerEvents();
   }
+
+  final onGameMusicConfigurationChanged = CustomCallback();
 
   final Future<WordProblem> Function({
     required int nbLetterInSmallestWord,
@@ -155,6 +158,7 @@ class _GameConfiguration with ChangeNotifier {
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
     _musicVolume = value;
+    onGameMusicConfigurationChanged.notifyListeners();
     _saveConfiguration();
   }
 

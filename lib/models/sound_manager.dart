@@ -18,31 +18,26 @@ class SoundManager {
   SoundManager._internal() {
     final gm = ProviderContainer().read(gameManagerProvider);
 
-    gm.onGameIsInitializing.addListener(_startGameMusic);
+    gm.onGameIsInitializing.addListener(_manageGameMusic);
     gm.onRoundStarted.addListener(_onRoundStarted);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onScrablingLetters.addListener(_onLettersScrambled);
 
-    ProviderContainer()
-        .read(gameConfigurationProvider)
-        .addListener(_onConfigurationChanged);
+    final gc = ProviderContainer().read(gameConfigurationProvider);
+    gc.onGameMusicConfigurationChanged.addListener(_manageGameMusic);
   }
 
-  void _onConfigurationChanged() {
-    if (ProviderContainer().read(gameConfigurationProvider).musicEnabled) {
-      _gameMusic.resume();
-    } else {
-      _gameMusic.pause();
+  Future<void> _manageGameMusic() async {
+    // If we never prepared the game music, we do it now
+    if (_gameMusic.state == PlayerState.stopped) {
+      await _gameMusic.setReleaseMode(ReleaseMode.loop);
+      await _gameMusic.play(AssetSource('sounds/TheSwindler.mp3'));
     }
-  }
 
-  Future<void> _startGameMusic() async {
-    await _gameMusic.setReleaseMode(ReleaseMode.loop);
-    await _gameMusic.play(AssetSource('sounds/TheSwindler.mp3'), volume: 0.15);
-
-    if (!ProviderContainer().read(gameConfigurationProvider).musicEnabled) {
-      _gameMusic.pause();
-    }
+    //  Set the volume
+    final volume =
+        ProviderContainer().read(gameConfigurationProvider).musicVolume;
+    await _gameMusic.setVolume(volume);
   }
 
   Future<void> _onRoundStarted() async {
