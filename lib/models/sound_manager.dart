@@ -8,6 +8,7 @@ class SoundManager {
 
   final _roundStarted = AudioPlayer();
   final _lettersScrambling = AudioPlayer();
+  final _roundIsOver = AudioPlayer();
 
   final _normalSolutionFound = AudioPlayer();
   final _bestSolutionFound = AudioPlayer();
@@ -22,6 +23,7 @@ class SoundManager {
     gm.onRoundStarted.addListener(_onRoundStarted);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onScrablingLetters.addListener(_onLettersScrambled);
+    gm.onRoundIsOver.addListener(_onRoundIsOver);
 
     final gc = ProviderContainer().read(gameConfigurationProvider);
     gc.onGameMusicConfigurationChanged.addListener(_manageGameMusic);
@@ -53,6 +55,12 @@ class SoundManager {
         ProviderContainer().read(gameConfigurationProvider).soundVolume;
     _lettersScrambling.play(AssetSource('sounds/LettersScrambling.mp3'),
         volume: volume);
+  }
+
+  Future<void> _onRoundIsOver() async {
+    final volume =
+        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    _roundIsOver.play(AssetSource('sounds/RoundIsOver.mp3'), volume: volume);
   }
 
   Future<void> _onSolutionFound(solution) async {

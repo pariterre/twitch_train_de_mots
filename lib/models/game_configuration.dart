@@ -285,16 +285,16 @@ class _GameConfiguration with ChangeNotifier {
   //// MODIFYING THE CONFIGURATION ////
 
   ///
-  /// If it is currently possible to change the duration of the roudn
+  /// If it is currently possible to change the duration of the round
   bool get canChangeDurations =>
-      !ProviderContainer().read(gameManagerProvider).hasAnActiveRound;
+      ProviderContainer().read(gameManagerProvider).gameStatus !=
+      GameStatus.roundReady;
 
   ///
   /// If it is currently possible to change the problem picker rules
-  bool get canChangeProblem {
-    final gm = ProviderContainer().read(gameManagerProvider);
-    return !gm.isPreparingProblem && !gm.hasAnActiveRound;
-  }
+  bool get canChangeProblem =>
+      ProviderContainer().read(gameManagerProvider).gameStatus ==
+      GameStatus.roundReady;
 
   void _tellGameManagerToRepickProblem() {
     final container = ProviderContainer();

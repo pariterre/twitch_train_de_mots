@@ -40,15 +40,9 @@ class _GameManager {
   DateTime? _roundStartedAt;
   DateTime? _nextTickAt;
 
-  bool get hasAnActiveRound => _gameStatus == GameStatus.roundStarted;
-  bool get hasNotAnActiveRound => !hasAnActiveRound;
-
   WordProblem? _currentProblem;
   WordProblem? _nextProblem;
   bool _isSearchingNextProblem = false;
-  bool get isPreparingProblem =>
-      _gameStatus == GameStatus.roundPreparing && _isSearchingNextProblem;
-  bool get isNextProblemReady => _nextProblem != null;
   WordProblem? get problem => _currentProblem;
 
   bool _forceEndTheRound = false;
@@ -72,7 +66,7 @@ class _GameManager {
         nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
     _isSearchingNextProblem = false;
     _nextProblem = null;
-    await _searchForProblem();
+    await _searchForNextProblem();
   }
 
   /// ----------- ///
@@ -141,7 +135,7 @@ class _GameManager {
   bool _forceRepickProblem = false;
   bool _hasAPlayerBeenUpdate = false;
 
-  Future<void> _searchForProblem() async {
+  Future<void> _searchForNextProblem() async {
     if (_isSearchingNextProblem) return;
     if (_nextProblem != null && !_forceRepickProblem) return;
 
@@ -160,30 +154,32 @@ class _GameManager {
         configuration.timeBeforeScramblingLetters.inSeconds;
 
     _isSearchingNextProblem = false;
-    onNextProblemReady.notifyListeners();
   }
 
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
-    if (_gameStatus != GameStatus.roundPreparing && !isNextProblemReady) {
-      return;
-    }
-
     if (_gameStatus == GameStatus.initializing) {
       onGameIsInitializing.notifyListeners();
       _initializeTrySolutionCallback();
+      _gameStatus = GameStatus.roundPreparing;
     }
-    _gameStatus = GameStatus.roundPreparing;
 
+    if (_gameStatus != GameStatus.roundPreparing &&
+        _gameStatus != GameStatus.roundReady) {
+      return;
+    }
     onRoundIsPreparing.notifyListeners();
+
+    // Wait until a problem is found
     while (_isSearchingNextProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
     _currentProblem = _nextProblem;
     _nextProblem = null;
 
+    // Reinitialize the round timer and players
     _roundDuration = ProviderContainer()
         .read(gameConfigurationProvider)
         .roundDuration
@@ -191,8 +187,12 @@ class _GameManager {
     for (final player in players) {
       player.resetForNextRound();
     }
-    _searchForProblem();
 
+    // Start searching for the next problem as soon as possible to avoid
+    // waiting for the next round
+    _searchForNextProblem();
+
+    // Start the round
     _gameStatus = GameStatus.roundStarted;
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
@@ -268,6 +268,14 @@ class _GameManager {
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
   void _gameLoop(Timer timer) {
     if (_gameStatus == GameStatus.initializing) return;
+    if (_gameStatus == GameStatus.roundPreparing) {
+      if (_nextProblem != null) {
+        _gameStatus = GameStatus.roundReady;
+        onNextProblemReady.notifyListeners();
+      }
+      return;
+    }
+    if (_gameStatus == GameStatus.roundReady) return;
 
     _gameTick();
     _checkEndOfRound();
@@ -327,6 +335,6 @@ class _GameManager {
     _gameStatus = GameStatus.roundPreparing;
     onRoundIsOver.notifyListeners();
 
-    _searchForProblem();
+    _searchForNextProblem();
   }
 }

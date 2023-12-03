@@ -21,11 +21,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  Future<void> _resquestTerminateRound() async {
-    if (!mounted) return;
-    await ref.read(gameManagerProvider).requestTerminateRound();
-  }
-
   Future<void> _resquestStartNewRound() async {
     if (!mounted) return;
     await ref.read(gameManagerProvider).requestStartNewRound();
@@ -151,7 +146,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               const SizedBox(height: 32),
               const _Header(),
               const SizedBox(height: 32),
-              gm.isPreparingProblem
+              gm.problem == null
                   ? Center(
                       child: CircularProgressIndicator(
                       color: scheme.mainColor,
@@ -170,24 +165,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       ],
                     ),
               const SizedBox(height: 20),
-              Card(
-                elevation: 10,
-                child: ElevatedButton(
-                  onPressed: gm.gameStatus == GameStatus.roundStarted
-                      ? _resquestTerminateRound
-                      : gm.isNextProblemReady
-                          ? _resquestStartNewRound
-                          : null,
-                  style: scheme.elevatedButtonStyle,
-                  child: Text(
-                    gm.gameStatus == GameStatus.roundStarted
-                        ? 'Terminer la manche'
-                        : 'Prochaine manche',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 20),
+              if (gm.gameStatus == GameStatus.roundReady)
+                Card(
+                  elevation: 10,
+                  child: ElevatedButton(
+                    onPressed: _resquestStartNewRound,
+                    style: scheme.elevatedButtonStyle,
+                    child: const Text('Lancer la prochaine manche',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20)),
                   ),
-                ),
-              )
+                )
             ],
           ),
         ),
@@ -241,6 +229,10 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
     super.initState();
 
     ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
+    ref
+        .read(gameManagerProvider)
+        .onNextProblemReady
+        .addListener(_onNextProblemReady);
     ref.read(gameManagerProvider).onTimerTicks.addListener(_onClockTicks);
     ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundIsOver);
   }
@@ -253,11 +245,16 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
         .read(gameManagerProvider)
         .onRoundStarted
         .removeListener(_onRoundStarted);
+    ref
+        .read(gameManagerProvider)
+        .onNextProblemReady
+        .removeListener(_onNextProblemReady);
     ref.read(gameManagerProvider).onTimerTicks.removeListener(_onClockTicks);
     ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
   }
 
   void _onRoundStarted() => setState(() {});
+  void _onNextProblemReady() => setState(() {});
   void _onClockTicks() => setState(() {});
   void _onRoundIsOver() => setState(() {});
 

@@ -4,12 +4,14 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/models/game_manager.dart';
 
 class ConfigurationDrawer extends ConsumerWidget {
   const ConfigurationDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
     return Drawer(
@@ -45,6 +47,17 @@ class ConfigurationDrawer extends ConsumerWidget {
                 ),
                 Column(
                   children: [
+                    ListTile(
+                      title: const Text('Terminer la rounde actuelle'),
+                      enabled: gm.gameStatus == GameStatus.roundStarted,
+                      onTap: () async {
+                        await ref
+                            .read(gameManagerProvider)
+                            .requestTerminateRound();
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                    ),
+                    const Divider(),
                     ListTile(
                       tileColor: Colors.red,
                       title: const Text('Réinitialiser la configuration'),
