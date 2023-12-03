@@ -4,12 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
-
-class Tata {
-  final String name;
-  final int score;
-  Tata(this.name, this.score);
-}
+import 'package:train_de_mots/models/player.dart';
 
 class PlayfulScoreOverlay extends ConsumerWidget {
   const PlayfulScoreOverlay({super.key});
@@ -32,6 +27,7 @@ class PlayfulScoreOverlay extends ConsumerWidget {
             children: [
               const SizedBox(height: 16.0),
               const _VictoryHeader(),
+              const SizedBox(height: 24.0),
               const _LeaderBoard(),
               const SizedBox(height: 16.0),
               ElevatedButton(
@@ -57,39 +53,126 @@ class PlayfulScoreOverlay extends ConsumerWidget {
   }
 }
 
-class _LeaderBoard extends StatelessWidget {
+class _LeaderBoard extends ConsumerWidget {
   const _LeaderBoard();
 
   @override
-  Widget build(BuildContext context) {
-//final players = gm.players.sort((a, b) => b.score - a.score);
-    final players = [
-      Tata('coucou1', 1),
-      Tata('coucou2', 2),
-      Tata('coucou3', 3),
-      Tata('coucou4', 4),
-      Tata('coucou5', 5),
-      Tata('coucou6', 6),
-      Tata('coucou7', 7),
-      Tata('coucou8', 8),
-      Tata('coucou9', 9),
-      Tata('coucou10', 10),
-      Tata('coucou11', 11),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gm = ref.read(gameManagerProvider);
+    final players = gm.players.sort((a, b) => b.score - a.score);
+
+    final highestStealCount = players.fold<int>(
+        0, (previousValue, player) => max(previousValue, player.stealCount));
+    final biggestStealers = players.where((player) {
+      return player.stealCount == highestStealCount;
+    }).toList();
 
     return Expanded(
       child: SingleChildScrollView(
-        child: Column(
-          children: players
-              .map((e) => ListTile(
-                    leading: Icon(Icons.person, color: Colors.white),
-                    title: Text(
-                      '${e.name}: ${e.score}',
-                      style: TextStyle(fontSize: 20.0, color: Colors.white),
-                    ),
-                  ))
-              .toList(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 150),
+          child: SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: players.asMap().keys.map(
+                    (index) {
+                      final player = players[index];
+                      final isBiggestStealer = biggestStealers.contains(player);
+
+                      if (index == 0) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTitleTile('Meilleur\u2022e cheminot\u2022e'),
+                            _buildPlayerNameTile(player, isBiggestStealer),
+                            const SizedBox(height: 12.0),
+                            _buildTitleTile('Autres cheminot\u2022e\u2022s')
+                          ],
+                        );
+                      }
+
+                      return _buildPlayerNameTile(player, isBiggestStealer);
+                    },
+                  ).toList(),
+                ),
+                Column(
+                  children: players.asMap().keys.map(
+                    (index) {
+                      final player = players[index];
+                      final isBiggestStealer = biggestStealers.contains(player);
+
+                      if (index == 0) {
+                        return Column(
+                          children: [
+                            _buildTitleTile('Score'),
+                            _buildPlayerScoreTile(player, isBiggestStealer),
+                            const SizedBox(height: 12.0),
+                            _buildTitleTile('')
+                          ],
+                        );
+                      }
+
+                      return _buildPlayerScoreTile(player, isBiggestStealer);
+                    },
+                  ).toList(),
+                ),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTitleTile(String title) {
+    return Text(title,
+        style: const TextStyle(
+            fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white));
+  }
+
+  TextStyle _playerStyle(bool isBiggestStealer) {
+    return TextStyle(
+      fontSize: 20.0,
+      fontWeight: isBiggestStealer ? FontWeight.bold : FontWeight.normal,
+      color: isBiggestStealer ? Colors.red : Colors.white,
+    );
+  }
+
+  Widget _buildPlayerNameTile(Player player, bool isBiggestStealer) {
+    final style = _playerStyle(isBiggestStealer);
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Icon(Icons.local_police,
+                  color: isBiggestStealer ? Colors.red : Colors.transparent),
+            ),
+            Text(player.name, style: style),
+            if (isBiggestStealer) Text(' (Plus grand voleur!)', style: style),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerScoreTile(Player player, bool isBiggestStealer) {
+    final style = _playerStyle(isBiggestStealer);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        player.score.toString(),
+        style: style,
       ),
     );
   }

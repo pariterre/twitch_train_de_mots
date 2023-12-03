@@ -26,10 +26,28 @@ class SplashScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 30.0),
+            SizedBox(
+              width: 700,
+              child: Text(
+                  'Chères cheminots et cheminotes, bienvenue à bord!\n'
+                  '\n'
+                  'Nous avons besoin de vous pour énergiser le Petit train du Nord! '
+                  'Trouvez le plus de mots possible pour emmener le train à destination. '
+                  'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
+                  '\n'
+                  'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
+                  'vos collègues sans scrupules peuvent vous voler vos mots!',
+                  style: TextStyle(
+                    fontSize: 24.0,
+                    color: scheme.textColor,
+                  ),
+                  textAlign: TextAlign.justify),
+            ),
+            const SizedBox(height: 30.0),
             Text(
-              'Tchou Tchou!',
+              'C\'est un départ! Tchou Tchou!!',
               style: TextStyle(
-                fontSize: 36.0,
+                fontSize: 24.0,
                 color: scheme.textColor,
                 fontWeight: FontWeight.bold,
               ),
@@ -39,7 +57,7 @@ class SplashScreen extends ConsumerWidget {
               onPressed: onClickStart,
               style: scheme.elevatedButtonStyle,
               child: Text(
-                'Démarrer la partie',
+                'Direction première station!',
                 style: TextStyle(
                     fontSize: scheme.buttonTextSize,
                     fontWeight: FontWeight.bold),
