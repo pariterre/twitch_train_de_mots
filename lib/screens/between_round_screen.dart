@@ -11,7 +11,7 @@ class PlayfulScoreOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.watch(schemeProvider);
+    final gm = ref.read(gameManagerProvider);
 
     return SizedBox(
       width: max(MediaQuery.of(context).size.width * 0.4, 800),
@@ -25,31 +25,80 @@ class PlayfulScoreOverlay extends ConsumerWidget {
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 16.0),
-              const _VictoryHeader(),
+              const SizedBox(height: 24.0),
+              if (gm.problem!.isSuccess)
+                const _VictoryHeader()
+              else
+                const _DefeatHeader(),
               const SizedBox(height: 24.0),
               const _LeaderBoard(),
               const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the overlay
-                },
-                style: scheme.elevatedButtonStyle,
-                child: Text(
-                  'Aller à la prochaine station!',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: scheme.buttonTextSize,
-                    color: scheme.mainColor,
-                  ),
-                ),
-              ),
+              const _ContinueButton(),
               const SizedBox(height: 24.0),
             ],
           ),
         ],
       ),
     );
+  }
+}
+
+class _ContinueButton extends ConsumerStatefulWidget {
+  const _ContinueButton();
+
+  @override
+  ConsumerState<_ContinueButton> createState() => _ContinueButtonState();
+}
+
+class _ContinueButtonState extends ConsumerState<_ContinueButton> {
+  @override
+  void initState() {
+    super.initState();
+
+    ref
+        .read(gameManagerProvider)
+        .onNextProblemReady
+        .addListener(_onNextProblemReady);
+  }
+
+  @override
+  void dispose() {
+    // ref
+    //     .read(gameManagerProvider)
+    //     .onNextProblemReady
+    //     .removeListener(_onNextProblemReady);
+
+    super.dispose();
+  }
+
+  void _onNextProblemReady() {
+    if (!mounted) return;
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = ref.read(gameManagerProvider);
+    final scheme = ref.watch(schemeProvider);
+
+    return gm.gameStatus == GameStatus.roundPreparing
+        ? Container()
+        : Card(
+            elevation: 10,
+            child: ElevatedButton(
+              onPressed: () =>
+                  ref.read(gameManagerProvider).requestStartNewRound(),
+              style: scheme.elevatedButtonStyle,
+              child: Text(
+                  gm.problem!.isSuccess
+                      ? 'Lancer la prochaine manche'
+                      : 'Relancer le train',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: scheme.buttonTextSize)),
+            ),
+          );
   }
 }
 
@@ -64,7 +113,7 @@ class _LeaderBoard extends ConsumerWidget {
     final highestStealCount = players.fold<int>(
         0, (previousValue, player) => max(previousValue, player.stealCount));
     final biggestStealers = players.where((player) {
-      return player.stealCount == highestStealCount;
+      return highestStealCount != 0 && player.stealCount == highestStealCount;
     }).toList();
 
     return Expanded(
@@ -91,7 +140,8 @@ class _LeaderBoard extends ConsumerWidget {
                             _buildTitleTile('Meilleur\u2022e cheminot\u2022e'),
                             _buildPlayerNameTile(player, isBiggestStealer),
                             const SizedBox(height: 12.0),
-                            _buildTitleTile('Autres cheminot\u2022e\u2022s')
+                            if (players.length > 1)
+                              _buildTitleTile('Autres cheminot\u2022e\u2022s')
                           ],
                         );
                       }
@@ -112,7 +162,7 @@ class _LeaderBoard extends ConsumerWidget {
                             _buildTitleTile('Score'),
                             _buildPlayerScoreTile(player, isBiggestStealer),
                             const SizedBox(height: 12.0),
-                            _buildTitleTile('')
+                            if (players.length > 1) _buildTitleTile('')
                           ],
                         );
                       }
@@ -281,6 +331,62 @@ class _Background extends ConsumerWidget {
             fit: BoxFit.cover,
             opacity: const AlwaysStoppedAnimation(0.04)),
       ],
+    );
+  }
+}
+
+class _DefeatHeader extends ConsumerWidget {
+  const _DefeatHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gm = ref.read(gameManagerProvider);
+    final scheme = ref.watch(schemeProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.star,
+              color: Colors.grey,
+              size: 70.0,
+              shadows: [Shadow(color: Colors.grey.shade800, blurRadius: 15.0)]),
+          Column(
+            children: [
+              Text(
+                'Immobilisé entre deux stations',
+                style: TextStyle(
+                    fontSize: scheme.titleSize,
+                    fontWeight: FontWeight.bold,
+                    color: scheme.textColor),
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                'Le Petit train du Nord n\'a pu se rendre à destination',
+                style: TextStyle(
+                    fontSize: scheme.leaderTitleSize,
+                    fontWeight: FontWeight.normal,
+                    color: scheme.textColor),
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                  'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
+                  style: TextStyle(
+                      fontSize: scheme.leaderTitleSize,
+                      fontWeight: FontWeight.normal,
+                      color: scheme.textColor)),
+              const SizedBox(height: 16.0),
+            ],
+          ),
+          Icon(Icons.star,
+              color: Colors.grey,
+              size: 70.0,
+              shadows: [Shadow(color: Colors.grey.shade800, blurRadius: 15.0)]),
+        ],
+      ),
     );
   }
 }

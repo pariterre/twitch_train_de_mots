@@ -37,10 +37,7 @@ class _WordDisplayerState extends ConsumerState<WordDisplayer> {
     super.dispose();
   }
 
-  void _onScrablingLetters() {
-    if (!mounted) return;
-    setState(() {});
-  }
+  void _onScrablingLetters() => setState(() {});
 
   @override
   Widget build(BuildContext context) {

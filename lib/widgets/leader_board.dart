@@ -109,8 +109,8 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
 
   Widget _buildTitleTile() {
     return _buildGenericTile(
-      player: 'Participants',
-      roundScore: 'Ronde',
+      player: 'Cheminot\u2022e',
+      roundScore: 'Points',
       totalScore: 'Total',
       isTitle: true,
     );

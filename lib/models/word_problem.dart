@@ -20,11 +20,22 @@ class WordProblem {
 
   ///
   /// Returns the maximum score that can be obtained by finding all the words
-  int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.score);
+  int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.value);
 
   ///
   /// Returns the score threshold to reach to complete the level
   int get thresholdScore => maximumScore * 3 ~/ 4;
+
+  ///
+  /// Returns the current score of all the founders
+  int get currentScore => _solutions
+      .where((e) => e.isFound)
+      .map((e) => e.value)
+      .fold(0, (prev, e) => prev + e);
+
+  ///
+  /// This is set by the game manager when the round is over
+  bool get isSuccess => currentScore >= thresholdScore;
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
@@ -37,7 +48,7 @@ class WordProblem {
 
   int scoreOf(Player player) => solutions
       .where((element) => element.isFound && element.foundBy == player)
-      .map((e) => e.score)
+      .map((e) => e.value)
       .fold(0, (value, element) => value + element);
 
   WordProblem._({required String word, required Solutions solutions})

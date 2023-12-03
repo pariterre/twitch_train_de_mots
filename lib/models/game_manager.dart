@@ -39,7 +39,8 @@ class _GameManager {
           1000;
   DateTime? _roundStartedAt;
   DateTime? _nextTickAt;
-  int roundCount = 0;
+  int _roundCount = 0;
+  int get roundCount => _roundCount;
 
   WordProblem? _currentProblem;
   WordProblem? _nextProblem;
@@ -177,6 +178,8 @@ class _GameManager {
     while (_isSearchingNextProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
+    if (_currentProblem != null && !_currentProblem!.isSuccess) _restartGame();
+
     _currentProblem = _nextProblem;
     _nextProblem = null;
 
@@ -245,7 +248,7 @@ class _GameManager {
       }
 
       // Remove the score to original founder and override the cooldown
-      solution.foundBy.score -= solution.score;
+      solution.foundBy.score -= solution.value;
       cooldownTimer = configuration.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
@@ -255,7 +258,7 @@ class _GameManager {
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 
-    player.score += solution.score;
+    player.score += solution.value;
     player.startCooldown(duration: cooldownTimer);
 
     // Call the listeners of solution found
@@ -263,6 +266,16 @@ class _GameManager {
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
+  }
+
+  ///
+  /// Restart the game by resetting the players and the round count
+  void _restartGame() {
+    _roundCount = 0;
+    for (final player in players) {
+      player.score = 0;
+      player.resetForNextRound();
+    }
   }
 
   ///
@@ -329,6 +342,8 @@ class _GameManager {
         timeRemaining! <= 0 ||
         _currentProblem!.isAllSolutionsFound;
     if (!shouldEndTheRound) return;
+
+    _roundCount++;
 
     _forceEndTheRound = false;
     _roundDuration = null;

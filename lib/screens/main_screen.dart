@@ -103,11 +103,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   gm.gameStatus == GameStatus.initializing
                       ? SplashScreen(onClickStart: _onClickedBegin)
                       : const GameScreen(),
-                  const Center(
-                      child: Padding(
-                    padding: EdgeInsets.only(top: 50.0),
-                    child: PlayfulScoreOverlay(),
-                  )),
+                  if (gm.roundCount > 0 &&
+                          gm.gameStatus == GameStatus.roundPreparing ||
+                      gm.gameStatus == GameStatus.roundReady)
+                    const Center(
+                        child: Padding(
+                      padding: EdgeInsets.only(top: 80.0),
+                      child: PlayfulScoreOverlay(),
+                    )),
                   Builder(builder: (context) {
                     return Padding(
                       padding: const EdgeInsets.all(12.0),

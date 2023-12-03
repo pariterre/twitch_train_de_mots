@@ -15,11 +15,6 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  Future<void> _resquestStartNewRound() async {
-    if (!mounted) return;
-    await ref.read(gameManagerProvider).requestStartNewRound();
-  }
-
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
@@ -53,19 +48,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         ),
                       ],
                     ),
-              const SizedBox(height: 20),
-              if (gm.gameStatus == GameStatus.roundReady)
-                Card(
-                  elevation: 10,
-                  child: ElevatedButton(
-                    onPressed: _resquestStartNewRound,
-                    style: scheme.elevatedButtonStyle,
-                    child: Text('Lancer la prochaine manche',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: scheme.buttonTextSize)),
-                  ),
-                )
             ],
           ),
         ),
@@ -76,21 +58,76 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-class _Header extends ConsumerWidget {
+class _Header extends ConsumerStatefulWidget {
   const _Header();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Header> createState() => _HeaderState();
+}
+
+class _HeaderState extends ConsumerState<_Header> {
+  @override
+  void initState() {
+    super.initState();
+
+    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
+    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundEnded);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    ref
+        .read(gameManagerProvider)
+        .onRoundStarted
+        .removeListener(_onRoundStarted);
+    ref
+        .read(gameManagerProvider)
+        .onSolutionFound
+        .removeListener(_onSolutionFound);
+    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundEnded);
+  }
+
+  void _onRoundStarted() => setState(() {});
+  void _onSolutionFound(_) => setState(() {});
+  void _onRoundEnded() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
+    final pointsToGo = gm.problem!.thresholdScore - gm.problem!.currentScore;
+    late String toGoText;
+    if (pointsToGo > 0) {
+      toGoText = ' ($pointsToGo points avant destination)';
+    } else {
+      toGoText = ' (Destination atteinte!)';
+    }
     return Column(
       children: [
-        Text(
-          'Le Train de mots! Tchou Tchou!',
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: scheme.titleSize,
-              color: scheme.textColor),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (gm.gameStatus != GameStatus.roundStarted)
+              Text(
+                'Le Train de mots!',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: scheme.titleSize,
+                    color: scheme.textColor),
+              ),
+            if (gm.gameStatus == GameStatus.roundStarted)
+              Text(
+                ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: scheme.titleSize,
+                    color: scheme.textColor),
+              ),
+          ],
         ),
         const SizedBox(height: 20),
         Card(

@@ -23,7 +23,7 @@ class Solution {
   Player? _stolenFrom;
   Player get stolenFrom => _stolenFrom!;
 
-  int get score =>
+  int get value =>
       word
           .split('')
           .map((e) => Letter.getValueOfLetter(e))
@@ -85,5 +85,5 @@ class Solutions extends DelegatingList<Solution> {
   ///
   /// Get the maximum possible score for this solution
   int get maximumPossibleScore => _solutions.fold<int>(
-      0, (previousValue, element) => previousValue + element.score);
+      0, (previousValue, element) => previousValue + element.value);
 }
