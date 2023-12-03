@@ -39,6 +39,7 @@ class _GameManager {
           1000;
   DateTime? _roundStartedAt;
   DateTime? _nextTickAt;
+  int roundCount = 0;
 
   WordProblem? _currentProblem;
   WordProblem? _nextProblem;
@@ -244,7 +245,7 @@ class _GameManager {
       }
 
       // Remove the score to original founder and override the cooldown
-      solution.foundBy.score -= solution.value;
+      solution.foundBy.score -= solution.score;
       cooldownTimer = configuration.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
@@ -254,7 +255,7 @@ class _GameManager {
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 
-    player.score += solution.value;
+    player.score += solution.score;
     player.startCooldown(duration: cooldownTimer);
 
     // Call the listeners of solution found

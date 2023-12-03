@@ -18,6 +18,14 @@ class WordProblem {
   Solutions get solutions => _solutions;
   bool get isAllSolutionsFound => _solutions.every((e) => e.isFound);
 
+  ///
+  /// Returns the maximum score that can be obtained by finding all the words
+  int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.score);
+
+  ///
+  /// Returns the score threshold to reach to complete the level
+  int get thresholdScore => maximumScore * 3 ~/ 4;
+
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
   }
@@ -29,7 +37,7 @@ class WordProblem {
 
   int scoreOf(Player player) => solutions
       .where((element) => element.isFound && element.foundBy == player)
-      .map((e) => e.value)
+      .map((e) => e.score)
       .fold(0, (value, element) => value + element);
 
   WordProblem._({required String word, required Solutions solutions})
