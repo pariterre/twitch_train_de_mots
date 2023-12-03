@@ -6,6 +6,26 @@ import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
+enum SucessLevel {
+  failed,
+  oneStar,
+  twoStars,
+  threeStars;
+
+  int toInt() {
+    switch (this) {
+      case SucessLevel.failed:
+        return 0;
+      case SucessLevel.oneStar:
+        return 1;
+      case SucessLevel.twoStars:
+        return 2;
+      case SucessLevel.threeStars:
+        return 3;
+    }
+  }
+}
+
 class WordProblem {
   String _word;
   String get word => _word;
@@ -23,10 +43,6 @@ class WordProblem {
   int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.value);
 
   ///
-  /// Returns the score threshold to reach to complete the level
-  int get thresholdScore => maximumScore * 3 ~/ 4;
-
-  ///
   /// Returns the current score of all the founders
   int get currentScore => _solutions
       .where((e) => e.isFound)
@@ -34,8 +50,22 @@ class WordProblem {
       .fold(0, (prev, e) => prev + e);
 
   ///
+  /// Returns the threshold score for one star
+  int get thresholdScoreForOneStar => maximumScore ~/ 2;
+
+  ///
   /// This is set by the game manager when the round is over
-  bool get isSuccess => currentScore >= thresholdScore;
+  SucessLevel get successLevel {
+    if (currentScore < maximumScore ~/ 2) {
+      return SucessLevel.failed;
+    } else if (currentScore < maximumScore * 3 ~/ 4) {
+      return SucessLevel.oneStar;
+    } else if (currentScore < maximumScore) {
+      return SucessLevel.twoStars;
+    } else {
+      return SucessLevel.threeStars;
+    }
+  }
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);

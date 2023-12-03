@@ -178,7 +178,8 @@ class _GameManager {
     while (_isSearchingNextProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    if (_currentProblem != null && !_currentProblem!.isSuccess) _restartGame();
+    if (_currentProblem != null &&
+        _currentProblem!.successLevel == SucessLevel.failed) _restartGame();
 
     _currentProblem = _nextProblem;
     _nextProblem = null;
@@ -343,7 +344,7 @@ class _GameManager {
         _currentProblem!.isAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
-    _roundCount++;
+    _roundCount += problem!.successLevel.toInt();
 
     _forceEndTheRound = false;
     _roundDuration = null;

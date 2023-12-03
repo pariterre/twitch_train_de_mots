@@ -109,7 +109,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     const Center(
                         child: Padding(
                       padding: EdgeInsets.only(top: 80.0),
-                      child: PlayfulScoreOverlay(),
+                      child: BetweenRoundsOverlay(),
                     )),
                   Builder(builder: (context) {
                     return Padding(

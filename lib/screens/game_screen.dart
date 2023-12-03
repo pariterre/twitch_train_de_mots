@@ -99,7 +99,8 @@ class _HeaderState extends ConsumerState<_Header> {
     final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
-    final pointsToGo = gm.problem!.thresholdScore - gm.problem!.currentScore;
+    final pointsToGo =
+        gm.problem!.thresholdScoreForOneStar - gm.problem!.currentScore;
     late String toGoText;
     if (pointsToGo > 0) {
       toGoText = ' ($pointsToGo points avant destination)';

@@ -31,7 +31,7 @@ class SplashScreen extends ConsumerWidget {
               child: Text(
                   'Chères cheminots et cheminotes, bienvenue à bord!\n'
                   '\n'
-                  'Nous avons besoin de vous pour énergiser le Petit train du Nord! '
+                  'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
                   'Trouvez le plus de mots possible pour emmener le train à destination. '
                   'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
                   '\n'

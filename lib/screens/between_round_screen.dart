@@ -5,13 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/word_problem.dart';
 
-class PlayfulScoreOverlay extends ConsumerWidget {
-  const PlayfulScoreOverlay({super.key});
+class BetweenRoundsOverlay extends ConsumerWidget {
+  const BetweenRoundsOverlay({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gm = ref.read(gameManagerProvider);
+    final gm = ref.watch(gameManagerProvider);
 
     return SizedBox(
       width: max(MediaQuery.of(context).size.width * 0.4, 800),
@@ -26,10 +27,9 @@ class PlayfulScoreOverlay extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 24.0),
-              if (gm.problem!.isSuccess)
-                const _VictoryHeader()
-              else
-                const _DefeatHeader(),
+              gm.problem!.successLevel == SucessLevel.failed
+                  ? const _DefeatHeader()
+                  : const _VictoryHeader(),
               const SizedBox(height: 24.0),
               const _LeaderBoard(),
               const SizedBox(height: 16.0),
@@ -61,16 +61,6 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
         .addListener(_onNextProblemReady);
   }
 
-  @override
-  void dispose() {
-    // ref
-    //     .read(gameManagerProvider)
-    //     .onNextProblemReady
-    //     .removeListener(_onNextProblemReady);
-
-    super.dispose();
-  }
-
   void _onNextProblemReady() {
     if (!mounted) return;
 
@@ -79,26 +69,28 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.read(gameManagerProvider);
+    final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
-    return gm.gameStatus == GameStatus.roundPreparing
-        ? Container()
-        : Card(
-            elevation: 10,
-            child: ElevatedButton(
-              onPressed: () =>
-                  ref.read(gameManagerProvider).requestStartNewRound(),
-              style: scheme.elevatedButtonStyle,
-              child: Text(
-                  gm.problem!.isSuccess
-                      ? 'Lancer la prochaine manche'
-                      : 'Relancer le train',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: scheme.buttonTextSize)),
-            ),
-          );
+    return Card(
+      elevation: 10,
+      child: ElevatedButton(
+        onPressed: () {
+          gm.requestStartNewRound();
+
+          // Because the Layout deactivate before dispose is called, we must
+          // clean up the listener here
+          gm.onNextProblemReady.removeListener(_onNextProblemReady);
+        },
+        style: scheme.elevatedButtonStyle,
+        child: Text(
+            gm.problem!.successLevel == SucessLevel.failed
+                ? 'Relancer le train'
+                : 'Lancer la prochaine manche',
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: scheme.buttonTextSize)),
+      ),
+    );
   }
 }
 
@@ -258,7 +250,8 @@ class _VictoryHeader extends ConsumerWidget {
               ),
               const SizedBox(height: 16.0),
               Text(
-                'Félicitation nous sommes arrivé\u2022e\u2022s à une nouvelle station!',
+                'Félicitation! Nous avons traversé '
+                '${gm.problem!.successLevel.toInt()} station${gm.problem!.successLevel.toInt() > 1 ? 's' : ''}!',
                 style: TextStyle(
                     fontSize: scheme.leaderTitleSize,
                     fontWeight: FontWeight.normal,
@@ -365,7 +358,7 @@ class _DefeatHeader extends ConsumerWidget {
               ),
               const SizedBox(height: 16.0),
               Text(
-                'Le Petit train du Nord n\'a pu se rendre à destination',
+                'Le Petit Train du Nord n\'a pu se rendre à destination',
                 style: TextStyle(
                     fontSize: scheme.leaderTitleSize,
                     fontWeight: FontWeight.normal,
