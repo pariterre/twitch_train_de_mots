@@ -38,9 +38,11 @@ class SplashScreen extends ConsumerWidget {
             ElevatedButton(
               onPressed: onClickStart,
               style: scheme.elevatedButtonStyle,
-              child: const Text(
+              child: Text(
                 'Démarrer la partie',
-                style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: scheme.buttonTextSize,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ],

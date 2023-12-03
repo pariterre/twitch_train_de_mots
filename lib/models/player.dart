@@ -5,7 +5,14 @@ class Player {
 
   int score = 0;
 
-  bool isAStealer = false;
+  bool _isAStealer = false;
+  bool get isAStealer => _isAStealer;
+  void hasStolen() {
+    _isAStealer = true;
+    stealCount++;
+  }
+
+  int stealCount = 0;
 
   void resetCooldown() => _cooldownEndAt = DateTime.now();
   void startCooldown({required Duration duration}) =>
@@ -15,7 +22,7 @@ class Player {
   bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
 
   void resetForNextRound() {
-    isAStealer = false;
+    _isAStealer = false;
     _cooldownEndAt = DateTime.now();
   }
 

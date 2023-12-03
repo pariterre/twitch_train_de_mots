@@ -21,8 +21,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: GameScreen.route,
-      routes: {GameScreen.route: (ctx) => const GameScreen()},
+      initialRoute: MainScreen.route,
+      routes: {MainScreen.route: (ctx) => const MainScreen()},
     );
   }
 }

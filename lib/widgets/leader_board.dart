@@ -65,7 +65,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('Tableau des meneurs',
+                child: Text('Tableau des cheminot\u2022e\u2022s',
                     style: TextStyle(
                       fontSize: scheme.leaderTitleSize,
                       color: scheme.leaderTextColor,

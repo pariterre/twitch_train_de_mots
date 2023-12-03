@@ -250,7 +250,7 @@ class _GameManager {
     }
     solution.foundBy = player;
     if (solution.wasStolen) {
-      solution.foundBy.isAStealer = true;
+      solution.foundBy.hasStolen();
       solution.stolenFrom.resetCooldown();
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }

@@ -29,6 +29,8 @@ class _CustomScheme with ChangeNotifier {
     _save();
   }
 
+  final titleSize = 32.0;
+
   final textUnsolvedColor = Colors.white;
   final textSolvedColor = Colors.black;
   Color _mainColor = _mainColorDefault;
@@ -83,6 +85,7 @@ class _CustomScheme with ChangeNotifier {
   final leaderTextColor = Colors.white;
   final leaderStealerColor = Colors.red;
 
+  final buttonTextSize = 20.0;
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: textColor,
     foregroundColor: mainColor,
