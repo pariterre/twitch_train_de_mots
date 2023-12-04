@@ -102,6 +102,11 @@ class _LeaderBoard extends ConsumerWidget {
     final gm = ref.read(gameManagerProvider);
     final players = gm.players.sort((a, b) => b.score - a.score);
 
+    final highestScore = players.fold<int>(
+        0, (previousValue, player) => max(previousValue, player.score));
+    final nbHighestScore =
+        players.where((player) => player.score == highestScore).length;
+
     final highestStealCount = players.fold<int>(
         0, (previousValue, player) => max(previousValue, player.stealCount));
     final biggestStealers = players.where((player) {
@@ -119,50 +124,52 @@ class _LeaderBoard extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: players.asMap().keys.map(
-                    (index) {
-                      final player = players[index];
-                      final isBiggestStealer = biggestStealers.contains(player);
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: players.asMap().keys.map(
+                      (index) {
+                        final player = players[index];
+                        final isBiggestStealer =
+                            biggestStealers.contains(player);
 
-                      if (index == 0) {
                         return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTitleTile('Meilleur\u2022e cheminot\u2022e'),
-                            _buildPlayerNameTile(player, isBiggestStealer),
-                            const SizedBox(height: 12.0),
-                            if (players.length > 1)
-                              _buildTitleTile('Autres cheminot\u2022e\u2022s')
-                          ],
-                        );
-                      }
-
-                      return _buildPlayerNameTile(player, isBiggestStealer);
-                    },
-                  ).toList(),
-                ),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (index == 0)
+                                _buildTitleTile(
+                                    'Meilleur\u2022e cheminot\u2022e'),
+                              _buildPlayerNameTile(player, isBiggestStealer),
+                              if (players.length > nbHighestScore &&
+                                  index + 1 == nbHighestScore)
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 12.0),
+                                    _buildTitleTile(
+                                        'Autres cheminot\u2022e\u2022s')
+                                  ],
+                                )
+                            ]);
+                      },
+                    ).toList()),
                 Column(
-                  children: players.asMap().keys.map(
-                    (index) {
-                      final player = players[index];
-                      final isBiggestStealer = biggestStealers.contains(player);
+                    children: players.asMap().keys.map(
+                  (index) {
+                    final player = players[index];
+                    final isBiggestStealer = biggestStealers.contains(player);
 
-                      if (index == 0) {
-                        return Column(
+                    return Column(children: [
+                      if (index == 0) _buildTitleTile('Score'),
+                      _buildPlayerScoreTile(player, isBiggestStealer),
+                      if (players.length > nbHighestScore &&
+                          index + 1 == nbHighestScore)
+                        Column(
                           children: [
-                            _buildTitleTile('Score'),
-                            _buildPlayerScoreTile(player, isBiggestStealer),
                             const SizedBox(height: 12.0),
-                            if (players.length > 1) _buildTitleTile('')
+                            _buildTitleTile('')
                           ],
-                        );
-                      }
-
-                      return _buildPlayerScoreTile(player, isBiggestStealer);
-                    },
-                  ).toList(),
-                ),
+                        )
+                    ]);
+                  },
+                ).toList()),
               ],
             ),
           ),
