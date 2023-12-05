@@ -1,46 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/letter.dart';
-import 'package:train_de_mots/models/word_problem.dart';
 
 double _letterWidth = 60;
 double _letterHeight = 70;
 double _letterPadding = 4;
 
-class WordDisplayer extends ConsumerStatefulWidget {
-  const WordDisplayer({super.key, required this.problem});
-
-  final WordProblem problem;
+class WordDisplayer extends StatefulWidget {
+  const WordDisplayer({super.key});
 
   @override
-  ConsumerState<WordDisplayer> createState() => _WordDisplayerState();
+  State<WordDisplayer> createState() => _WordDisplayerState();
 }
 
-class _WordDisplayerState extends ConsumerState<WordDisplayer> {
+class _WordDisplayerState extends State<WordDisplayer> {
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
-    gm.onScrablingLetters.addListener(_onScrablingLetters);
+    final gm = GameManager.instance;
+    gm.onScrablingLetters.addListener(_refresh);
+    gm.onRoundStarted.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    final gm = ref.read(gameManagerProvider);
-    gm.onScrablingLetters.removeListener(_onScrablingLetters);
-
     super.dispose();
+
+    final gm = GameManager.instance;
+    gm.onScrablingLetters.removeListener(_refresh);
+    gm.onRoundStarted.removeListener(_refresh);
   }
 
-  void _onScrablingLetters() => setState(() {});
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final word = widget.problem.word;
-    final scrambleIndices = widget.problem.scrambleIndices;
+    final gm = GameManager.instance;
+
+    final word = gm.problem!.word;
+    final scrambleIndices = gm.problem!.scrambleIndices;
 
     final displayerWidth =
         _letterWidth * word.length + 2 * _letterPadding * (word.length);

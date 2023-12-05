@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
-class LeaderBoard extends ConsumerStatefulWidget {
+class LeaderBoard extends StatefulWidget {
   const LeaderBoard({super.key});
 
   @override
-  ConsumerState<LeaderBoard> createState() => _LeaderBoardState();
+  State<LeaderBoard> createState() => _LeaderBoardState();
 }
 
-class _LeaderBoardState extends ConsumerState<LeaderBoard> {
+class _LeaderBoardState extends State<LeaderBoard> {
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
 
@@ -33,7 +32,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   void dispose() {
     super.dispose();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
 
@@ -49,7 +48,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 

@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Clock extends StatelessWidget {
   const Clock({
@@ -15,22 +14,19 @@ class Clock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      return LayoutBuilder(builder: (context, constraints) {
-        final size = min(constraints.maxHeight, constraints.maxWidth);
+    return LayoutBuilder(builder: (context, constraints) {
+      final size = min(constraints.maxHeight, constraints.maxWidth);
 
-        return SizedBox(
-          width: size,
-          height: size,
-          child: CircularProgressIndicator(
-            value:
-                1 - timeRemaining.inMilliseconds / maxDuration.inMilliseconds,
-            backgroundColor: Colors.red[900],
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-            strokeWidth: size,
-          ),
-        );
-      });
+      return SizedBox(
+        width: size,
+        height: size,
+        child: CircularProgressIndicator(
+          value: 1 - timeRemaining.inMilliseconds / maxDuration.inMilliseconds,
+          backgroundColor: Colors.red[900],
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+          strokeWidth: size,
+        ),
+      );
     });
   }
 }

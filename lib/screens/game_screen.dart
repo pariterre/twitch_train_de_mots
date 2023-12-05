@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/word_displayer.dart';
 
-class GameScreen extends ConsumerStatefulWidget {
+class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
   @override
-  ConsumerState<GameScreen> createState() => _GameScreenState();
+  State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends ConsumerState<GameScreen> {
+class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
@@ -35,7 +34,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     return Stack(
@@ -53,12 +52,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       child: CircularProgressIndicator(
                       color: tm.mainColor,
                     ))
-                  : Column(
+                  : const Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        WordDisplayer(problem: gm.problem!),
-                        const SizedBox(height: 20),
-                        const SizedBox(
+                        WordDisplayer(),
+                        SizedBox(height: 20),
+                        SizedBox(
                           height: 600,
                           child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
@@ -76,19 +75,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-class _Header extends ConsumerStatefulWidget {
+class _Header extends StatefulWidget {
   const _Header();
 
   @override
-  ConsumerState<_Header> createState() => _HeaderState();
+  State<_Header> createState() => _HeaderState();
 }
 
-class _HeaderState extends ConsumerState<_Header> {
+class _HeaderState extends State<_Header> {
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onRoundIsOver.addListener(_refresh);
@@ -99,7 +98,7 @@ class _HeaderState extends ConsumerState<_Header> {
 
   @override
   void dispose() {
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onRoundIsOver.removeListener(_refresh);
@@ -115,7 +114,7 @@ class _HeaderState extends ConsumerState<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     final pointsToGo =
@@ -163,19 +162,19 @@ class _HeaderState extends ConsumerState<_Header> {
   }
 }
 
-class _HeaderTimer extends ConsumerStatefulWidget {
+class _HeaderTimer extends StatefulWidget {
   const _HeaderTimer();
 
   @override
-  ConsumerState<_HeaderTimer> createState() => _HeaderTimerState();
+  State<_HeaderTimer> createState() => _HeaderTimerState();
 }
 
-class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
+class _HeaderTimerState extends State<_HeaderTimer> {
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onTimerTicks.addListener(_refresh);
@@ -189,7 +188,7 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
   void dispose() {
     super.dispose();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onTimerTicks.removeListener(_refresh);
@@ -203,7 +202,7 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     late String text;

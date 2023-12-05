@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 
-class Background extends ConsumerStatefulWidget {
+class Background extends StatefulWidget {
   const Background({super.key, this.child});
 
   final Widget? child;
 
   @override
-  ConsumerState<Background> createState() => _BackgroundState();
+  State<Background> createState() => _BackgroundState();
 }
 
-class _BackgroundState extends ConsumerState<Background>
+class _BackgroundState extends State<Background>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Decoration> _animation;

@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 
-class ConfigurationDrawer extends ConsumerStatefulWidget {
+class ConfigurationDrawer extends StatefulWidget {
   const ConfigurationDrawer({super.key});
 
   @override
-  ConsumerState<ConfigurationDrawer> createState() =>
-      _ConfigurationDrawerState();
+  State<ConfigurationDrawer> createState() => _ConfigurationDrawerState();
 }
 
-class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
+class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
   @override
   void initState() {
     super.initState();
@@ -41,7 +39,7 @@ class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 
@@ -82,9 +80,7 @@ class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
                       title: const Text('Terminer la rounde actuelle'),
                       enabled: gm.gameStatus == GameStatus.roundStarted,
                       onTap: () async {
-                        await ref
-                            .read(gameManagerProvider)
-                            .requestTerminateRound();
+                        await gm.requestTerminateRound();
                         if (context.mounted) Navigator.pop(context);
                       },
                     ),
@@ -159,69 +155,64 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final cm = ConfigurationManager.instance;
-        final tm = ThemeManager.instance;
+    final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
 
-        return AlertDialog(
-          title: Text(
-            'Configuration du thème',
-            style: TextStyle(color: tm.mainColor),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _ColorPickerInputField(
-                  label: 'Choisir la couleur du temps'),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 400,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _FontSizePickerInputField(
-                        label: 'Choisir la taille du thème'),
-                    const SizedBox(height: 12),
-                    _SliderInputField(
-                      label: 'Volume de la musique',
-                      value: cm.musicVolume,
-                      onChanged: (value) {
-                        cm.musicVolume = value;
-                      },
-                      thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
-                    ),
-                    const SizedBox(height: 12),
-                    _SliderInputField(
-                      label: 'Volume des sons',
-                      value: cm.soundVolume,
-                      onChanged: (value) {
-                        cm.soundVolume = value;
-                      },
-                      thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
-                    ),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                        label: 'Afficher le tableau des cheminot\u2022e\u2022s',
-                        value: cm.showLeaderBoard,
-                        onChanged: (value) {
-                          cm.showLeaderBoard = value;
-                        }),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                        label: 'Montrer les réponses au survol\nde la souris',
-                        value: cm.showAnswersTooltip,
-                        onChanged: (value) {
-                          cm.showAnswersTooltip = value;
-                        }),
-                  ],
+    return AlertDialog(
+      title: Text(
+        'Configuration du thème',
+        style: TextStyle(color: tm.mainColor),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _ColorPickerInputField(label: 'Choisir la couleur du temps'),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _FontSizePickerInputField(
+                    label: 'Choisir la taille du thème'),
+                const SizedBox(height: 12),
+                _SliderInputField(
+                  label: 'Volume de la musique',
+                  value: cm.musicVolume,
+                  onChanged: (value) {
+                    cm.musicVolume = value;
+                  },
+                  thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
                 ),
-              ),
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+                _SliderInputField(
+                  label: 'Volume des sons',
+                  value: cm.soundVolume,
+                  onChanged: (value) {
+                    cm.soundVolume = value;
+                  },
+                  thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                ),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                    label: 'Afficher le tableau des cheminot\u2022e\u2022s',
+                    value: cm.showLeaderBoard,
+                    onChanged: (value) {
+                      cm.showLeaderBoard = value;
+                    }),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                    label: 'Montrer les réponses au survol\nde la souris',
+                    value: cm.showAnswersTooltip,
+                    onChanged: (value) {
+                      cm.showAnswersTooltip = value;
+                    }),
+              ],
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 }
@@ -256,25 +247,23 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      final tm = ThemeManager.instance;
+    final tm = ThemeManager.instance;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(widget.label,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: tm.mainColor)),
-          ),
-          ColorPicker(
-            pickerColor: tm.mainColor,
-            onColorChanged: (Color color) => tm.mainColor = color,
-          ),
-        ],
-      );
-    });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(widget.label,
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+        ),
+        ColorPicker(
+          pickerColor: tm.mainColor,
+          onColorChanged: (Color color) => tm.mainColor = color,
+        ),
+      ],
+    );
   }
 }
 
@@ -309,29 +298,27 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      final tm = ThemeManager.instance;
+    final tm = ThemeManager.instance;
 
-      late String sizeCategory;
-      if (tm.textSize < 18) {
-        sizeCategory = 'Petit';
-      } else if (tm.textSize < 28) {
-        sizeCategory = 'Moyen';
-      } else if (tm.textSize < 38) {
-        sizeCategory = 'Grand';
-      } else {
-        sizeCategory = 'Très grand';
-      }
-      return _SliderInputField(
-        label: widget.label,
-        value: tm.textSize,
-        min: 12,
-        max: 48,
-        divisions: 36,
-        thumbLabel: 'Taille du thème: $sizeCategory',
-        onChanged: (value) => tm.textSize = value,
-      );
-    });
+    late String sizeCategory;
+    if (tm.textSize < 18) {
+      sizeCategory = 'Petit';
+    } else if (tm.textSize < 28) {
+      sizeCategory = 'Moyen';
+    } else if (tm.textSize < 38) {
+      sizeCategory = 'Grand';
+    } else {
+      sizeCategory = 'Très grand';
+    }
+    return _SliderInputField(
+      label: widget.label,
+      value: tm.textSize,
+      min: 12,
+      max: 48,
+      divisions: 36,
+      thumbLabel: 'Taille du thème: $sizeCategory',
+      onChanged: (value) => tm.textSize = value,
+    );
   }
 }
 
@@ -719,28 +706,25 @@ class _AreYouSureDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      final tm = ThemeManager.instance;
+    final tm = ThemeManager.instance;
 
-      return AlertDialog(
-        title: Text('Réinitialiser la configuration',
-            style: TextStyle(color: tm.mainColor)),
-        content: Text(
-            'Êtes-vous sûr de vouloir réinitialiser la configuration?',
-            style: TextStyle(color: tm.mainColor)),
-        actions: [
-          TextButton(
-            child: Text('Annuler', style: TextStyle(color: tm.mainColor)),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: tm.mainColor, foregroundColor: tm.textColor),
-            child: const Text('Réinitialiser'),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      );
-    });
+    return AlertDialog(
+      title: Text('Réinitialiser la configuration',
+          style: TextStyle(color: tm.mainColor)),
+      content: Text('Êtes-vous sûr de vouloir réinitialiser la configuration?',
+          style: TextStyle(color: tm.mainColor)),
+      actions: [
+        TextButton(
+          child: Text('Annuler', style: TextStyle(color: tm.mainColor)),
+          onPressed: () => Navigator.pop(context, false),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: tm.mainColor, foregroundColor: tm.textColor),
+          child: const Text('Réinitialiser'),
+          onPressed: () => Navigator.pop(context, true),
+        ),
+      ],
+    );
   }
 }

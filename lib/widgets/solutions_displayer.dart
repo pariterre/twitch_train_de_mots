@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
 
-class SolutionsDisplayer extends ConsumerStatefulWidget {
+class SolutionsDisplayer extends StatefulWidget {
   const SolutionsDisplayer({super.key});
 
   @override
-  ConsumerState<SolutionsDisplayer> createState() => _SolutionsDisplayerState();
+  State<SolutionsDisplayer> createState() => _SolutionsDisplayerState();
 }
 
-class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
+class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   final _fireworksControllers = <Solution, FireworksController>{};
 
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onPlayerUpdate.addListener(_refresh);
@@ -34,7 +33,7 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
 
   @override
   void dispose() {
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onPlayerUpdate.removeListener(_refresh);
@@ -47,9 +46,10 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
 
   void _reinitializeFireworks() {
     if (!mounted) return;
+    final gm = GameManager.instance;
 
     _fireworksControllers.clear();
-    final solutions = ref.read(gameManagerProvider).problem!.solutions;
+    final solutions = gm.problem!.solutions;
     for (final solution in solutions) {
       _fireworksControllers[solution] = FireworksController(
           huge: solution.word.length == solutions.nbLettersInLongest);
@@ -66,8 +66,9 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
 
   @override
   Widget build(BuildContext context) {
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
-    final solutions = ref.read(gameManagerProvider).problem!.solutions;
+    final solutions = gm.problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
     for (var i = solutions.nbLettersInSmallest;
@@ -117,29 +118,30 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   }
 }
 
-class _SolutionWrapper extends ConsumerStatefulWidget {
+class _SolutionWrapper extends StatefulWidget {
   const _SolutionWrapper({required this.solutions});
 
   final Solutions solutions;
 
   @override
-  ConsumerState<_SolutionWrapper> createState() => _SolutionWrapperState();
+  State<_SolutionWrapper> createState() => _SolutionWrapperState();
 }
 
-class _SolutionWrapperState extends ConsumerState<_SolutionWrapper> {
+class _SolutionWrapperState extends State<_SolutionWrapper> {
   @override
   void initState() {
     super.initState();
-    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
+
+    final gm = GameManager.instance;
+    gm.onSolutionFound.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
+    final gm = GameManager.instance;
+    gm.onSolutionFound.removeListener(_onSolutionFound);
+
     super.dispose();
-    ref
-        .read(gameManagerProvider)
-        .onSolutionFound
-        .removeListener(_onSolutionFound);
   }
 
   void _onSolutionFound(_) => setState(() {});
@@ -179,17 +181,17 @@ class _FireworksWrapper extends StatelessWidget {
   }
 }
 
-class _SolutionTile extends ConsumerStatefulWidget {
+class _SolutionTile extends StatefulWidget {
   const _SolutionTile({super.key, required this.solution, this.fireworks});
 
   final Solution solution;
   final FireworksController? fireworks;
 
   @override
-  ConsumerState<_SolutionTile> createState() => _SolutionTileState();
+  State<_SolutionTile> createState() => _SolutionTileState();
 }
 
-class _SolutionTileState extends ConsumerState<_SolutionTile> {
+class _SolutionTileState extends State<_SolutionTile> {
   @override
   void initState() {
     super.initState();
@@ -230,13 +232,13 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
                   verticalOffset: -5,
                   textStyle:
                       TextStyle(fontSize: tm.textSize, color: Colors.white),
-                  child: _buildTile(ref),
+                  child: _buildTile(),
                 )
-              : _buildTile(ref),
+              : _buildTile(),
         ));
   }
 
-  Widget _buildTile(WidgetRef ref) {
+  Widget _buildTile() {
     final tm = ThemeManager.instance;
     final gc = ConfigurationManager.instance;
 

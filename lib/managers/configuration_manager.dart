@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
-import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 const _showAnswersTooltipDefault = false;
@@ -181,7 +180,7 @@ class ConfigurationManager {
 
   //// LISTEN TO GAME MANAGER ////
   void _listenToGameManagerEvents() {
-    final gm = ProviderContainer().read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundIsPreparing.addListener(_reactToGameManagerEvent);
     gm.onNextProblemReady.addListener(_reactToGameManagerEvent);
     gm.onRoundStarted.addListener(_reactToGameManagerEvent);
@@ -297,25 +296,17 @@ class ConfigurationManager {
   ///
   /// If it is currently possible to change the duration of the round
   bool get canChangeDurations =>
-      ProviderContainer().read(gameManagerProvider).gameStatus !=
-      GameStatus.roundReady;
+      GameManager.instance.gameStatus != GameStatus.roundReady;
 
   ///
   /// If it is currently possible to change the problem picker rules
   bool get canChangeProblem =>
-      ProviderContainer().read(gameManagerProvider).gameStatus ==
-      GameStatus.roundReady;
+      GameManager.instance.gameStatus == GameStatus.roundReady;
 
-  void _tellGameManagerToRepickProblem() {
-    final container = ProviderContainer();
-    container
-        .read(gameManagerProvider)
-        .rulesHasChanged(shoulRepickProblem: true);
-  }
+  void _tellGameManagerToRepickProblem() =>
+      GameManager.instance.rulesHasChanged(shoulRepickProblem: true);
 
   void finalizeConfigurationChanges() {
-    ProviderContainer()
-        .read(gameManagerProvider)
-        .rulesHasChanged(repickNow: true);
+    GameManager.instance.rulesHasChanged(repickNow: true);
   }
 }

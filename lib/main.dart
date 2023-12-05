@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/game_manager.dart';
-import 'package:train_de_mots/models/sound_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
 void main() async {
   // Initialize singleton
   SoundManager.instance;
+  GameManager.instance.initialize();
 
-  runApp(ProviderScope(child: Consumer(builder: (context, ref, child) {
-    ref.read(gameManagerProvider).initialize();
-    return const MyApp();
-  })));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
@@ -9,16 +8,16 @@ import 'package:train_de_mots/screens/splash_screen.dart';
 import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/configuration_drawer.dart';
 
-class MainScreen extends ConsumerStatefulWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   static const route = '/game-screen';
 
   @override
-  ConsumerState<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends ConsumerState<MainScreen> {
+class _MainScreenState extends State<MainScreen> {
   Future<void> _setTwitchManager() async {
     await TwitchInterface.instance.showConnectManagerDialog(context);
     setState(() {});
@@ -28,7 +27,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundIsPreparing.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
@@ -50,7 +49,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   void dispose() {
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onRoundIsPreparing.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
@@ -67,13 +66,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void _refresh() => setState(() {});
   void _onSolutionFound(solution) => setState(() {});
 
-  void _onClickedBegin() =>
-      ref.read(gameManagerProvider).requestStartNewRound();
+  void _onClickedBegin() => GameManager.instance.requestStartNewRound();
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
+
+    debugPrint('${gm.roundCount}, ${gm.gameStatus}');
 
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
@@ -88,8 +88,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   gm.gameStatus == GameStatus.initializing
                       ? SplashScreen(onClickStart: _onClickedBegin)
                       : const GameScreen(),
-                  if (gm.roundCount > 0 &&
-                          gm.gameStatus == GameStatus.roundPreparing ||
+                  if (gm.gameStatus == GameStatus.roundPreparing ||
                       gm.gameStatus == GameStatus.roundReady)
                     const Center(
                         child: Padding(

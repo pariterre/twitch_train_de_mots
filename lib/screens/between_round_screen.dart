@@ -1,18 +1,40 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
-class BetweenRoundsOverlay extends ConsumerWidget {
+class BetweenRoundsOverlay extends StatefulWidget {
   const BetweenRoundsOverlay({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final gm = ref.watch(gameManagerProvider);
+  State<BetweenRoundsOverlay> createState() => _BetweenRoundsOverlayState();
+}
+
+class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onRoundIsOver.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final gm = GameManager.instance;
+    gm.onRoundIsOver.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
 
     return SizedBox(
       width: max(MediaQuery.of(context).size.width * 0.4, 800),
@@ -43,19 +65,19 @@ class BetweenRoundsOverlay extends ConsumerWidget {
   }
 }
 
-class _ContinueButton extends ConsumerStatefulWidget {
+class _ContinueButton extends StatefulWidget {
   const _ContinueButton();
 
   @override
-  ConsumerState<_ContinueButton> createState() => _ContinueButtonState();
+  State<_ContinueButton> createState() => _ContinueButtonState();
 }
 
-class _ContinueButtonState extends ConsumerState<_ContinueButton> {
+class _ContinueButtonState extends State<_ContinueButton> {
   @override
   void initState() {
     super.initState();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onNextProblemReady.addListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -66,7 +88,7 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
   void dispose() {
     super.dispose();
 
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     gm.onNextProblemReady.removeListener(_refresh);
   }
 
@@ -74,7 +96,7 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.watch(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     return Card(
@@ -99,12 +121,12 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
   }
 }
 
-class _LeaderBoard extends ConsumerWidget {
+class _LeaderBoard extends StatelessWidget {
   const _LeaderBoard();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final gm = ref.read(gameManagerProvider);
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
     final players = gm.players.sort((a, b) => b.score - a.score);
 
     final highestScore = players.fold<int>(
@@ -232,14 +254,14 @@ class _LeaderBoard extends ConsumerWidget {
   }
 }
 
-class _VictoryHeader extends ConsumerStatefulWidget {
+class _VictoryHeader extends StatefulWidget {
   const _VictoryHeader();
 
   @override
-  ConsumerState<_VictoryHeader> createState() => _VictoryHeaderState();
+  State<_VictoryHeader> createState() => _VictoryHeaderState();
 }
 
-class _VictoryHeaderState extends ConsumerState<_VictoryHeader> {
+class _VictoryHeaderState extends State<_VictoryHeader> {
   @override
   void initState() {
     super.initState();
@@ -260,7 +282,7 @@ class _VictoryHeaderState extends ConsumerState<_VictoryHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     return Padding(
@@ -385,14 +407,14 @@ class _BackgroundState extends State<_Background> {
   }
 }
 
-class _DefeatHeader extends ConsumerStatefulWidget {
+class _DefeatHeader extends StatefulWidget {
   const _DefeatHeader();
 
   @override
-  ConsumerState<_DefeatHeader> createState() => _DefeatHeaderState();
+  State<_DefeatHeader> createState() => _DefeatHeaderState();
 }
 
-class _DefeatHeaderState extends ConsumerState<_DefeatHeader> {
+class _DefeatHeaderState extends State<_DefeatHeader> {
   @override
   void initState() {
     super.initState();
@@ -412,7 +434,7 @@ class _DefeatHeaderState extends ConsumerState<_DefeatHeader> {
   void _refresh() => setState(() {});
   @override
   Widget build(BuildContext context) {
-    final gm = ref.read(gameManagerProvider);
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     return Padding(

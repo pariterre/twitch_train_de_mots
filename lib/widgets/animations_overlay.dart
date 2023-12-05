@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/game_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/bouncy_container.dart';
 
-class AnimationOverlay extends ConsumerStatefulWidget {
+class AnimationOverlay extends StatefulWidget {
   const AnimationOverlay({super.key});
 
   @override
-  ConsumerState<AnimationOverlay> createState() => _AnimationOverlayState();
+  State<AnimationOverlay> createState() => _AnimationOverlayState();
 }
 
-class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
+class _AnimationOverlayState extends State<AnimationOverlay> {
   final _solutionStolenController = BouncyContainerController(
     minScale: 0.5,
     bouncyScale: 1.4,
@@ -22,19 +21,18 @@ class _AnimationOverlayState extends ConsumerState<AnimationOverlay> {
   @override
   void initState() {
     super.initState();
-    ref
-        .read(gameManagerProvider)
-        .onSolutionWasStolen
-        .addListener(_showSolutionWasStolen);
+
+    final gm = GameManager.instance;
+    gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
   }
 
   @override
   void dispose() {
     _solutionStolenController.dispose();
-    ref
-        .read(gameManagerProvider)
-        .onSolutionWasStolen
-        .removeListener(_showSolutionWasStolen);
+
+    final gm = GameManager.instance;
+    gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
+
     super.dispose();
   }
 
