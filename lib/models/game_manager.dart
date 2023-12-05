@@ -253,9 +253,13 @@ class _GameManager {
       cooldownTimer = configuration.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
+    player.lastSolutionFound = solution;
     if (solution.wasStolen) {
       solution.foundBy.hasStolen();
+
+      solution.stolenFrom.lastSolutionFound = null;
       solution.stolenFrom.resetCooldown();
+
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 

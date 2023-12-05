@@ -4,6 +4,7 @@ import 'package:train_de_mots/models/custom_scheme.dart';
 import 'package:train_de_mots/models/game_configuration.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
+import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
 
 class SolutionsDisplayer extends ConsumerStatefulWidget {
@@ -20,12 +21,21 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
   void initState() {
     super.initState();
 
-    ref
-        .read(gameManagerProvider)
-        .onRoundStarted
-        .addListener(_reinitializeFireworks);
-    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.addListener(_reinitializeFireworks);
+    gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onPlayerUpdate.addListener(_onPlayerUpdate);
     _reinitializeFireworks();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.removeListener(_reinitializeFireworks);
+    gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onPlayerUpdate.removeListener(_onPlayerUpdate);
   }
 
   void _reinitializeFireworks() {
@@ -45,10 +55,14 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
     _fireworksControllers[solution]?.trigger();
   }
 
+  void _onPlayerUpdate() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    final scheme = ref.watch(schemeProvider);
-    final solutions = ref.watch(gameManagerProvider).problem!.solutions;
+    final scheme = ref.read(schemeProvider);
+    final solutions = ref.read(gameManagerProvider).problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
     for (var i = solutions.nbLettersInSmallest;
@@ -114,6 +128,15 @@ class _SolutionWrapperState extends ConsumerState<_SolutionWrapper> {
     ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    ref
+        .read(gameManagerProvider)
+        .onSolutionFound
+        .removeListener(_onSolutionFound);
+  }
+
   void _onSolutionFound(_) => setState(() {});
 
   @override
@@ -159,7 +182,8 @@ class _SolutionTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.watch(schemeProvider);
+    final scheme = ref.read(schemeProvider);
+    final gc = ref.read(gameConfigurationProvider);
 
     late final Widget? child;
     if (fireworks != null) {
@@ -217,7 +241,7 @@ class _SolutionTile extends ConsumerWidget {
                     Text(
                       solution.word,
                       style: TextStyle(
-                          fontSize: ref.watch(schemeProvider).textSize,
+                          fontSize: ref.read(schemeProvider).textSize,
                           fontWeight: FontWeight.bold,
                           color: solution.isFound
                               ? scheme.textSolvedColor
@@ -226,11 +250,25 @@ class _SolutionTile extends ConsumerWidget {
                     Text(
                       ' (${solution.foundBy.name})',
                       style: TextStyle(
-                          fontSize: ref.watch(schemeProvider).textSize,
+                          fontSize: ref.read(schemeProvider).textSize,
                           color: solution.isFound
                               ? scheme.textSolvedColor
                               : scheme.textUnsolvedColor),
                     ),
+                    if (solution.foundBy.lastSolutionFound == solution &&
+                        solution.foundBy.cooldownRemaining.inSeconds > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 15.0),
+                        child: SizedBox(
+                          height: 15,
+                          child: Clock(
+                            timeRemaining: solution.foundBy.cooldownRemaining,
+                            maxDuration: solution.wasStolen
+                                ? gc.cooldownPeriodAfterSteal
+                                : gc.cooldownPeriod,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               )
@@ -241,19 +279,19 @@ class _SolutionTile extends ConsumerWidget {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: ref.watch(schemeProvider).textSize * 12,
+          width: ref.read(schemeProvider).textSize * 12,
           height: 50,
           child: Consumer(
             builder: (context, ref, child) {
               final showTooltip =
-                  ref.watch(gameConfigurationProvider).showAnswersTooltip;
+                  ref.read(gameConfigurationProvider).showAnswersTooltip;
 
               return showTooltip
                   ? Tooltip(
                       message: solution.isFound ? '' : solution.word,
                       verticalOffset: -5,
                       textStyle: TextStyle(
-                          fontSize: ref.watch(schemeProvider).textSize,
+                          fontSize: ref.read(schemeProvider).textSize,
                           color: Colors.white),
                       child: child,
                     )

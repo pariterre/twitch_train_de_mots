@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:train_de_mots/models/solution.dart';
 
 class Player {
   final String name;
@@ -13,6 +14,8 @@ class Player {
   }
 
   int stealCount = 0;
+
+  Solution? lastSolutionFound;
 
   void resetCooldown() => _cooldownEndAt = DateTime.now();
   void startCooldown({required Duration duration}) =>
