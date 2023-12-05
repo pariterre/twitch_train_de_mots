@@ -137,6 +137,16 @@ void _showThemeConfiguration(context) {
                       ),
                       const SizedBox(height: 12),
                       _BooleanInputField(
+                          label:
+                              'Afficher le tableau des cheminot\u2022e\u2022s',
+                          value: config.showLeaderBoard,
+                          onChanged: (value) {
+                            ref
+                                .read(gameConfigurationProvider)
+                                .showLeaderBoard = value;
+                          }),
+                      const SizedBox(height: 12),
+                      _BooleanInputField(
                           label: 'Montrer les réponses au survol\nde la souris',
                           value: config.showAnswersTooltip,
                           onChanged: (value) {

@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
 
 class Clock extends StatelessWidget {
   const Clock({
@@ -17,8 +16,6 @@ class Clock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final scheme = ref.watch(schemeProvider);
-
       return LayoutBuilder(builder: (context, constraints) {
         final size = min(constraints.maxHeight, constraints.maxWidth);
 
@@ -29,7 +26,7 @@ class Clock extends StatelessWidget {
             value:
                 1 - timeRemaining.inMilliseconds / maxDuration.inMilliseconds,
             backgroundColor: Colors.red[900],
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
             strokeWidth: size,
           ),
         );

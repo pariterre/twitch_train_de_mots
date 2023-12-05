@@ -8,6 +8,7 @@ import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 const _showAnswersTooltipDefault = false;
+const _showLeaderBoardDefault = false;
 
 const _roundDurationDefault = 180;
 const _cooldownPeriodDefault = 15;
@@ -60,6 +61,13 @@ class _GameConfiguration with ChangeNotifier {
   bool get showAnswersTooltip => _showAnswersTooltip;
   set showAnswersTooltip(bool value) {
     _showAnswersTooltip = value;
+    _saveConfiguration();
+  }
+
+  bool _showLeaderBoard = _showLeaderBoardDefault;
+  bool get showLeaderBoard => _showLeaderBoard;
+  set showLeaderBoard(bool value) {
+    _showLeaderBoard = value;
     _saveConfiguration();
   }
 
@@ -190,6 +198,7 @@ class _GameConfiguration with ChangeNotifier {
   Map<String, dynamic> serialize() {
     return {
       'showAnswersTooltip': showAnswersTooltip,
+      'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
@@ -223,6 +232,7 @@ class _GameConfiguration with ChangeNotifier {
 
       _showAnswersTooltip =
           map['showAnswersTooltip'] ?? _showAnswersTooltipDefault;
+      _showLeaderBoard = map['showLeaderBoard'] ?? _showLeaderBoardDefault;
 
       _roundDuration =
           Duration(seconds: map['roundDuration'] ?? _roundDurationDefault);
@@ -259,6 +269,7 @@ class _GameConfiguration with ChangeNotifier {
   /// Reset the configuration to the default values
   void resetConfiguration() {
     _showAnswersTooltip = _showAnswersTooltipDefault;
+    _showLeaderBoard = _showLeaderBoardDefault;
 
     _roundDuration = const Duration(seconds: _roundDurationDefault);
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
