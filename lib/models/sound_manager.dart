@@ -1,6 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 
 class SoundManager {
@@ -25,9 +25,9 @@ class SoundManager {
     gm.onScrablingLetters.addListener(_onLettersScrambled);
     gm.onRoundIsOver.addListener(_onRoundIsOver);
 
-    final gc = ProviderContainer().read(gameConfigurationProvider);
-    gc.onGameMusicConfigurationChanged.addListener(_manageGameMusic);
-    gc.onSoundMusicConfigurationChanged.addListener(_onLettersScrambled);
+    final cm = ConfigurationManager.instance;
+    cm.onMusicChanged.addListener(_manageGameMusic);
+    cm.onSoundChanged.addListener(_onLettersScrambled);
   }
 
   Future<void> _manageGameMusic() async {
@@ -38,35 +38,30 @@ class SoundManager {
     }
 
     //  Set the volume
-    final volume =
-        ProviderContainer().read(gameConfigurationProvider).musicVolume;
+    final volume = ConfigurationManager.instance.musicVolume;
     await _gameMusic.setVolume(volume);
   }
 
   Future<void> _onRoundStarted() async {
-    final volume =
-        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    final volume = ConfigurationManager.instance.soundVolume;
     await _roundStarted.play(AssetSource('sounds/GameStarted.mp3'),
         volume: volume);
   }
 
   Future<void> _onLettersScrambled() async {
-    final volume =
-        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    final volume = ConfigurationManager.instance.soundVolume;
     _lettersScrambling.play(AssetSource('sounds/LettersScrambling.mp3'),
         volume: volume);
   }
 
   Future<void> _onRoundIsOver() async {
-    final volume =
-        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    final volume = ConfigurationManager.instance.soundVolume;
     _roundIsOver.play(AssetSource('sounds/RoundIsOver.mp3'), volume: volume);
   }
 
   Future<void> _onSolutionFound(solution) async {
     final gm = ProviderContainer().read(gameManagerProvider);
-    final volume =
-        ProviderContainer().read(gameConfigurationProvider).soundVolume;
+    final volume = ConfigurationManager.instance.soundVolume;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
       _bestSolutionFound.play(AssetSource('sounds/BestSolutionFound.mp3'),

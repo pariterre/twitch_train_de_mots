@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
-import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
@@ -174,131 +174,158 @@ class _FireworksWrapper extends StatelessWidget {
   }
 }
 
-class _SolutionTile extends ConsumerWidget {
+class _SolutionTile extends ConsumerStatefulWidget {
   const _SolutionTile({super.key, required this.solution, this.fireworks});
 
   final Solution solution;
   final FireworksController? fireworks;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.read(schemeProvider);
-    final gc = ref.read(gameConfigurationProvider);
+  ConsumerState<_SolutionTile> createState() => _SolutionTileState();
+}
 
-    late final Widget? child;
-    if (fireworks != null) {
-      child = Fireworks(key: fireworks!.key, controller: fireworks!);
-    } else {
-      final unsolved = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          scheme.solutionUnsolvedColorLight!,
-          scheme.solutionUnsolvedColorDark!,
-        ],
-        stops: const [0, 0.6],
-      );
-      final solved = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          scheme.solutionSolvedColorLight!,
-          scheme.solutionSolvedColorDark!,
-        ],
-        stops: const [0.1, 1],
-      );
-      final stolen = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          scheme.solutionStolenColorLight!,
-          scheme.solutionStolenColorDark!,
-        ],
-        stops: const [0.1, 1],
-      );
+class _SolutionTileState extends ConsumerState<_SolutionTile> {
+  @override
+  void initState() {
+    super.initState();
 
-      child = Container(
-        decoration: BoxDecoration(
-          gradient: solution.isFound
-              ? (solution.wasStolen ? stolen : solved)
-              : unsolved,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.black),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 3.0,
-              spreadRadius: 0.0,
-              offset: const Offset(5.0, 5.0),
-            )
-          ],
-        ),
-        child: solution.isFound
-            ? Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      solution.word,
-                      style: TextStyle(
-                          fontSize: ref.read(schemeProvider).textSize,
-                          fontWeight: FontWeight.bold,
-                          color: solution.isFound
-                              ? scheme.textSolvedColor
-                              : scheme.textUnsolvedColor),
-                    ),
-                    Text(
-                      ' (${solution.foundBy.name})',
-                      style: TextStyle(
-                          fontSize: ref.read(schemeProvider).textSize,
-                          color: solution.isFound
-                              ? scheme.textSolvedColor
-                              : scheme.textUnsolvedColor),
-                    ),
-                    if (solution.foundBy.lastSolutionFound == solution &&
-                        solution.foundBy.cooldownRemaining.inSeconds > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 15.0),
-                        child: SizedBox(
-                          height: 15,
-                          child: Clock(
-                            timeRemaining: solution.foundBy.cooldownRemaining,
-                            maxDuration: solution.wasStolen
-                                ? gc.cooldownPeriodAfterSteal
-                                : gc.cooldownPeriod,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              )
-            : null,
-      );
-    }
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final cm = ConfigurationManager.instance;
 
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: ref.read(schemeProvider).textSize * 12,
+          width: ref.watch(schemeProvider).textSize * 12,
           height: 50,
-          child: Consumer(
-            builder: (context, ref, child) {
-              final showTooltip =
-                  ref.read(gameConfigurationProvider).showAnswersTooltip;
-
-              return showTooltip
-                  ? Tooltip(
-                      message: solution.isFound ? '' : solution.word,
-                      verticalOffset: -5,
-                      textStyle: TextStyle(
-                          fontSize: ref.read(schemeProvider).textSize,
-                          color: Colors.white),
-                      child: child,
-                    )
-                  : child!;
-            },
-            child: child,
-          ),
+          child: cm.showAnswersTooltip
+              ? Tooltip(
+                  message: widget.solution.isFound ? '' : widget.solution.word,
+                  verticalOffset: -5,
+                  textStyle: TextStyle(
+                      fontSize: ref.read(schemeProvider).textSize,
+                      color: Colors.white),
+                  child: _buildTile(ref),
+                )
+              : _buildTile(ref),
         ));
   }
+
+  Widget _buildTile(WidgetRef ref) {
+    final scheme = ref.read(schemeProvider);
+    final gc = ConfigurationManager.instance;
+
+    if (widget.fireworks != null) {
+      return Fireworks(
+          key: widget.fireworks!.key, controller: widget.fireworks!);
+    }
+
+    return Container(
+      decoration: _boxDecoration,
+      child: widget.solution.isFound
+          ? Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.solution.word,
+                    style: TextStyle(
+                        fontSize: ref.read(schemeProvider).textSize,
+                        fontWeight: FontWeight.bold,
+                        color: widget.solution.isFound
+                            ? scheme.textSolvedColor
+                            : scheme.textUnsolvedColor),
+                  ),
+                  Text(
+                    ' (${widget.solution.foundBy.name})',
+                    style: TextStyle(
+                        fontSize: ref.read(schemeProvider).textSize,
+                        color: widget.solution.isFound
+                            ? scheme.textSolvedColor
+                            : scheme.textUnsolvedColor),
+                  ),
+                  if (widget.solution.foundBy.lastSolutionFound ==
+                          widget.solution &&
+                      widget.solution.foundBy.cooldownRemaining.inSeconds > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0),
+                      child: SizedBox(
+                        height: 15,
+                        child: Clock(
+                          timeRemaining:
+                              widget.solution.foundBy.cooldownRemaining,
+                          maxDuration: widget.solution.wasStolen
+                              ? gc.cooldownPeriodAfterSteal
+                              : gc.cooldownPeriod,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            )
+          : null,
+    );
+  }
+
+  BoxDecoration get _boxDecoration => BoxDecoration(
+        gradient: widget.solution.isFound
+            ? (widget.solution.wasStolen ? stolen : solved)
+            : unsolved,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.black),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 3.0,
+            spreadRadius: 0.0,
+            offset: const Offset(5.0, 5.0),
+          )
+        ],
+      );
+
+  LinearGradient get unsolved {
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        ref.read(schemeProvider).solutionUnsolvedColorLight!,
+        ref.read(schemeProvider).solutionUnsolvedColorDark!,
+      ],
+      stops: const [0, 0.6],
+    );
+  }
+
+  LinearGradient get solved => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          ref.read(schemeProvider).solutionSolvedColorLight!,
+          ref.read(schemeProvider).solutionSolvedColorDark!,
+        ],
+        stops: const [0.1, 1],
+      );
+
+  LinearGradient get stolen => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          ref.read(schemeProvider).solutionStolenColorLight!,
+          ref.read(schemeProvider).solutionStolenColorDark!,
+        ],
+        stops: const [0.1, 1],
+      );
 }

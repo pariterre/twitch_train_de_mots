@@ -3,14 +3,37 @@ import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
-import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 
-class ConfigurationDrawer extends ConsumerWidget {
+class ConfigurationDrawer extends ConsumerStatefulWidget {
   const ConfigurationDrawer({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConfigurationDrawer> createState() =>
+      _ConfigurationDrawerState();
+}
+
+class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
+  @override
+  void initState() {
+    super.initState();
+
+    ConfigurationManager.instance.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    ConfigurationManager.instance.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final cm = ConfigurationManager.instance;
     final gm = ref.watch(gameManagerProvider);
     final scheme = ref.watch(schemeProvider);
 
@@ -61,17 +84,14 @@ class ConfigurationDrawer extends ConsumerWidget {
                     ListTile(
                       tileColor: Colors.red,
                       title: const Text('Réinitialiser la configuration'),
-                      enabled:
-                          ref.watch(gameConfigurationProvider).canChangeProblem,
+                      enabled: cm.canChangeProblem,
                       onTap: () async {
                         final result = await showDialog<bool?>(
                             context: context,
                             builder: (context) => const _AreYouSureDialog());
                         if (result == null || !result) return;
 
-                        ref
-                            .read(gameConfigurationProvider)
-                            .resetConfiguration();
+                        cm.resetConfiguration();
                         ref.read(schemeProvider).reset();
 
                         if (context.mounted) Navigator.pop(context);
@@ -92,79 +112,104 @@ void _showThemeConfiguration(context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return Consumer(
-        builder: (context, ref, child) {
-          final config = ref.watch(gameConfigurationProvider);
-          final scheme = ref.watch(schemeProvider);
-
-          return AlertDialog(
-            title: Text(
-              'Configuration du thème',
-              style: TextStyle(color: scheme.mainColor),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const _ColorPickerInputField(
-                    label: 'Choisir la couleur du temps'),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: 400,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const _FontSizePickerInputField(
-                          label: 'Choisir la taille du thème'),
-                      const SizedBox(height: 12),
-                      _SliderInputField(
-                        label: 'Volume de la musique',
-                        value: config.musicVolume,
-                        onChanged: (value) {
-                          ref.read(gameConfigurationProvider).musicVolume =
-                              value;
-                        },
-                        thumbLabel: '${(config.musicVolume * 100).toInt()}%',
-                      ),
-                      const SizedBox(height: 12),
-                      _SliderInputField(
-                        label: 'Volume des sons',
-                        value: config.soundVolume,
-                        onChanged: (value) {
-                          ref.read(gameConfigurationProvider).soundVolume =
-                              value;
-                        },
-                        thumbLabel: '${(config.soundVolume * 100).toInt()}%',
-                      ),
-                      const SizedBox(height: 12),
-                      _BooleanInputField(
-                          label:
-                              'Afficher le tableau des cheminot\u2022e\u2022s',
-                          value: config.showLeaderBoard,
-                          onChanged: (value) {
-                            ref
-                                .read(gameConfigurationProvider)
-                                .showLeaderBoard = value;
-                          }),
-                      const SizedBox(height: 12),
-                      _BooleanInputField(
-                          label: 'Montrer les réponses au survol\nde la souris',
-                          value: config.showAnswersTooltip,
-                          onChanged: (value) {
-                            ref
-                                .read(gameConfigurationProvider)
-                                .showAnswersTooltip = value;
-                          }),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          );
-        },
-      );
+      return const _ThemeConfiguration();
     },
   );
+}
+
+class _ThemeConfiguration extends StatefulWidget {
+  const _ThemeConfiguration();
+
+  @override
+  State<_ThemeConfiguration> createState() => _ThemeConfigurationState();
+}
+
+class _ThemeConfigurationState extends State<_ThemeConfiguration> {
+  @override
+  void initState() {
+    super.initState();
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final cm = ConfigurationManager.instance;
+        final scheme = ref.watch(schemeProvider);
+
+        return AlertDialog(
+          title: Text(
+            'Configuration du thème',
+            style: TextStyle(color: scheme.mainColor),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _ColorPickerInputField(
+                  label: 'Choisir la couleur du temps'),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _FontSizePickerInputField(
+                        label: 'Choisir la taille du thème'),
+                    const SizedBox(height: 12),
+                    _SliderInputField(
+                      label: 'Volume de la musique',
+                      value: cm.musicVolume,
+                      onChanged: (value) {
+                        cm.musicVolume = value;
+                      },
+                      thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
+                    ),
+                    const SizedBox(height: 12),
+                    _SliderInputField(
+                      label: 'Volume des sons',
+                      value: cm.soundVolume,
+                      onChanged: (value) {
+                        cm.soundVolume = value;
+                      },
+                      thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                    ),
+                    const SizedBox(height: 12),
+                    _BooleanInputField(
+                        label: 'Afficher le tableau des cheminot\u2022e\u2022s',
+                        value: cm.showLeaderBoard,
+                        onChanged: (value) {
+                          cm.showLeaderBoard = value;
+                        }),
+                    const SizedBox(height: 12),
+                    _BooleanInputField(
+                        label: 'Montrer les réponses au survol\nde la souris',
+                        value: cm.showAnswersTooltip,
+                        onChanged: (value) {
+                          cm.showAnswersTooltip = value;
+                        }),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _ColorPickerInputField extends StatelessWidget {
@@ -239,14 +284,12 @@ void _showGameConfiguration(BuildContext context) async {
     builder: (BuildContext context) {
       return Consumer(
         builder: (context, ref, child) {
+          final cm = ConfigurationManager.instance;
           final scheme = ref.watch(schemeProvider);
-          final config = ref.watch(gameConfigurationProvider);
 
           return WillPopScope(
             onWillPop: () async {
-              ref
-                  .read(gameConfigurationProvider)
-                  .finalizeConfigurationChanges();
+              cm.finalizeConfigurationChanges();
               return true;
             },
             child: AlertDialog(
@@ -261,16 +304,11 @@ void _showGameConfiguration(BuildContext context) async {
                   children: [
                     _IntegerInputField(
                       label: 'Nombre de lettres des mots les plus courts',
-                      initialValue: ref
-                          .read(gameConfigurationProvider)
-                          .nbLetterInSmallestWord
-                          .toString(),
+                      initialValue: cm.nbLetterInSmallestWord.toString(),
                       onChanged: (value) {
-                        ref
-                            .read(gameConfigurationProvider)
-                            .nbLetterInSmallestWord = value;
+                        cm.nbLetterInSmallestWord = value;
                       },
-                      enabled: config.canChangeProblem,
+                      enabled: cm.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de lettres des mots les plus courts ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
@@ -279,22 +317,14 @@ void _showGameConfiguration(BuildContext context) async {
                     _DoubleIntegerInputField(
                       label: 'Nombre de lettres à piger',
                       firstLabel: 'Minimum',
-                      firstInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .minimumWordLetter
-                          .toString(),
+                      firstInitialValue: cm.minimumWordLetter.toString(),
                       secondLabel: 'Maximum',
-                      secondInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .maximumWordLetter
-                          .toString(),
+                      secondInitialValue: cm.toString(),
                       onChanged: (mininum, maximum) {
-                        ref.read(gameConfigurationProvider).minimumWordLetter =
-                            mininum;
-                        ref.read(gameConfigurationProvider).maximumWordLetter =
-                            maximum;
+                        cm.minimumWordLetter = mininum;
+                        cm.maximumWordLetter = maximum;
                       },
-                      enabled: config.canChangeProblem,
+                      enabled: cm.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de lettres à piger ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
@@ -303,22 +333,14 @@ void _showGameConfiguration(BuildContext context) async {
                     _DoubleIntegerInputField(
                       label: 'Nombre de mots à trouver',
                       firstLabel: 'Minimum',
-                      firstInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .minimumWordsNumber
-                          .toString(),
+                      firstInitialValue: cm.minimumWordsNumber.toString(),
                       secondLabel: 'Maximum',
-                      secondInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .maximumWordsNumber
-                          .toString(),
+                      secondInitialValue: cm.maximumWordsNumber.toString(),
                       onChanged: (mininum, maximum) {
-                        ref.read(gameConfigurationProvider).minimumWordsNumber =
-                            mininum;
-                        ref.read(gameConfigurationProvider).maximumWordsNumber =
-                            maximum;
+                        cm.minimumWordsNumber = mininum;
+                        cm.maximumWordsNumber = maximum;
                       },
-                      enabled: config.canChangeProblem,
+                      enabled: cm.canChangeProblem,
                       disabledTooltip:
                           'Le nombre de mots à trouver ne peut pas\n'
                           'être changé en cours de partie ou lorsque le jeu cherche un mot',
@@ -326,68 +348,47 @@ void _showGameConfiguration(BuildContext context) async {
                     const SizedBox(height: 12),
                     _IntegerInputField(
                       label: 'Durée d\'une manche (secondes)',
-                      initialValue: ref
-                          .read(gameConfigurationProvider)
-                          .roundDuration
-                          .inSeconds
-                          .toString(),
+                      initialValue: cm.roundDuration.inSeconds.toString(),
                       onChanged: (value) {
-                        ref.read(gameConfigurationProvider).roundDuration =
-                            Duration(seconds: value);
+                        cm.roundDuration = Duration(seconds: value);
                       },
-                      enabled: config.canChangeDurations,
+                      enabled: cm.canChangeDurations,
                       disabledTooltip:
                           'La durée d\'une manche ne peut pas être changée en cours de partie',
                     ),
                     const SizedBox(height: 12),
                     _IntegerInputField(
                       label: 'Temps avant de mélanger les lettres (secondes)',
-                      initialValue: ref
-                          .read(gameConfigurationProvider)
-                          .timeBeforeScramblingLetters
-                          .inSeconds
-                          .toString(),
+                      initialValue:
+                          cm.timeBeforeScramblingLetters.inSeconds.toString(),
                       onChanged: (value) {
-                        ref
-                                .read(gameConfigurationProvider)
-                                .timeBeforeScramblingLetters =
+                        cm.timeBeforeScramblingLetters =
                             Duration(seconds: value);
                       },
                     ),
                     const SizedBox(height: 12),
                     _BooleanInputField(
                       label: 'Voler un mot est permis',
-                      value: ref.watch(gameConfigurationProvider).canSteal,
+                      value: cm.canSteal,
                       onChanged: (value) {
-                        ref.read(gameConfigurationProvider).canSteal = value;
+                        cm.canSteal = value;
                       },
                     ),
                     const SizedBox(height: 12),
                     _DoubleIntegerInputField(
                       label: 'Période de récupération (secondes)',
                       firstLabel: 'Normale',
-                      firstInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .cooldownPeriod
-                          .inSeconds
-                          .toString(),
+                      firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
                       secondLabel: 'Voleur',
-                      secondInitialValue: ref
-                          .read(gameConfigurationProvider)
-                          .cooldownPeriodAfterSteal
-                          .inSeconds
-                          .toString(),
-                      enableSecond:
-                          ref.watch(gameConfigurationProvider).canSteal,
+                      secondInitialValue:
+                          cm.cooldownPeriodAfterSteal.inSeconds.toString(),
+                      enableSecond: cm.canSteal,
                       onChanged: (normal, stealer) {
-                        ref.read(gameConfigurationProvider).cooldownPeriod =
-                            Duration(seconds: normal);
-                        ref
-                                .read(gameConfigurationProvider)
-                                .cooldownPeriodAfterSteal =
+                        cm.cooldownPeriod = Duration(seconds: normal);
+                        cm.cooldownPeriodAfterSteal =
                             Duration(seconds: stealer);
                       },
-                      enabled: config.canChangeDurations,
+                      enabled: cm.canChangeDurations,
                       disabledTooltip:
                           'Les périodes de récupération ne peuvent pas être\n'
                           'changées en cours de partie',

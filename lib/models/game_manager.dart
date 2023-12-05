@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
-import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -62,10 +62,10 @@ class _GameManager {
   }
 
   Future<void> _initializeWordProblem() async {
-    final configuration = ProviderContainer().read(gameConfigurationProvider);
+    final cm = ConfigurationManager.instance;
 
     await WordProblem.initialize(
-        nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
+        nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
     _isSearchingNextProblem = false;
     _nextProblem = null;
     await _searchForNextProblem();
@@ -144,16 +144,16 @@ class _GameManager {
     _forceRepickProblem = false;
     _isSearchingNextProblem = true;
 
-    final configuration = ProviderContainer().read(gameConfigurationProvider);
-    _nextProblem = await configuration.problemGenerator(
-      nbLetterInSmallestWord: configuration.nbLetterInSmallestWord,
-      minLetters: configuration.minimumWordLetter,
-      maxLetters: configuration.maximumWordLetter,
-      minimumNbOfWords: configuration.minimumWordsNumber,
-      maximumNbOfWords: configuration.maximumWordsNumber,
+    final cm = ConfigurationManager.instance;
+    _nextProblem = await cm.problemGenerator(
+      nbLetterInSmallestWord: cm.nbLetterInSmallestWord,
+      minLetters: cm.minimumWordLetter,
+      maxLetters: cm.maximumWordLetter,
+      minimumNbOfWords: cm.minimumWordsNumber,
+      maximumNbOfWords: cm.maximumWordsNumber,
     );
     _nextProblem!.cooldownScrambleTimer =
-        configuration.timeBeforeScramblingLetters.inSeconds;
+        cm.timeBeforeScramblingLetters.inSeconds;
 
     _isSearchingNextProblem = false;
   }
@@ -185,10 +185,7 @@ class _GameManager {
     _nextProblem = null;
 
     // Reinitialize the round timer and players
-    _roundDuration = ProviderContainer()
-        .read(gameConfigurationProvider)
-        .roundDuration
-        .inMilliseconds;
+    _roundDuration = ConfigurationManager.instance.roundDuration.inMilliseconds;
     for (final player in players) {
       player.resetForNextRound();
     }
@@ -215,7 +212,7 @@ class _GameManager {
   /// Twitch chatter.
   Future<void> _trySolution(String sender, String message) async {
     if (problem == null || timeRemaining == null) return;
-    final configuration = ProviderContainer().read(gameConfigurationProvider);
+    final cm = ConfigurationManager.instance;
 
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
@@ -225,11 +222,11 @@ class _GameManager {
 
     // Find if the proposed word is valid
     final solution = problem!.trySolution(message,
-        nbLetterInSmallestWord: configuration.nbLetterInSmallestWord);
+        nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
     if (solution == null) return;
 
     // Add to player score
-    Duration cooldownTimer = configuration.cooldownPeriod;
+    Duration cooldownTimer = cm.cooldownPeriod;
     if (solution.isFound) {
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
@@ -240,7 +237,7 @@ class _GameManager {
       // or the player is trying to steal from themselves
       // or the player has already stolen once during this round
       // or was stolen in less than the cooldown of the previous founder
-      if (!configuration.canSteal ||
+      if (!cm.canSteal ||
           solution.wasStolen ||
           solution.foundBy == player ||
           player.isAStealer ||
@@ -250,7 +247,7 @@ class _GameManager {
 
       // Remove the score to original founder and override the cooldown
       solution.foundBy.score -= solution.value;
-      cooldownTimer = configuration.cooldownPeriodAfterSteal;
+      cooldownTimer = cm.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
     player.lastSolutionFound = solution;
@@ -310,7 +307,7 @@ class _GameManager {
     if (DateTime.now().isBefore(_nextTickAt!)) return;
     _nextTickAt = _nextTickAt!.add(const Duration(seconds: 1));
 
-    final configuration = ProviderContainer().read(gameConfigurationProvider);
+    final cm = ConfigurationManager.instance;
 
     // Manager players cooling down
     for (final player in players) {
@@ -325,7 +322,7 @@ class _GameManager {
     _currentProblem!.cooldownScrambleTimer -= 1;
     if (_currentProblem!.cooldownScrambleTimer <= 0) {
       _currentProblem!.cooldownScrambleTimer =
-          configuration.timeBeforeScramblingLetters.inSeconds;
+          cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners();
     }

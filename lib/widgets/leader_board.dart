@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:train_de_mots/models/custom_scheme.dart';
-import 'package:train_de_mots/models/game_configuration.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
@@ -18,19 +18,24 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   void initState() {
     super.initState();
 
-    ref.read(gameManagerProvider).onRoundStarted.addListener(_refresh);
-    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.addListener(_refresh);
+    gm.onSolutionFound.addListener(_onSolutionFound);
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    ref.read(gameManagerProvider).onRoundStarted.removeListener(_refresh);
-    ref
-        .read(gameManagerProvider)
-        .onSolutionFound
-        .removeListener(_onSolutionFound);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.removeListener(_refresh);
+    gm.onSolutionFound.removeListener(_onSolutionFound);
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -39,7 +44,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final gc = ref.watch(gameConfigurationProvider);
+    final cm = ConfigurationManager.instance;
     final scheme = ref.watch(schemeProvider);
 
     WordProblem? problem = gm.problem;
@@ -57,7 +62,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
     return Container(
       padding: const EdgeInsets.all(12.0),
       width: 400,
-      child: gc.showLeaderBoard
+      child: cm.showLeaderBoard
           ? Card(
               color: scheme.mainColor,
               elevation: 10,

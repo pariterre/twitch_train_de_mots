@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
@@ -26,22 +25,25 @@ const _canStealDefault = true;
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
-// Declare the GameConfiguration provider
-final gameConfigurationProvider =
-    ChangeNotifierProvider<_GameConfiguration>((ref) {
-  return _GameConfiguration.instance;
-});
-
-class _GameConfiguration with ChangeNotifier {
+class ConfigurationManager {
   ///
   /// Declare the singleton
-  static _GameConfiguration get instance => _instance;
-  static final _GameConfiguration _instance = _GameConfiguration._internal();
-  _GameConfiguration._internal() {
+  static ConfigurationManager get instance => _instance;
+  static final ConfigurationManager _instance =
+      ConfigurationManager._internal();
+  ConfigurationManager._internal() {
     _loadConfiguration();
     _listenToGameManagerEvents();
   }
 
+  ///
+  /// Connect to callbacks to get notified when the configuration changes
+  final onChanged = CustomCallback();
+  final onMusicChanged = CustomCallback();
+  final onSoundChanged = CustomCallback();
+
+  ///
+  /// The current algorithm used to generate the problems
   final Future<WordProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
@@ -161,14 +163,11 @@ class _GameConfiguration with ChangeNotifier {
     _saveConfiguration();
   }
 
-  final onGameMusicConfigurationChanged = CustomCallback();
-  final onSoundMusicConfigurationChanged = CustomCallback();
-
   double _musicVolume = _musicVolumeDefault;
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
     _musicVolume = value;
-    onGameMusicConfigurationChanged.notifyListeners();
+    onMusicChanged.notifyListeners();
     _saveConfiguration();
   }
 
@@ -176,7 +175,7 @@ class _GameConfiguration with ChangeNotifier {
   double get soundVolume => _soundVolume;
   set soundVolume(double value) {
     _soundVolume = value;
-    onSoundMusicConfigurationChanged.notifyListeners();
+    onSoundChanged.notifyListeners();
     _saveConfiguration();
   }
 
@@ -189,7 +188,7 @@ class _GameConfiguration with ChangeNotifier {
     gm.onRoundIsOver.addListener(_reactToGameManagerEvent);
   }
 
-  void _reactToGameManagerEvent() => notifyListeners();
+  void _reactToGameManagerEvent() => onChanged.notifyListeners();
 
   //// LOAD AND SAVE ////
 
@@ -219,7 +218,7 @@ class _GameConfiguration with ChangeNotifier {
   void _saveConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('gameConfiguration', jsonEncode(serialize()));
-    notifyListeners();
+    onChanged.notifyListeners();
   }
 
   ///
