@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 
@@ -19,35 +19,43 @@ class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
   void initState() {
     super.initState();
 
-    ConfigurationManager.instance.onChanged.addListener(_refresh);
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    ConfigurationManager.instance.onChanged.removeListener(_refresh);
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final cm = ConfigurationManager.instance;
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
 
     return Drawer(
       child: Column(
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
-              color: scheme.mainColor,
+              color: tm.mainColor,
             ),
             child: SizedBox(
               width: double.infinity,
               child: Text('Configuration de\nTrain de mots',
-                  style: TextStyle(color: scheme.textColor, fontSize: 24)),
+                  style: TextStyle(color: tm.textColor, fontSize: 24)),
             ),
           ),
           Expanded(
@@ -92,7 +100,7 @@ class _ConfigurationDrawerState extends ConsumerState<ConfigurationDrawer> {
                         if (result == null || !result) return;
 
                         cm.resetConfiguration();
-                        ref.read(schemeProvider).reset();
+                        tm.reset();
 
                         if (context.mounted) Navigator.pop(context);
                       },
@@ -131,6 +139,9 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -139,6 +150,9 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -148,12 +162,12 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
     return Consumer(
       builder: (context, ref, child) {
         final cm = ConfigurationManager.instance;
-        final scheme = ref.watch(schemeProvider);
+        final tm = ThemeManager.instance;
 
         return AlertDialog(
           title: Text(
             'Configuration du thème',
-            style: TextStyle(color: scheme.mainColor),
+            style: TextStyle(color: tm.mainColor),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -212,32 +226,51 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
   }
 }
 
-class _ColorPickerInputField extends StatelessWidget {
-  const _ColorPickerInputField({
-    required this.label,
-  });
+class _ColorPickerInputField extends StatefulWidget {
+  const _ColorPickerInputField({required this.label});
 
   final String label;
 
   @override
+  State<_ColorPickerInputField> createState() => _ColorPickerInputFieldState();
+}
+
+class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final scheme = ref.watch(schemeProvider);
+      final tm = ThemeManager.instance;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(label,
+            child: Text(widget.label,
                 style: TextStyle(
-                    fontWeight: FontWeight.bold, color: scheme.mainColor)),
+                    fontWeight: FontWeight.bold, color: tm.mainColor)),
           ),
           ColorPicker(
-            pickerColor: scheme.mainColor,
-            onColorChanged: (Color color) {
-              ref.read(schemeProvider).mainColor = color;
-            },
+            pickerColor: tm.mainColor,
+            onColorChanged: (Color color) => tm.mainColor = color,
           ),
         ],
       );
@@ -245,34 +278,58 @@ class _ColorPickerInputField extends StatelessWidget {
   }
 }
 
-class _FontSizePickerInputField extends StatelessWidget {
+class _FontSizePickerInputField extends StatefulWidget {
   const _FontSizePickerInputField({required this.label});
 
   final String label;
 
   @override
+  State<_FontSizePickerInputField> createState() =>
+      _FontSizePickerInputFieldState();
+}
+
+class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final currentSize = ref.watch(schemeProvider).textSize;
+      final tm = ThemeManager.instance;
 
       late String sizeCategory;
-      if (currentSize < 18) {
+      if (tm.textSize < 18) {
         sizeCategory = 'Petit';
-      } else if (currentSize < 28) {
+      } else if (tm.textSize < 28) {
         sizeCategory = 'Moyen';
-      } else if (currentSize < 38) {
+      } else if (tm.textSize < 38) {
         sizeCategory = 'Grand';
       } else {
         sizeCategory = 'Très grand';
       }
       return _SliderInputField(
-        label: label,
-        value: currentSize,
+        label: widget.label,
+        value: tm.textSize,
         min: 12,
         max: 48,
         divisions: 36,
         thumbLabel: 'Taille du thème: $sizeCategory',
-        onChanged: (value) => ref.read(schemeProvider).textSize = value,
+        onChanged: (value) => tm.textSize = value,
       );
     });
   }
@@ -282,135 +339,136 @@ void _showGameConfiguration(BuildContext context) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return Consumer(
-        builder: (context, ref, child) {
-          final cm = ConfigurationManager.instance;
-          final scheme = ref.watch(schemeProvider);
-
-          return WillPopScope(
-            onWillPop: () async {
-              cm.finalizeConfigurationChanges();
-              return true;
-            },
-            child: AlertDialog(
-              title: Text(
-                'Configuration du jeu',
-                style: TextStyle(color: scheme.mainColor),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _IntegerInputField(
-                      label: 'Nombre de lettres des mots les plus courts',
-                      initialValue: cm.nbLetterInSmallestWord.toString(),
-                      onChanged: (value) {
-                        cm.nbLetterInSmallestWord = value;
-                      },
-                      enabled: cm.canChangeProblem,
-                      disabledTooltip:
-                          'Le nombre de lettres des mots les plus courts ne peut pas\n'
-                          'être changé en cours de partie ou lorsque le jeu cherche un mot',
-                    ),
-                    const SizedBox(height: 12),
-                    _DoubleIntegerInputField(
-                      label: 'Nombre de lettres à piger',
-                      firstLabel: 'Minimum',
-                      firstInitialValue: cm.minimumWordLetter.toString(),
-                      secondLabel: 'Maximum',
-                      secondInitialValue: cm.toString(),
-                      onChanged: (mininum, maximum) {
-                        cm.minimumWordLetter = mininum;
-                        cm.maximumWordLetter = maximum;
-                      },
-                      enabled: cm.canChangeProblem,
-                      disabledTooltip:
-                          'Le nombre de lettres à piger ne peut pas\n'
-                          'être changé en cours de partie ou lorsque le jeu cherche un mot',
-                    ),
-                    const SizedBox(height: 12),
-                    _DoubleIntegerInputField(
-                      label: 'Nombre de mots à trouver',
-                      firstLabel: 'Minimum',
-                      firstInitialValue: cm.minimumWordsNumber.toString(),
-                      secondLabel: 'Maximum',
-                      secondInitialValue: cm.maximumWordsNumber.toString(),
-                      onChanged: (mininum, maximum) {
-                        cm.minimumWordsNumber = mininum;
-                        cm.maximumWordsNumber = maximum;
-                      },
-                      enabled: cm.canChangeProblem,
-                      disabledTooltip:
-                          'Le nombre de mots à trouver ne peut pas\n'
-                          'être changé en cours de partie ou lorsque le jeu cherche un mot',
-                    ),
-                    const SizedBox(height: 12),
-                    _IntegerInputField(
-                      label: 'Durée d\'une manche (secondes)',
-                      initialValue: cm.roundDuration.inSeconds.toString(),
-                      onChanged: (value) {
-                        cm.roundDuration = Duration(seconds: value);
-                      },
-                      enabled: cm.canChangeDurations,
-                      disabledTooltip:
-                          'La durée d\'une manche ne peut pas être changée en cours de partie',
-                    ),
-                    const SizedBox(height: 12),
-                    _IntegerInputField(
-                      label: 'Temps avant de mélanger les lettres (secondes)',
-                      initialValue:
-                          cm.timeBeforeScramblingLetters.inSeconds.toString(),
-                      onChanged: (value) {
-                        cm.timeBeforeScramblingLetters =
-                            Duration(seconds: value);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                      label: 'Voler un mot est permis',
-                      value: cm.canSteal,
-                      onChanged: (value) {
-                        cm.canSteal = value;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _DoubleIntegerInputField(
-                      label: 'Période de récupération (secondes)',
-                      firstLabel: 'Normale',
-                      firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
-                      secondLabel: 'Voleur',
-                      secondInitialValue:
-                          cm.cooldownPeriodAfterSteal.inSeconds.toString(),
-                      enableSecond: cm.canSteal,
-                      onChanged: (normal, stealer) {
-                        cm.cooldownPeriod = Duration(seconds: normal);
-                        cm.cooldownPeriodAfterSteal =
-                            Duration(seconds: stealer);
-                      },
-                      enabled: cm.canChangeDurations,
-                      disabledTooltip:
-                          'Les périodes de récupération ne peuvent pas être\n'
-                          'changées en cours de partie',
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: scheme.mainColor,
-                          foregroundColor: scheme.textColor),
-                      child: const Text('Terminer'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
+      return const _GameConfiguration();
     },
   );
+}
+
+class _GameConfiguration extends StatelessWidget {
+  const _GameConfiguration();
+
+  @override
+  Widget build(BuildContext context) {
+    final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
+
+    return WillPopScope(
+      onWillPop: () async {
+        cm.finalizeConfigurationChanges();
+        return true;
+      },
+      child: AlertDialog(
+        title: Text(
+          'Configuration du jeu',
+          style: TextStyle(color: tm.mainColor),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _IntegerInputField(
+                label: 'Nombre de lettres des mots les plus courts',
+                initialValue: cm.nbLetterInSmallestWord.toString(),
+                onChanged: (value) {
+                  cm.nbLetterInSmallestWord = value;
+                },
+                enabled: cm.canChangeProblem,
+                disabledTooltip:
+                    'Le nombre de lettres des mots les plus courts ne peut pas\n'
+                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
+              ),
+              const SizedBox(height: 12),
+              _DoubleIntegerInputField(
+                label: 'Nombre de lettres à piger',
+                firstLabel: 'Minimum',
+                firstInitialValue: cm.minimumWordLetter.toString(),
+                secondLabel: 'Maximum',
+                secondInitialValue: cm.toString(),
+                onChanged: (mininum, maximum) {
+                  cm.minimumWordLetter = mininum;
+                  cm.maximumWordLetter = maximum;
+                },
+                enabled: cm.canChangeProblem,
+                disabledTooltip: 'Le nombre de lettres à piger ne peut pas\n'
+                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
+              ),
+              const SizedBox(height: 12),
+              _DoubleIntegerInputField(
+                label: 'Nombre de mots à trouver',
+                firstLabel: 'Minimum',
+                firstInitialValue: cm.minimumWordsNumber.toString(),
+                secondLabel: 'Maximum',
+                secondInitialValue: cm.maximumWordsNumber.toString(),
+                onChanged: (mininum, maximum) {
+                  cm.minimumWordsNumber = mininum;
+                  cm.maximumWordsNumber = maximum;
+                },
+                enabled: cm.canChangeProblem,
+                disabledTooltip: 'Le nombre de mots à trouver ne peut pas\n'
+                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
+              ),
+              const SizedBox(height: 12),
+              _IntegerInputField(
+                label: 'Durée d\'une manche (secondes)',
+                initialValue: cm.roundDuration.inSeconds.toString(),
+                onChanged: (value) {
+                  cm.roundDuration = Duration(seconds: value);
+                },
+                enabled: cm.canChangeDurations,
+                disabledTooltip:
+                    'La durée d\'une manche ne peut pas être changée en cours de partie',
+              ),
+              const SizedBox(height: 12),
+              _IntegerInputField(
+                label: 'Temps avant de mélanger les lettres (secondes)',
+                initialValue:
+                    cm.timeBeforeScramblingLetters.inSeconds.toString(),
+                onChanged: (value) {
+                  cm.timeBeforeScramblingLetters = Duration(seconds: value);
+                },
+              ),
+              const SizedBox(height: 12),
+              _BooleanInputField(
+                label: 'Voler un mot est permis',
+                value: cm.canSteal,
+                onChanged: (value) {
+                  cm.canSteal = value;
+                },
+              ),
+              const SizedBox(height: 12),
+              _DoubleIntegerInputField(
+                label: 'Période de récupération (secondes)',
+                firstLabel: 'Normale',
+                firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
+                secondLabel: 'Voleur',
+                secondInitialValue:
+                    cm.cooldownPeriodAfterSteal.inSeconds.toString(),
+                enableSecond: cm.canSteal,
+                onChanged: (normal, stealer) {
+                  cm.cooldownPeriod = Duration(seconds: normal);
+                  cm.cooldownPeriodAfterSteal = Duration(seconds: stealer);
+                },
+                enabled: cm.canChangeDurations,
+                disabledTooltip:
+                    'Les périodes de récupération ne peuvent pas être\n'
+                    'changées en cours de partie',
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: tm.mainColor,
+                    foregroundColor: tm.textColor),
+                child: const Text('Terminer'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _IntegerInputField extends StatelessWidget {
@@ -430,19 +488,17 @@ class _IntegerInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Consumer(builder: (context, ref, child) {
-          final scheme = ref.watch(schemeProvider);
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: scheme.mainColor)),
-          );
-        }),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(label,
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+        ),
         SizedBox(
           width: 150,
           child: TextFormField(
@@ -504,19 +560,17 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Consumer(builder: (context, ref, child) {
-          final scheme = ref.watch(schemeProvider);
-
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: Text(widget.label,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, color: scheme.mainColor)),
-          );
-        }),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Text(widget.label,
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -581,34 +635,32 @@ class _BooleanInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () => onChanged(!value),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: scheme.mainColor)),
-              Checkbox(
-                value: value,
-                onChanged: (_) => onChanged(!value),
-                fillColor: MaterialStateProperty.resolveWith((state) {
-                  if (state.contains(MaterialState.selected)) {
-                    return scheme.mainColor;
-                  }
-                  return Colors.white;
-                }),
-              ),
-            ],
-          ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => onChanged(!value),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: tm.mainColor)),
+            Checkbox(
+              value: value,
+              onChanged: (_) => onChanged(!value),
+              fillColor: MaterialStateProperty.resolveWith((state) {
+                if (state.contains(MaterialState.selected)) {
+                  return tm.mainColor;
+                }
+                return Colors.white;
+              }),
+            ),
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 }
 
@@ -633,35 +685,32 @@ class _SliderInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(builder: (context, ref, child) {
-      final scheme = ref.watch(schemeProvider);
-
-      return MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: scheme.mainColor,
-              ),
+    final tm = ThemeManager.instance;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: tm.mainColor,
             ),
-            Slider(
-              value: value,
-              onChanged: onChanged,
-              min: min,
-              max: max,
-              divisions: divisions,
-              label: thumbLabel,
-              activeColor: scheme.mainColor,
-              inactiveColor: Colors.grey,
-            ),
-          ],
-        ),
-      );
-    });
+          ),
+          Slider(
+            value: value,
+            onChanged: onChanged,
+            min: min,
+            max: max,
+            divisions: divisions,
+            label: thumbLabel,
+            activeColor: tm.mainColor,
+            inactiveColor: Colors.grey,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -671,23 +720,22 @@ class _AreYouSureDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final scheme = ref.watch(schemeProvider);
+      final tm = ThemeManager.instance;
 
       return AlertDialog(
         title: Text('Réinitialiser la configuration',
-            style: TextStyle(color: scheme.mainColor)),
+            style: TextStyle(color: tm.mainColor)),
         content: Text(
             'Êtes-vous sûr de vouloir réinitialiser la configuration?',
-            style: TextStyle(color: scheme.mainColor)),
+            style: TextStyle(color: tm.mainColor)),
         actions: [
           TextButton(
-            child: Text('Annuler', style: TextStyle(color: scheme.mainColor)),
+            child: Text('Annuler', style: TextStyle(color: tm.mainColor)),
             onPressed: () => Navigator.pop(context, false),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: scheme.mainColor,
-                foregroundColor: scheme.textColor),
+                backgroundColor: tm.mainColor, foregroundColor: tm.textColor),
             child: const Text('Réinitialiser'),
             onPressed: () => Navigator.pop(context, true),
           ),

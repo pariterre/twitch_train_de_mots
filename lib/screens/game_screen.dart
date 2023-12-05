@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
@@ -16,9 +16,27 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     return Stack(
       children: [
@@ -33,7 +51,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               gm.problem == null
                   ? Center(
                       child: CircularProgressIndicator(
-                      color: scheme.mainColor,
+                      color: tm.mainColor,
                     ))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -70,34 +88,35 @@ class _HeaderState extends ConsumerState<_Header> {
   void initState() {
     super.initState();
 
-    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
-    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
-    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundEnded);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.addListener(_refresh);
+    gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onRoundIsOver.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    super.dispose();
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.removeListener(_refresh);
+    gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onRoundIsOver.removeListener(_refresh);
 
-    ref
-        .read(gameManagerProvider)
-        .onRoundStarted
-        .removeListener(_onRoundStarted);
-    ref
-        .read(gameManagerProvider)
-        .onSolutionFound
-        .removeListener(_onSolutionFound);
-    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundEnded);
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+
+    super.dispose();
   }
 
-  void _onRoundStarted() => setState(() {});
-  void _onSolutionFound(_) => setState(() {});
-  void _onRoundEnded() => setState(() {});
+  void _refresh() => setState(() {});
+  void _onSolutionFound(solution) => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     final pointsToGo =
         gm.problem!.thresholdScoreForOneStar - gm.problem!.currentScore;
@@ -117,22 +136,22 @@ class _HeaderState extends ConsumerState<_Header> {
                 'Le Train de mots!',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: scheme.titleSize,
-                    color: scheme.textColor),
+                    fontSize: tm.titleSize,
+                    color: tm.textColor),
               ),
             if (gm.gameStatus == GameStatus.roundStarted)
               Text(
                 ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText',
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: scheme.titleSize,
-                    color: scheme.textColor),
+                    fontSize: tm.titleSize,
+                    color: tm.textColor),
               ),
           ],
         ),
         const SizedBox(height: 20),
         Card(
-          color: scheme.mainColor,
+          color: tm.mainColor,
           elevation: 10,
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
@@ -156,40 +175,36 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
   void initState() {
     super.initState();
 
-    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
-    ref
-        .read(gameManagerProvider)
-        .onNextProblemReady
-        .addListener(_onNextProblemReady);
-    ref.read(gameManagerProvider).onTimerTicks.addListener(_onClockTicks);
-    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundIsOver);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.addListener(_refresh);
+    gm.onNextProblemReady.addListener(_refresh);
+    gm.onTimerTicks.addListener(_refresh);
+    gm.onRoundIsOver.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    ref
-        .read(gameManagerProvider)
-        .onRoundStarted
-        .removeListener(_onRoundStarted);
-    ref
-        .read(gameManagerProvider)
-        .onNextProblemReady
-        .removeListener(_onNextProblemReady);
-    ref.read(gameManagerProvider).onTimerTicks.removeListener(_onClockTicks);
-    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundStarted.removeListener(_refresh);
+    gm.onNextProblemReady.removeListener(_refresh);
+    gm.onTimerTicks.removeListener(_refresh);
+    gm.onRoundIsOver.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
-  void _onRoundStarted() => setState(() {});
-  void _onNextProblemReady() => setState(() {});
-  void _onClockTicks() => setState(() {});
-  void _onRoundIsOver() => setState(() {});
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     late String text;
     switch (gm.gameStatus) {
@@ -209,7 +224,7 @@ class _HeaderTimerState extends ConsumerState<_HeaderTimer> {
     return Text(
       text,
       style: TextStyle(
-          fontWeight: FontWeight.bold, fontSize: 26, color: scheme.textColor),
+          fontWeight: FontWeight.bold, fontSize: 26, color: tm.textColor),
     );
   }
 }

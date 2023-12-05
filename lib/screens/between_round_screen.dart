@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
@@ -55,22 +55,27 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
   void initState() {
     super.initState();
 
-    ref
-        .read(gameManagerProvider)
-        .onNextProblemReady
-        .addListener(_onNextProblemReady);
+    final gm = ref.read(gameManagerProvider);
+    gm.onNextProblemReady.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
-  void _onNextProblemReady() {
-    if (!mounted) return;
+  @override
+  void dispose() {
+    super.dispose();
 
-    setState(() {});
+    final gm = ref.read(gameManagerProvider);
+    gm.onNextProblemReady.removeListener(_refresh);
   }
+
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     return Card(
       elevation: 10,
@@ -80,15 +85,15 @@ class _ContinueButtonState extends ConsumerState<_ContinueButton> {
 
           // Because the Layout deactivate before dispose is called, we must
           // clean up the listener here
-          gm.onNextProblemReady.removeListener(_onNextProblemReady);
+          gm.onNextProblemReady.removeListener(_refresh);
         },
-        style: scheme.elevatedButtonStyle,
+        style: tm.elevatedButtonStyle,
         child: Text(
             gm.problem!.successLevel == SucessLevel.failed
                 ? 'Relancer le train'
                 : 'Lancer la prochaine manche',
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: scheme.buttonTextSize)),
+                fontWeight: FontWeight.bold, fontSize: tm.buttonTextSize)),
       ),
     );
   }
@@ -227,13 +232,36 @@ class _LeaderBoard extends ConsumerWidget {
   }
 }
 
-class _VictoryHeader extends ConsumerWidget {
+class _VictoryHeader extends ConsumerStatefulWidget {
   const _VictoryHeader();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_VictoryHeader> createState() => _VictoryHeaderState();
+}
+
+class _VictoryHeaderState extends ConsumerState<_VictoryHeader> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
     final gm = ref.read(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -251,26 +279,26 @@ class _VictoryHeader extends ConsumerWidget {
               Text(
                 'Entrée en gare!',
                 style: TextStyle(
-                    fontSize: scheme.titleSize,
+                    fontSize: tm.titleSize,
                     fontWeight: FontWeight.bold,
-                    color: scheme.textColor),
+                    color: tm.textColor),
               ),
               const SizedBox(height: 16.0),
               Text(
                 'Félicitation! Nous avons traversé '
                 '${gm.problem!.successLevel.toInt()} station${gm.problem!.successLevel.toInt() > 1 ? 's' : ''}!',
                 style: TextStyle(
-                    fontSize: scheme.leaderTitleSize,
+                    fontSize: tm.leaderTitleSize,
                     fontWeight: FontWeight.normal,
-                    color: scheme.textColor),
+                    color: tm.textColor),
               ),
               const SizedBox(height: 8.0),
               Text(
                   'La prochaine station sera la Station N\u00b0${gm.roundCount + 1}',
                   style: TextStyle(
-                      fontSize: scheme.leaderTitleSize,
+                      fontSize: tm.leaderTitleSize,
                       fontWeight: FontWeight.normal,
-                      color: scheme.textColor)),
+                      color: tm.textColor)),
               const SizedBox(height: 16.0),
             ],
           ),
@@ -284,22 +312,44 @@ class _VictoryHeader extends ConsumerWidget {
   }
 }
 
-class _Background extends ConsumerWidget {
+class _Background extends StatefulWidget {
   const _Background();
 
+  @override
+  State<_Background> createState() => _BackgroundState();
+}
+
+class _BackgroundState extends State<_Background> {
   final int rainbowOpacity = 70;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.watch(schemeProvider);
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
 
     return Stack(
       alignment: Alignment.center,
       children: [
         Container(
           decoration: BoxDecoration(
-              color: scheme.mainColor,
-              borderRadius: BorderRadius.circular(20.0)),
+              color: tm.mainColor, borderRadius: BorderRadius.circular(20.0)),
           child: Container(
               decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20.0),
@@ -335,13 +385,35 @@ class _Background extends ConsumerWidget {
   }
 }
 
-class _DefeatHeader extends ConsumerWidget {
+class _DefeatHeader extends ConsumerStatefulWidget {
   const _DefeatHeader();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_DefeatHeader> createState() => _DefeatHeaderState();
+}
+
+class _DefeatHeaderState extends ConsumerState<_DefeatHeader> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+  @override
+  Widget build(BuildContext context) {
     final gm = ref.read(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -359,25 +431,25 @@ class _DefeatHeader extends ConsumerWidget {
               Text(
                 'Immobilisé entre deux stations',
                 style: TextStyle(
-                    fontSize: scheme.titleSize,
+                    fontSize: tm.titleSize,
                     fontWeight: FontWeight.bold,
-                    color: scheme.textColor),
+                    color: tm.textColor),
               ),
               const SizedBox(height: 16.0),
               Text(
                 'Le Petit Train du Nord n\'a pu se rendre à destination',
                 style: TextStyle(
-                    fontSize: scheme.leaderTitleSize,
+                    fontSize: tm.leaderTitleSize,
                     fontWeight: FontWeight.normal,
-                    color: scheme.textColor),
+                    color: tm.textColor),
               ),
               const SizedBox(height: 8.0),
               Text(
                   'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
                   style: TextStyle(
-                      fontSize: scheme.leaderTitleSize,
+                      fontSize: tm.leaderTitleSize,
                       fontWeight: FontWeight.normal,
-                      color: scheme.textColor)),
+                      color: tm.textColor)),
               const SizedBox(height: 16.0),
             ],
           ),

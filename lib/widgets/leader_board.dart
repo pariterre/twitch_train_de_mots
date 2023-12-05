@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -24,6 +24,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -36,6 +39,9 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -45,7 +51,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
     final cm = ConfigurationManager.instance;
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     WordProblem? problem = gm.problem;
     // Sort players by round score then by total score if they are equal
@@ -64,7 +70,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
       width: 400,
       child: cm.showLeaderBoard
           ? Card(
-              color: scheme.mainColor,
+              color: tm.mainColor,
               elevation: 10,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -75,8 +81,8 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Text('Tableau des cheminot\u2022e\u2022s',
                           style: TextStyle(
-                            fontSize: scheme.leaderTitleSize,
-                            color: scheme.leaderTextColor,
+                            fontSize: tm.leaderTitleSize,
+                            color: tm.leaderTextColor,
                           )),
                     ),
                   ),
@@ -105,8 +111,8 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: Text('En attente de joueurs...',
                           style: TextStyle(
-                              fontSize: scheme.leaderTextSize,
-                              color: scheme.leaderTextColor)),
+                              fontSize: tm.leaderTextSize,
+                              color: tm.leaderTextColor)),
                     )),
                   const SizedBox(height: 12.0),
                 ],
@@ -145,10 +151,10 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
     required bool isTitle,
     bool isStealer = false,
   }) {
-    final scheme = ref.read(schemeProvider);
+    final tm = ThemeManager.instance;
     final style = TextStyle(
-        fontSize: scheme.leaderTextSize,
-        color: isStealer ? scheme.leaderStealerColor : scheme.leaderTextColor,
+        fontSize: tm.leaderTextSize,
+        color: isStealer ? tm.leaderStealerColor : tm.leaderTextColor,
         fontWeight: isTitle || isStealer ? FontWeight.bold : FontWeight.normal);
 
     return Row(
@@ -156,7 +162,7 @@ class _LeaderBoardState extends ConsumerState<LeaderBoard> {
       children: [
         Text(player, style: style),
         SizedBox(
-            width: scheme.leaderTextSize * 7,
+            width: tm.leaderTextSize * 7,
             child: Center(
               child: Text('$roundScore ($totalScore)', style: style),
             )),

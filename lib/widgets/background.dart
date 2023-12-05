@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 
 class Background extends ConsumerStatefulWidget {
   const Background({super.key, this.child});
@@ -19,14 +19,30 @@ class _BackgroundState extends ConsumerState<Background>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+
   void setupAnimation() {
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     _animation = DecorationTween(
       begin: BoxDecoration(
@@ -34,8 +50,8 @@ class _BackgroundState extends ConsumerState<Background>
             begin: Alignment.topLeft,
             end: Alignment.bottomLeft,
             colors: [
-              scheme.backgroundColorLight,
-              scheme.backgroundColorDark,
+              tm.backgroundColorLight,
+              tm.backgroundColorDark,
             ]),
       ),
       end: BoxDecoration(
@@ -43,8 +59,8 @@ class _BackgroundState extends ConsumerState<Background>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              scheme.backgroundColorLight,
-              scheme.backgroundColorDark,
+              tm.backgroundColorLight,
+              tm.backgroundColorDark,
             ]),
       ),
     ).animate(_controller);
@@ -77,11 +93,5 @@ class _BackgroundState extends ConsumerState<Background>
         if (widget.child != null) widget.child!,
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }

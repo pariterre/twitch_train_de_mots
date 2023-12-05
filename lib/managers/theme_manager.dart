@@ -1,24 +1,24 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-final schemeProvider = ChangeNotifierProvider<_CustomScheme>((ref) {
-  return _CustomScheme.instance;
-});
+import 'package:train_de_mots/models/custom_callback.dart';
 
 const _textSizeDefault = 26.0;
 const _mainColorDefault = Colors.blueGrey;
 
-class _CustomScheme with ChangeNotifier {
+class ThemeManager {
   // Declare the singleton
-  static final _CustomScheme _instance = _CustomScheme._internal();
-  _CustomScheme._internal() {
+  static final ThemeManager _instance = ThemeManager._internal();
+  ThemeManager._internal() {
     _updateBackgroundColors();
     _load();
   }
-  static _CustomScheme get instance => _instance;
+  static ThemeManager get instance => _instance;
+
+  ///
+  /// Connect to callbacks to get notified when the configuration changes
+  final onChanged = CustomCallback();
 
   final textColor = Colors.white;
   double _textSize = _textSizeDefault;
@@ -96,7 +96,7 @@ class _CustomScheme with ChangeNotifier {
   );
 
   void _save() async {
-    notifyListeners();
+    onChanged.notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('customScheme', jsonEncode(serialize()));
@@ -113,7 +113,7 @@ class _CustomScheme with ChangeNotifier {
       _mainColor = Color(map['mainColor'] ?? _mainColorDefault.value);
       _updateBackgroundColors();
     }
-    notifyListeners();
+    onChanged.notifyListeners();
   }
 
   void reset() {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/solution.dart';
@@ -24,18 +24,25 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
     final gm = ref.read(gameManagerProvider);
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onPlayerUpdate.addListener(_onPlayerUpdate);
+    gm.onPlayerUpdate.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+
     _reinitializeFireworks();
   }
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = ref.read(gameManagerProvider);
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onPlayerUpdate.removeListener(_onPlayerUpdate);
+    gm.onPlayerUpdate.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+
+    super.dispose();
   }
 
   void _reinitializeFireworks() {
@@ -55,13 +62,11 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
     _fireworksControllers[solution]?.trigger();
   }
 
-  void _onPlayerUpdate() {
-    setState(() {});
-  }
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = ref.read(schemeProvider);
+    final tm = ThemeManager.instance;
     final solutions = ref.read(gameManagerProvider).problem!.solutions;
 
     List<Solutions> solutionsByLength = [];
@@ -85,8 +90,8 @@ class _SolutionsDisplayerState extends ConsumerState<SolutionsDisplayer> {
                     'Mots de ${solutions.first.word.length} lettres',
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: scheme.textColor,
-                        fontSize: scheme.textSize),
+                        color: tm.textColor,
+                        fontSize: tm.textSize),
                   ),
                 ),
                 Expanded(
@@ -191,6 +196,9 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -199,6 +207,9 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -206,19 +217,19 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
   @override
   Widget build(BuildContext context) {
     final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
 
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: ref.watch(schemeProvider).textSize * 12,
+          width: tm.textSize * 12,
           height: 50,
           child: cm.showAnswersTooltip
               ? Tooltip(
                   message: widget.solution.isFound ? '' : widget.solution.word,
                   verticalOffset: -5,
-                  textStyle: TextStyle(
-                      fontSize: ref.read(schemeProvider).textSize,
-                      color: Colors.white),
+                  textStyle:
+                      TextStyle(fontSize: tm.textSize, color: Colors.white),
                   child: _buildTile(ref),
                 )
               : _buildTile(ref),
@@ -226,7 +237,7 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
   }
 
   Widget _buildTile(WidgetRef ref) {
-    final scheme = ref.read(schemeProvider);
+    final tm = ThemeManager.instance;
     final gc = ConfigurationManager.instance;
 
     if (widget.fireworks != null) {
@@ -244,19 +255,19 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
                   Text(
                     widget.solution.word,
                     style: TextStyle(
-                        fontSize: ref.read(schemeProvider).textSize,
+                        fontSize: tm.textSize,
                         fontWeight: FontWeight.bold,
                         color: widget.solution.isFound
-                            ? scheme.textSolvedColor
-                            : scheme.textUnsolvedColor),
+                            ? tm.textSolvedColor
+                            : tm.textUnsolvedColor),
                   ),
                   Text(
                     ' (${widget.solution.foundBy.name})',
                     style: TextStyle(
-                        fontSize: ref.read(schemeProvider).textSize,
+                        fontSize: tm.textSize,
                         color: widget.solution.isFound
-                            ? scheme.textSolvedColor
-                            : scheme.textUnsolvedColor),
+                            ? tm.textSolvedColor
+                            : tm.textUnsolvedColor),
                   ),
                   if (widget.solution.foundBy.lastSolutionFound ==
                           widget.solution &&
@@ -298,34 +309,44 @@ class _SolutionTileState extends ConsumerState<_SolutionTile> {
       );
 
   LinearGradient get unsolved {
+    final tm = ThemeManager.instance;
+
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [
-        ref.read(schemeProvider).solutionUnsolvedColorLight!,
-        ref.read(schemeProvider).solutionUnsolvedColorDark!,
+        tm.solutionUnsolvedColorLight!,
+        tm.solutionUnsolvedColorDark!,
       ],
       stops: const [0, 0.6],
     );
   }
 
-  LinearGradient get solved => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          ref.read(schemeProvider).solutionSolvedColorLight!,
-          ref.read(schemeProvider).solutionSolvedColorDark!,
-        ],
-        stops: const [0.1, 1],
-      );
+  LinearGradient get solved {
+    final tm = ThemeManager.instance;
 
-  LinearGradient get stolen => LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          ref.read(schemeProvider).solutionStolenColorLight!,
-          ref.read(schemeProvider).solutionStolenColorDark!,
-        ],
-        stops: const [0.1, 1],
-      );
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        tm.solutionSolvedColorLight!,
+        tm.solutionSolvedColorDark!,
+      ],
+      stops: const [0.1, 1],
+    );
+  }
+
+  LinearGradient get stolen {
+    final tm = ThemeManager.instance;
+
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        tm.solutionStolenColorLight!,
+        tm.solutionStolenColorDark!,
+      ],
+      stops: const [0.1, 1],
+    );
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
@@ -28,18 +28,16 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
 
-    ref
-        .read(gameManagerProvider)
-        .onRoundIsPreparing
-        .addListener(_onRoundIsPreparing);
-    ref
-        .read(gameManagerProvider)
-        .onNextProblemReady
-        .addListener(_onRoundIsReady);
-    ref.read(gameManagerProvider).onRoundStarted.addListener(_onRoundStarted);
-    ref.read(gameManagerProvider).onTimerTicks.addListener(_onClockTicks);
-    ref.read(gameManagerProvider).onSolutionFound.addListener(_onSolutionFound);
-    ref.read(gameManagerProvider).onRoundIsOver.addListener(_onRoundIsOver);
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundIsPreparing.addListener(_refresh);
+    gm.onNextProblemReady.addListener(_refresh);
+    gm.onRoundStarted.addListener(_refresh);
+    gm.onTimerTicks.addListener(_refresh);
+    gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onRoundIsOver.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -52,35 +50,22 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   @override
   void dispose() {
-    super.dispose();
+    final gm = ref.read(gameManagerProvider);
+    gm.onRoundIsPreparing.removeListener(_refresh);
+    gm.onNextProblemReady.removeListener(_refresh);
+    gm.onRoundStarted.removeListener(_refresh);
+    gm.onTimerTicks.removeListener(_refresh);
+    gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onRoundIsOver.removeListener(_refresh);
 
-    ref
-        .read(gameManagerProvider)
-        .onRoundIsPreparing
-        .removeListener(_onRoundIsPreparing);
-    ref
-        .read(gameManagerProvider)
-        .onNextProblemReady
-        .removeListener(_onRoundIsReady);
-    ref
-        .read(gameManagerProvider)
-        .onRoundStarted
-        .removeListener(_onRoundStarted);
-    ref.read(gameManagerProvider).onTimerTicks.removeListener(_onClockTicks);
-    ref
-        .read(gameManagerProvider)
-        .onSolutionFound
-        .removeListener(_onSolutionFound);
-    ref.read(gameManagerProvider).onRoundIsOver.removeListener(_onRoundIsOver);
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+
+    super.dispose();
   }
 
-  void _onRoundIsPreparing() => setState(() {});
-  void _onRoundIsReady() => setState(() {});
-  void _onRoundStarted() => setState(() {});
-  void _onClockTicks() => setState(() {});
+  void _refresh() => setState(() {});
   void _onSolutionFound(solution) => setState(() {});
-
-  void _onRoundIsOver() => setState(() {});
 
   void _onClickedBegin() =>
       ref.read(gameManagerProvider).requestStartNewRound();
@@ -88,12 +73,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final gm = ref.watch(gameManagerProvider);
-    final scheme = ref.watch(schemeProvider);
+    final tm = ThemeManager.instance;
 
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
           ? Center(
-              child: CircularProgressIndicator(color: scheme.mainColor),
+              child: CircularProgressIndicator(color: tm.mainColor),
             )
           : TwitchInterface.instance.debugOverlay(
               child: SingleChildScrollView(

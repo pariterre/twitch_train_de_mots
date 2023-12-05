@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 
-class SplashScreen extends ConsumerWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.onClickStart});
 
   final Function() onClickStart;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.watch(schemeProvider);
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height,
@@ -21,7 +43,7 @@ class SplashScreen extends ConsumerWidget {
               'Train de mots',
               style: TextStyle(
                 fontSize: 48.0,
-                color: scheme.textColor,
+                color: tm.textColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -39,7 +61,7 @@ class SplashScreen extends ConsumerWidget {
                   'vos collègues sans scrupules peuvent vous voler vos mots!',
                   style: TextStyle(
                     fontSize: 24.0,
-                    color: scheme.textColor,
+                    color: tm.textColor,
                   ),
                   textAlign: TextAlign.justify),
             ),
@@ -48,19 +70,18 @@ class SplashScreen extends ConsumerWidget {
               'C\'est un départ! Tchou Tchou!!',
               style: TextStyle(
                 fontSize: 24.0,
-                color: scheme.textColor,
+                color: tm.textColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 30.0),
             ElevatedButton(
-              onPressed: onClickStart,
-              style: scheme.elevatedButtonStyle,
+              onPressed: widget.onClickStart,
+              style: tm.elevatedButtonStyle,
               child: Text(
                 'Direction première station!',
                 style: TextStyle(
-                    fontSize: scheme.buttonTextSize,
-                    fontWeight: FontWeight.bold),
+                    fontSize: tm.buttonTextSize, fontWeight: FontWeight.bold),
               ),
             ),
           ],

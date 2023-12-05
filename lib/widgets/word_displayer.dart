@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:train_de_mots/models/custom_scheme.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/game_manager.dart';
 import 'package:train_de_mots/models/letter.dart';
 import 'package:train_de_mots/models/word_problem.dart';
@@ -22,18 +22,16 @@ class _WordDisplayerState extends ConsumerState<WordDisplayer> {
   @override
   void initState() {
     super.initState();
-    ref
-        .read(gameManagerProvider)
-        .onScrablingLetters
-        .addListener(_onScrablingLetters);
+
+    final gm = ref.read(gameManagerProvider);
+    gm.onScrablingLetters.addListener(_onScrablingLetters);
   }
 
   @override
   void dispose() {
-    ref
-        .read(gameManagerProvider)
-        .onScrablingLetters
-        .removeListener(_onScrablingLetters);
+    final gm = ref.read(gameManagerProvider);
+    gm.onScrablingLetters.removeListener(_onScrablingLetters);
+
     super.dispose();
   }
 
@@ -63,15 +61,38 @@ class _WordDisplayerState extends ConsumerState<WordDisplayer> {
   }
 }
 
-class _Letter extends ConsumerWidget {
+class _Letter extends StatefulWidget {
   const _Letter({required this.letter});
 
   final String letter;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = ref.watch(schemeProvider);
-    final letterWidget = Letter(letter);
+  State<_Letter> createState() => _LetterState();
+}
+
+class _LetterState extends State<_Letter> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+    final letterWidget = Letter(widget.letter);
 
     // Create a letter that ressemble those on a Scrabble board
     return Card(
@@ -84,8 +105,8 @@ class _Letter extends ConsumerWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              scheme.letterColorLight,
-              scheme.letterColorDark,
+              tm.letterColorLight,
+              tm.letterColorDark,
             ],
             stops: const [0, 0.4],
           ),
@@ -98,7 +119,7 @@ class _Letter extends ConsumerWidget {
               child: Text(
                 letterWidget.data,
                 style: TextStyle(
-                  color: scheme.textColor,
+                  color: tm.textColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 36,
                 ),
@@ -110,7 +131,7 @@ class _Letter extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
                 child: Text(
                   letterWidget.value.toString(),
-                  style: TextStyle(color: scheme.textColor, fontSize: 16),
+                  style: TextStyle(color: tm.textColor, fontSize: 16),
                 ),
               ),
             )
