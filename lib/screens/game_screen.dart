@@ -34,42 +34,34 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
-
-    return Stack(
+    return const Stack(
       children: [
         SizedBox(
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 32),
-              const _Header(),
-              const SizedBox(height: 32),
-              gm.problem == null
-                  ? Center(
-                      child: CircularProgressIndicator(
-                      color: tm.mainColor,
-                    ))
-                  : const Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        WordDisplayer(),
-                        SizedBox(height: 20),
-                        SizedBox(
-                          height: 600,
-                          child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: SolutionsDisplayer()),
-                        ),
-                      ],
-                    ),
+              SizedBox(height: 32),
+              _Header(),
+              SizedBox(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  WordDisplayer(),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    height: 600,
+                    child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SolutionsDisplayer()),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        const Align(alignment: Alignment.topRight, child: LeaderBoard()),
-        const AnimationOverlay(),
+        Align(alignment: Alignment.topRight, child: LeaderBoard()),
+        AnimationOverlay(),
       ],
     );
   }
@@ -116,6 +108,8 @@ class _HeaderState extends State<_Header> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
+
+    if (gm.problem == null) return Container();
 
     final pointsToGo =
         gm.problem!.thresholdScoreForOneStar - gm.problem!.currentScore;

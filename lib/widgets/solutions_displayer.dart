@@ -45,8 +45,8 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   }
 
   void _reinitializeFireworks() {
-    if (!mounted) return;
     final gm = GameManager.instance;
+    if (gm.problem == null) return;
 
     _fireworksControllers.clear();
     final solutions = gm.problem!.solutions;
@@ -68,6 +68,9 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
+
+    if (gm.problem == null) return Container();
+
     final solutions = gm.problem!.solutions;
 
     List<Solutions> solutionsByLength = [];

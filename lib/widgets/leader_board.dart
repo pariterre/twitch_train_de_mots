@@ -80,7 +80,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Text('Tableau des cheminot\u2022e\u2022s',
                           style: TextStyle(
-                            fontSize: tm.leaderTitleSize,
+                            fontSize: 26,
                             color: tm.leaderTextColor,
                           )),
                     ),
@@ -110,8 +110,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: Text('En attente de joueurs...',
                           style: TextStyle(
-                              fontSize: tm.leaderTextSize,
-                              color: tm.leaderTextColor)),
+                              fontSize: 20, color: tm.leaderTextColor)),
                     )),
                   const SizedBox(height: 12.0),
                 ],
@@ -152,7 +151,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
   }) {
     final tm = ThemeManager.instance;
     final style = TextStyle(
-        fontSize: tm.leaderTextSize,
+        fontSize: 20,
         color: isStealer ? tm.leaderStealerColor : tm.leaderTextColor,
         fontWeight: isTitle || isStealer ? FontWeight.bold : FontWeight.normal);
 

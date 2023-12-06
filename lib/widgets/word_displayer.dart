@@ -22,6 +22,9 @@ class _WordDisplayerState extends State<WordDisplayer> {
     final gm = GameManager.instance;
     gm.onScrablingLetters.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -31,6 +34,9 @@ class _WordDisplayerState extends State<WordDisplayer> {
     final gm = GameManager.instance;
     gm.onScrablingLetters.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -38,6 +44,11 @@ class _WordDisplayerState extends State<WordDisplayer> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
+
+    if (gm.problem == null) {
+      return Center(child: CircularProgressIndicator(color: tm.mainColor));
+    }
 
     final word = gm.problem!.word;
     final scrambleIndices = gm.problem!.scrambleIndices;

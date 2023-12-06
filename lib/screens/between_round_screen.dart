@@ -35,6 +35,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    if (gm.problem == null) return Container();
 
     return SizedBox(
       width: max(MediaQuery.of(context).size.width * 0.4, 800),
@@ -114,8 +115,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
             gm.problem!.successLevel == SucessLevel.failed
                 ? 'Relancer le train'
                 : 'Lancer la prochaine manche',
-            style: TextStyle(
-                fontWeight: FontWeight.bold, fontSize: tm.buttonTextSize)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
       ),
     );
   }
@@ -301,7 +301,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               Text(
                 'Entrée en gare!',
                 style: TextStyle(
-                    fontSize: tm.titleSize,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: tm.textColor),
               ),
@@ -310,7 +310,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                 'Félicitation! Nous avons traversé '
                 '${gm.problem!.successLevel.toInt()} station${gm.problem!.successLevel.toInt() > 1 ? 's' : ''}!',
                 style: TextStyle(
-                    fontSize: tm.leaderTitleSize,
+                    fontSize: 26,
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
               ),
@@ -318,7 +318,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               Text(
                   'La prochaine station sera la Station N\u00b0${gm.roundCount + 1}',
                   style: TextStyle(
-                      fontSize: tm.leaderTitleSize,
+                      fontSize: 26,
                       fontWeight: FontWeight.normal,
                       color: tm.textColor)),
               const SizedBox(height: 16.0),
@@ -453,7 +453,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               Text(
                 'Immobilisé entre deux stations',
                 style: TextStyle(
-                    fontSize: tm.titleSize,
+                    fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: tm.textColor),
               ),
@@ -461,7 +461,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               Text(
                 'Le Petit Train du Nord n\'a pu se rendre à destination',
                 style: TextStyle(
-                    fontSize: tm.leaderTitleSize,
+                    fontSize: 26,
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
               ),
@@ -469,7 +469,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               Text(
                   'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
                   style: TextStyle(
-                      fontSize: tm.leaderTitleSize,
+                      fontSize: 26,
                       fontWeight: FontWeight.normal,
                       color: tm.textColor)),
               const SizedBox(height: 16.0),

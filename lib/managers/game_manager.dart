@@ -277,12 +277,13 @@ class GameManager {
   ///
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
   void _gameLoop(Timer timer) {
-    if (_gameStatus == GameStatus.initializing) return;
-    if (_gameStatus == GameStatus.roundPreparing) {
-      if (_nextProblem != null) {
+    if ((_gameStatus == GameStatus.initializing ||
+            _gameStatus == GameStatus.roundPreparing) &&
+        _nextProblem != null) {
+      if (_gameStatus == GameStatus.roundPreparing) {
         _gameStatus = GameStatus.roundReady;
-        onNextProblemReady.notifyListeners();
       }
+      onNextProblemReady.notifyListeners();
       return;
     }
     if (_gameStatus == GameStatus.roundReady) return;

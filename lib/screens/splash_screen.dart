@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,9 +12,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _showStartButton = false;
+
   @override
   void initState() {
     super.initState();
+
+    final gm = GameManager.instance;
+    gm.onNextProblemReady.addListener(_onNextProblemReady);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -23,8 +29,16 @@ class _SplashScreenState extends State<SplashScreen> {
   void dispose() {
     super.dispose();
 
+    final gm = GameManager.instance;
+    gm.onNextProblemReady.removeListener(_onNextProblemReady);
+
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
+  }
+
+  void _onNextProblemReady() {
+    _showStartButton = true;
+    setState(() {});
   }
 
   void _refresh() => setState(() {});
@@ -76,10 +90,12 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 30.0),
             ElevatedButton(
-              onPressed: widget.onClickStart,
+              onPressed: _showStartButton ? widget.onClickStart : null,
               style: tm.elevatedButtonStyle,
               child: Text(
-                'Direction première station!',
+                _showStartButton
+                    ? 'Direction première station!'
+                    : 'Préparation du train...',
                 style: TextStyle(
                     fontSize: tm.buttonTextSize, fontWeight: FontWeight.bold),
               ),

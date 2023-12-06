@@ -73,8 +73,6 @@ class _MainScreenState extends State<MainScreen> {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
-    debugPrint('${gm.roundCount}, ${gm.gameStatus}');
-
     return Scaffold(
       body: TwitchInterface.instance.hasNotManager
           ? Center(

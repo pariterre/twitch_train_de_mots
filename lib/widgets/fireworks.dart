@@ -51,13 +51,6 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    widget.controller._explode = _explode;
-  }
-
-  @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
@@ -100,6 +93,10 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // This is a bit overkill to always update the controller's explode function
+    // but because it is a StatefulWidget, it is not possible to access otherwise
+    widget.controller._explode = _explode;
+
     return GestureDetector(
       onTap: () => _explode(widget.controller.huge),
       child: LayoutBuilder(
