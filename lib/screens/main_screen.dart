@@ -40,14 +40,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (TwitchInterface.instance.hasNotManager) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
-    }
-  }
-
-  @override
   void dispose() {
     final gm = GameManager.instance;
     gm.onRoundIsPreparing.removeListener(_refresh);
@@ -61,6 +53,14 @@ class _MainScreenState extends State<MainScreen> {
     tm.onChanged.removeListener(_refresh);
 
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (TwitchInterface.instance.hasNotManager) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
+    }
   }
 
   void _refresh() => setState(() {});

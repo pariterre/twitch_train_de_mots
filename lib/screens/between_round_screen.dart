@@ -74,12 +74,14 @@ class _ContinueButton extends StatefulWidget {
 }
 
 class _ContinueButtonState extends State<_ContinueButton> {
+  bool _isGameReadyToPlay = false;
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onNextProblemReady.addListener(_refresh);
+    gm.onNextProblemReady.addListener(_onNextProblemReady);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -90,10 +92,18 @@ class _ContinueButtonState extends State<_ContinueButton> {
     super.dispose();
 
     final gm = GameManager.instance;
-    gm.onNextProblemReady.removeListener(_refresh);
+    gm.onNextProblemReady.removeListener(_onNextProblemReady);
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
+
+  void _onNextProblemReady() {
+    _isGameReadyToPlay = true;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,18 +113,14 @@ class _ContinueButtonState extends State<_ContinueButton> {
     return Card(
       elevation: 10,
       child: ElevatedButton(
-        onPressed: () {
-          gm.requestStartNewRound();
-
-          // Because the Layout deactivate before dispose is called, we must
-          // clean up the listener here
-          gm.onNextProblemReady.removeListener(_refresh);
-        },
+        onPressed: _isGameReadyToPlay ? () => gm.requestStartNewRound() : null,
         style: tm.elevatedButtonStyle,
         child: Text(
-            gm.problem!.successLevel == SucessLevel.failed
-                ? 'Relancer le train'
-                : 'Lancer la prochaine manche',
+            _isGameReadyToPlay
+                ? (gm.problem!.successLevel == SucessLevel.failed
+                    ? 'Relancer le train'
+                    : 'Lancer la prochaine manche')
+                : 'Aiguillage du train en cours...',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
       ),
     );

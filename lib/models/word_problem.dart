@@ -170,7 +170,6 @@ class WordProblem {
           .wordsWithAtLeast(nbLetterInSmallestWord);
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      // String availableLetters = 'AELMSWX'; // Force a rapid solution for debug
       do {
         // Find a letter which is available
         candidate += availableLetters[random.nextInt(availableLetters.length)];
@@ -284,7 +283,7 @@ class _WordGenerator {
 
     Future<void> generate(String prefix, String remaining, int len) async {
       // Add a delay to avoid blocking the UI
-      if (cmp % 1000 == 0) {
+      if (cmp % 100 == 0) {
         await Future.delayed(const Duration(microseconds: 1));
       }
       cmp++;

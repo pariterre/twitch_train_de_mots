@@ -12,7 +12,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  bool _showStartButton = false;
+  bool _isGameReadyToPlay = false;
 
   @override
   void initState() {
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _onNextProblemReady() {
-    _showStartButton = true;
+    _isGameReadyToPlay = true;
     setState(() {});
   }
 
@@ -90,10 +90,10 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 30.0),
             ElevatedButton(
-              onPressed: _showStartButton ? widget.onClickStart : null,
+              onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
               style: tm.elevatedButtonStyle,
               child: Text(
-                _showStartButton
+                _isGameReadyToPlay
                     ? 'Direction première station!'
                     : 'Préparation du train...',
                 style: TextStyle(
