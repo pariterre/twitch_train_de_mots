@@ -331,8 +331,31 @@ void _showGameConfiguration(BuildContext context) async {
   );
 }
 
-class _GameConfiguration extends StatelessWidget {
+class _GameConfiguration extends StatefulWidget {
   const _GameConfiguration();
+
+  @override
+  State<_GameConfiguration> createState() => _GameConfigurationState();
+}
+
+class _GameConfigurationState extends State<_GameConfiguration> {
+  @override
+  void initState() {
+    super.initState();
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final cm = ConfigurationManager.instance;
+    cm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -357,9 +380,7 @@ class _GameConfiguration extends StatelessWidget {
               _IntegerInputField(
                 label: 'Nombre de lettres des mots les plus courts',
                 initialValue: cm.nbLetterInSmallestWord.toString(),
-                onChanged: (value) {
-                  cm.nbLetterInSmallestWord = value;
-                },
+                onChanged: (value) => cm.nbLetterInSmallestWord = value,
                 enabled: cm.canChangeProblem,
                 disabledTooltip:
                     'Le nombre de lettres des mots les plus courts ne peut pas\n'
@@ -371,7 +392,7 @@ class _GameConfiguration extends StatelessWidget {
                 firstLabel: 'Minimum',
                 firstInitialValue: cm.minimumWordLetter.toString(),
                 secondLabel: 'Maximum',
-                secondInitialValue: cm.toString(),
+                secondInitialValue: cm.maximumWordLetter.toString(),
                 onChanged: (mininum, maximum) {
                   cm.minimumWordLetter = mininum;
                   cm.maximumWordLetter = maximum;
@@ -399,9 +420,8 @@ class _GameConfiguration extends StatelessWidget {
               _IntegerInputField(
                 label: 'Durée d\'une manche (secondes)',
                 initialValue: cm.roundDuration.inSeconds.toString(),
-                onChanged: (value) {
-                  cm.roundDuration = Duration(seconds: value);
-                },
+                onChanged: (value) =>
+                    cm.roundDuration = Duration(seconds: value),
                 enabled: cm.canChangeDurations,
                 disabledTooltip:
                     'La durée d\'une manche ne peut pas être changée en cours de partie',
@@ -411,17 +431,14 @@ class _GameConfiguration extends StatelessWidget {
                 label: 'Temps avant de mélanger les lettres (secondes)',
                 initialValue:
                     cm.timeBeforeScramblingLetters.inSeconds.toString(),
-                onChanged: (value) {
-                  cm.timeBeforeScramblingLetters = Duration(seconds: value);
-                },
+                onChanged: (value) =>
+                    cm.timeBeforeScramblingLetters = Duration(seconds: value),
               ),
               const SizedBox(height: 12),
               _BooleanInputField(
                 label: 'Voler un mot est permis',
                 value: cm.canSteal,
-                onChanged: (value) {
-                  cm.canSteal = value;
-                },
+                onChanged: (value) => cm.canSteal = value,
               ),
               const SizedBox(height: 12),
               _DoubleIntegerInputField(

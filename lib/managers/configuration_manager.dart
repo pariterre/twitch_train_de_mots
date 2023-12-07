@@ -296,11 +296,12 @@ class ConfigurationManager {
   ///
   /// If it is currently possible to change the duration of the round
   bool get canChangeDurations =>
-      GameManager.instance.gameStatus != GameStatus.roundReady;
+      GameManager.instance.gameStatus != GameStatus.roundStarted;
 
   ///
   /// If it is currently possible to change the problem picker rules
   bool get canChangeProblem =>
+      GameManager.instance.gameStatus == GameStatus.initializing ||
       GameManager.instance.gameStatus == GameStatus.roundReady;
 
   void _tellGameManagerToRepickProblem() =>
