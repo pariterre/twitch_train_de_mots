@@ -227,7 +227,7 @@ class _SolutionTileState extends State<_SolutionTile> {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: tm.textSize * 12,
+          width: tm.textSize * 13,
           height: 50,
           child: cm.showAnswersTooltip
               ? Tooltip(

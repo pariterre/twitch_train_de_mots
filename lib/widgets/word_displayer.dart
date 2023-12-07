@@ -3,9 +3,12 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/letter.dart';
 
-double _letterWidth = 60;
-double _letterHeight = 70;
+double _letterWidth = 80;
+double _letterHeight = 90;
 double _letterPadding = 4;
+
+double _letterSize = 46;
+double _numberSize = 26;
 
 class WordDisplayer extends StatefulWidget {
   const WordDisplayer({super.key});
@@ -132,7 +135,7 @@ class _LetterState extends State<_Letter> {
                 style: TextStyle(
                   color: tm.textColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: 36,
+                  fontSize: _letterSize,
                 ),
               ),
             ),
@@ -142,7 +145,7 @@ class _LetterState extends State<_Letter> {
                 padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
                 child: Text(
                   letterWidget.value.toString(),
-                  style: TextStyle(color: tm.textColor, fontSize: 16),
+                  style: TextStyle(color: tm.textColor, fontSize: _numberSize),
                 ),
               ),
             )
