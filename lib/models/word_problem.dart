@@ -51,16 +51,16 @@ class WordProblem {
 
   ///
   /// Returns the threshold score for one star
-  int get thresholdScoreForOneStar => maximumScore ~/ 2;
+  int get thresholdScoreForOneStar => maximumScore ~/ 3;
 
   ///
   /// This is set by the game manager when the round is over
   SucessLevel get successLevel {
-    if (currentScore < maximumScore ~/ 2) {
+    if (currentScore < maximumScore ~/ 3) {
       return SucessLevel.failed;
-    } else if (currentScore < maximumScore * 3 ~/ 4) {
+    } else if (currentScore < maximumScore * 1 ~/ 2) {
       return SucessLevel.oneStar;
-    } else if (currentScore < maximumScore) {
+    } else if (currentScore < maximumScore * 3 ~/ 4) {
       return SucessLevel.twoStars;
     } else {
       return SucessLevel.threeStars;
