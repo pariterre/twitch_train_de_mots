@@ -37,28 +37,48 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     final gm = GameManager.instance;
     if (gm.problem == null) return Container();
 
-    return SizedBox(
-      width: max(MediaQuery.of(context).size.width * 0.4, 800),
-      height: MediaQuery.of(context).size.height * 0.8,
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [
+            Colors.transparent,
+            Colors.black.withOpacity(0.4),
+          ],
+          stops: const [0.4, 1.0],
+          center: Alignment.center,
+          radius: 1.0,
+        ),
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const _Background(),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 24.0),
-              gm.problem!.successLevel == SucessLevel.failed
-                  ? const _DefeatHeader()
-                  : const _VictoryHeader(),
-              const SizedBox(height: 24.0),
-              const _LeaderBoard(),
-              const SizedBox(height: 16.0),
-              const _ContinueButton(),
-              const SizedBox(height: 24.0),
-            ],
+          SizedBox(
+            width: max(MediaQuery.of(context).size.width * 0.4, 800),
+            height: MediaQuery.of(context).size.height * 0.8,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const _Background(),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 24.0),
+                    gm.problem!.successLevel == SuccessLevel.failed
+                        ? const _DefeatHeader()
+                        : const _VictoryHeader(),
+                    const SizedBox(height: 24.0),
+                    const _LeaderBoard(),
+                    const SizedBox(height: 16.0),
+                    const _ContinueButton(),
+                    const SizedBox(height: 24.0),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -117,7 +137,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
         style: tm.elevatedButtonStyle,
         child: Text(
             _isGameReadyToPlay
-                ? (gm.problem!.successLevel == SucessLevel.failed
+                ? (gm.problem!.successLevel == SuccessLevel.failed
                     ? 'Relancer le train'
                     : 'Lancer la prochaine manche')
                 : 'Aiguillage du train en cours...',

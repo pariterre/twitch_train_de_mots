@@ -6,7 +6,7 @@ import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
-enum SucessLevel {
+enum SuccessLevel {
   failed,
   oneStar,
   twoStars,
@@ -14,13 +14,13 @@ enum SucessLevel {
 
   int toInt() {
     switch (this) {
-      case SucessLevel.failed:
+      case SuccessLevel.failed:
         return 0;
-      case SucessLevel.oneStar:
+      case SuccessLevel.oneStar:
         return 1;
-      case SucessLevel.twoStars:
+      case SuccessLevel.twoStars:
         return 2;
-      case SucessLevel.threeStars:
+      case SuccessLevel.threeStars:
         return 3;
     }
   }
@@ -55,15 +55,15 @@ class WordProblem {
 
   ///
   /// This is set by the game manager when the round is over
-  SucessLevel get successLevel {
+  SuccessLevel get successLevel {
     if (currentScore < maximumScore ~/ 3) {
-      return SucessLevel.failed;
+      return SuccessLevel.failed;
     } else if (currentScore < maximumScore * 1 ~/ 2) {
-      return SucessLevel.oneStar;
+      return SuccessLevel.oneStar;
     } else if (currentScore < maximumScore * 3 ~/ 4) {
-      return SucessLevel.twoStars;
+      return SuccessLevel.twoStars;
     } else {
-      return SucessLevel.threeStars;
+      return SuccessLevel.threeStars;
     }
   }
 

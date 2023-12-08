@@ -88,11 +88,7 @@ class _MainScreenState extends State<MainScreen> {
                       : const GameScreen(),
                   if (gm.gameStatus == GameStatus.roundPreparing ||
                       gm.gameStatus == GameStatus.roundReady)
-                    const Center(
-                        child: Padding(
-                      padding: EdgeInsets.only(top: 80.0),
-                      child: BetweenRoundsOverlay(),
-                    )),
+                    const BetweenRoundsOverlay(),
                   Builder(builder: (context) {
                     return Padding(
                       padding: const EdgeInsets.all(12.0),

@@ -173,7 +173,7 @@ class GameManager {
       await Future.delayed(const Duration(milliseconds: 100));
     }
     if (_currentProblem != null &&
-        _currentProblem!.successLevel == SucessLevel.failed) _restartGame();
+        _currentProblem!.successLevel == SuccessLevel.failed) _restartGame();
 
     _currentProblem = _nextProblem;
     _nextProblem = null;
