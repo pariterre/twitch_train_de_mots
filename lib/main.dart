@@ -10,10 +10,10 @@ void main() async {
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
 
+  await DatabaseManagerMock.initialize(isLoggedIn: false);
   await ConfigurationManager.initialize();
   await GameManager.initialize();
   await Future.wait([
-    DatabaseManagerMock.initialize(isLoggedIn: false),
     SoundManager.initialize(),
     ThemeManager.initialize(),
   ]);

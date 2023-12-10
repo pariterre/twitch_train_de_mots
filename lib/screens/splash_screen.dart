@@ -3,6 +3,8 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/widgets/background.dart';
+import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.onClickStart});
@@ -28,6 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final dm = DatabaseManager.instance;
     dm.onLoggedIn.addListener(_refresh);
+    dm.onLoggedOut.addListener(_refresh);
   }
 
   @override
@@ -39,6 +42,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
+
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.removeListener(_refresh);
+    dm.onLoggedOut.removeListener(_refresh);
   }
 
   void _onNextProblemReady() {
@@ -53,66 +60,61 @@ class _SplashScreenState extends State<SplashScreen> {
     final tm = ThemeManager.instance;
     final dm = DatabaseManager.instance;
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Train de mots',
-              style: TextStyle(
-                fontSize: 48.0,
-                color: tm.textColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 30.0),
-            SizedBox(
-              width: 700,
-              child: Text(
-                  '${dm.isUserLoggedIn ? 'Salut ${dm.teamName}' : 'Chères cheminots et cheminotes'}, bienvenue à bord!\n'
-                  '\n'
-                  'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
-                  'Trouvez le plus de mots possible pour emmener le train à destination. '
-                  'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
-                  '\n'
-                  'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
-                  'vos collègues sans scrupules peuvent vous voler vos mots!',
-                  style: TextStyle(
-                    fontSize: 24.0,
-                    color: tm.textColor,
-                  ),
-                  textAlign: TextAlign.justify),
-            ),
-            const SizedBox(height: 30.0),
-            if (dm.isUserLoggedIn)
-              Text(
-                'C\'est un départ! Tchou Tchou!!',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  color: tm.textColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            const SizedBox(height: 30.0),
-            if (!dm.isUserLoggedIn) const _ConnexionTile(),
-            if (dm.isUserLoggedIn) _buildContinueButton(tm),
-          ],
+    return Background(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: Center(
+          child: dm.isLoggedIn
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Train de mots',
+                      style: TextStyle(
+                        fontSize: 48.0,
+                        color: tm.textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+                    SizedBox(
+                      width: 700,
+                      child: Text(
+                          'Chères cheminots et cheminotes de ${dm.teamName}, bienvenue à bord!\n'
+                          '\n'
+                          'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
+                          'Trouvez le plus de mots possible pour emmener le train à destination. '
+                          'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
+                          '\n'
+                          'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
+                          'vos collègues sans scrupules peuvent vous voler vos mots!',
+                          style: TextStyle(
+                            fontSize: 24.0,
+                            color: tm.textColor,
+                          ),
+                          textAlign: TextAlign.justify),
+                    ),
+                    const SizedBox(height: 30.0),
+                    Text(
+                      'C\'est un départ! Tchou Tchou!!',
+                      style: TextStyle(
+                        fontSize: 24.0,
+                        color: tm.textColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+                    ThemedElevatedButton(
+                      onPressed:
+                          _isGameReadyToPlay ? widget.onClickStart : null,
+                      buttonText: _isGameReadyToPlay
+                          ? 'Direction première station!'
+                          : 'Préparation du train...',
+                    ),
+                  ],
+                )
+              : const _ConnexionTile(),
         ),
-      ),
-    );
-  }
-
-  ElevatedButton _buildContinueButton(ThemeManager tm) {
-    return ElevatedButton(
-      onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
-      style: tm.elevatedButtonStyle,
-      child: Text(
-        _isGameReadyToPlay
-            ? 'Direction première station!'
-            : 'Préparation du train...',
-        style: tm.buttonTextStyle,
       ),
     );
   }
@@ -201,7 +203,8 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Text(
-                    'Mais avant le départ, veuillez inscrire vos cheminot\u2022e\u2022s!',
+                    'Ô Capitaine! J\'ai une mission pour vous sur le Petit Train du Nord! '
+                    'Mais avant toute chose, veuillez identifier votre équipe!',
                     style: TextStyle(
                       fontSize: 24.0,
                       color: tm.mainColor,
@@ -212,12 +215,9 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Courriel',
-                  labelStyle: TextStyle(
-                    color: tm.mainColor,
-                    fontSize: 18,
-                  ),
-                  enabledBorder: border,
+                  labelStyle: TextStyle(color: tm.mainColor),
                   focusedBorder: border,
+                  border: border,
                   prefixIcon: const Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -242,12 +242,9 @@ class _ConnexionTileState extends State<_ConnexionTile> {
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'Nom de l\'équipe',
-                        labelStyle: TextStyle(
-                          color: tm.mainColor,
-                          fontSize: 18,
-                        ),
-                        enabledBorder: border,
+                        labelStyle: TextStyle(color: tm.mainColor),
                         focusedBorder: border,
+                        border: border,
                         prefixIcon: const Icon(Icons.group),
                       ),
                       validator: (value) {
@@ -269,9 +266,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Mot de passe',
-                  labelStyle: TextStyle(
-                    color: tm.mainColor,
-                  ),
+                  labelStyle: TextStyle(color: tm.mainColor),
                   focusedBorder: border,
                   border: border,
                   prefixIcon: const Icon(Icons.lock),
@@ -293,15 +288,12 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               ),
               const SizedBox(height: 24.0),
               Center(
-                child: ElevatedButton(
+                child: ThemedElevatedButton(
                   onPressed: _isLoggingIn ? _logIn : _signIn,
-                  style: tm.elevatedButtonStyle.copyWith(
-                      backgroundColor: MaterialStatePropertyAll(tm.mainColor)),
-                  child: Text(
-                      _isLoggingIn
-                          ? 'Embarquer dans le train!'
-                          : 'Embaucher mon équipe',
-                      style: tm.buttonTextStyle.copyWith(color: Colors.white)),
+                  reversedStyle: true,
+                  buttonText: _isLoggingIn
+                      ? 'Embarquer dans le train!'
+                      : 'Embaucher mon équipe',
                 ),
               ),
               const SizedBox(height: 12.0),

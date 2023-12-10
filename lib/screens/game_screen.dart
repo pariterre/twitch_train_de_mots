@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
@@ -20,6 +21,8 @@ class _GameScreenState extends State<GameScreen> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
+
+    TwitchManager.instance.onTwitchManagerReady.addListener(_refresh);
   }
 
   @override
@@ -28,42 +31,49 @@ class _GameScreenState extends State<GameScreen> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
+
+    TwitchManager.instance.onTwitchManagerReady.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    return const Stack(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+    final tm = ThemeManager.instance;
+
+    return TwitchManager.instance.hasNotManager
+        ? Center(child: CircularProgressIndicator(color: tm.mainColor))
+        : TwitchManager.instance.debugOverlay(
+            child: const Stack(
             children: [
-              SizedBox(height: 32),
-              _Header(),
-              SizedBox(height: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  WordDisplayer(),
-                  SizedBox(height: 20),
-                  SizedBox(
-                    height: 600,
-                    child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SolutionsDisplayer()),
-                  ),
-                ],
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 32),
+                    _Header(),
+                    SizedBox(height: 32),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        WordDisplayer(),
+                        SizedBox(height: 20),
+                        SizedBox(
+                          height: 600,
+                          child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SolutionsDisplayer()),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+              Align(alignment: Alignment.topRight, child: LeaderBoard()),
+              AnimationOverlay(),
             ],
-          ),
-        ),
-        Align(alignment: Alignment.topRight, child: LeaderBoard()),
-        AnimationOverlay(),
-      ],
-    );
+          ));
   }
 }
 

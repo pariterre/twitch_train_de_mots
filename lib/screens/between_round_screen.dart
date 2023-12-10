@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_problem.dart';
+import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
   const BetweenRoundsOverlay({super.key});
@@ -102,9 +103,6 @@ class _ContinueButtonState extends State<_ContinueButton> {
 
     final gm = GameManager.instance;
     gm.onNextProblemReady.addListener(_onNextProblemReady);
-
-    final tm = ThemeManager.instance;
-    tm.onChanged.addListener(_refresh);
   }
 
   @override
@@ -113,12 +111,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
 
     final gm = GameManager.instance;
     gm.onNextProblemReady.removeListener(_onNextProblemReady);
-
-    final tm = ThemeManager.instance;
-    tm.onChanged.removeListener(_refresh);
   }
-
-  void _refresh() => setState(() {});
 
   void _onNextProblemReady() {
     _isGameReadyToPlay = true;
@@ -128,22 +121,14 @@ class _ContinueButtonState extends State<_ContinueButton> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
 
-    return Card(
-      elevation: 10,
-      child: ElevatedButton(
+    return ThemedElevatedButton(
         onPressed: _isGameReadyToPlay ? () => gm.requestStartNewRound() : null,
-        style: tm.elevatedButtonStyle,
-        child: Text(
-            _isGameReadyToPlay
-                ? (gm.problem!.successLevel == SuccessLevel.failed
-                    ? 'Relancer le train'
-                    : 'Lancer la prochaine manche')
-                : 'Aiguillage du train en cours...',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-      ),
-    );
+        buttonText: _isGameReadyToPlay
+            ? (gm.problem!.successLevel == SuccessLevel.failed
+                ? 'Relancer le train'
+                : 'Lancer la prochaine manche')
+            : 'Aiguillage du train en cours...');
   }
 }
 

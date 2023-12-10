@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
-import 'package:train_de_mots/models/twitch_interface.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 enum GameStatus {
@@ -70,6 +71,13 @@ class GameManager {
     _isSearchingNextProblem = false;
     _nextProblem = null;
     await _searchForNextProblem();
+
+    // Make sure the game don't run if the player is not logged in
+    final dm = DatabaseManager.instance;
+    dm.onLoggedOut.addListener(() => requestTerminateRound());
+    dm.onLoggedIn.addListener(() {
+      if (gameStatus != GameStatus.initializing) _startNewRound();
+    });
   }
 
   /// ----------- ///
@@ -211,9 +219,8 @@ class GameManager {
 
   ///
   /// Initialize the callbacks from Twitch chat to [_trySolution]
-  Future<void> _initializeTrySolutionCallback() async =>
-      TwitchInterface.instance
-          .addChatListener((sender, message) => _trySolution(sender, message));
+  Future<void> _initializeTrySolutionCallback() async => TwitchManager.instance
+      .addChatListener((sender, message) => _trySolution(sender, message));
 
   ///
   /// Try to solve the problem from a [message] sent by a [sender], that is a

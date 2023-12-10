@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/models/twitch_interface.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
 import 'package:train_de_mots/screens/splash_screen.dart';
@@ -19,7 +20,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Future<void> _setTwitchManager() async {
-    await TwitchInterface.instance.showConnectManagerDialog(context);
+    await TwitchManager.instance.showConnectManagerDialog(context);
     setState(() {});
   }
 
@@ -37,6 +38,10 @@ class _MainScreenState extends State<MainScreen> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
+
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.addListener(_refresh);
+    dm.onLoggedOut.addListener(_refresh);
   }
 
   @override
@@ -52,13 +57,17 @@ class _MainScreenState extends State<MainScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
 
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.removeListener(_refresh);
+    dm.onLoggedOut.removeListener(_refresh);
+
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TwitchInterface.instance.hasNotManager) {
+    if (TwitchManager.instance.hasNotManager) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
   }
@@ -71,21 +80,16 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final dm = DatabaseManager.instance;
 
     return Scaffold(
-      body: TwitchInterface.instance.hasNotManager
-          ? Center(
-              child: CircularProgressIndicator(color: tm.mainColor),
-            )
-          : TwitchInterface.instance.debugOverlay(
-              child: SingleChildScrollView(
-                  child: Background(
-              child: Stack(
+      body: SingleChildScrollView(
+          child: Background(
+        child: dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
+            ? SplashScreen(onClickStart: _onClickedBegin)
+            : Stack(
                 children: [
-                  gm.gameStatus == GameStatus.initializing
-                      ? SplashScreen(onClickStart: _onClickedBegin)
-                      : const GameScreen(),
+                  const GameScreen(),
                   if (gm.gameStatus == GameStatus.roundPreparing ||
                       gm.gameStatus == GameStatus.roundReady)
                     const BetweenRoundsOverlay(),
@@ -106,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
                   }),
                 ],
               ),
-            ))),
+      )),
       drawer: const ConfigurationDrawer(),
     );
   }

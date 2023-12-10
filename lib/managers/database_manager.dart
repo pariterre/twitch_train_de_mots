@@ -6,6 +6,7 @@ import 'package:train_de_mots/models/exceptions.dart';
 
 class DatabaseManager {
   final onLoggedIn = CustomCallback();
+  final onLoggedOut = CustomCallback();
 
   String get teamName => FirebaseAuth.instance.currentUser!.displayName!;
 
@@ -46,43 +47,41 @@ class DatabaseManager {
         throw AuthenticationException(
             message: 'Ce courriel est déjà enregistré');
       } else {
-        rethrow;
+        throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
-    FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
+    await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
     onLoggedIn.notifyListeners();
   }
 
   ///
   /// Log in with the given email and password
   Future<void> logIn({required String email, required String password}) async {
-    late final UserCredential user;
     try {
-      user = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        throw AuthenticationException(message: 'Addresse courriel inconnue');
-      } else if (e.code == 'wrong-password') {
-        throw AuthenticationException(message: 'Mot de passe incorrect');
+      if (e.code == 'invalid-credential') {
+        throw AuthenticationException(
+            message: 'Addresse courriel ou mot de passe incorrect');
       } else {
-        rethrow;
+        throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
     onLoggedIn.notifyListeners();
-    print(user);
-    print(FirebaseAuth.instance.currentUser!.displayName);
   }
 
   ///
   /// Log out the current user
   Future<void> logOut() async {
     await FirebaseAuth.instance.signOut();
+    onLoggedOut.notifyListeners();
   }
 
   ///
   /// Return true if the user is logged in
-  bool get isUserLoggedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isLoggedOut => !isLoggedIn;
 }
 
 class DatabaseManagerMock extends DatabaseManager {
@@ -119,6 +118,7 @@ class DatabaseManagerMock extends DatabaseManager {
     _teamName = teamName;
     _password = password;
     _isLoggedIn = true;
+    onLoggedIn.notifyListeners();
   }
 
   @override
@@ -126,18 +126,20 @@ class DatabaseManagerMock extends DatabaseManager {
     required String email,
     required String password,
   }) async {
-    if (_email != email) {
-      throw AuthenticationException(message: 'Addresse courriel inconnue');
-    }
-    if (_password != password) {
-      throw AuthenticationException(message: 'Mot de passe incorrect');
+    if (_email != email || _password != password) {
+      throw AuthenticationException(
+          message: 'Addresse courriel ou mot de passe incorrect');
     }
     _isLoggedIn = true;
+    onLoggedIn.notifyListeners();
   }
 
   @override
-  Future<void> logOut() async {}
+  Future<void> logOut() async {
+    _isLoggedIn = false;
+    onLoggedOut.notifyListeners();
+  }
 
   @override
-  bool get isUserLoggedIn => _isLoggedIn;
+  bool get isLoggedIn => _isLoggedIn;
 }

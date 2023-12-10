@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class ConfigurationDrawer extends StatefulWidget {
   const ConfigurationDrawer({super.key});
@@ -42,6 +44,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     final gm = GameManager.instance;
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
+    final dm = DatabaseManager.instance;
 
     return Drawer(
       child: Column(
@@ -86,13 +89,38 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                     ),
                     const Divider(),
                     ListTile(
+                        tileColor: Colors.black,
+                        title: const Text(
+                          'Sortir du train',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onTap: () async {
+                          final result = await showDialog<bool?>(
+                              context: context,
+                              builder: (context) => const _AreYouSureDialog(
+                                    title: 'Quitter le train',
+                                    message:
+                                        'Êtes-vous sûr de vouloir abandonner votre poste?',
+                                    yesTitle: 'Quitter',
+                                  ));
+                          if (result == null || !result) return;
+
+                          await dm.logOut();
+                          if (context.mounted) Navigator.pop(context);
+                        }),
+                    ListTile(
                       tileColor: Colors.red,
                       title: const Text('Réinitialiser la configuration'),
                       enabled: cm.canChangeProblem,
                       onTap: () async {
                         final result = await showDialog<bool?>(
                             context: context,
-                            builder: (context) => const _AreYouSureDialog());
+                            builder: (context) => const _AreYouSureDialog(
+                                  title: 'Réinitialiser la configuration',
+                                  message:
+                                      'Êtes-vous sûr de vouloir réinitialiser la configuration?',
+                                  yesTitle: 'Réinitialiser',
+                                ));
                         if (result == null || !result) return;
 
                         cm.resetConfiguration();
@@ -459,12 +487,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                     'changées en cours de partie',
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: tm.mainColor,
-                    foregroundColor: tm.textColor),
-                child: const Text('Terminer'),
+              ThemedElevatedButton(
                 onPressed: () => Navigator.pop(context),
+                reversedStyle: true,
+                buttonText: 'Terminer',
               ),
               const SizedBox(height: 12),
             ],
@@ -719,27 +745,31 @@ class _SliderInputField extends StatelessWidget {
 }
 
 class _AreYouSureDialog extends StatelessWidget {
-  const _AreYouSureDialog();
+  const _AreYouSureDialog(
+      {required this.title, required this.message, this.yesTitle = 'Oui'});
+
+  final String title;
+  final String message;
+  final String yesTitle;
 
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
     return AlertDialog(
-      title: Text('Réinitialiser la configuration',
-          style: TextStyle(color: tm.mainColor)),
-      content: Text('Êtes-vous sûr de vouloir réinitialiser la configuration?',
-          style: TextStyle(color: tm.mainColor)),
+      title: Text(title, style: TextStyle(color: tm.mainColor)),
+      content: Text(message, style: TextStyle(color: tm.mainColor)),
       actions: [
         TextButton(
-          child: Text('Annuler', style: TextStyle(color: tm.mainColor)),
+          child: Text('Annuler',
+              style: TextStyle(
+                  color: tm.mainColor, fontSize: tm.buttonTextStyle.fontSize)),
           onPressed: () => Navigator.pop(context, false),
         ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: tm.mainColor, foregroundColor: tm.textColor),
-          child: const Text('Réinitialiser'),
+        ThemedElevatedButton(
           onPressed: () => Navigator.pop(context, true),
+          reversedStyle: true,
+          buttonText: yesTitle,
         ),
       ],
     );

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:twitch_manager/models/twitch_listener.dart';
-import 'package:twitch_manager/twitch_manager.dart';
+import 'package:twitch_manager/twitch_manager.dart' as tm;
 
-class TwitchInterface {
+class TwitchManager {
+  final onTwitchManagerReady = CustomCallback();
+
   ///
   /// Get if the manager is connected or not
   bool get hasManager => _manager != null;
@@ -15,19 +18,17 @@ class TwitchInterface {
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
-  TwitchDebugOverlay debugOverlay({required child}) => TwitchDebugOverlay(
-        manager: _manager!,
-        child: child,
-      );
+  tm.TwitchDebugOverlay debugOverlay({required child}) =>
+      tm.TwitchDebugOverlay(manager: _manager!, child: child);
 
   ///
   /// Provide an easy access to the TwitchManager connect dialog
   Future<bool> showConnectManagerDialog(BuildContext context) async {
     if (_manager != null) return true; // Already connected
 
-    final manager = await showDialog<TwitchManager>(
+    final manager = await showDialog<tm.TwitchManager>(
         context: context,
-        builder: (context) => TwitchAuthenticationScreen(
+        builder: (context) => tm.TwitchAuthenticationScreen(
               isMockActive: _isMockActive,
               debugPanelOptions: _debugOptions,
               onFinishedConnexion: (manager) {
@@ -40,34 +41,35 @@ class TwitchInterface {
 
     _manager = manager;
     _manager!.chat.onMessageReceived(_onMessageReceived);
+    onTwitchManagerReady.notifyListeners();
     return true;
   }
 
   /// -------- ///
   /// INTERNAL ///
   /// -------- ///
-  TwitchManager? _manager;
+  tm.TwitchManager? _manager;
 
   ///
   /// Declare the singleton
-  static final TwitchInterface _instance = TwitchInterface._internal();
-  TwitchInterface._internal();
-  static TwitchInterface get instance => _instance;
+  static final TwitchManager _instance = TwitchManager._internal();
+  TwitchManager._internal();
+  static TwitchManager get instance => _instance;
 
   ///
   /// Twitch options
   final _isMockActive = true;
-  final _debugOptions = TwitchDebugPanelOptions(chatters: [
-    TwitchChatterMock(displayName: 'Viewer1'),
-    TwitchChatterMock(displayName: 'Viewer2'),
-    TwitchChatterMock(displayName: 'Viewer3'),
+  final _debugOptions = tm.TwitchDebugPanelOptions(chatters: [
+    tm.TwitchChatterMock(displayName: 'Viewer1'),
+    tm.TwitchChatterMock(displayName: 'Viewer2'),
+    tm.TwitchChatterMock(displayName: 'Viewer3'),
   ]);
-  final _appInfo = TwitchAppInfo(
+  final _appInfo = tm.TwitchAppInfo(
     appName: 'Train de mots',
     twitchAppId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
     scope: const [
-      TwitchScope.chatRead,
-      TwitchScope.readFollowers,
+      tm.TwitchScope.chatRead,
+      tm.TwitchScope.readFollowers,
     ],
     redirectAddress: 'https://twitchauthentication.pariterre.net:3000',
     useAuthenticationService: true,
