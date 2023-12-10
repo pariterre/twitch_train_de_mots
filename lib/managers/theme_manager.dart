@@ -100,10 +100,10 @@ class ThemeManager {
   final leaderTextColor = Colors.white;
   final leaderStealerColor = Colors.red;
 
-  final buttonTextSize = 20.0;
+  late final buttonTextStyle =
+      TextStyle(color: mainColor, fontSize: 20, fontWeight: FontWeight.bold);
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: textColor,
-    foregroundColor: mainColor,
     padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(15.0),

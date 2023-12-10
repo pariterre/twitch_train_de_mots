@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/models/exceptions.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.onClickStart});
@@ -24,6 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
+
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.addListener(_refresh);
   }
 
   @override
@@ -67,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(
               width: 700,
               child: Text(
-                  'Chères cheminots et cheminotes, bienvenue à bord!\n'
+                  '${dm.isUserLoggedIn ? 'Salut ${dm.teamName}' : 'Chères cheminots et cheminotes'}, bienvenue à bord!\n'
                   '\n'
                   'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
                   'Trouvez le plus de mots possible pour emmener le train à destination. '
@@ -82,16 +86,15 @@ class _SplashScreenState extends State<SplashScreen> {
                   textAlign: TextAlign.justify),
             ),
             const SizedBox(height: 30.0),
-            Text(
-              dm.isUserLoggedIn
-                  ? 'C\'est un départ! Tchou Tchou!!'
-                  : 'Mais avant le départ, veuillez vous connecter!',
-              style: TextStyle(
-                fontSize: 24.0,
-                color: tm.textColor,
-                fontWeight: FontWeight.bold,
+            if (dm.isUserLoggedIn)
+              Text(
+                'C\'est un départ! Tchou Tchou!!',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  color: tm.textColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
             const SizedBox(height: 30.0),
             if (!dm.isUserLoggedIn) const _ConnexionTile(),
             if (dm.isUserLoggedIn) _buildContinueButton(tm),
@@ -109,70 +112,218 @@ class _SplashScreenState extends State<SplashScreen> {
         _isGameReadyToPlay
             ? 'Direction première station!'
             : 'Préparation du train...',
-        style:
-            TextStyle(fontSize: tm.buttonTextSize, fontWeight: FontWeight.bold),
+        style: tm.buttonTextStyle,
       ),
     );
   }
 }
 
-class _ConnexionTile extends StatelessWidget {
+class _ConnexionTile extends StatefulWidget {
   const _ConnexionTile();
+
+  @override
+  State<_ConnexionTile> createState() => _ConnexionTileState();
+}
+
+class _ConnexionTileState extends State<_ConnexionTile> {
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoggingIn = true;
+
+  String? _email;
+  String? _password;
+  String? _teamName;
+
+  Future<void> _logIn() async {
+    if (!_validateForm()) return;
+
+    try {
+      await DatabaseManager.instance
+          .logIn(email: _email!, password: _password!);
+    } on AuthenticationException catch (e) {
+      _showError(e.message);
+    }
+  }
+
+  Future<void> _signIn() async {
+    if (!_validateForm()) return;
+
+    try {
+      await DatabaseManager.instance.signIn(
+        email: _email!,
+        password: _password!,
+        teamName: _teamName!,
+      );
+    } on AuthenticationException catch (e) {
+      _showError(e.message);
+    }
+  }
+
+  void _showError(String errorMessage) {
+    if (!mounted) return;
+    final tm = ThemeManager.instance;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(errorMessage,
+          style: TextStyle(color: tm.mainColor, fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.white,
+    ));
+  }
+
+  bool _validateForm() {
+    if (_formKey.currentState == null) return false;
+    if (!_formKey.currentState!.validate()) return false;
+
+    _formKey.currentState!.save();
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
+    final border = OutlineInputBorder(
+      borderSide: BorderSide(color: tm.mainColor),
+      borderRadius: BorderRadius.circular(10),
+    );
+
     return Container(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(4.0)),
-      width: 500,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: Colors.white.withOpacity(0.95)),
+      width: 650,
       child: Form(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-                color: Colors.white,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Courriel',
-                    labelStyle: TextStyle(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Text(
+                    'Mais avant le départ, veuillez inscrire vos cheminot\u2022e\u2022s!',
+                    style: TextStyle(
+                      fontSize: 24.0,
                       color: tm.mainColor,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: tm.mainColor)),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: tm.mainColor)),
-                  ),
-                ),
+                      fontWeight: FontWeight.bold,
+                    )),
               ),
-            ),
-            const SizedBox(width: 10.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: TextFormField(
+              const SizedBox(height: 12.0),
+              TextFormField(
+                decoration: InputDecoration(
+                  labelText: 'Courriel',
+                  labelStyle: TextStyle(
+                    color: tm.mainColor,
+                    fontSize: 18,
+                  ),
+                  enabledBorder: border,
+                  focusedBorder: border,
+                  prefixIcon: const Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer un courriel';
+                  }
+                  RegExp emailRegex =
+                      RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Veuillez entrer un courriel valide';
+                  }
+
+                  return null;
+                },
+                onSaved: (value) => _email = value,
+              ),
+              if (!_isLoggingIn)
+                Column(
+                  children: [
+                    const SizedBox(height: 12.0),
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Nom de l\'équipe',
+                        labelStyle: TextStyle(
+                          color: tm.mainColor,
+                          fontSize: 18,
+                        ),
+                        enabledBorder: border,
+                        focusedBorder: border,
+                        prefixIcon: const Icon(Icons.group),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un nom d\'équipe';
+                        }
+
+                        if (value.length < 4) {
+                          return 'Le nom de l\'équipe doit contenir au moins 4 caractères';
+                        }
+
+                        return null;
+                      },
+                      onSaved: (value) => _teamName = value,
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 12.0),
+              TextFormField(
                 decoration: InputDecoration(
                   labelText: 'Mot de passe',
                   labelStyle: TextStyle(
                     color: tm.mainColor,
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: tm.mainColor),
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
+                  focusedBorder: border,
+                  border: border,
+                  prefixIcon: const Icon(Icons.lock),
                 ),
                 obscureText: true,
+                enableSuggestions: false,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez entrer un mot de passe';
+                  }
+
+                  if (value.length < 6) {
+                    return 'Le mot de passe doit contenir au moins 6 caractères';
+                  }
+
+                  return null;
+                },
+                onSaved: (value) => _password = value,
               ),
-            ),
-          ],
+              const SizedBox(height: 24.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _isLoggingIn ? _logIn : _signIn,
+                  style: tm.elevatedButtonStyle.copyWith(
+                      backgroundColor: MaterialStatePropertyAll(tm.mainColor)),
+                  child: Text(
+                      _isLoggingIn
+                          ? 'Embarquer dans le train!'
+                          : 'Embaucher mon équipe',
+                      style: tm.buttonTextStyle.copyWith(color: Colors.white)),
+                ),
+              ),
+              const SizedBox(height: 12.0),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isLoggingIn = !_isLoggingIn;
+                    });
+                  },
+                  child: Text(
+                      _isLoggingIn
+                          ? 'Inscrire une nouvelle équipe'
+                          : 'J\'ai déjà mon équipe',
+                      style: TextStyle(
+                        color: tm.mainColor,
+                        fontSize: 18,
+                      )),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

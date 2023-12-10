@@ -13,7 +13,7 @@ void main() async {
   await ConfigurationManager.initialize();
   await GameManager.initialize();
   await Future.wait([
-    DatabaseManagerMock.initialize(),
+    DatabaseManagerMock.initialize(isLoggedIn: false),
     SoundManager.initialize(),
     ThemeManager.initialize(),
   ]);
