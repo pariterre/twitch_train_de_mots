@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 const _showAnswersTooltipDefault = false;
@@ -27,12 +28,27 @@ const _soundVolumeDefault = 1.0;
 class ConfigurationManager {
   ///
   /// Declare the singleton
-  static ConfigurationManager get instance => _instance;
-  static final ConfigurationManager _instance =
-      ConfigurationManager._internal();
-  ConfigurationManager._internal() {
-    _loadConfiguration();
-    _listenToGameManagerEvents();
+  static ConfigurationManager get instance {
+    if (_instance == null) {
+      throw ManagerNotInitializedException(
+          "ConfigurationManager must be initialized before being used");
+    }
+    return _instance!;
+  }
+
+  static ConfigurationManager? _instance;
+  ConfigurationManager._internal();
+
+  static Future<void> initialize() async {
+    if (_instance != null) {
+      throw ManagerAlreadyInitializedException(
+          "ConfigurationManager should not be initialized twice");
+    }
+    _instance = ConfigurationManager._internal();
+
+    instance._loadConfiguration();
+    // We must wait for the GameManager to be initialized before listening to
+    Future.delayed(Duration.zero, () => instance._listenToGameManagerEvents());
   }
 
   ///
@@ -201,7 +217,7 @@ class ConfigurationManager {
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
-      'nbLetterInSmallestWord': nbLetterInSmallestWord,
+      'nbLetterInSmallestWoConfigurationManagerrd': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
       'maximumWordLetter': maximumWordLetter,
       'minimumWordsNumber': minimumWordsNumber,

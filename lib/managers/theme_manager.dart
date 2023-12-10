@@ -3,18 +3,33 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/exceptions.dart';
 
 const _textSizeDefault = 26.0;
 const _mainColorDefault = Colors.blueGrey;
 
 class ThemeManager {
   // Declare the singleton
-  static final ThemeManager _instance = ThemeManager._internal();
+  static ThemeManager? _instance;
   ThemeManager._internal() {
     _updateBackgroundColors();
     _load();
   }
-  static ThemeManager get instance => _instance;
+  static ThemeManager get instance {
+    if (_instance == null) {
+      throw ManagerNotInitializedException(
+          "ThemeManager must be initialized before being used");
+    }
+    return _instance!;
+  }
+
+  static Future<void> initialize() async {
+    if (_instance != null) {
+      throw ManagerAlreadyInitializedException(
+          "ThemeManager should not be initialized twice");
+    }
+    ThemeManager._instance = ThemeManager._internal();
+  }
 
   ///
   /// Connect to callbacks to get notified when the configuration changes

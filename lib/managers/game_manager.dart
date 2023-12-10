@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 import 'package:train_de_mots/models/twitch_interface.dart';
@@ -50,9 +51,15 @@ class GameManager {
   ///
   /// Initialize the game logic. This should be called at the start of the
   /// application.
-  Future<void> initialize() async {
-    Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
-    await _initializeWordProblem();
+  static Future<void> initialize() async {
+    if (_instance != null) {
+      throw ManagerAlreadyInitializedException(
+          "GameManager should not be initialized twice");
+    }
+    GameManager._instance = GameManager._internal();
+
+    Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
+    await instance._initializeWordProblem();
   }
 
   Future<void> _initializeWordProblem() async {
@@ -105,8 +112,15 @@ class GameManager {
 
   ///
   /// Declare the singleton
-  static GameManager get instance => _instance;
-  static final GameManager _instance = GameManager._internal();
+  static GameManager get instance {
+    if (_instance == null) {
+      throw ManagerNotInitializedException(
+          "GameManager must be initialized before being used");
+    }
+    return _instance!;
+  }
+
+  static GameManager? _instance;
   GameManager._internal();
 
   ///

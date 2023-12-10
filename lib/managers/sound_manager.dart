@@ -1,6 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/models/exceptions.dart';
 
 class SoundManager {
   final _gameMusic = AudioPlayer();
@@ -13,19 +14,38 @@ class SoundManager {
   final _bestSolutionFound = AudioPlayer();
 
   /// Declare the singleton
-  static SoundManager get instance => _instance;
-  static final SoundManager _instance = SoundManager._internal();
-  SoundManager._internal() {
-    final gm = GameManager.instance;
-    gm.onGameIsInitializing.addListener(_manageGameMusic);
-    gm.onRoundStarted.addListener(_onRoundStarted);
-    gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onScrablingLetters.addListener(_onLettersScrambled);
-    gm.onRoundIsOver.addListener(_onRoundIsOver);
+  static SoundManager get instance {
+    if (_instance == null) {
+      throw ManagerNotInitializedException(
+          "SoundManager must be initialized before being used");
+    }
+    return _instance!;
+  }
+
+  static SoundManager? _instance;
+  SoundManager._internal();
+
+  ///
+  /// This method initializes the singleton and should be called before
+  /// using the singleton.
+  static Future<void> initialize() async {
+    if (_instance != null) {
+      throw ManagerAlreadyInitializedException(
+          "SoundManager should not be initialized twice");
+    }
+
+    SoundManager._instance = SoundManager._internal();
+
+    late final gm = GameManager.instance;
+    gm.onGameIsInitializing.addListener(instance._manageGameMusic);
+    gm.onRoundStarted.addListener(instance._onRoundStarted);
+    gm.onSolutionFound.addListener(instance._onSolutionFound);
+    gm.onScrablingLetters.addListener(instance._onLettersScrambled);
+    gm.onRoundIsOver.addListener(instance._onRoundIsOver);
 
     final cm = ConfigurationManager.instance;
-    cm.onMusicChanged.addListener(_manageGameMusic);
-    cm.onSoundChanged.addListener(_onLettersScrambled);
+    cm.onMusicChanged.addListener(instance._manageGameMusic);
+    cm.onSoundChanged.addListener(instance._onLettersScrambled);
   }
 
   Future<void> _manageGameMusic() async {

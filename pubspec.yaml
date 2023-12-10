@@ -17,6 +17,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_colorpicker: ^1.0.3
   shared_preferences: ^2.2.0
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.15.2
 
 dev_dependencies:
   flutter_test:
