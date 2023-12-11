@@ -1,7 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
@@ -86,40 +86,42 @@ class DatabaseManager {
   bool get isLoggedOut => !isLoggedIn;
 
   ///
-  /// Returns all the stations for all the teams
+  /// Send a new score to the database
+  Future<void> sendStation(int station) async {
+    // Get the previous result for this team to see if we need to update it
+    final previousResult = await FirebaseFirestore.instance
+        .collection('stations')
+        .doc(teamName)
+        .get();
+
+    // If the previous result is better, do not update
+    if (previousResult.exists && previousResult.data()!['station'] >= station) {
+      return;
+    }
+
+    final stations = FirebaseFirestore.instance.collection('stations');
+    await stations.doc(teamName).set({'team': teamName, 'station': station});
+  }
+
+  ///
+  /// Returns all the stations for all the teams up to [top]
   Future<List<Map<String, dynamic>>> teamStations(
-      {required int top, required bool includeOurTeam}) async {
+      {required int top, int? includeStation}) async {
     final stations = (await FirebaseFirestore.instance
-            .collection('finalStations')
+            .collection('stations')
             .orderBy('station', descending: true)
             .limit(top)
             .get())
         .docs;
     final stationsList = stations
-        .map((e) => {'team': e.id, 'station': e.data()['station']})
+        .map((e) => {'team': e.data()['team'], 'station': e.data()['station']})
         .toList();
 
     final out = _prepareTeamOutput(stationsList);
 
-    if (includeOurTeam && !out.any((e) => e['team'] == teamName)) {
-      final myTeamBestStation = (await FirebaseFirestore.instance
-              .collection('finalStations')
-              .doc(teamName)
-              .get())
-          .data()!['station'];
-      final myPosition = (await FirebaseFirestore.instance
-              .collection('finalStations')
-              .orderBy('station', descending: true)
-              .get())
-          .docs
-          .indexWhere((e) => e.id == teamName);
-
-      // Replace the last team with our team
-      out.last = {
-        'team': teamName,
-        'station': myTeamBestStation,
-        'position': myPosition + 1
-      };
+    // If our score did not get to the top, add it at the bottom
+    if (includeStation != null) {
+      await _addSpecificStationTeamOutput(top, includeStation, out);
     }
 
     return out;
@@ -143,6 +145,43 @@ class DatabaseManager {
     }
     return out;
   }
+
+  Future<void> _addSpecificStationTeamOutput(
+      int top, int station, List<Map<String, dynamic>> out) async {
+    bool isInTop = out.any((e) => e['station'] <= station);
+    int position = out.firstWhere((e) => e['station'] == station)['position'];
+
+    if (isInTop &&
+        !out.any((e) => e['team'] == teamName && e['station'] == station)) {
+      // If our team is in the top, but not in the list, it means there are
+      // multiple results for the same station. We need to replace the first
+      // one with our team
+
+      final index = out.indexWhere((e) => e['station'] <= station);
+      out.insert(index, {
+        'team': teamName,
+        'station': station,
+        'position': position,
+      });
+      if (out.length > top) out.removeLast();
+    }
+
+    if (!isInTop) {
+      // If our team is not in the top, just add it at the bottom so we can
+      // see our position
+      final toAdd = {
+        'team': teamName,
+        'station': station,
+        'position': position,
+      };
+
+      if (out.length < top) {
+        out.add(toAdd);
+      } else {
+        out.last = toAdd;
+      }
+    }
+  }
 }
 
 class DatabaseManagerMock extends DatabaseManager {
@@ -152,6 +191,19 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   String get teamName => _teamName!;
   String? _password = '123456';
+  final Map<String, int> _stations = {
+    'Les Verts': 3,
+    'Les Oranges': 6,
+    'Les Roses': 1,
+    'Les Jaunes': 5,
+    'Les Blancs': 1,
+    'Les Bleus': 0,
+    'Les Noirs': 1,
+    'Les Rouges': 2,
+    'Les Violets': 3,
+    'Les Gris': 0,
+    'Les Bruns': 0,
+  };
 
   DatabaseManagerMock._internal() : super._internal();
 
@@ -205,32 +257,29 @@ class DatabaseManagerMock extends DatabaseManager {
   bool get isLoggedIn => _isLoggedIn;
 
   @override
+  Future<void> sendStation(int station) async {
+    if (!_stations.containsKey(teamName) || _stations[teamName]! < station) {
+      _stations[teamName] = station;
+    }
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> teamStations(
-      {required int top, required bool includeOurTeam}) async {
-    const teams = {
-      'Les Verts': 30,
-      'Les Oranges': 50,
-      'Les Roses': 70,
-      'Les Jaunes': 40,
-      'Les Blancs': 100,
-      'Les Bleus': 0,
-      'Les Noirs': 90,
-      'Les Bleuets': 50,
-      'Les Rouges': 20,
-      'Les Violets': 60,
-      'Les Gris': 80,
-    };
-    final sortedTeamNames = teams.keys.sorted((a, b) => teams[b]! - teams[a]!);
+      {required int top, int? includeStation}) async {
+    final sortedTeamNames =
+        _stations.keys.sorted((a, b) => _stations[b]! - _stations[a]!);
 
     final List<Map<String, dynamic>> sortedTeams = [];
-    for (final team in sortedTeamNames) {
-      sortedTeams.add({'team': team, 'station': teams[team]});
+    for (int i = 0; i < sortedTeamNames.length; i++) {
+      if (i >= top) break;
+
+      final team = sortedTeamNames[i];
+      sortedTeams.add({'team': team, 'station': _stations[team]});
     }
     final out = _prepareTeamOutput(sortedTeams);
 
-    if (includeOurTeam && !out.any((e) => e['team'] == teamName)) {
-      // Replace the last team with our team
-      out.last = {'team': teamName, 'station': 3, 'position': 400};
+    if (includeStation != null) {
+      await _addSpecificStationTeamOutput(top, includeStation, out);
     }
 
     return out;

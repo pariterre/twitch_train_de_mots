@@ -71,7 +71,6 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                     gm.problem!.successLevel == SuccessLevel.failed
                         ? const _DefeatHeader()
                         : const _VictoryHeader(),
-                    const SizedBox(height: 24.0),
                     const _LeaderBoard(),
                     const SizedBox(height: 16.0),
                     const _ContinueButton(),
@@ -138,6 +137,10 @@ class _LeaderBoard extends StatelessWidget {
   Widget _buildGameScore() {
     final gm = GameManager.instance;
     final players = gm.players.sort((a, b) => b.score - a.score);
+
+    if (players.isEmpty) {
+      return Center(child: _buildTitleTile('Aucun joueur n\'a joué'));
+    }
 
     final highestScore = players.fold<int>(
         0, (previousValue, player) => max(previousValue, player.score));
@@ -216,15 +219,20 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildLeaderboardScore() {
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
     final dm = DatabaseManager.instance;
 
     return FutureBuilder(
-        future: dm.teamStations(top: 10, includeOurTeam: true),
+        future: dm.teamStations(top: 10, includeStation: gm.roundCount),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(
-                child: CircularProgressIndicator(color: tm.mainColor));
+            return SizedBox(
+              width: 80,
+              height: 80,
+              child:
+                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
+            );
           }
 
           final teams = snapshot.data as List<Map<String, dynamic>>;
@@ -241,10 +249,11 @@ class _LeaderBoard extends StatelessWidget {
               children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   _buildTitleTile(
-                      'Meilleur\u2022e\u2022 équipes de cheminot\u2022e\u2022s'),
+                      'Meilleur\u2022e\u2022s équipes de cheminot\u2022e\u2022s'),
                   ...teams.map(
                     (team) => _buildNamedTile(team['team'],
-                        highlight: team['team'] == dm.teamName,
+                        highlight: team['team'] == dm.teamName &&
+                            team['station'] == gm.roundCount,
                         prefixText: '${team['position']}.'),
                   ),
                 ]),
@@ -256,7 +265,10 @@ class _LeaderBoard extends StatelessWidget {
                         _buildTitleTile('Stations'),
                         ...teams.map(
                           (team) => _buildScoreTile(
-                              team['station'], team['team'] == dm.teamName),
+                            team['station'],
+                            team['team'] == dm.teamName &&
+                                team['station'] == gm.roundCount,
+                          ),
                         )
                       ]),
                 ),
@@ -268,6 +280,8 @@ class _LeaderBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+
     return Expanded(
       child: Column(
         children: [
@@ -277,16 +291,23 @@ class _LeaderBoard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 150, vertical: 12),
                 child: _buildGameScore()),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 75),
-            child: Divider(thickness: 4),
-          ),
-          Expanded(
-            child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 150, vertical: 12),
-                child: _buildLeaderboardScore()),
-          ),
+          if (gm.problem!.successLevel == SuccessLevel.failed)
+            Expanded(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 75),
+                    child: Divider(thickness: 4),
+                  ),
+                  Expanded(
+                    child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 150, vertical: 12),
+                        child: _buildLeaderboardScore()),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

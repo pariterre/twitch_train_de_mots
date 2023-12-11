@@ -310,7 +310,7 @@ class GameManager {
     if (_gameStatus == GameStatus.roundReady) return;
 
     _gameTick();
-    _checkEndOfRound();
+    _endOfRound();
   }
 
   ///
@@ -348,7 +348,7 @@ class GameManager {
 
   ///
   /// Clear the current round
-  void _checkEndOfRound() {
+  Future<void> _endOfRound() async {
     // Do not end the round if we are not playing
     if (_gameStatus != GameStatus.roundStarted) return;
 
@@ -362,11 +362,13 @@ class GameManager {
     if (!shouldEndTheRound) return;
 
     _roundCount += problem!.successLevel.toInt();
+    DatabaseManager.instance.sendStation(roundCount);
 
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
     _gameStatus = GameStatus.roundPreparing;
+
     onRoundIsOver.notifyListeners();
 
     _searchForNextProblem();
