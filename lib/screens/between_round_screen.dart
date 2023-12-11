@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
@@ -135,8 +135,7 @@ class _ContinueButtonState extends State<_ContinueButton> {
 class _LeaderBoard extends StatelessWidget {
   const _LeaderBoard();
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildGameScore() {
     final gm = GameManager.instance;
     final players = gm.players.sort((a, b) => b.score - a.score);
 
@@ -151,67 +150,144 @@ class _LeaderBoard extends StatelessWidget {
       return highestStealCount != 0 && player.stealCount == highestStealCount;
     }).toList();
 
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 150),
-          child: SizedBox(
-            width: double.infinity,
+    return SingleChildScrollView(
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: players.asMap().keys.map(
+                (index) {
+                  final player = players[index];
+                  final isBiggestStealer = biggestStealers.contains(player);
+
+                  return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (index == 0)
+                          _buildTitleTile('Meilleur\u2022e cheminot\u2022e'),
+                        _buildNamedTile(player.name,
+                            highlight: isBiggestStealer,
+                            prefixIcon: Icon(Icons.local_police,
+                                color: isBiggestStealer
+                                    ? Colors.red
+                                    : Colors.transparent),
+                            suffixText: isBiggestStealer
+                                ? ' (Plus grand voleur!)'
+                                : null),
+                        if (players.length > nbHighestScore &&
+                            index + 1 == nbHighestScore)
+                          Column(
+                            children: [
+                              const SizedBox(height: 12.0),
+                              _buildTitleTile('Autres cheminot\u2022e\u2022s')
+                            ],
+                          )
+                      ]);
+                },
+              ).toList()),
+          SizedBox(
+            width: 80,
+            child: Column(
+                children: players.asMap().keys.map(
+              (index) {
+                final player = players[index];
+                final isBiggestStealer = biggestStealers.contains(player);
+
+                return Column(children: [
+                  if (index == 0) _buildTitleTile('Score'),
+                  _buildScoreTile(player.score, isBiggestStealer),
+                  if (players.length > nbHighestScore &&
+                      index + 1 == nbHighestScore)
+                    Column(
+                      children: [
+                        const SizedBox(height: 12.0),
+                        _buildTitleTile('')
+                      ],
+                    )
+                ]);
+              },
+            ).toList()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLeaderboardScore() {
+    final tm = ThemeManager.instance;
+    final dm = DatabaseManager.instance;
+
+    return FutureBuilder(
+        future: dm.teamStations(top: 10, includeOurTeam: true),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+                child: CircularProgressIndicator(color: tm.mainColor));
+          }
+
+          final teams = snapshot.data as List<Map<String, dynamic>>;
+
+          if (teams.isEmpty) {
+            return Center(
+                child: _buildTitleTile('Aucune équipe n\'a encore joué'));
+          }
+
+          return SingleChildScrollView(
             child: Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: players.asMap().keys.map(
-                      (index) {
-                        final player = players[index];
-                        final isBiggestStealer =
-                            biggestStealers.contains(player);
-
-                        return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (index == 0)
-                                _buildTitleTile(
-                                    'Meilleur\u2022e cheminot\u2022e'),
-                              _buildPlayerNameTile(player, isBiggestStealer),
-                              if (players.length > nbHighestScore &&
-                                  index + 1 == nbHighestScore)
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 12.0),
-                                    _buildTitleTile(
-                                        'Autres cheminot\u2022e\u2022s')
-                                  ],
-                                )
-                            ]);
-                      },
-                    ).toList()),
-                Column(
-                    children: players.asMap().keys.map(
-                  (index) {
-                    final player = players[index];
-                    final isBiggestStealer = biggestStealers.contains(player);
-
-                    return Column(children: [
-                      if (index == 0) _buildTitleTile('Score'),
-                      _buildPlayerScoreTile(player, isBiggestStealer),
-                      if (players.length > nbHighestScore &&
-                          index + 1 == nbHighestScore)
-                        Column(
-                          children: [
-                            const SizedBox(height: 12.0),
-                            _buildTitleTile('')
-                          ],
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  _buildTitleTile(
+                      'Meilleur\u2022e\u2022 équipes de cheminot\u2022e\u2022s'),
+                  ...teams.map(
+                    (team) => _buildNamedTile(team['team'],
+                        highlight: team['team'] == dm.teamName,
+                        prefixText: '${team['position']}.'),
+                  ),
+                ]),
+                SizedBox(
+                  width: 80,
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildTitleTile('Stations'),
+                        ...teams.map(
+                          (team) => _buildScoreTile(
+                              team['station'], team['team'] == dm.teamName),
                         )
-                    ]);
-                  },
-                ).toList()),
+                      ]),
+                ),
               ],
             ),
+          );
+        });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Expanded(
+            child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 150, vertical: 12),
+                child: _buildGameScore()),
           ),
-        ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 75),
+            child: Divider(thickness: 4),
+          ),
+          Expanded(
+            child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 150, vertical: 12),
+                child: _buildLeaderboardScore()),
+          ),
+        ],
       ),
     );
   }
@@ -230,37 +306,43 @@ class _LeaderBoard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlayerNameTile(Player player, bool isBiggestStealer) {
-    final style = _playerStyle(isBiggestStealer);
+  Widget _buildNamedTile(String name,
+      {bool highlight = false,
+      Widget? prefixIcon,
+      String? prefixText,
+      String? suffixText}) {
+    final style = _playerStyle(highlight);
+    if (prefixIcon != null && prefixText != null) {
+      throw ArgumentError(
+          'prefixIcon and prefixText cannot be both non-null at the same time');
+    }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 12.0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Icon(Icons.local_police,
-                  color: isBiggestStealer ? Colors.red : Colors.transparent),
-            ),
-            Text(player.name, style: style),
-            if (isBiggestStealer) Text(' (Plus grand voleur!)', style: style),
-          ],
-        ),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+              width: 50,
+              child: Align(
+                  alignment: Alignment.centerRight,
+                  child: prefixText != null
+                      ? Text(prefixText, style: style)
+                      : prefixIcon)),
+          const SizedBox(width: 12.0),
+          Text(name, style: style),
+          if (suffixText != null) Text(suffixText, style: style),
+        ],
       ),
     );
   }
 
-  Widget _buildPlayerScoreTile(Player player, bool isBiggestStealer) {
+  Widget _buildScoreTile(int score, bool isBiggestStealer) {
     final style = _playerStyle(isBiggestStealer);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Text(
-        player.score.toString(),
-        style: style,
-      ),
+      child: Text(score.toString(), style: style),
     );
   }
 }
@@ -326,8 +408,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                     color: tm.textColor),
               ),
               const SizedBox(height: 8.0),
-              Text(
-                  'La prochaine station sera la Station N\u00b0${gm.roundCount + 1}',
+              Text('En direction de la Station N\u00b0${gm.roundCount + 1}',
                   style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.normal,

@@ -83,7 +83,8 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (var solutions in solutionsByLength)
+        for (var solutions
+            in solutionsByLength.where((element) => element.isNotEmpty))
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
             child: Column(

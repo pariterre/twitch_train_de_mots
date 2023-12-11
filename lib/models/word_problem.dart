@@ -412,3 +412,18 @@ String get _randomLetterFromFrequency {
     }
   }
 }
+
+class WordProblemMock extends WordProblem {
+  final SuccessLevel? _successLevel;
+  @override
+  SuccessLevel get successLevel => _successLevel ?? super.successLevel;
+
+  WordProblemMock({SuccessLevel? successLevel})
+      : _successLevel = successLevel,
+        super._(
+            word: 'BJOONUR',
+            solutions: Solutions([
+              Solution(word: 'BONJOUR'),
+              Solution(word: 'JOUR'),
+            ]));
+}

@@ -1,5 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
@@ -82,6 +84,65 @@ class DatabaseManager {
   /// Return true if the user is logged in
   bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
   bool get isLoggedOut => !isLoggedIn;
+
+  ///
+  /// Returns all the stations for all the teams
+  Future<List<Map<String, dynamic>>> teamStations(
+      {required int top, required bool includeOurTeam}) async {
+    final stations = (await FirebaseFirestore.instance
+            .collection('finalStations')
+            .orderBy('station', descending: true)
+            .limit(top)
+            .get())
+        .docs;
+    final stationsList = stations
+        .map((e) => {'team': e.id, 'station': e.data()['station']})
+        .toList();
+
+    final out = _prepareTeamOutput(stationsList);
+
+    if (includeOurTeam && !out.any((e) => e['team'] == teamName)) {
+      final myTeamBestStation = (await FirebaseFirestore.instance
+              .collection('finalStations')
+              .doc(teamName)
+              .get())
+          .data()!['station'];
+      final myPosition = (await FirebaseFirestore.instance
+              .collection('finalStations')
+              .orderBy('station', descending: true)
+              .get())
+          .docs
+          .indexWhere((e) => e.id == teamName);
+
+      // Replace the last team with our team
+      out.last = {
+        'team': teamName,
+        'station': myTeamBestStation,
+        'position': myPosition + 1
+      };
+    }
+
+    return out;
+  }
+
+  List<Map<String, dynamic>> _prepareTeamOutput(
+      List<Map<String, dynamic>> orderedTeams) {
+    final List<Map<String, dynamic>> out = [];
+
+    int position = 1;
+    for (var i = 0; i < orderedTeams.length; i++) {
+      final teamData = orderedTeams[i];
+      final team = teamData['team'];
+      final station = teamData['station'];
+
+      if (i != 0) {
+        final previousStation = orderedTeams[i - 1]['station'];
+        position = station == previousStation ? position : i + 1;
+      }
+      out.add({'team': team, 'station': station, 'position': position});
+    }
+    return out;
+  }
 }
 
 class DatabaseManagerMock extends DatabaseManager {
@@ -142,4 +203,36 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   bool get isLoggedIn => _isLoggedIn;
+
+  @override
+  Future<List<Map<String, dynamic>>> teamStations(
+      {required int top, required bool includeOurTeam}) async {
+    const teams = {
+      'Les Verts': 30,
+      'Les Oranges': 50,
+      'Les Roses': 70,
+      'Les Jaunes': 40,
+      'Les Blancs': 100,
+      'Les Bleus': 0,
+      'Les Noirs': 90,
+      'Les Bleuets': 50,
+      'Les Rouges': 20,
+      'Les Violets': 60,
+      'Les Gris': 80,
+    };
+    final sortedTeamNames = teams.keys.sorted((a, b) => teams[b]! - teams[a]!);
+
+    final List<Map<String, dynamic>> sortedTeams = [];
+    for (final team in sortedTeamNames) {
+      sortedTeams.add({'team': team, 'station': teams[team]});
+    }
+    final out = _prepareTeamOutput(sortedTeams);
+
+    if (includeOurTeam && !out.any((e) => e['team'] == teamName)) {
+      // Replace the last team with our team
+      out.last = {'team': teamName, 'station': 3, 'position': 400};
+    }
+
+    return out;
+  }
 }

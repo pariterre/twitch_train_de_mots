@@ -372,3 +372,35 @@ class GameManager {
     _searchForNextProblem();
   }
 }
+
+class GameManagerMock extends GameManager {
+  static Future<void> initialize({
+    GameStatus? gameStatus,
+    WordProblem? problem,
+    List<Player>? players,
+  }) async {
+    if (GameManager._instance != null) {
+      throw ManagerAlreadyInitializedException(
+          "GameManager should not be initialized twice");
+    }
+
+    GameManager._instance = GameManagerMock._internal();
+    if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
+    if (problem != null) {
+      GameManager._instance!._currentProblem = problem;
+    }
+    if (players != null) {
+      for (final player in players) {
+        GameManager._instance!.players.add(player);
+      }
+    }
+  }
+
+  GameManagerMock._internal() : super._internal();
+
+  @override
+  Future<void> _startNewRound() async {}
+
+  @override
+  void _gameLoop(Timer timer) {}
+}
