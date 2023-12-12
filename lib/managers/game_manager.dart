@@ -362,7 +362,7 @@ class GameManager {
     if (!shouldEndTheRound) return;
 
     _roundCount += problem!.successLevel.toInt();
-    DatabaseManager.instance.sendStation(roundCount);
+    DatabaseManager.instance.registerTrainStationReached(roundCount);
 
     _forceEndTheRound = false;
     _roundDuration = null;
@@ -380,6 +380,7 @@ class GameManagerMock extends GameManager {
     GameStatus? gameStatus,
     WordProblem? problem,
     List<Player>? players,
+    int? roundCount,
   }) async {
     if (GameManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -395,6 +396,9 @@ class GameManagerMock extends GameManager {
       for (final player in players) {
         GameManager._instance!.players.add(player);
       }
+    }
+    if (roundCount != null) {
+      GameManager._instance!._roundCount = roundCount;
     }
   }
 

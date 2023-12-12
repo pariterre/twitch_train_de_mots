@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/models/train_result.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
@@ -224,7 +225,8 @@ class _LeaderBoard extends StatelessWidget {
     final dm = DatabaseManager.instance;
 
     return FutureBuilder(
-        future: dm.teamStations(top: 10, includeStation: gm.roundCount),
+        future: dm.getBestScoresOfTrainStationsReached(
+            top: 10, currentStation: gm.roundCount),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -235,7 +237,7 @@ class _LeaderBoard extends StatelessWidget {
             );
           }
 
-          final teams = snapshot.data as List<Map<String, dynamic>>;
+          final teams = snapshot.data as List<TrainResult>;
 
           if (teams.isEmpty) {
             return Center(
@@ -251,10 +253,10 @@ class _LeaderBoard extends StatelessWidget {
                   _buildTitleTile(
                       'Meilleur\u2022e\u2022s équipes de cheminot\u2022e\u2022s'),
                   ...teams.map(
-                    (team) => _buildNamedTile(team['team'],
-                        highlight: team['team'] == dm.teamName &&
-                            team['station'] == gm.roundCount,
-                        prefixText: '${team['position']}.'),
+                    (team) => _buildNamedTile(team.name!,
+                        highlight: team.name == dm.teamName &&
+                            team.station == gm.roundCount,
+                        prefixText: '${team.rank}.'),
                   ),
                 ]),
                 SizedBox(
@@ -265,9 +267,9 @@ class _LeaderBoard extends StatelessWidget {
                         _buildTitleTile('Stations'),
                         ...teams.map(
                           (team) => _buildScoreTile(
-                            team['station'],
-                            team['team'] == dm.teamName &&
-                                team['station'] == gm.roundCount,
+                            team.station!,
+                            team.name! == dm.teamName &&
+                                team.station! == gm.roundCount,
                           ),
                         )
                       ]),

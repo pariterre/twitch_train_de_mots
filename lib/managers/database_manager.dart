@@ -1,17 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/models/train_result.dart';
 
 class DatabaseManager {
-  final onLoggedIn = CustomCallback();
-  final onLoggedOut = CustomCallback();
-
-  String get teamName => FirebaseAuth.instance.currentUser!.displayName!;
-
   /// Declare the singleton
   static DatabaseManager get instance {
     if (_instance == null) {
@@ -35,6 +30,13 @@ class DatabaseManager {
         options: DefaultFirebaseOptions.currentPlatform);
   }
 
+  ////////////////////////////////
+  //// AUTH RELATED FUNCTIONS ////
+  ////////////////////////////////
+
+  final onLoggedIn = CustomCallback();
+  final onLoggedOut = CustomCallback();
+
   ///
   /// Create a new user with the given email and password
   Future<void> signIn(
@@ -52,9 +54,17 @@ class DatabaseManager {
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
+
     await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
+    _teamName = FirebaseAuth.instance.currentUser!.displayName!;
+
     onLoggedIn.notifyListeners();
   }
+
+  ///
+  /// Return true if the user is logged in
+  bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isLoggedOut => !isLoggedIn;
 
   ///
   /// Log in with the given email and password
@@ -70,6 +80,8 @@ class DatabaseManager {
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
+    _teamName = FirebaseAuth.instance.currentUser!.displayName!;
+
     onLoggedIn.notifyListeners();
   }
 
@@ -80,142 +92,108 @@ class DatabaseManager {
     onLoggedOut.notifyListeners();
   }
 
+  /////////////////////////////////////////
+  //// COMMUNICATION RELATED FUNCTIONS ////
+  /////////////////////////////////////////
+
+  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
+    final query = FirebaseFirestore.instance.collection('stations');
+    if (ordered) {
+      query.orderBy('station', descending: true);
+    }
+
+    final results = (await query.get()).docs;
+    return results.map((e) => TrainResult.fromFirebaseQuery(e)).toList();
+  }
+
+  Future<TrainResult> _getBestResultOfATeam(String name) async =>
+      TrainResult.fromFirebaseQuery(await FirebaseFirestore.instance
+          .collection('stations')
+          .doc(name)
+          .get());
+
+  Future<void> _putNewResultForATeam(TrainResult result) async =>
+      await FirebaseFirestore.instance
+          .collection('stations')
+          .doc(result.name)
+          .set({'station': result.station});
+
+  ////////////////////////////////
+  //// GAME RELATED FUNCTIONS ////
+  ////////////////////////////////
+
   ///
-  /// Return true if the user is logged in
-  bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
-  bool get isLoggedOut => !isLoggedIn;
+  /// Return the name of the current team
+  String? _teamName;
+  String get teamName => _teamName!;
 
   ///
   /// Send a new score to the database
-  Future<void> sendStation(int station) async {
+  Future<void> registerTrainStationReached(int station) async {
     // Get the previous result for this team to see if we need to update it
-    final previousResult = await FirebaseFirestore.instance
-        .collection('stations')
-        .doc(teamName)
-        .get();
+    final previousResult = await _getBestResultOfATeam(teamName);
 
     // If the previous result is better, do not update
-    if (previousResult.exists && previousResult.data()!['station'] >= station) {
+    if (previousResult.exists && previousResult.station! >= station) {
       return;
     }
 
-    final stations = FirebaseFirestore.instance.collection('stations');
-    await stations.doc(teamName).set({'team': teamName, 'station': station});
+    await _putNewResultForATeam(TrainResult(teamName, station));
   }
 
   ///
   /// Returns all the stations for all the teams up to [top]
-  Future<List<Map<String, dynamic>>> teamStations(
-      {required int top, int? includeStation}) async {
-    final stations = (await FirebaseFirestore.instance
-            .collection('stations')
-            .orderBy('station', descending: true)
-            .limit(top)
-            .get())
-        .docs;
-    final stationsList = stations
-        .map((e) => {'team': e.data()['team'], 'station': e.data()['station']})
-        .toList();
-
-    final out = _prepareTeamOutput(stationsList);
+  /// If [currentStation] is not null, it will add the current team's score
+  /// for this session at the bottom of the list
+  Future<List<TrainResult>> getBestScoresOfTrainStationsReached({
+    required int top,
+    required int currentStation,
+  }) async {
+    final out = await _getAllResults(ordered: true);
+    _computeStationRanks(out);
 
     // If our score did not get to the top, add it at the bottom
-    if (includeStation != null) {
-      await _addSpecificStationTeamOutput(top, includeStation, out);
-    }
+    _limitNumberOfResults(top, TrainResult(teamName, currentStation), out);
 
     return out;
-  }
-
-  List<Map<String, dynamic>> _prepareTeamOutput(
-      List<Map<String, dynamic>> orderedTeams) {
-    final List<Map<String, dynamic>> out = [];
-
-    int position = 1;
-    for (var i = 0; i < orderedTeams.length; i++) {
-      final teamData = orderedTeams[i];
-      final team = teamData['team'];
-      final station = teamData['station'];
-
-      if (i != 0) {
-        final previousStation = orderedTeams[i - 1]['station'];
-        position = station == previousStation ? position : i + 1;
-      }
-      out.add({'team': team, 'station': station, 'position': position});
-    }
-    return out;
-  }
-
-  Future<void> _addSpecificStationTeamOutput(
-      int top, int station, List<Map<String, dynamic>> out) async {
-    bool isInTop = out.any((e) => e['station'] <= station);
-    int position = out.firstWhere((e) => e['station'] == station)['position'];
-
-    if (isInTop &&
-        !out.any((e) => e['team'] == teamName && e['station'] == station)) {
-      // If our team is in the top, but not in the list, it means there are
-      // multiple results for the same station. We need to replace the first
-      // one with our team
-
-      final index = out.indexWhere((e) => e['station'] <= station);
-      out.insert(index, {
-        'team': teamName,
-        'station': station,
-        'position': position,
-      });
-      if (out.length > top) out.removeLast();
-    }
-
-    if (!isInTop) {
-      // If our team is not in the top, just add it at the bottom so we can
-      // see our position
-      final toAdd = {
-        'team': teamName,
-        'station': station,
-        'position': position,
-      };
-
-      if (out.length < top) {
-        out.add(toAdd);
-      } else {
-        out.last = toAdd;
-      }
-    }
   }
 }
 
 class DatabaseManagerMock extends DatabaseManager {
-  bool _isLoggedIn = false;
-  String _email = 'train@pariterre.net';
-  String? _teamName = 'Les Bleuets';
-  @override
-  String get teamName => _teamName!;
-  String? _password = '123456';
-  final Map<String, int> _stations = {
-    'Les Verts': 3,
-    'Les Oranges': 6,
-    'Les Roses': 1,
-    'Les Jaunes': 5,
-    'Les Blancs': 1,
-    'Les Bleus': 0,
-    'Les Noirs': 1,
-    'Les Rouges': 2,
-    'Les Violets': 3,
-    'Les Gris': 0,
-    'Les Bruns': 0,
-  };
+  late final bool _dummyIsLoggedIn;
+  late final String _dummyEmail;
+  late final String _dummyTeamName;
+  late final String _dummyPassword;
+  late final Map<String, int> _dummyResults;
 
   DatabaseManagerMock._internal() : super._internal();
 
-  static Future<void> initialize({bool isLoggedIn = false}) async {
+  static Future<void> initialize({
+    bool dummyIsLoggedIn = false,
+    String dummyEmail = 'train@pariterre.net',
+    String dummyTeamName = 'Les Bleuets',
+    String dummyPassword = '123456',
+    Map<String, int>? dummyResults,
+  }) async {
     if (DatabaseManager._instance != null) {
       throw ManagerAlreadyInitializedException(
           "DatabaseManager should not be initialized twice");
     }
 
     DatabaseManager._instance = DatabaseManagerMock._internal();
-    (DatabaseManager._instance as DatabaseManagerMock)._isLoggedIn = isLoggedIn;
+
+    final mock = DatabaseManager._instance as DatabaseManagerMock;
+    mock._dummyIsLoggedIn = dummyIsLoggedIn;
+    mock._dummyEmail = dummyEmail;
+    mock._dummyTeamName = dummyTeamName;
+    if (dummyIsLoggedIn) DatabaseManager.instance._teamName = dummyTeamName;
+    mock._dummyPassword = dummyPassword;
+    mock._dummyResults = dummyResults ?? {};
   }
+
+  ///////////////////////
+  //// AUTH MOCKINGS ////
+  ///////////////////////
 
   @override
   Future<void> signIn({
@@ -223,14 +201,14 @@ class DatabaseManagerMock extends DatabaseManager {
     required String teamName,
     required String password,
   }) async {
-    if (email == _email) {
+    if (email == _dummyEmail) {
       throw AuthenticationException(message: 'Ce courriel est déjà enregistré');
     }
 
-    _email = email;
+    _dummyEmail = email;
     _teamName = teamName;
-    _password = password;
-    _isLoggedIn = true;
+    _dummyPassword = password;
+    _dummyIsLoggedIn = true;
     onLoggedIn.notifyListeners();
   }
 
@@ -239,49 +217,90 @@ class DatabaseManagerMock extends DatabaseManager {
     required String email,
     required String password,
   }) async {
-    if (_email != email || _password != password) {
+    if (_dummyEmail != email || _dummyPassword != password) {
       throw AuthenticationException(
           message: 'Addresse courriel ou mot de passe incorrect');
     }
-    _isLoggedIn = true;
+    _dummyIsLoggedIn = true;
+    _teamName = _dummyTeamName;
     onLoggedIn.notifyListeners();
   }
 
   @override
   Future<void> logOut() async {
-    _isLoggedIn = false;
+    _dummyIsLoggedIn = false;
     onLoggedOut.notifyListeners();
   }
 
   @override
-  bool get isLoggedIn => _isLoggedIn;
+  bool get isLoggedIn => _dummyIsLoggedIn;
+
+  ////////////////////////////////
+  //// COMMUNICATION MOCKINGS ////
+  ////////////////////////////////
 
   @override
-  Future<void> sendStation(int station) async {
-    if (!_stations.containsKey(teamName) || _stations[teamName]! < station) {
-      _stations[teamName] = station;
-    }
+  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
+    final out =
+        _dummyResults.entries.map((e) => TrainResult(e.key, e.value)).toList();
+    if (ordered) out.sort((a, b) => b.station!.compareTo(a.station!));
+
+    return out;
   }
 
   @override
-  Future<List<Map<String, dynamic>>> teamStations(
-      {required int top, int? includeStation}) async {
-    final sortedTeamNames =
-        _stations.keys.sorted((a, b) => _stations[b]! - _stations[a]!);
+  Future<TrainResult> _getBestResultOfATeam(String name) async {
+    final station = _dummyResults[name];
+    return TrainResult(name, station);
+  }
 
-    final List<Map<String, dynamic>> sortedTeams = [];
-    for (int i = 0; i < sortedTeamNames.length; i++) {
-      if (i >= top) break;
+  @override
+  Future<void> _putNewResultForATeam(TrainResult result) async {
+    _dummyResults[result.name!] = result.station!;
+  }
+}
 
-      final team = sortedTeamNames[i];
-      sortedTeams.add({'team': team, 'station': _stations[team]});
+///
+/// This function will take a list results and augment them with their rank
+/// in the game.
+void _computeStationRanks(List<TrainResult> results) {
+  for (var i = 0; i < results.length; i++) {
+    // Make a copy of the result
+    final result = results[i];
+
+    if (i == 0) {
+      result.rank = 1;
+    } else {
+      // If the previous result is the same, we have the same rank, otherwise
+      // we are one position ahead
+      final previous = results[i - 1];
+      result.rank = result.station == previous.station ? previous.rank : i + 1;
     }
-    final out = _prepareTeamOutput(sortedTeams);
+  }
+}
 
-    if (includeStation != null) {
-      await _addSpecificStationTeamOutput(top, includeStation, out);
-    }
+void _limitNumberOfResults(
+    int top, TrainResult current, List<TrainResult> out) {
+  final index = out.indexWhere(
+      (e) => e.name == current.name && e.station == current.station);
 
-    return out;
+  // Something went wrong if we don't have our result in the list
+  if (index < 0) return;
+
+  if (index < top) {
+    // If we are in the top, we only need to drop all the elements after top
+    if (out.length > top) out.removeRange(top, out.length);
+
+    // We can finally swap out the first index with our result
+    final tp = out[index];
+    final indexPrevious = out.indexWhere((e) => e.station == current.station);
+    out[index] = out[indexPrevious];
+    out[indexPrevious] = tp;
+  } else {
+    // If we are not in the top, we need to drop all the elements after top - 1
+    // and append ourselves back
+    final tp = out[index];
+    out.removeRange(top - 1, out.length);
+    out.add(tp);
   }
 }

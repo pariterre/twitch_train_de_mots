@@ -16,7 +16,22 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (_useDatabaseMock) {
-    await DatabaseManagerMock.initialize(isLoggedIn: true);
+    await DatabaseManagerMock.initialize(
+      dummyIsLoggedIn: true,
+      dummyResults: {
+        'Les Verts': 3,
+        'Les Oranges': 6,
+        'Les Roses': 1,
+        'Les Jaunes': 5,
+        'Les Blancs': 1,
+        'Les Bleus': 0,
+        'Les Noirs': 1,
+        'Les Rouges': 2,
+        'Les Violets': 3,
+        'Les Gris': 0,
+        'Les Bruns': 0,
+      },
+    );
   } else {
     await DatabaseManager.initialize();
   }
@@ -40,6 +55,7 @@ void main() async {
           ..hasStolen(),
         Player(name: 'Player 6')..score = 350,
       ],
+      roundCount: 1,
     );
   } else {
     await GameManager.initialize();
