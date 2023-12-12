@@ -93,8 +93,12 @@ class DatabaseManager {
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
 
+  ///
+  /// Returns the name of the current team
   String get teamName => FirebaseAuth.instance.currentUser!.displayName!;
 
+  ///
+  /// Returns all the stations for all the teams
   Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
     late final List<QueryDocumentSnapshot<Map<String, dynamic>>> results;
 
@@ -111,12 +115,16 @@ class DatabaseManager {
     return results.map((e) => TrainResult.fromFirebaseQuery(e)).toList();
   }
 
+  ///
+  /// Returns the best result for a given team
   Future<TrainResult> _getBestResultOfATeam(String name) async =>
       TrainResult.fromFirebaseQuery(await FirebaseFirestore.instance
           .collection('stations')
           .doc(name)
           .get());
 
+  ///
+  /// Send a new score to the database
   Future<void> _putNewResultForATeam(TrainResult result) async =>
       await FirebaseFirestore.instance
           .collection('stations')
@@ -128,8 +136,14 @@ class DatabaseManager {
   ////////////////////////////////
 
   ///
+  /// Simple mutex to wait for data to be sent before fetching
+  bool _isSendingData = false;
+
+  ///
   /// Send a new score to the database
   Future<void> registerTrainStationReached(int station) async {
+    _isSendingData = true;
+
     // Get the previous result for this team to see if we need to update it
     final previousResult = await _getBestResultOfATeam(teamName);
 
@@ -139,6 +153,8 @@ class DatabaseManager {
     }
 
     await _putNewResultForATeam(TrainResult(teamName, station));
+
+    _isSendingData = false;
   }
 
   ///
@@ -149,6 +165,10 @@ class DatabaseManager {
     required int top,
     required int currentStation,
   }) async {
+    while (_isSendingData) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
     final currentResult = TrainResult(teamName, currentStation);
 
     final out = await _getAllResults(ordered: true);
