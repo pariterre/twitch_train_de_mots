@@ -56,8 +56,6 @@ class DatabaseManager {
     }
 
     await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
-    _teamName = FirebaseAuth.instance.currentUser!.displayName!;
-
     onLoggedIn.notifyListeners();
   }
 
@@ -80,7 +78,6 @@ class DatabaseManager {
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
-    _teamName = FirebaseAuth.instance.currentUser!.displayName!;
 
     onLoggedIn.notifyListeners();
   }
@@ -96,13 +93,21 @@ class DatabaseManager {
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
 
-  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
-    final query = FirebaseFirestore.instance.collection('stations');
-    if (ordered) {
-      query.orderBy('station', descending: true);
-    }
+  String get teamName => FirebaseAuth.instance.currentUser!.displayName!;
 
-    final results = (await query.get()).docs;
+  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
+    late final List<QueryDocumentSnapshot<Map<String, dynamic>>> results;
+
+    if (ordered) {
+      results = (await FirebaseFirestore.instance
+              .collection('stations')
+              .orderBy('station', descending: true)
+              .get())
+          .docs;
+    } else {
+      results =
+          (await FirebaseFirestore.instance.collection('stations').get()).docs;
+    }
     return results.map((e) => TrainResult.fromFirebaseQuery(e)).toList();
   }
 
@@ -121,11 +126,6 @@ class DatabaseManager {
   ////////////////////////////////
   //// GAME RELATED FUNCTIONS ////
   ////////////////////////////////
-
-  ///
-  /// Return the name of the current team
-  String? _teamName;
-  String get teamName => _teamName!;
 
   ///
   /// Send a new score to the database
@@ -149,11 +149,17 @@ class DatabaseManager {
     required int top,
     required int currentStation,
   }) async {
+    final currentResult = TrainResult(teamName, currentStation);
+
     final out = await _getAllResults(ordered: true);
+
+    // Add the current results if necessary (only the best one were fetched)
+    _insertResultInList(currentResult, out);
+
     _computeStationRanks(out);
 
     // If our score did not get to the top, add it at the bottom
-    _limitNumberOfResults(top, TrainResult(teamName, currentStation), out);
+    _limitNumberOfResults(top, currentResult, out);
 
     return out;
   }
@@ -186,7 +192,6 @@ class DatabaseManagerMock extends DatabaseManager {
     mock._dummyIsLoggedIn = dummyIsLoggedIn;
     mock._dummyEmail = dummyEmail;
     mock._dummyTeamName = dummyTeamName;
-    if (dummyIsLoggedIn) DatabaseManager.instance._teamName = dummyTeamName;
     mock._dummyPassword = dummyPassword;
     mock._dummyResults = dummyResults ?? {};
   }
@@ -194,6 +199,9 @@ class DatabaseManagerMock extends DatabaseManager {
   ///////////////////////
   //// AUTH MOCKINGS ////
   ///////////////////////
+
+  @override
+  String get teamName => _dummyTeamName;
 
   @override
   Future<void> signIn({
@@ -206,7 +214,7 @@ class DatabaseManagerMock extends DatabaseManager {
     }
 
     _dummyEmail = email;
-    _teamName = teamName;
+    _dummyTeamName = teamName;
     _dummyPassword = password;
     _dummyIsLoggedIn = true;
     onLoggedIn.notifyListeners();
@@ -222,7 +230,6 @@ class DatabaseManagerMock extends DatabaseManager {
           message: 'Addresse courriel ou mot de passe incorrect');
     }
     _dummyIsLoggedIn = true;
-    _teamName = _dummyTeamName;
     onLoggedIn.notifyListeners();
   }
 
@@ -279,6 +286,16 @@ void _computeStationRanks(List<TrainResult> results) {
   }
 }
 
+void _insertResultInList(TrainResult current, List<TrainResult> out) {
+  final currentIndex = out.indexWhere(
+      (e) => e.name == current.name && e.station == current.station);
+
+  if (currentIndex < 0) {
+    final index = out.indexWhere((e) => e.station == current.station);
+    out.insert(index, current);
+  }
+}
+
 void _limitNumberOfResults(
     int top, TrainResult current, List<TrainResult> out) {
   final index = out.indexWhere(
@@ -300,7 +317,7 @@ void _limitNumberOfResults(
     // If we are not in the top, we need to drop all the elements after top - 1
     // and append ourselves back
     final tp = out[index];
-    out.removeRange(top - 1, out.length);
+    if (out.length > top - 1) out.removeRange(top - 1, out.length);
     out.add(tp);
   }
 }

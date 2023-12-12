@@ -362,16 +362,16 @@ class GameManager {
     if (!shouldEndTheRound) return;
 
     _roundCount += problem!.successLevel.toInt();
-    DatabaseManager.instance.registerTrainStationReached(roundCount);
 
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
     _gameStatus = GameStatus.roundPreparing;
 
-    onRoundIsOver.notifyListeners();
-
     _searchForNextProblem();
+
+    DatabaseManager.instance.registerTrainStationReached(roundCount);
+    onRoundIsOver.notifyListeners();
   }
 }
 
