@@ -85,31 +85,35 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: SingleChildScrollView(
           child: Background(
-        child: dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
-            ? SplashScreen(onClickStart: _onClickedBegin)
-            : Stack(
-                children: [
-                  const GameScreen(),
-                  if (gm.gameStatus == GameStatus.roundPreparing ||
-                      gm.gameStatus == GameStatus.roundReady)
-                    const BetweenRoundsOverlay(),
-                  Builder(builder: (context) {
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: IconButton(
-                            onPressed: () => Scaffold.of(context).openDrawer(),
-                            icon: const Icon(
-                              Icons.menu,
-                              color: Colors.black,
-                              size: 32,
-                            )),
-                      ),
-                    );
-                  }),
-                ],
-              ),
+        child: Stack(
+          children: [
+            dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
+                ? SplashScreen(onClickStart: _onClickedBegin)
+                : Stack(
+                    children: [
+                      const GameScreen(),
+                      if (gm.gameStatus == GameStatus.roundPreparing ||
+                          gm.gameStatus == GameStatus.roundReady)
+                        const BetweenRoundsOverlay(),
+                    ],
+                  ),
+            Builder(builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      icon: const Icon(
+                        Icons.menu,
+                        color: Colors.black,
+                        size: 32,
+                      )),
+                ),
+              );
+            })
+          ],
+        ),
       )),
       drawer: const ConfigurationDrawer(),
     );

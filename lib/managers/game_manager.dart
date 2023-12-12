@@ -60,7 +60,7 @@ class GameManager {
     GameManager._instance = GameManager._internal();
 
     Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
-    await instance._initializeWordProblem();
+    instance._initializeWordProblem();
   }
 
   Future<void> _initializeWordProblem() async {

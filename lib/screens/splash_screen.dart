@@ -83,7 +83,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           'Chères cheminots et cheminotes de ${dm.teamName}, bienvenue à bord!\n'
                           '\n'
                           'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
-                          'Trouvez le plus de mots possible pour emmener le train à destination. '
+                          'Trouvez le plus de mots possibles pour emmener le train à destination. '
                           'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
                           '\n'
                           'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '

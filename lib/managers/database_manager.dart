@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
-import 'package:train_de_mots/models/train_result.dart';
+import 'package:train_de_mots/models/team_result.dart';
 
 class DatabaseManager {
   /// Declare the singleton
@@ -99,7 +99,7 @@ class DatabaseManager {
 
   ///
   /// Returns all the stations for all the teams
-  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
+  Future<List<TeamResult>> _getAllResults({bool ordered = false}) async {
     late final List<QueryDocumentSnapshot<Map<String, dynamic>>> results;
 
     if (ordered) {
@@ -112,20 +112,20 @@ class DatabaseManager {
       results =
           (await FirebaseFirestore.instance.collection('stations').get()).docs;
     }
-    return results.map((e) => TrainResult.fromFirebaseQuery(e)).toList();
+    return results.map((e) => TeamResult.fromFirebaseQuery(e)).toList();
   }
 
   ///
   /// Returns the best result for a given team
-  Future<TrainResult> _getBestResultOfATeam(String name) async =>
-      TrainResult.fromFirebaseQuery(await FirebaseFirestore.instance
+  Future<TeamResult> _getBestResultOfATeam(String name) async =>
+      TeamResult.fromFirebaseQuery(await FirebaseFirestore.instance
           .collection('stations')
           .doc(name)
           .get());
 
   ///
   /// Send a new score to the database
-  Future<void> _putNewResultForATeam(TrainResult result) async =>
+  Future<void> _putNewResultForATeam(TeamResult result) async =>
       await FirebaseFirestore.instance
           .collection('stations')
           .doc(result.name)
@@ -149,10 +149,11 @@ class DatabaseManager {
 
     // If the previous result is better, do not update
     if (previousResult.exists && previousResult.station! >= station) {
+      _isSendingData = false;
       return;
     }
 
-    await _putNewResultForATeam(TrainResult(teamName, station));
+    await _putNewResultForATeam(TeamResult(teamName, station));
 
     _isSendingData = false;
   }
@@ -161,7 +162,7 @@ class DatabaseManager {
   /// Returns all the stations for all the teams up to [top]
   /// If [currentStation] is not null, it will add the current team's score
   /// for this session at the bottom of the list
-  Future<List<TrainResult>> getBestScoresOfTrainStationsReached({
+  Future<List<TeamResult>> getBestScoresOfTrainStationsReached({
     required int top,
     required int currentStation,
   }) async {
@@ -169,7 +170,7 @@ class DatabaseManager {
       await Future.delayed(const Duration(milliseconds: 50));
     }
 
-    final currentResult = TrainResult(teamName, currentStation);
+    final currentResult = TeamResult(teamName, currentStation);
 
     final out = await _getAllResults(ordered: true);
 
@@ -267,22 +268,22 @@ class DatabaseManagerMock extends DatabaseManager {
   ////////////////////////////////
 
   @override
-  Future<List<TrainResult>> _getAllResults({bool ordered = false}) async {
+  Future<List<TeamResult>> _getAllResults({bool ordered = false}) async {
     final out =
-        _dummyResults.entries.map((e) => TrainResult(e.key, e.value)).toList();
+        _dummyResults.entries.map((e) => TeamResult(e.key, e.value)).toList();
     if (ordered) out.sort((a, b) => b.station!.compareTo(a.station!));
 
     return out;
   }
 
   @override
-  Future<TrainResult> _getBestResultOfATeam(String name) async {
+  Future<TeamResult> _getBestResultOfATeam(String name) async {
     final station = _dummyResults[name];
-    return TrainResult(name, station);
+    return TeamResult(name, station);
   }
 
   @override
-  Future<void> _putNewResultForATeam(TrainResult result) async {
+  Future<void> _putNewResultForATeam(TeamResult result) async {
     _dummyResults[result.name!] = result.station!;
   }
 }
@@ -290,7 +291,7 @@ class DatabaseManagerMock extends DatabaseManager {
 ///
 /// This function will take a list results and augment them with their rank
 /// in the game.
-void _computeStationRanks(List<TrainResult> results) {
+void _computeStationRanks(List<TeamResult> results) {
   for (var i = 0; i < results.length; i++) {
     // Make a copy of the result
     final result = results[i];
@@ -306,18 +307,21 @@ void _computeStationRanks(List<TrainResult> results) {
   }
 }
 
-void _insertResultInList(TrainResult current, List<TrainResult> out) {
+void _insertResultInList(TeamResult current, List<TeamResult> out) {
   final currentIndex = out.indexWhere(
       (e) => e.name == current.name && e.station == current.station);
 
   if (currentIndex < 0) {
     final index = out.indexWhere((e) => e.station == current.station);
-    out.insert(index, current);
+    if (index < 0) {
+      out.add(current);
+    } else {
+      out.insert(index, current);
+    }
   }
 }
 
-void _limitNumberOfResults(
-    int top, TrainResult current, List<TrainResult> out) {
+void _limitNumberOfResults(int top, TeamResult current, List<TeamResult> out) {
   final index = out.indexWhere(
       (e) => e.name == current.name && e.station == current.station);
 

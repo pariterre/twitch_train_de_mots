@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/train_result.dart';
+import 'package:train_de_mots/models/team_result.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
@@ -237,7 +237,7 @@ class _LeaderBoard extends StatelessWidget {
             );
           }
 
-          final teams = snapshot.data as List<TrainResult>;
+          final teams = snapshot.data as List<TeamResult>;
 
           if (teams.isEmpty) {
             return Center(
