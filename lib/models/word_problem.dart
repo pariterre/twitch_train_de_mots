@@ -6,26 +6,6 @@ import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
 
-enum SuccessLevel {
-  failed,
-  oneStar,
-  twoStars,
-  threeStars;
-
-  int toInt() {
-    switch (this) {
-      case SuccessLevel.failed:
-        return 0;
-      case SuccessLevel.oneStar:
-        return 1;
-      case SuccessLevel.twoStars:
-        return 2;
-      case SuccessLevel.threeStars:
-        return 3;
-    }
-  }
-}
-
 class WordProblem {
   String _word;
   String get word => _word;
@@ -52,20 +32,6 @@ class WordProblem {
   ///
   /// Returns the threshold score for one star
   int get thresholdScoreForOneStar => maximumScore ~/ 3;
-
-  ///
-  /// This is set by the game manager when the round is over
-  SuccessLevel get successLevel {
-    if (currentScore < maximumScore ~/ 3) {
-      return SuccessLevel.failed;
-    } else if (currentScore < maximumScore * 1 ~/ 2) {
-      return SuccessLevel.oneStar;
-    } else if (currentScore < maximumScore * 3 ~/ 4) {
-      return SuccessLevel.twoStars;
-    } else {
-      return SuccessLevel.threeStars;
-    }
-  }
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
@@ -414,13 +380,8 @@ String get _randomLetterFromFrequency {
 }
 
 class WordProblemMock extends WordProblem {
-  final SuccessLevel? _successLevel;
-  @override
-  SuccessLevel get successLevel => _successLevel ?? super.successLevel;
-
-  WordProblemMock({SuccessLevel? successLevel})
-      : _successLevel = successLevel,
-        super._(
+  WordProblemMock()
+      : super._(
             word: 'BJOONUR',
             solutions: Solutions([
               Solution(word: 'BONJOUR'),

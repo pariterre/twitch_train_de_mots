@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/solution.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 
 enum GameStatus {
@@ -42,6 +43,7 @@ class GameManager {
   WordProblem? _nextProblem;
   bool _isSearchingNextProblem = false;
   WordProblem? get problem => _currentProblem;
+  SuccessLevel? _successLevel;
 
   bool _forceEndTheRound = false;
 
@@ -95,6 +97,8 @@ class GameManager {
     if (_gameStatus != GameStatus.roundStarted) return;
     _forceEndTheRound = true;
   }
+
+  SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
   /// --------- ///
   /// CALLBACKS ///
@@ -194,9 +198,10 @@ class GameManager {
     while (_isSearchingNextProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    if (_currentProblem != null &&
-        _currentProblem!.successLevel == SuccessLevel.failed) _restartGame();
 
+    if (_currentProblem != null && _successLevel == SuccessLevel.failed) {
+      _restartGame();
+    }
     _currentProblem = _nextProblem;
     _nextProblem = null;
 
@@ -361,7 +366,8 @@ class GameManager {
         _currentProblem!.isAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
-    _roundCount += problem!.successLevel.toInt();
+    _successLevel = _computeSuccessLevel();
+    _roundCount += _successLevel!.toInt();
 
     _forceEndTheRound = false;
     _roundDuration = null;
@@ -373,6 +379,18 @@ class GameManager {
     DatabaseManager.instance.registerTrainStationReached(roundCount);
     onRoundIsOver.notifyListeners();
   }
+
+  SuccessLevel _computeSuccessLevel() {
+    if (problem!.currentScore < problem!.maximumScore ~/ 3) {
+      return SuccessLevel.failed;
+    } else if (problem!.currentScore < problem!.maximumScore * 1 ~/ 2) {
+      return SuccessLevel.oneStar;
+    } else if (problem!.currentScore < problem!.maximumScore * 3 ~/ 4) {
+      return SuccessLevel.twoStars;
+    } else {
+      return SuccessLevel.threeStars;
+    }
+  }
 }
 
 class GameManagerMock extends GameManager {
@@ -381,6 +399,7 @@ class GameManagerMock extends GameManager {
     WordProblem? problem,
     List<Player>? players,
     int? roundCount,
+    SuccessLevel? successLevel,
   }) async {
     if (GameManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -399,6 +418,10 @@ class GameManagerMock extends GameManager {
     }
     if (roundCount != null) {
       GameManager._instance!._roundCount = roundCount;
+    }
+    if (successLevel != null) {
+      GameManager._instance!._roundCount = successLevel.toInt();
+      (GameManager._instance! as GameManagerMock)._successLevel = successLevel;
     }
   }
 

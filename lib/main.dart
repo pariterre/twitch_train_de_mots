@@ -41,7 +41,7 @@ void main() async {
   if (_useGameManagerMock) {
     await GameManagerMock.initialize(
       gameStatus: GameStatus.roundPreparing,
-      problem: WordProblemMock(successLevel: SuccessLevel.failed),
+      problem: WordProblemMock(),
       players: [
         Player(name: 'Player 1')..score = 100,
         Player(name: 'Player 2')
@@ -55,7 +55,8 @@ void main() async {
           ..hasStolen(),
         Player(name: 'Player 6')..score = 350,
       ],
-      roundCount: 1,
+      roundCount: 3,
+      successLevel: SuccessLevel.oneStar,
     );
   } else {
     await GameManager.initialize();

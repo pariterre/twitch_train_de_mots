@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/team_result.dart';
-import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
@@ -69,7 +69,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 24.0),
-                    gm.problem!.successLevel == SuccessLevel.failed
+                    gm.successLevel == SuccessLevel.failed
                         ? const _DefeatHeader()
                         : const _VictoryHeader(),
                     const _LeaderBoard(),
@@ -121,14 +121,27 @@ class _ContinueButtonState extends State<_ContinueButton> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
 
-    return ThemedElevatedButton(
-        onPressed: _isGameReadyToPlay ? () => gm.requestStartNewRound() : null,
-        buttonText: _isGameReadyToPlay
-            ? (gm.problem!.successLevel == SuccessLevel.failed
-                ? 'Relancer le train'
-                : 'Lancer la prochaine manche')
-            : 'Aiguillage du train en cours...');
+    return Column(
+      children: [
+        if (gm.successLevel != SuccessLevel.failed)
+          Text('En direction de la Station N\u00b0${gm.roundCount + 1}',
+              style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.normal,
+                  color: tm.textColor)),
+        const SizedBox(height: 12),
+        ThemedElevatedButton(
+            onPressed:
+                _isGameReadyToPlay ? () => gm.requestStartNewRound() : null,
+            buttonText: _isGameReadyToPlay
+                ? (gm.successLevel == SuccessLevel.failed
+                    ? 'Relancer le train'
+                    : 'Prendre les rails')
+                : 'Aiguillage du train en cours...'),
+      ],
+    );
   }
 }
 
@@ -293,7 +306,7 @@ class _LeaderBoard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 150, vertical: 12),
                 child: _buildGameScore()),
           ),
-          if (gm.problem!.successLevel == SuccessLevel.failed)
+          if (gm.successLevel == SuccessLevel.failed)
             Expanded(
               child: Column(
                 children: [
@@ -415,7 +428,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
           Column(
             children: [
               Text(
-                'Entrée en gare!',
+                'Entrée en gare à la Station N\u00b0${gm.roundCount}!',
                 style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
@@ -424,18 +437,12 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               const SizedBox(height: 16.0),
               Text(
                 'Félicitation! Nous avons traversé '
-                '${gm.problem!.successLevel.toInt()} station${gm.problem!.successLevel.toInt() > 1 ? 's' : ''}!',
+                '${gm.successLevel.toInt()} station${gm.successLevel.toInt() > 1 ? 's' : ''}!',
                 style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
               ),
-              const SizedBox(height: 8.0),
-              Text('En direction de la Station N\u00b0${gm.roundCount + 1}',
-                  style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.normal,
-                      color: tm.textColor)),
               const SizedBox(height: 16.0),
             ],
           ),
