@@ -18,6 +18,9 @@ class WordProblem {
   Solutions get solutions => _solutions;
   bool get isAllSolutionsFound => _solutions.every((e) => e.isFound);
 
+  String? _extraUselessLetter;
+  bool get hasUselessLetter => _extraUselessLetter != null;
+
   ///
   /// Returns the maximum score that can be obtained by finding all the words
   int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.value);
@@ -47,15 +50,30 @@ class WordProblem {
       .map((e) => e.value)
       .fold(0, (value, element) => value + element);
 
-  WordProblem._({required String word, required Solutions solutions})
+  WordProblem._(
+      {required String word,
+      required Solutions solutions,
+      required String? uselessLetter})
       : _word = word,
-        _solutions = solutions {
+        _solutions = solutions,
+        _extraUselessLetter = uselessLetter {
+    _initialize();
+  }
+
+  ///
+  /// This method should be called whenever [_word] is changed
+  void _initialize() {
     // Sort the letters of candidate into alphabetical order
-    final wordSorted = word.split('').toList()..sort();
+    final wordSorted = word.split('')..sort();
     _word = wordSorted.join('');
     _scrambleIndices = List.generate(word.length, (index) => index);
 
     _solutions = _solutions.sort();
+
+    // Give a good scramble to the letters
+    for (int i = 0; i < _solutions.length; i++) {
+      scrambleLetters();
+    }
   }
 
   ///
@@ -89,6 +107,51 @@ class WordProblem {
     _scrambleIndices[index2] = temp;
   }
 
+  /// This method returns a letter that do not change the numbers of solutions
+  /// to the problem.
+  /// If the method returns null, it means it is not possible to add a useless
+  /// letter to the problem without changing the number of solutions.
+  static Future<String?> _addUselessLetter(
+      {required String word, required Solutions solutions}) async {
+    // Create a list of all possible letters to add
+    final possibleLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        .split('')
+        .where((letter) => !word.contains(letter))
+        .toList();
+
+    final random = Random();
+    do {
+      final newLetter =
+          possibleLetters.removeAt(random.nextInt(possibleLetters.length));
+      final newWord = word + newLetter;
+      final newSolutions =
+          await _WordGenerator.instance._findsWordsFromPermutations(
+        from: newWord,
+        nbLetters: solutions.nbLettersInSmallest,
+        wordsCountLimit: solutions.length + 1,
+      );
+
+      if (newSolutions.length == solutions.length) {
+        // The new letter is useless if the number of solutions did not increase
+        return newLetter;
+      }
+    } while (possibleLetters.isNotEmpty);
+
+    // If we get here, it means no useless letter could be added
+    return null;
+  }
+
+  void tossUselessLetter() {
+    if (!hasUselessLetter) return;
+
+    final index = _word.split('').indexWhere((e) => e == _extraUselessLetter);
+    if (index == -1) return; // This should never happen, but just in case
+
+    _word = _word.substring(0, index) + _word.substring(index + 1);
+    _extraUselessLetter = null;
+    _initialize();
+  }
+
   ///
   /// Generates a new word problem from a random string of letters.
   static Future<WordProblem> generateFromRandom({
@@ -97,9 +160,21 @@ class WordProblem {
     required int maxLetters,
     required int minimumNbOfWords,
     required int maximumNbOfWords,
+    required bool addUselessLetter,
   }) async {
     String candidate;
     Set<String> subWords;
+
+    bool isAValidCandidate = false;
+    // We have to deduce the number of letters to add to the candidate. It is
+    // way too long otherwise
+    if (addUselessLetter) maxLetters--;
+    String? uselessLetter;
+
+    if (maxLetters < minLetters) {
+      throw ArgumentError(
+          'The maximum number of letters should be greater than the minimum number of letters');
+    }
 
     do {
       candidate = _WordGenerator.instance._randomStringOfLetters(
@@ -108,12 +183,26 @@ class WordProblem {
           from: candidate,
           nbLetters: nbLetterInSmallestWord,
           wordsCountLimit: maximumNbOfWords);
-    } while (subWords.length < minimumNbOfWords ||
-        subWords.length > maximumNbOfWords);
+
+      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+          subWords.length <= maximumNbOfWords;
+
+      if (isAValidCandidate && addUselessLetter) {
+        // Add a useless letter to the problem
+        uselessLetter = await WordProblem._addUselessLetter(
+            word: candidate,
+            solutions:
+                Solutions(subWords.map((e) => Solution(word: e)).toList()));
+
+        // If it is not possible to add a new letter, reject the word
+        if (uselessLetter == null) isAValidCandidate = false;
+      }
+    } while (!isAValidCandidate);
 
     return WordProblem._(
-        word: candidate,
-        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()));
+        word: candidate + (uselessLetter ?? ''),
+        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()),
+        uselessLetter: uselessLetter);
   }
 
   ///
@@ -125,11 +214,14 @@ class WordProblem {
     required int maxLetters,
     required int minimumNbOfWords,
     required int maximumNbOfWords,
+    required bool addUselessLetter,
   }) async {
     final random = Random();
     String candidate;
     Set<String> subWords;
 
+    bool isAValidCandidate = false;
+    String? uselessLetter;
     do {
       candidate = '';
       subWords = await _WordGenerator.instance
@@ -177,13 +269,27 @@ class WordProblem {
           wordsCountLimit: maximumNbOfWords,
         ));
       }
+      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+          subWords.length <= maximumNbOfWords;
+
+      if (isAValidCandidate && addUselessLetter) {
+        // Add a useless letter to the problem
+        uselessLetter = await WordProblem._addUselessLetter(
+            word: candidate,
+            solutions:
+                Solutions(subWords.map((e) => Solution(word: e)).toList()));
+
+        // If it is not possible to add a new letter, reject the word
+        if (uselessLetter == null) isAValidCandidate = false;
+      }
+
       // Make sure the number of words as solution is valid
-    } while (subWords.length < minimumNbOfWords ||
-        subWords.length > maximumNbOfWords);
+    } while (!isAValidCandidate);
 
     return WordProblem._(
-        word: candidate,
-        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()));
+        word: candidate + (uselessLetter ?? ''),
+        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()),
+        uselessLetter: uselessLetter);
   }
 }
 
@@ -225,9 +331,14 @@ class _WordGenerator {
   }) async {
     final Set<String> permutations = {};
 
-    for (int i = from.length; i >= nbLetters; i--) {
+    for (int i = nbLetters; i <= from.length; i++) {
       permutations.addAll(await _generateValidPermutations(
-          await wordsWithAtLeast(nbLetters), from, i, wordsCountLimit));
+          await wordsWithAtLeast(nbLetters),
+          from,
+          i,
+          wordsCountLimit != null
+              ? wordsCountLimit - permutations.length + 1
+              : null));
 
       // Terminate prematurely if no words of length from.length are found
       if (permutations.isEmpty) break;
@@ -254,7 +365,7 @@ class _WordGenerator {
       }
       cmp++;
 
-      // If the len is 0, it means a new word was found
+      // If the len is 0, it means a new word is ready to be compared to the database
       if (len == 0) {
         if (words.contains(prefix)) permutations.add(prefix);
         return;
@@ -382,9 +493,11 @@ String get _randomLetterFromFrequency {
 class WordProblemMock extends WordProblem {
   WordProblemMock()
       : super._(
-            word: 'BJOONUR',
-            solutions: Solutions([
-              Solution(word: 'BONJOUR'),
-              Solution(word: 'JOUR'),
-            ]));
+          word: 'BJOONUR',
+          solutions: Solutions([
+            Solution(word: 'BONJOUR'),
+            Solution(word: 'JOUR'),
+          ]),
+          uselessLetter: null,
+        );
 }

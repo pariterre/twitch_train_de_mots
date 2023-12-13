@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_problem.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 

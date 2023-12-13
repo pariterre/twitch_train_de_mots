@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 
-const _textSizeDefault = 26.0;
+const _textSizeDefault = 20.0;
 const _mainColorDefault = Colors.blueGrey;
 
 class ThemeManager {

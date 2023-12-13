@@ -171,6 +171,8 @@ class GameManager {
       maxLetters: cm.maximumWordLetter,
       minimumNbOfWords: cm.minimumWordsNumber,
       maximumNbOfWords: cm.maximumWordsNumber,
+      addUselessLetter: _roundCount + SuccessLevel.threeStars.toInt() >=
+          cm.levelAddingUselessLetter,
     );
     _nextProblem!.cooldownScrambleTimer =
         cm.timeBeforeScramblingLetters.inSeconds;
@@ -204,6 +206,10 @@ class GameManager {
     }
     _currentProblem = _nextProblem;
     _nextProblem = null;
+    // Prepare the problem according to the results of the current round
+    if (roundCount < ConfigurationManager.instance.levelAddingUselessLetter) {
+      _currentProblem!.tossUselessLetter();
+    }
 
     // Reinitialize the round timer and players
     _roundDuration = ConfigurationManager.instance.roundDuration.inMilliseconds;

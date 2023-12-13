@@ -14,11 +14,13 @@ const _cooldownPeriodDefault = 15;
 const _cooldownPeriodAfterStealDefault = 30;
 const _timeBeforeScramblingLettersDefault = 15;
 
-const _nbLetterInSmallestWordDefault = 5;
+const _nbLetterInSmallestWordDefault = 4;
 const _minimumWordLetterDefault = 6;
-const _maximumWordLetterDefault = 8;
-const _minimumWordsNumberDefault = 15;
-const _maximumWordsNumberDefault = 25;
+const _maximumWordLetterDefault = 7;
+const _minimumWordsNumberDefault = 25;
+const _maximumWordsNumberDefault = 35;
+
+const _levelAddingUselessLetterDefault = 10;
 
 const _canStealDefault = true;
 
@@ -65,6 +67,7 @@ class ConfigurationManager {
     required int maxLetters,
     required int minimumNbOfWords,
     required int maximumNbOfWords,
+    required bool addUselessLetter,
   }) _problemGenerator = WordProblem.generateFromRandom;
   Future<WordProblem> Function({
     required int nbLetterInSmallestWord,
@@ -72,6 +75,7 @@ class ConfigurationManager {
     required int maxLetters,
     required int minimumNbOfWords,
     required int maximumNbOfWords,
+    required bool addUselessLetter,
   }) get problemGenerator => _problemGenerator;
 
   bool _showAnswersTooltip = _showAnswersTooltipDefault;
@@ -168,6 +172,15 @@ class ConfigurationManager {
     _maximumWordsNumber = value;
 
     _tellGameManagerToRepickProblem();
+    _saveConfiguration();
+  }
+
+  int _levelAddingUselessLetter = _levelAddingUselessLetterDefault;
+  int get levelAddingUselessLetter => _levelAddingUselessLetter;
+  set levelAddingUselessLetter(int value) {
+    if (_levelAddingUselessLetter == value) return;
+    _levelAddingUselessLetter = value;
+
     _saveConfiguration();
   }
 
@@ -270,6 +283,9 @@ class ConfigurationManager {
       _maximumWordsNumber =
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
+      _levelAddingUselessLetter =
+          map['levelAddingUselessLetter'] ?? _levelAddingUselessLetterDefault;
+
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
@@ -297,6 +313,8 @@ class ConfigurationManager {
     _maximumWordLetter = _maximumWordLetterDefault;
     _minimumWordsNumber = _minimumWordsNumberDefault;
     _maximumWordsNumber = _maximumWordsNumberDefault;
+
+    _levelAddingUselessLetter = _levelAddingUselessLetterDefault;
 
     _canSteal = _canStealDefault;
 
