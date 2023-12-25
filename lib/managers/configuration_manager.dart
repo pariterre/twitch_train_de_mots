@@ -230,7 +230,7 @@ class ConfigurationManager {
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
-      'nbLetterInSmallestWoConfigurationManagerrd': nbLetterInSmallestWord,
+      'nbLetterInSmallestWord': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
       'maximumWordLetter': maximumWordLetter,
       'minimumWordsNumber': minimumWordsNumber,
