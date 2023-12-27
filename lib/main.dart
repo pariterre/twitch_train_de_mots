@@ -18,7 +18,8 @@ void main() async {
 
   if (_useDatabaseMock) {
     await DatabaseManagerMock.initialize(
-      dummyIsLoggedIn: true,
+      dummyIsSignedIn: false,
+      emailIsVerified: false,
       dummyResults: {
         'Les Verts': 3,
         'Les Oranges': 6,

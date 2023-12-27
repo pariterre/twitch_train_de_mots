@@ -57,7 +57,7 @@ class GameManager {
   static Future<void> initialize() async {
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
-          "GameManager should not be initialized twice");
+          'GameManager should not be initialized twice');
     }
     GameManager._instance = GameManager._internal();
 
@@ -127,7 +127,7 @@ class GameManager {
   static GameManager get instance {
     if (_instance == null) {
       throw ManagerNotInitializedException(
-          "GameManager must be initialized before being used");
+          'GameManager must be initialized before being used');
     }
     return _instance!;
   }
@@ -409,7 +409,7 @@ class GameManagerMock extends GameManager {
   }) async {
     if (GameManager._instance != null) {
       throw ManagerAlreadyInitializedException(
-          "GameManager should not be initialized twice");
+          'GameManager should not be initialized twice');
     }
 
     GameManager._instance = GameManagerMock._internal();

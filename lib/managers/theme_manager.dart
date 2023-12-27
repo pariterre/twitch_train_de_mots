@@ -18,7 +18,7 @@ class ThemeManager {
   static ThemeManager get instance {
     if (_instance == null) {
       throw ManagerNotInitializedException(
-          "ThemeManager must be initialized before being used");
+          'ThemeManager must be initialized before being used');
     }
     return _instance!;
   }
@@ -26,7 +26,7 @@ class ThemeManager {
   static Future<void> initialize() async {
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
-          "ThemeManager should not be initialized twice");
+          'ThemeManager should not be initialized twice');
     }
     ThemeManager._instance = ThemeManager._internal();
   }

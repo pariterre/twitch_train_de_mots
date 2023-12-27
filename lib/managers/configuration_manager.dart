@@ -33,7 +33,7 @@ class ConfigurationManager {
   static ConfigurationManager get instance {
     if (_instance == null) {
       throw ManagerNotInitializedException(
-          "ConfigurationManager must be initialized before being used");
+          'ConfigurationManager must be initialized before being used');
     }
     return _instance!;
   }
@@ -44,7 +44,7 @@ class ConfigurationManager {
   static Future<void> initialize() async {
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
-          "ConfigurationManager should not be initialized twice");
+          'ConfigurationManager should not be initialized twice');
     }
     _instance = ConfigurationManager._internal();
 

@@ -135,6 +135,24 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   String? _password;
   String? _teamName;
 
+  @override
+  void initState() {
+    super.initState();
+
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final dm = DatabaseManager.instance;
+    dm.onLoggedIn.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
   Future<void> _logIn() async {
     if (!_validateForm()) return;
 
@@ -181,11 +199,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
-
-    final border = OutlineInputBorder(
-      borderSide: BorderSide(color: tm.mainColor),
-      borderRadius: BorderRadius.circular(10),
-    );
+    final dm = DatabaseManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -212,110 +226,151 @@ class _ConnexionTileState extends State<_ConnexionTile> {
                     )),
               ),
               const SizedBox(height: 12.0),
+              if (!dm.isSignedIn) _loginBuild(),
+              if (dm.isSignedIn && !dm.isEmailVerified)
+                _waitingForEmailVerification(),
+              if (dm.isLoggedIn) Container()
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _loginBuild() {
+    final tm = ThemeManager.instance;
+
+    final border = OutlineInputBorder(
+      borderSide: BorderSide(color: tm.mainColor),
+      borderRadius: BorderRadius.circular(10),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Courriel',
+            labelStyle: TextStyle(color: tm.mainColor),
+            focusedBorder: border,
+            border: border,
+            prefixIcon: const Icon(Icons.email),
+          ),
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer un courriel';
+            }
+            RegExp emailRegex =
+                RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+            if (!emailRegex.hasMatch(value)) {
+              return 'Veuillez entrer un courriel valide';
+            }
+
+            return null;
+          },
+          onSaved: (value) => _email = value,
+        ),
+        if (!_isLoggingIn)
+          Column(
+            children: [
+              const SizedBox(height: 12.0),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'Courriel',
+                  labelText: 'Nom de l\'équipe',
                   labelStyle: TextStyle(color: tm.mainColor),
                   focusedBorder: border,
                   border: border,
-                  prefixIcon: const Icon(Icons.email),
+                  prefixIcon: const Icon(Icons.group),
                 ),
-                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un courriel';
+                    return 'Veuillez entrer un nom d\'équipe';
                   }
-                  RegExp emailRegex =
-                      RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
-                  if (!emailRegex.hasMatch(value)) {
-                    return 'Veuillez entrer un courriel valide';
+
+                  if (value.length < 4) {
+                    return 'Le nom de l\'équipe doit contenir au moins 4 caractères';
                   }
 
                   return null;
                 },
-                onSaved: (value) => _email = value,
-              ),
-              if (!_isLoggingIn)
-                Column(
-                  children: [
-                    const SizedBox(height: 12.0),
-                    TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'Nom de l\'équipe',
-                        labelStyle: TextStyle(color: tm.mainColor),
-                        focusedBorder: border,
-                        border: border,
-                        prefixIcon: const Icon(Icons.group),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer un nom d\'équipe';
-                        }
-
-                        if (value.length < 4) {
-                          return 'Le nom de l\'équipe doit contenir au moins 4 caractères';
-                        }
-
-                        return null;
-                      },
-                      onSaved: (value) => _teamName = value,
-                    ),
-                  ],
-                ),
-              const SizedBox(height: 12.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Mot de passe',
-                  labelStyle: TextStyle(color: tm.mainColor),
-                  focusedBorder: border,
-                  border: border,
-                  prefixIcon: const Icon(Icons.lock),
-                ),
-                obscureText: true,
-                enableSuggestions: false,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un mot de passe';
-                  }
-
-                  if (value.length < 6) {
-                    return 'Le mot de passe doit contenir au moins 6 caractères';
-                  }
-
-                  return null;
-                },
-                onSaved: (value) => _password = value,
-              ),
-              const SizedBox(height: 24.0),
-              Center(
-                child: ThemedElevatedButton(
-                  onPressed: _isLoggingIn ? _logIn : _signIn,
-                  reversedStyle: true,
-                  buttonText: _isLoggingIn
-                      ? 'Embarquer dans le train!'
-                      : 'Embaucher mon équipe',
-                ),
-              ),
-              const SizedBox(height: 12.0),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _isLoggingIn = !_isLoggingIn;
-                    });
-                  },
-                  child: Text(
-                      _isLoggingIn
-                          ? 'Inscrire une nouvelle équipe'
-                          : 'J\'ai déjà mon équipe',
-                      style: TextStyle(
-                        color: tm.mainColor,
-                        fontSize: 18,
-                      )),
-                ),
+                onSaved: (value) => _teamName = value,
               ),
             ],
           ),
+        const SizedBox(height: 12.0),
+        TextFormField(
+          decoration: InputDecoration(
+            labelText: 'Mot de passe',
+            labelStyle: TextStyle(color: tm.mainColor),
+            focusedBorder: border,
+            border: border,
+            prefixIcon: const Icon(Icons.lock),
+          ),
+          obscureText: true,
+          enableSuggestions: false,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Veuillez entrer un mot de passe';
+            }
+
+            if (value.length < 6) {
+              return 'Le mot de passe doit contenir au moins 6 caractères';
+            }
+
+            return null;
+          },
+          onSaved: (value) => _password = value,
+        ),
+        const SizedBox(height: 24.0),
+        Center(
+          child: ThemedElevatedButton(
+            onPressed: _isLoggingIn ? _logIn : _signIn,
+            reversedStyle: true,
+            buttonText: _isLoggingIn
+                ? 'Embarquer dans le train!'
+                : 'Embaucher mon équipe',
+          ),
+        ),
+        const SizedBox(height: 12.0),
+        Center(
+          child: TextButton(
+            onPressed: () => setState(() => _isLoggingIn = !_isLoggingIn),
+            child: Text(
+                _isLoggingIn
+                    ? 'Inscrire une nouvelle équipe'
+                    : 'J\'ai déjà mon équipe',
+                style: TextStyle(
+                  color: tm.mainColor,
+                  fontSize: 18,
+                )),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _waitingForEmailVerification() {
+    final tm = ThemeManager.instance;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+                'Svp, valider votre adresse courriel, puis dirigez vous vers le train.',
+                style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
+            const SizedBox(height: 16.0),
+            const ThemedElevatedButton(
+              onPressed: null,
+              reversedStyle: true,
+              buttonText: 'Continuer vers le train',
+            )
+          ],
         ),
       ),
     );

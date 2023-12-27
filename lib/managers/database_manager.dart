@@ -11,7 +11,7 @@ class DatabaseManager {
   static DatabaseManager get instance {
     if (_instance == null) {
       throw ManagerNotInitializedException(
-          "DatabaseManager must be initialized before being used");
+          'DatabaseManager must be initialized before being used');
     }
     return _instance!;
   }
@@ -22,7 +22,7 @@ class DatabaseManager {
   static Future<void> initialize() async {
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
-          "DatabaseManager should not be initialized twice");
+          'DatabaseManager should not be initialized twice');
     }
     _instance = DatabaseManager._internal();
 
@@ -56,13 +56,17 @@ class DatabaseManager {
     }
 
     await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
+
+    // If we get here, we are logged in
     onLoggedIn.notifyListeners();
   }
 
   ///
   /// Return true if the user is logged in
-  bool get isLoggedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isSignedIn => FirebaseAuth.instance.currentUser != null;
+  bool get isLoggedIn => isSignedIn && isEmailVerified;
   bool get isLoggedOut => !isLoggedIn;
+  bool get isEmailVerified => FirebaseAuth.instance.currentUser!.emailVerified;
 
   ///
   /// Log in with the given email and password
@@ -73,12 +77,18 @@ class DatabaseManager {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
         throw AuthenticationException(
-            message: 'Addresse courriel ou mot de passe incorrect');
+            message: 'Adresse courriel ou mot de passe incorrect');
       } else {
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
 
+    if (!isEmailVerified) {
+      throw AuthenticationException(
+          message: 'Veillez vérifier votre adresse courriel');
+    }
+
+    // If we get here, we are logged in
     onLoggedIn.notifyListeners();
   }
 
@@ -187,34 +197,37 @@ class DatabaseManager {
 }
 
 class DatabaseManagerMock extends DatabaseManager {
-  late final bool _dummyIsLoggedIn;
-  late final String _dummyEmail;
-  late final String _dummyTeamName;
-  late final String _dummyPassword;
-  late final Map<String, int> _dummyResults;
+  bool _dummyIsSignedIn = false;
+  String _dummyEmail = 'train@pariterre.net';
+  bool _emailIsVerified = true;
+  String _dummyTeamName = 'Les Bleuets';
+  String _dummyPassword = '123456';
+  Map<String, int> _dummyResults = {};
 
   DatabaseManagerMock._internal() : super._internal();
 
   static Future<void> initialize({
-    bool dummyIsLoggedIn = false,
-    String dummyEmail = 'train@pariterre.net',
-    String dummyTeamName = 'Les Bleuets',
-    String dummyPassword = '123456',
+    bool? dummyIsSignedIn,
+    String? dummyEmail,
+    bool? emailIsVerified,
+    String? dummyTeamName,
+    String? dummyPassword,
     Map<String, int>? dummyResults,
   }) async {
     if (DatabaseManager._instance != null) {
       throw ManagerAlreadyInitializedException(
-          "DatabaseManager should not be initialized twice");
+          'DatabaseManager should not be initialized twice');
     }
 
     DatabaseManager._instance = DatabaseManagerMock._internal();
 
     final mock = DatabaseManager._instance as DatabaseManagerMock;
-    mock._dummyIsLoggedIn = dummyIsLoggedIn;
-    mock._dummyEmail = dummyEmail;
-    mock._dummyTeamName = dummyTeamName;
-    mock._dummyPassword = dummyPassword;
-    mock._dummyResults = dummyResults ?? {};
+    mock._dummyIsSignedIn = dummyIsSignedIn ?? mock._dummyIsSignedIn;
+    mock._dummyEmail = dummyEmail ?? mock._dummyEmail;
+    mock._emailIsVerified = emailIsVerified ?? mock._emailIsVerified;
+    mock._dummyTeamName = dummyTeamName ?? mock._dummyTeamName;
+    mock._dummyPassword = dummyPassword ?? mock._dummyPassword;
+    mock._dummyResults = dummyResults ?? mock._dummyResults;
   }
 
   ///////////////////////
@@ -237,7 +250,7 @@ class DatabaseManagerMock extends DatabaseManager {
     _dummyEmail = email;
     _dummyTeamName = teamName;
     _dummyPassword = password;
-    _dummyIsLoggedIn = true;
+    _dummyIsSignedIn = true;
     onLoggedIn.notifyListeners();
   }
 
@@ -250,18 +263,21 @@ class DatabaseManagerMock extends DatabaseManager {
       throw AuthenticationException(
           message: 'Addresse courriel ou mot de passe incorrect');
     }
-    _dummyIsLoggedIn = true;
+    _dummyIsSignedIn = true;
     onLoggedIn.notifyListeners();
   }
 
   @override
   Future<void> logOut() async {
-    _dummyIsLoggedIn = false;
+    _dummyIsSignedIn = false;
     onLoggedOut.notifyListeners();
   }
 
   @override
-  bool get isLoggedIn => _dummyIsLoggedIn;
+  bool get isSignedIn => _dummyIsSignedIn;
+
+  @override
+  bool get isEmailVerified => _emailIsVerified;
 
   ////////////////////////////////
   //// COMMUNICATION MOCKINGS ////
