@@ -217,7 +217,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Text(
-                    'Ô Capitaine! J\'ai une mission pour vous sur le Petit Train du Nord! '
+                    'Ô Cheminot\u2022te! J\'ai une mission pour vous sur le Petit Train du Nord! '
                     'Mais avant toute chose, veuillez identifier votre équipe!',
                     style: TextStyle(
                       fontSize: 24.0,
@@ -270,6 +270,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
             return null;
           },
+          onChanged: (value) => _email = value,
           onSaved: (value) => _email = value,
         ),
         if (!_isLoggingIn)
@@ -347,6 +348,32 @@ class _ConnexionTileState extends State<_ConnexionTile> {
                 )),
           ),
         ),
+        if (_isLoggingIn)
+          Center(
+            child: TextButton(
+              onPressed: () {
+                late final String message;
+                if (_email == null) {
+                  message = 'Veuillez indiquer un courriel';
+                } else {
+                  DatabaseManager.instance.resetPassword(_email!);
+                  message =
+                      'Un courriel vous a été envoyé pour réinitialiser votre mot de passe';
+                }
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(message,
+                      style: TextStyle(
+                          color: tm.mainColor, fontWeight: FontWeight.bold)),
+                  backgroundColor: Colors.white,
+                ));
+              },
+              child: Text('Mot de passe oublié?',
+                  style: TextStyle(
+                    color: tm.mainColor,
+                    fontSize: 18,
+                  )),
+            ),
+          ),
       ],
     );
   }
@@ -354,25 +381,13 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   Widget _waitingForEmailVerification() {
     final tm = ThemeManager.instance;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-                'Svp, valider votre adresse courriel, puis dirigez vous vers le train.',
-                style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
-            const SizedBox(height: 16.0),
-            const ThemedElevatedButton(
-              onPressed: null,
-              reversedStyle: true,
-              buttonText: 'Continuer vers le train',
-            )
-          ],
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0, left: 32.0, right: 32.0),
+      child: Text(
+          'Svp, valider votre adresse courriel; vous serez automatiquement '
+          'redirigé\u2022e vers le train par la suite.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
     );
   }
 }

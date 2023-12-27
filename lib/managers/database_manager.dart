@@ -57,6 +57,10 @@ class DatabaseManager {
 
     await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
 
+    // Launch the waiting for email verification, do not wait for it to finish
+    // because the UI need to update
+    _waitForEmailVerification();
+
     // If we get here, we are logged in
     onLoggedIn.notifyListeners();
   }
@@ -88,6 +92,10 @@ class DatabaseManager {
           message: 'Veillez vérifier votre adresse courriel');
     }
 
+    // Launch the waiting for email verification, do not wait for it to finish
+    // because the UI need to update
+    _waitForEmailVerification();
+
     // If we get here, we are logged in
     onLoggedIn.notifyListeners();
   }
@@ -97,6 +105,21 @@ class DatabaseManager {
   Future<void> logOut() async {
     await FirebaseAuth.instance.signOut();
     onLoggedOut.notifyListeners();
+  }
+
+  ///
+  /// Send a password reset email to the given email
+  void resetPassword(String email) async {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+  }
+
+  ///
+  /// Wait for the email to be verified by the user
+  void _waitForEmailVerification() async {
+    while (!isEmailVerified) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      await FirebaseAuth.instance.currentUser!.reload();
+    }
   }
 
   /////////////////////////////////////////
@@ -271,6 +294,11 @@ class DatabaseManagerMock extends DatabaseManager {
   Future<void> logOut() async {
     _dummyIsSignedIn = false;
     onLoggedOut.notifyListeners();
+  }
+
+  @override
+  void resetPassword(String email) {
+    // Do nothing
   }
 
   @override
