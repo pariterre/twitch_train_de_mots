@@ -140,7 +140,11 @@ class DatabaseManager {
       FirebaseAuth.instance.currentUser!.sendEmailVerification();
 
       while (FirebaseAuth.instance.currentUser != null && !isEmailVerified) {
-        await FirebaseAuth.instance.currentUser!.reload();
+        try {
+          await FirebaseAuth.instance.currentUser!.reload();
+        } catch (_) {
+          // pass
+        }
         await Future.delayed(const Duration(milliseconds: 500));
       }
 

@@ -132,6 +132,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   final _teamNameFormKey = GlobalKey<FormState>();
   bool _isTeamNameIsAlreadyUsed = false;
   bool _isLoggingIn = true;
+  bool get _isSigningIn => !_isLoggingIn;
 
   String? _email;
   String? _password;
@@ -292,6 +293,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           ),
           obscureText: true,
           enableSuggestions: false,
+          onChanged: (value) => _password = value,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Veuillez entrer un mot de passe';
@@ -305,6 +307,37 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           },
           onSaved: (value) => _password = value,
         ),
+        if (_isSigningIn)
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 12.0),
+                TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'Confirmer le mot de passe',
+                    labelStyle: TextStyle(color: tm.mainColor),
+                    focusedBorder: border,
+                    border: border,
+                    prefixIcon: const Icon(Icons.lock),
+                  ),
+                  obscureText: true,
+                  enableSuggestions: false,
+                  validator: (value) {
+                    if (_isLoggingIn) return null;
+
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer un mot de passe';
+                    }
+
+                    if (value != _password) {
+                      return 'Les mots de passe ne correspondent pas';
+                    }
+
+                    return null;
+                  },
+                ),
+              ]),
         const SizedBox(height: 24.0),
         Center(
           child: ThemedElevatedButton(
