@@ -34,15 +34,15 @@ class DatabaseManager {
   //// AUTH RELATED FUNCTIONS ////
   ////////////////////////////////
 
+  final onEmailVerified = CustomCallback();
+  final onTeamNameSet = CustomCallback();
   final onLoggedIn = CustomCallback();
+  final onFullyLoggedIn = CustomCallback();
   final onLoggedOut = CustomCallback();
 
   ///
   /// Create a new user with the given email and password
-  Future<void> signIn(
-      {required String email,
-      required String teamName,
-      required String password}) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
       await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -55,22 +55,37 @@ class DatabaseManager {
       }
     }
 
-    await FirebaseAuth.instance.currentUser!.updateDisplayName(teamName);
-
-    // Launch the waiting for email verification, do not wait for it to finish
-    // because the UI need to update
-    _waitForEmailVerification();
-
-    // If we get here, we are logged in
-    onLoggedIn.notifyListeners();
+    _finalizeLoggingIn();
   }
 
   ///
   /// Return true if the user is logged in
   bool get isSignedIn => FirebaseAuth.instance.currentUser != null;
-  bool get isLoggedIn => isSignedIn && isEmailVerified;
+  bool get isLoggedIn => isSignedIn && isEmailVerified && hasTeamName;
   bool get isLoggedOut => !isLoggedIn;
-  bool get isEmailVerified => FirebaseAuth.instance.currentUser!.emailVerified;
+  bool get isEmailVerified =>
+      FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+  bool get hasTeamName =>
+      FirebaseAuth.instance.currentUser?.displayName != null;
+
+  ///
+  /// Set the team name for the current user
+  Future<void> setTeamName(String name) async {
+    // Make sure it is not already taken
+    final teamNames = await _teamsCollection.get();
+    if (teamNames.docs
+        .any((element) => element.id.toLowerCase() == name.toLowerCase())) {
+      throw AuthenticationException(message: 'Ce nom d\'équipe existe déjà...');
+    }
+
+    // Adds it to the database
+    await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
+    await _teamsCollection.doc(name).set({});
+
+    // Notify the listeners
+    onTeamNameSet.notifyListeners();
+    _notifyIfFullyLoggedIn();
+  }
 
   ///
   /// Log in with the given email and password
@@ -87,17 +102,7 @@ class DatabaseManager {
       }
     }
 
-    if (!isEmailVerified) {
-      throw AuthenticationException(
-          message: 'Veillez vérifier votre adresse courriel');
-    }
-
-    // Launch the waiting for email verification, do not wait for it to finish
-    // because the UI need to update
-    _waitForEmailVerification();
-
-    // If we get here, we are logged in
-    onLoggedIn.notifyListeners();
+    _finalizeLoggingIn();
   }
 
   ///
@@ -105,6 +110,21 @@ class DatabaseManager {
   Future<void> logOut() async {
     await FirebaseAuth.instance.signOut();
     onLoggedOut.notifyListeners();
+  }
+
+  void _finalizeLoggingIn() {
+    // Launch the waiting for email verification, do not wait for it to finish
+    // because the UI need to update
+    _checkForEmailVerification();
+
+    onLoggedIn.notifyListeners();
+    _notifyIfFullyLoggedIn();
+  }
+
+  void _notifyIfFullyLoggedIn() {
+    if (isEmailVerified && hasTeamName) {
+      onFullyLoggedIn.notifyListeners();
+    }
   }
 
   ///
@@ -115,16 +135,41 @@ class DatabaseManager {
 
   ///
   /// Wait for the email to be verified by the user
-  void _waitForEmailVerification() async {
-    while (!isEmailVerified) {
-      await Future.delayed(const Duration(milliseconds: 500));
-      await FirebaseAuth.instance.currentUser!.reload();
+  Future<void> _checkForEmailVerification() async {
+    if (!isEmailVerified) {
+      FirebaseAuth.instance.currentUser!.sendEmailVerification();
+
+      while (FirebaseAuth.instance.currentUser != null && !isEmailVerified) {
+        await FirebaseAuth.instance.currentUser!.reload();
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
+      if (FirebaseAuth.instance.currentUser == null) {
+        throw AuthenticationException(
+            message: 'L\'utilisateur s\'est déconnecté');
+      }
     }
+
+    onEmailVerified.notifyListeners();
+    _notifyIfFullyLoggedIn();
   }
 
   /////////////////////////////////////////
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
+
+  ///
+  /// Returns the collection of results
+  CollectionReference<Map<String, dynamic>> get _resultsCollection =>
+      FirebaseFirestore.instance
+          .collection('results')
+          .doc('v1.0.0')
+          .collection('teams');
+
+  CollectionReference<Map<String, dynamic>> get _teamsCollection =>
+      FirebaseFirestore.instance.collection('teams');
+
+  static const String bestStationKey = 'bestStation';
 
   ///
   /// Returns the name of the current team
@@ -136,14 +181,12 @@ class DatabaseManager {
     late final List<QueryDocumentSnapshot<Map<String, dynamic>>> results;
 
     if (ordered) {
-      results = (await FirebaseFirestore.instance
-              .collection('stations')
-              .orderBy('station', descending: true)
+      results = (await _resultsCollection
+              .orderBy(bestStationKey, descending: true)
               .get())
           .docs;
     } else {
-      results =
-          (await FirebaseFirestore.instance.collection('stations').get()).docs;
+      results = (await _resultsCollection.get()).docs;
     }
     return results.map((e) => TeamResult.fromFirebaseQuery(e)).toList();
   }
@@ -151,18 +194,14 @@ class DatabaseManager {
   ///
   /// Returns the best result for a given team
   Future<TeamResult> _getBestResultOfATeam(String name) async =>
-      TeamResult.fromFirebaseQuery(await FirebaseFirestore.instance
-          .collection('stations')
-          .doc(name)
-          .get());
+      TeamResult.fromFirebaseQuery(await _resultsCollection.doc(name).get());
 
   ///
   /// Send a new score to the database
   Future<void> _putNewResultForATeam(TeamResult result) async =>
-      await FirebaseFirestore.instance
-          .collection('stations')
+      await _resultsCollection
           .doc(result.name)
-          .set({'station': result.station});
+          .set({bestStationKey: result.station});
 
   ////////////////////////////////
   //// GAME RELATED FUNCTIONS ////
@@ -263,7 +302,6 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   Future<void> signIn({
     required String email,
-    required String teamName,
     required String password,
   }) async {
     if (email == _dummyEmail) {
@@ -271,10 +309,10 @@ class DatabaseManagerMock extends DatabaseManager {
     }
 
     _dummyEmail = email;
-    _dummyTeamName = teamName;
     _dummyPassword = password;
     _dummyIsSignedIn = true;
-    onLoggedIn.notifyListeners();
+
+    _finalizeLoggingIn();
   }
 
   @override
@@ -287,13 +325,26 @@ class DatabaseManagerMock extends DatabaseManager {
           message: 'Addresse courriel ou mot de passe incorrect');
     }
     _dummyIsSignedIn = true;
-    onLoggedIn.notifyListeners();
+
+    _finalizeLoggingIn();
   }
 
   @override
   Future<void> logOut() async {
     _dummyIsSignedIn = false;
     onLoggedOut.notifyListeners();
+  }
+
+  @override
+  Future<void> _checkForEmailVerification() async {
+    if (!isEmailVerified) {
+      // Simulate the time it takes to verify the email
+      await Future.delayed(const Duration(seconds: 5));
+    }
+
+    _emailIsVerified = true;
+    onEmailVerified.notifyListeners();
+    _notifyIfFullyLoggedIn();
   }
 
   @override
@@ -306,6 +357,20 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   bool get isEmailVerified => _emailIsVerified;
+
+  @override
+  bool get hasTeamName => true;
+
+  @override
+  Future<void> setTeamName(String name) async {
+    if (_dummyResults.containsKey(name)) {
+      throw AuthenticationException(message: 'Ce nom d\'équipe existe déjà...');
+    }
+
+    _dummyTeamName = name;
+    onTeamNameSet.notifyListeners();
+    _notifyIfFullyLoggedIn();
+  }
 
   ////////////////////////////////
   //// COMMUNICATION MOCKINGS ////

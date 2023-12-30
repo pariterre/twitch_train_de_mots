@@ -40,7 +40,7 @@ class _MainScreenState extends State<MainScreen> {
     tm.onChanged.addListener(_refresh);
 
     final dm = DatabaseManager.instance;
-    dm.onLoggedIn.addListener(_refresh);
+    dm.onFullyLoggedIn.addListener(_refresh);
     dm.onLoggedOut.addListener(_refresh);
   }
 
@@ -58,7 +58,7 @@ class _MainScreenState extends State<MainScreen> {
     tm.onChanged.removeListener(_refresh);
 
     final dm = DatabaseManager.instance;
-    dm.onLoggedIn.removeListener(_refresh);
+    dm.onFullyLoggedIn.removeListener(_refresh);
     dm.onLoggedOut.removeListener(_refresh);
 
     super.dispose();

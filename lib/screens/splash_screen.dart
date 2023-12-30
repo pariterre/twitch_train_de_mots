@@ -128,7 +128,9 @@ class _ConnexionTile extends StatefulWidget {
 }
 
 class _ConnexionTileState extends State<_ConnexionTile> {
-  final _formKey = GlobalKey<FormState>();
+  final _credidentialsFormKey = GlobalKey<FormState>();
+  final _teamNameFormKey = GlobalKey<FormState>();
+  bool _isTeamNameIsAlreadyUsed = false;
   bool _isLoggingIn = true;
 
   String? _email;
@@ -141,6 +143,9 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
     final dm = DatabaseManager.instance;
     dm.onLoggedIn.addListener(_refresh);
+    dm.onEmailVerified.addListener(_refresh);
+    dm.onTeamNameSet.addListener(_refresh);
+    dm.onLoggedOut.addListener(_refresh);
   }
 
   @override
@@ -149,12 +154,15 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
     final dm = DatabaseManager.instance;
     dm.onLoggedIn.removeListener(_refresh);
+    dm.onEmailVerified.removeListener(_refresh);
+    dm.onTeamNameSet.removeListener(_refresh);
+    dm.onLoggedOut.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
 
   Future<void> _logIn() async {
-    if (!_validateForm()) return;
+    if (!_validateForm(_credidentialsFormKey)) return;
 
     try {
       await DatabaseManager.instance
@@ -165,14 +173,11 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Future<void> _signIn() async {
-    if (!_validateForm()) return;
+    if (!_validateForm(_credidentialsFormKey)) return;
 
     try {
-      await DatabaseManager.instance.signIn(
-        email: _email!,
-        password: _password!,
-        teamName: _teamName!,
-      );
+      await DatabaseManager.instance
+          .signIn(email: _email!, password: _password!);
     } on AuthenticationException catch (e) {
       _showError(e.message);
     }
@@ -188,11 +193,11 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     ));
   }
 
-  bool _validateForm() {
-    if (_formKey.currentState == null) return false;
-    if (!_formKey.currentState!.validate()) return false;
+  bool _validateForm(formKey) {
+    if (formKey.currentState == null) return false;
+    if (!formKey.currentState!.validate()) return false;
 
-    _formKey.currentState!.save();
+    formKey.currentState!.save();
     return true;
   }
 
@@ -207,7 +212,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           color: Colors.white.withOpacity(0.95)),
       width: 650,
       child: Form(
-        key: _formKey,
+        key: _credidentialsFormKey,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -228,7 +233,9 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               const SizedBox(height: 12.0),
               if (!dm.isSignedIn) _loginBuild(),
               if (dm.isSignedIn && !dm.isEmailVerified)
-                _waitingForEmailVerification(),
+                _buildWaitingForEmailVerification(),
+              if (dm.isSignedIn && dm.isEmailVerified && !dm.hasTeamName)
+                _buildChosingTeamName(),
               if (dm.isLoggedIn) Container()
             ],
           ),
@@ -262,6 +269,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
             if (value == null || value.isEmpty) {
               return 'Veuillez entrer un courriel';
             }
+
             RegExp emailRegex =
                 RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
             if (!emailRegex.hasMatch(value)) {
@@ -273,33 +281,6 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           onChanged: (value) => _email = value,
           onSaved: (value) => _email = value,
         ),
-        if (!_isLoggingIn)
-          Column(
-            children: [
-              const SizedBox(height: 12.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Nom de l\'équipe',
-                  labelStyle: TextStyle(color: tm.mainColor),
-                  focusedBorder: border,
-                  border: border,
-                  prefixIcon: const Icon(Icons.group),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez entrer un nom d\'équipe';
-                  }
-
-                  if (value.length < 4) {
-                    return 'Le nom de l\'équipe doit contenir au moins 4 caractères';
-                  }
-
-                  return null;
-                },
-                onSaved: (value) => _teamName = value,
-              ),
-            ],
-          ),
         const SizedBox(height: 12.0),
         TextFormField(
           decoration: InputDecoration(
@@ -378,7 +359,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     );
   }
 
-  Widget _waitingForEmailVerification() {
+  Widget _buildWaitingForEmailVerification() {
     final tm = ThemeManager.instance;
 
     return Padding(
@@ -388,6 +369,76 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           'redirigé\u2022e vers le train par la suite.',
           textAlign: TextAlign.center,
           style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
+    );
+  }
+
+  Widget _buildChosingTeamName() {
+    final tm = ThemeManager.instance;
+
+    final border = OutlineInputBorder(
+      borderSide: BorderSide(color: tm.mainColor),
+      borderRadius: BorderRadius.circular(10),
+    );
+
+    return Column(
+      children: [
+        Text(
+            'Dernière chose avant de partir, quel est le nom de votre équipe de cheminot\u2022te\u2022s?',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
+        const SizedBox(height: 24.0),
+        SizedBox(
+          width: 400,
+          child: Form(
+            key: _teamNameFormKey,
+            child: TextFormField(
+              decoration: InputDecoration(
+                labelText: 'Nom de l\'équipe',
+                labelStyle: TextStyle(color: tm.mainColor),
+                focusedBorder: border,
+                border: border,
+                prefixIcon: const Icon(Icons.group),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez entrer un nom d\'équipe';
+                }
+                if (_isTeamNameIsAlreadyUsed) {
+                  return 'Ce nom d\'équipe est déjà utilisé';
+                }
+
+                if (value.length < 4) {
+                  return 'Le nom de l\'équipe doit contenir au moins 4 caractères';
+                }
+
+                return null;
+              },
+              onChanged: (value) => _isTeamNameIsAlreadyUsed = false,
+              onSaved: (value) => _teamName = value,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24.0),
+        Center(
+          child: ThemedElevatedButton(
+            onPressed: () async {
+              if (!_validateForm(_teamNameFormKey)) return;
+
+              try {
+                await DatabaseManager.instance.setTeamName(_teamName!);
+              } on AuthenticationException catch (e) {
+                _showError(e.message);
+
+                _isTeamNameIsAlreadyUsed = true;
+                _validateForm(_teamNameFormKey);
+              }
+            },
+            reversedStyle: true,
+            buttonText: 'Embarquer dans le train!',
+          ),
+        ),
+        const SizedBox(height: 12.0),
+      ],
     );
   }
 }

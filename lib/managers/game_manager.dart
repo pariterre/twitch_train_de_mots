@@ -77,7 +77,7 @@ class GameManager {
     // Make sure the game don't run if the player is not logged in
     final dm = DatabaseManager.instance;
     dm.onLoggedOut.addListener(() => requestTerminateRound());
-    dm.onLoggedIn.addListener(() {
+    dm.onFullyLoggedIn.addListener(() {
       if (gameStatus != GameStatus.initializing) _startNewRound();
     });
   }
