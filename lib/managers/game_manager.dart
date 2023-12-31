@@ -103,7 +103,7 @@ class GameManager {
   SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
   bool get hasHiddenLetter =>
-      roundCount >= ConfigurationManager.instance.levelWithHiddenLetter;
+      ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter;
 
   /// --------- ///
   /// CALLBACKS ///
@@ -176,8 +176,9 @@ class GameManager {
       maxLetters: cm.maximumWordLetter,
       minimumNbOfWords: cm.minimumWordsNumber,
       maximumNbOfWords: cm.maximumWordsNumber,
-      addUselessLetter: _roundCount + SuccessLevel.threeStars.toInt() >=
-          cm.levelAddingUselessLetter,
+      addUselessLetter: ConfigurationManager.instance
+          .difficulty(_roundCount + SuccessLevel.threeStars.toInt())
+          .hasHiddenLetter,
     );
 
     _isSearchingNextProblem = false;
@@ -212,7 +213,7 @@ class GameManager {
     _currentProblem = _nextProblem;
     _nextProblem = null;
     // Prepare the problem according to the results of the current round
-    if (roundCount < cm.levelAddingUselessLetter) {
+    if (!cm.difficulty(_roundCount).hasHiddenLetter) {
       _currentProblem!.tossUselessLetter();
     }
 
@@ -377,7 +378,7 @@ class GameManager {
         _currentProblem!.areAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
-    _successLevel = _computeSuccessLevel();
+    _successLevel = completedLevel;
     _roundCount += _successLevel!.toInt();
 
     _forceEndTheRound = false;
@@ -391,15 +392,40 @@ class GameManager {
     onRoundIsOver.notifyListeners();
   }
 
-  SuccessLevel _computeSuccessLevel() {
-    if (problem!.currentScore < problem!.maximumScore ~/ 3) {
+  SuccessLevel get completedLevel {
+    if (problem!.currentScore < _pointsToObtain(SuccessLevel.oneStar)) {
       return SuccessLevel.failed;
-    } else if (problem!.currentScore < problem!.maximumScore * 1 ~/ 2) {
+    } else if (problem!.currentScore < _pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.oneStar;
-    } else if (problem!.currentScore < problem!.maximumScore * 3 ~/ 4) {
+    } else if (problem!.currentScore <
+        _pointsToObtain(SuccessLevel.threeStars)) {
       return SuccessLevel.twoStars;
     } else {
       return SuccessLevel.threeStars;
+    }
+  }
+
+  int remainingPointsToNextLevel() {
+    final currentLevel = completedLevel;
+    if (currentLevel == SuccessLevel.threeStars) return 0;
+
+    final nextLevel = SuccessLevel.values[currentLevel.index + 1];
+    return _pointsToObtain(nextLevel);
+  }
+
+  int _pointsToObtain(SuccessLevel level) {
+    final difficulty = ConfigurationManager.instance.difficulty(roundCount);
+
+    final maxScore = problem!.maximumScore;
+    switch (level) {
+      case SuccessLevel.oneStar:
+        return (maxScore * difficulty.thresholdFactorOneStar).toInt();
+      case SuccessLevel.twoStars:
+        return (maxScore * difficulty.thresholdFactorTwoStars).toInt();
+      case SuccessLevel.threeStars:
+        return (maxScore * difficulty.thresholdFactorThreeStars).toInt();
+      case SuccessLevel.failed:
+        throw Exception('Failed is not a valid level');
     }
   }
 }

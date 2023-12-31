@@ -3,15 +3,16 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 
 const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
 
-const _roundDurationDefault = 180;
-const _cooldownPeriodDefault = 15;
-const _cooldownPeriodAfterStealDefault = 30;
+const _roundDurationDefault = 120;
+const _cooldownPeriodDefault = 12;
+const _cooldownPeriodAfterStealDefault = 25;
 const _timeBeforeScramblingLettersDefault = 15;
 
 const _nbLetterInSmallestWordDefault = 4;
@@ -20,7 +21,7 @@ const _maximumWordLetterDefault = 7;
 const _minimumWordsNumberDefault = 25;
 const _maximumWordsNumberDefault = 35;
 
-const _levelAddingUselessLetterDefault = 10;
+const _stealingPenaltyFactorDefault = 2;
 
 const _canStealDefault = true;
 
@@ -175,11 +176,11 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _levelAddingUselessLetter = _levelAddingUselessLetterDefault;
-  int get levelAddingUselessLetter => _levelAddingUselessLetter;
-  set levelAddingUselessLetter(int value) {
-    if (_levelAddingUselessLetter == value) return;
-    _levelAddingUselessLetter = value;
+  int _stealingPenaltyFactor = _stealingPenaltyFactorDefault;
+  int get stealingPenaltyFactor => _stealingPenaltyFactor;
+  set stealingPenaltyFactor(int value) {
+    if (_stealingPenaltyFactor == value) return;
+    _stealingPenaltyFactor = value;
 
     _saveConfiguration();
   }
@@ -283,8 +284,8 @@ class ConfigurationManager {
       _maximumWordsNumber =
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
-      _levelAddingUselessLetter =
-          map['levelAddingUselessLetter'] ?? _levelAddingUselessLetterDefault;
+      _stealingPenaltyFactor =
+          map['stealingPenaltyFactor'] ?? _stealingPenaltyFactorDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
@@ -314,7 +315,7 @@ class ConfigurationManager {
     _minimumWordsNumber = _minimumWordsNumberDefault;
     _maximumWordsNumber = _maximumWordsNumberDefault;
 
-    _levelAddingUselessLetter = _levelAddingUselessLetterDefault;
+    _stealingPenaltyFactor = _stealingPenaltyFactorDefault;
 
     _canSteal = _canStealDefault;
 
@@ -324,6 +325,65 @@ class ConfigurationManager {
     _tellGameManagerToRepickProblem();
     _saveConfiguration();
   }
+
+  Difficulty difficulty(int level) {
+    // The difficulty is equal to the closest difficulty level in the map down below
+    final difficultyLevel =
+        _difficulties.keys.firstWhere((index) => index >= level);
+    return _difficulties[difficultyLevel]!;
+  }
+
+  static const _difficulties = {
+    1: Difficulty(
+      thresholdFactorOneStar: 0.35,
+      thresholdFactorTwoStars: 0.5,
+      thresholdFactorThreeStars: 0.75,
+      hasUselessLetter: false,
+      hasHiddenLetter: false,
+    ),
+    4: Difficulty(
+      thresholdFactorOneStar: 0.45,
+      thresholdFactorTwoStars: 0.65,
+      thresholdFactorThreeStars: 0.8,
+      hasUselessLetter: false,
+      hasHiddenLetter: false,
+    ),
+    8: Difficulty(
+      thresholdFactorOneStar: 0.5,
+      thresholdFactorTwoStars: 0.75,
+      thresholdFactorThreeStars: 0.85,
+      hasUselessLetter: true,
+      hasHiddenLetter: false,
+    ),
+    12: Difficulty(
+      thresholdFactorOneStar: 0.5,
+      thresholdFactorTwoStars: 0.75,
+      thresholdFactorThreeStars: 0.85,
+      hasUselessLetter: true,
+      hasHiddenLetter: true,
+    ),
+    15: Difficulty(
+      thresholdFactorOneStar: 0.65,
+      thresholdFactorTwoStars: 0.85,
+      thresholdFactorThreeStars: 0.9,
+      hasUselessLetter: true,
+      hasHiddenLetter: true,
+    ),
+    18: Difficulty(
+      thresholdFactorOneStar: 0.7,
+      thresholdFactorTwoStars: 0.9,
+      thresholdFactorThreeStars: 0.95,
+      hasUselessLetter: true,
+      hasHiddenLetter: true,
+    ),
+    21: Difficulty(
+      thresholdFactorOneStar: 0.75,
+      thresholdFactorTwoStars: 0.95,
+      thresholdFactorThreeStars: 1.0,
+      hasUselessLetter: true,
+      hasHiddenLetter: true,
+    ),
+  };
 
   //// MODIFYING THE CONFIGURATION ////
 

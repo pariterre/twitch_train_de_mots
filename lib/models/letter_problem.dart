@@ -40,10 +40,6 @@ class LetterProblem {
       .map((e) => e.value)
       .fold(0, (prev, e) => prev + e);
 
-  ///
-  /// Returns the threshold score for one star
-  int get thresholdScoreForOneStar => maximumScore ~/ 3;
-
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
   }

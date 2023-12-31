@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/letter.dart';
 import 'package:train_de_mots/models/player.dart';
 
@@ -28,7 +29,7 @@ class WordSolution {
           .split('')
           .map((e) => Letter.getValueOfLetter(e))
           .reduce((a, b) => a + b) ~/
-      (wasStolen ? 2 : 1);
+      (wasStolen ? ConfigurationManager.instance.stealingPenaltyFactor : 1);
 
   WordSolution({required String word})
       : word = removeDiacritics(word.toUpperCase());

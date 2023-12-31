@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
@@ -122,7 +123,10 @@ class _HeaderState extends State<_Header> {
     if (gm.problem == null) return Container();
 
     final pointsToGo =
-        gm.problem!.thresholdScoreForOneStar - gm.problem!.currentScore;
+        GameManager.instance.completedLevel == SuccessLevel.failed
+            ? GameManager.instance.remainingPointsToNextLevel()
+            : 0;
+
     late String toGoText;
     if (pointsToGo > 0) {
       toGoText = ' ($pointsToGo points avant destination)';
