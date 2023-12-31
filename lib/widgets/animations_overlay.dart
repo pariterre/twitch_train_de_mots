@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/models/solution.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/bouncy_container.dart';
 
 class AnimationOverlay extends StatefulWidget {
@@ -36,7 +36,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     super.dispose();
   }
 
-  void _showSolutionWasStolen(Solution solution) {
+  void _showSolutionWasStolen(WordSolution solution) {
     _solutionStolenController
         .triggerAnimation(_ASolutionWasStolen(solution: solution));
   }
@@ -62,7 +62,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 class _ASolutionWasStolen extends StatelessWidget {
   const _ASolutionWasStolen({required this.solution});
 
-  final Solution solution;
+  final WordSolution solution;
 
   @override
   Widget build(BuildContext context) {

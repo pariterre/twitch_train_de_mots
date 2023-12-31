@@ -5,7 +5,7 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
-import 'package:train_de_mots/widgets/word_displayer.dart';
+import 'package:train_de_mots/widgets/letter_displayer.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -57,7 +57,7 @@ class _GameScreenState extends State<GameScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        WordDisplayer(),
+                        LetterDisplayer(),
                         SizedBox(height: 20),
                         SizedBox(
                           height: 600,

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
-import 'package:train_de_mots/models/word_problem.dart';
+import 'package:train_de_mots/models/letter_problem.dart';
 
 const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
@@ -61,15 +61,15 @@ class ConfigurationManager {
 
   ///
   /// The current algorithm used to generate the problems
-  final Future<WordProblem> Function({
+  final Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
-  }) _problemGenerator = WordProblem.generateFromRandom;
-  Future<WordProblem> Function({
+  }) _problemGenerator = LetterProblem.generateFromRandom;
+  Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -339,7 +339,7 @@ class ConfigurationManager {
       GameManager.instance.gameStatus == GameStatus.roundReady;
 
   void _tellGameManagerToRepickProblem() =>
-      GameManager.instance.rulesHasChanged(shoulRepickProblem: true);
+      GameManager.instance.rulesHasChanged(shouldRepickProblem: true);
 
   void finalizeConfigurationChanges() {
     GameManager.instance.rulesHasChanged(repickNow: true);

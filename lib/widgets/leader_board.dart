@@ -3,7 +3,7 @@ import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/word_problem.dart';
+import 'package:train_de_mots/models/letter_problem.dart';
 
 class LeaderBoard extends StatefulWidget {
   const LeaderBoard({super.key});
@@ -52,7 +52,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 
-    WordProblem? problem = gm.problem;
+    LetterProblem? problem = gm.problem;
     // Sort players by round score then by total score if they are equal
 
     final players = gm.players.sort((a, b) {

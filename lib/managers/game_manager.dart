@@ -7,9 +7,9 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/solution.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/models/success_level.dart';
-import 'package:train_de_mots/models/word_problem.dart';
+import 'package:train_de_mots/models/letter_problem.dart';
 
 enum GameStatus {
   initializing,
@@ -39,10 +39,12 @@ class GameManager {
   int _roundCount = 0;
   int get roundCount => _roundCount;
 
-  WordProblem? _currentProblem;
-  WordProblem? _nextProblem;
+  int _scramblingLetterTimer = 0;
+
+  LetterProblem? _currentProblem;
+  LetterProblem? _nextProblem;
   bool _isSearchingNextProblem = false;
-  WordProblem? get problem => _currentProblem;
+  LetterProblem? get problem => _currentProblem;
   SuccessLevel? _successLevel;
 
   bool _forceEndTheRound = false;
@@ -68,7 +70,7 @@ class GameManager {
   Future<void> _initializeWordProblem() async {
     final cm = ConfigurationManager.instance;
 
-    await WordProblem.initialize(
+    await LetterProblem.initialize(
         nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
     _isSearchingNextProblem = false;
     _nextProblem = null;
@@ -100,6 +102,9 @@ class GameManager {
 
   SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
+  bool get hasHiddenLetter =>
+      roundCount >= ConfigurationManager.instance.levelWithHiddenLetter;
+
   /// --------- ///
   /// CALLBACKS ///
   /// When registering to a callback, one should remind themselves to
@@ -114,8 +119,8 @@ class GameManager {
   final onRoundIsOver = CustomCallback<VoidCallback>();
   final onTimerTicks = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
-  final onSolutionFound = CustomCallback<Function(Solution)>();
-  final onSolutionWasStolen = CustomCallback<Function(Solution)>();
+  final onSolutionFound = CustomCallback<Function(WordSolution)>();
+  final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
 
   /// -------- ///
@@ -138,17 +143,17 @@ class GameManager {
   ///
   /// This is a method to tell the game manager that the rules have changed and
   /// some things may need to be updated
-  /// [shoulRepickProblem] is used to tell the game manager that the problem
+  /// [shouldRepickProblem] is used to tell the game manager that the problem
   /// picker rules have changed and that it should repick a problem.
   /// [repickNow] is used to tell the game manager that it should repick a
   /// problem now or wait a future call. That is to wait until all the changes
   /// to the rules are made before repicking a problem.
   void rulesHasChanged({
-    bool shoulRepickProblem = false,
+    bool shouldRepickProblem = false,
     bool repickNow = false,
   }) {
-    if (shoulRepickProblem) _forceRepickProblem = true;
-    if (repickNow && shoulRepickProblem) _initializeWordProblem();
+    if (shouldRepickProblem) _forceRepickProblem = true;
+    if (repickNow && shouldRepickProblem) _initializeWordProblem();
   }
 
   ///
@@ -174,8 +179,6 @@ class GameManager {
       addUselessLetter: _roundCount + SuccessLevel.threeStars.toInt() >=
           cm.levelAddingUselessLetter,
     );
-    _nextProblem!.cooldownScrambleTimer =
-        cm.timeBeforeScramblingLetters.inSeconds;
 
     _isSearchingNextProblem = false;
   }
@@ -194,6 +197,8 @@ class GameManager {
         _gameStatus != GameStatus.roundReady) {
       return;
     }
+
+    final cm = ConfigurationManager.instance;
     onRoundIsPreparing.notifyListeners();
 
     // Wait until a problem is found
@@ -207,12 +212,12 @@ class GameManager {
     _currentProblem = _nextProblem;
     _nextProblem = null;
     // Prepare the problem according to the results of the current round
-    if (roundCount < ConfigurationManager.instance.levelAddingUselessLetter) {
+    if (roundCount < cm.levelAddingUselessLetter) {
       _currentProblem!.tossUselessLetter();
     }
 
     // Reinitialize the round timer and players
-    _roundDuration = ConfigurationManager.instance.roundDuration.inMilliseconds;
+    _roundDuration = cm.roundDuration.inMilliseconds;
     for (final player in players) {
       player.resetForNextRound();
     }
@@ -225,6 +230,7 @@ class GameManager {
     _gameStatus = GameStatus.roundStarted;
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
+    _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
     onRoundStarted.notifyListeners();
   }
 
@@ -346,10 +352,9 @@ class GameManager {
     }
 
     // Manager letter swapping in the problem
-    _currentProblem!.cooldownScrambleTimer -= 1;
-    if (_currentProblem!.cooldownScrambleTimer <= 0) {
-      _currentProblem!.cooldownScrambleTimer =
-          cm.timeBeforeScramblingLetters.inSeconds;
+    _scramblingLetterTimer -= 1;
+    if (_scramblingLetterTimer <= 0) {
+      _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners();
     }
@@ -369,7 +374,7 @@ class GameManager {
     // if all the words have been found
     bool shouldEndTheRound = _forceEndTheRound ||
         timeRemaining! <= 0 ||
-        _currentProblem!.isAllSolutionsFound;
+        _currentProblem!.areAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
     _successLevel = _computeSuccessLevel();
@@ -402,7 +407,7 @@ class GameManager {
 class GameManagerMock extends GameManager {
   static Future<void> initialize({
     GameStatus? gameStatus,
-    WordProblem? problem,
+    LetterProblem? problem,
     List<Player>? players,
     int? roundCount,
     SuccessLevel? successLevel,

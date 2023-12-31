@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/models/solution.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
 
@@ -14,7 +14,7 @@ class SolutionsDisplayer extends StatefulWidget {
 }
 
 class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
-  final _fireworksControllers = <Solution, FireworksController>{};
+  final _fireworksControllers = <WordSolution, FireworksController>{};
 
   @override
   void initState() {
@@ -73,7 +73,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
     final solutions = gm.problem!.solutions;
 
-    List<Solutions> solutionsByLength = [];
+    List<WordSolutions> solutionsByLength = [];
     for (var i = solutions.nbLettersInSmallest;
         i <= solutions.nbLettersInLongest;
         i++) {
@@ -125,7 +125,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 class _SolutionWrapper extends StatefulWidget {
   const _SolutionWrapper({required this.solutions});
 
-  final Solutions solutions;
+  final WordSolutions solutions;
 
   @override
   State<_SolutionWrapper> createState() => _SolutionWrapperState();
@@ -167,8 +167,8 @@ class _FireworksWrapper extends StatelessWidget {
   const _FireworksWrapper(
       {required this.solutions, required this.fireworksControllers});
 
-  final Solutions solutions;
-  final Map<Solution, FireworksController> fireworksControllers;
+  final WordSolutions solutions;
+  final Map<WordSolution, FireworksController> fireworksControllers;
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +188,7 @@ class _FireworksWrapper extends StatelessWidget {
 class _SolutionTile extends StatefulWidget {
   const _SolutionTile({super.key, required this.solution, this.fireworks});
 
-  final Solution solution;
+  final WordSolution solution;
   final FireworksController? fireworks;
 
   @override

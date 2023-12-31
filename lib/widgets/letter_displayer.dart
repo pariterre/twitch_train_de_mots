@@ -10,14 +10,14 @@ double _letterPadding = 4;
 double _letterSize = 46;
 double _numberSize = 26;
 
-class WordDisplayer extends StatefulWidget {
-  const WordDisplayer({super.key});
+class LetterDisplayer extends StatefulWidget {
+  const LetterDisplayer({super.key});
 
   @override
-  State<WordDisplayer> createState() => _WordDisplayerState();
+  State<LetterDisplayer> createState() => _LetterDisplayerState();
 }
 
-class _WordDisplayerState extends State<WordDisplayer> {
+class _LetterDisplayerState extends State<LetterDisplayer> {
   @override
   void initState() {
     super.initState();
@@ -53,23 +53,23 @@ class _WordDisplayerState extends State<WordDisplayer> {
       return Center(child: CircularProgressIndicator(color: tm.mainColor));
     }
 
-    final word = gm.problem!.word;
+    final letters = gm.problem!.letters;
     final scrambleIndices = gm.problem!.scrambleIndices;
 
     final displayerWidth =
-        _letterWidth * word.length + 2 * _letterPadding * (word.length);
+        _letterWidth * letters.length + 2 * _letterPadding * (letters.length);
 
     return SizedBox(
       width: displayerWidth,
       height: _letterHeight * 1.2,
       child: Stack(alignment: Alignment.center, children: [
-        for (var index in word.split('').asMap().keys)
+        for (var index in letters.asMap().keys)
           AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
               left:
                   (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
-              child: _Letter(letter: word[index])),
+              child: _Letter(letter: letters[index])),
       ]),
     );
   }

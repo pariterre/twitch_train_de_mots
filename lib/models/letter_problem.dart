@@ -4,29 +4,37 @@ import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/solution.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 
-class WordProblem {
-  String _word;
-  String get word => _word;
+class LetterProblem {
+  final List<String> _letters;
+  List<String> get letters {
+    final out = [..._letters];
+    if (_extraUselessLetter != null) {
+      out.add(_extraUselessLetter!);
+    }
+    return out;
+  }
 
   List<int> _scrambleIndices = [];
   List<int> get scrambleIndices => _scrambleIndices;
-  int cooldownScrambleTimer = 0;
 
-  Solutions _solutions;
-  Solutions get solutions => _solutions;
-  bool get isAllSolutionsFound => _solutions.every((e) => e.isFound);
+  WordSolutions _solutions;
+  WordSolutions get solutions => _solutions;
+  bool get areAllSolutionsFound => _solutions.every((e) => e.isFound);
 
   String? _extraUselessLetter;
   bool get hasUselessLetter => _extraUselessLetter != null;
 
+  int? _hiddenLettersIndex;
+  bool get hasHiddenLetters => _hiddenLettersIndex != null;
+
   ///
-  /// Returns the maximum score that can be obtained by finding all the words
+  /// Returns the maximum score that can be obtained by finding all the solutions
   int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.value);
 
   ///
-  /// Returns the current score of all the founders
+  /// Returns the current score of all the found solutions
   int get currentScore => _solutions
       .where((e) => e.isFound)
       .map((e) => e.value)
@@ -50,27 +58,28 @@ class WordProblem {
       .map((e) => e.value)
       .fold(0, (value, element) => value + element);
 
-  WordProblem._(
-      {required String word,
-      required Solutions solutions,
+  LetterProblem._(
+      {required List<String> letters,
+      required WordSolutions solutions,
       required String? uselessLetter})
-      : _word = word,
+      : _letters = letters,
         _solutions = solutions,
         _extraUselessLetter = uselessLetter {
     _initialize();
   }
 
   ///
-  /// This method should be called whenever [_word] is changed
+  /// This method should be called whenever [_letters] is changed
   void _initialize() {
-    // Sort the letters of candidate into alphabetical order
-    final wordSorted = word.split('')..sort();
-    _word = wordSorted.join('');
-    _scrambleIndices = List.generate(word.length, (index) => index);
-
+    // Sort the solutions in alphabetical order
     _solutions = _solutions.sort();
 
+    // Sort the letters of candidate into alphabetical order
+    _letters.sort();
+
     // Give a good scramble to the letters
+    _scrambleIndices = List.generate(
+        letters.length + (hasUselessLetter ? 1 : 0), (index) => index);
     for (int i = 0; i < _solutions.length; i++) {
       scrambleLetters();
     }
@@ -78,7 +87,8 @@ class WordProblem {
 
   ///
   /// Returns the solution if the word is a solution, null otherwise
-  Solution? trySolution(String word, {required int nbLetterInSmallestWord}) {
+  WordSolution? trySolution(String word,
+      {required int nbLetterInSmallestWord}) {
     // Do some rapid validation
     if (word.length < nbLetterInSmallestWord) {
       // If the word is shorted than the permitted shortest word, it is invalid
@@ -88,7 +98,7 @@ class WordProblem {
     word = removeDiacritics(word.toUpperCase());
     if (word.contains(RegExp(r'[^A-Z]'))) return null;
 
-    return solutions.firstWhereOrNull((Solution e) => e.word == word);
+    return solutions.firstWhereOrNull((WordSolution e) => e.word == word);
   }
 
   ///
@@ -107,54 +117,51 @@ class WordProblem {
     _scrambleIndices[index2] = temp;
   }
 
+  ///
   /// This method returns a letter that do not change the numbers of solutions
   /// to the problem.
   /// If the method returns null, it means it is not possible to add a useless
   /// letter to the problem without changing the number of solutions.
-  static Future<String?> _addUselessLetter(
-      {required String word, required Solutions solutions}) async {
+  static Future<String?> _findUselessLetter(
+      {required List<String> letters, required WordSolutions solutions}) async {
     // Create a list of all possible letters to add
     final possibleLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         .split('')
-        .where((letter) => !word.contains(letter))
+        .where((letter) => !letters.contains(letter))
         .toList();
 
     final random = Random();
     do {
       final newLetter =
           possibleLetters.removeAt(random.nextInt(possibleLetters.length));
-      final newWord = word + newLetter;
+      final newLetters = [...letters, newLetter];
       final newSolutions =
           await _WordGenerator.instance._findsWordsFromPermutations(
-        from: newWord,
+        from: newLetters,
         nbLetters: solutions.nbLettersInSmallest,
         wordsCountLimit: solutions.length + 1,
       );
 
       if (newSolutions.length == solutions.length) {
-        // The new letter is useless if the number of solutions did not increase
+        // The new letter is useless if the number of solutions did not change
         return newLetter;
       }
     } while (possibleLetters.isNotEmpty);
 
-    // If we get here, it means no useless letter could be added
+    // If we get here, it means no useless letter could be found
     return null;
   }
 
   void tossUselessLetter() {
     if (!hasUselessLetter) return;
 
-    final index = _word.split('').indexWhere((e) => e == _extraUselessLetter);
-    if (index == -1) return; // This should never happen, but just in case
-
-    _word = _word.substring(0, index) + _word.substring(index + 1);
     _extraUselessLetter = null;
     _initialize();
   }
 
   ///
   /// Generates a new word problem from a random string of letters.
-  static Future<WordProblem> generateFromRandom({
+  static Future<LetterProblem> generateFromRandom({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -162,7 +169,7 @@ class WordProblem {
     required int maximumNbOfWords,
     required bool addUselessLetter,
   }) async {
-    String candidate;
+    List<String> candidateLetters;
     Set<String> subWords;
 
     bool isAValidCandidate = false;
@@ -177,10 +184,10 @@ class WordProblem {
     }
 
     do {
-      candidate = _WordGenerator.instance._randomStringOfLetters(
+      candidateLetters = _WordGenerator.instance._generateRandomLetters(
           minLetters: minLetters, maxLetters: maxLetters);
       subWords = await _WordGenerator.instance._findsWordsFromPermutations(
-          from: candidate,
+          from: candidateLetters,
           nbLetters: nbLetterInSmallestWord,
           wordsCountLimit: maximumNbOfWords);
 
@@ -189,26 +196,27 @@ class WordProblem {
 
       if (isAValidCandidate && addUselessLetter) {
         // Add a useless letter to the problem
-        uselessLetter = await WordProblem._addUselessLetter(
-            word: candidate,
-            solutions:
-                Solutions(subWords.map((e) => Solution(word: e)).toList()));
+        uselessLetter = await LetterProblem._findUselessLetter(
+            letters: candidateLetters,
+            solutions: WordSolutions(
+                subWords.map((e) => WordSolution(word: e)).toList()));
 
         // If it is not possible to add a new letter, reject the word
-        if (uselessLetter == null) isAValidCandidate = false;
+        isAValidCandidate = uselessLetter != null;
       }
     } while (!isAValidCandidate);
 
-    return WordProblem._(
-        word: candidate + (uselessLetter ?? ''),
-        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()),
+    return LetterProblem._(
+        letters: candidateLetters,
+        solutions:
+            WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
         uselessLetter: uselessLetter);
   }
 
   ///
   /// Generates a new word problem from picking a letter, then subsetting the
   /// words and picking a new letter available in the remainning words.
-  static Future<WordProblem> generateFromBuildingUp({
+  static Future<LetterProblem> generateFromBuildingUp({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -217,23 +225,24 @@ class WordProblem {
     required bool addUselessLetter,
   }) async {
     final random = Random();
-    String candidate;
+    List<String> candidateLetters;
     Set<String> subWords;
 
     bool isAValidCandidate = false;
     String? uselessLetter;
     do {
-      candidate = '';
+      candidateLetters = [];
       subWords = await _WordGenerator.instance
           .wordsWithAtLeast(nbLetterInSmallestWord);
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
         // Find a letter which is available
-        candidate += availableLetters[random.nextInt(availableLetters.length)];
+        candidateLetters
+            .add(availableLetters[random.nextInt(availableLetters.length)]);
 
         // Reduce the subWords to only those containing the letters in candidate
-        List<String> mandatoryLetters = candidate.split('');
+        List<String> mandatoryLetters = [...candidateLetters];
         subWords = subWords
             .where((word) =>
                 mandatoryLetters.every((letter) => word.contains(letter)))
@@ -245,7 +254,7 @@ class WordProblem {
 
         // Remove the letter from the available letters and intersect with the available letters in subWords
         availableLetters = availableLetters
-            .replaceAll(candidate[candidate.length - 1], '')
+            .replaceAll(candidateLetters[candidateLetters.length - 1], '')
             .split('')
             .where((letter) => availableLettersInSubWords.contains(letter))
             .join('');
@@ -257,14 +266,16 @@ class WordProblem {
       } while (availableLetters.isNotEmpty && subWords.length > 1);
 
       // Take one of the remainning subWords and use it as the word
-      candidate = subWords.elementAt(random.nextInt(subWords.length));
+      candidateLetters =
+          subWords.elementAt(random.nextInt(subWords.length)).split('');
 
       // Put all the possible words from candidate in subWords
       subWords = {};
-      if (candidate.length >= minLetters && candidate.length <= maxLetters) {
+      if (candidateLetters.length >= minLetters &&
+          candidateLetters.length <= maxLetters) {
         // This takes time, only do it if the candidate is valid
         subWords = (await _WordGenerator.instance._findsWordsFromPermutations(
-          from: candidate,
+          from: candidateLetters,
           nbLetters: nbLetterInSmallestWord,
           wordsCountLimit: maximumNbOfWords,
         ));
@@ -274,21 +285,22 @@ class WordProblem {
 
       if (isAValidCandidate && addUselessLetter) {
         // Add a useless letter to the problem
-        uselessLetter = await WordProblem._addUselessLetter(
-            word: candidate,
-            solutions:
-                Solutions(subWords.map((e) => Solution(word: e)).toList()));
+        uselessLetter = await LetterProblem._findUselessLetter(
+            letters: candidateLetters,
+            solutions: WordSolutions(
+                subWords.map((e) => WordSolution(word: e)).toList()));
 
         // If it is not possible to add a new letter, reject the word
-        if (uselessLetter == null) isAValidCandidate = false;
+        isAValidCandidate = uselessLetter != null;
       }
 
       // Make sure the number of words as solution is valid
     } while (!isAValidCandidate);
 
-    return WordProblem._(
-        word: candidate + (uselessLetter ?? ''),
-        solutions: Solutions(subWords.map((e) => Solution(word: e)).toList()),
+    return LetterProblem._(
+        letters: candidateLetters,
+        solutions:
+            WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
         uselessLetter: uselessLetter);
   }
 }
@@ -325,7 +337,7 @@ class _WordGenerator {
   /// If [wordsCountLimit] is provided, the search terminate as soon as this
   /// limit is reached.
   Future<Set<String>> _findsWordsFromPermutations({
-    required String from,
+    required List<String> from,
     int? wordsCountLimit,
     int nbLetters = 0,
   }) async {
@@ -352,13 +364,14 @@ class _WordGenerator {
     return permutations.toSet();
   }
 
-  Future<Set<String>> _generateValidPermutations(
-      Set<String> words, String word, int length, int? maxNumberWords) async {
+  Future<Set<String>> _generateValidPermutations(Set<String> words,
+      List<String> letters, int length, int? maxNumberWords) async {
     List<String> permutations = [];
 
     int cmp = 0;
 
-    Future<void> generate(String prefix, String remaining, int len) async {
+    Future<void> generate(
+        String prefix, List<String> remaining, int len) async {
       // Add a delay to avoid blocking the UI
       if (cmp % 100 == 0) {
         await Future.delayed(const Duration(microseconds: 1));
@@ -376,17 +389,18 @@ class _WordGenerator {
         if (maxNumberWords != null && permutations.length > maxNumberWords) {
           return;
         }
-        await generate(prefix + remaining[i],
-            remaining.substring(0, i) + remaining.substring(i + 1), len - 1);
+
+        final newRemaining = [...remaining]..removeAt(i);
+        await generate(prefix + remaining[i], newRemaining, len - 1);
       }
     }
 
-    await generate('', word, length);
+    await generate('', letters, length);
     return permutations.toSet();
   }
 
   /// Generates a random sequence of letters with the specified number of letters
-  String _randomStringOfLetters(
+  List<String> _generateRandomLetters(
       {required int minLetters, required int maxLetters}) {
     if (minLetters <= 0 || maxLetters < minLetters) {
       throw ArgumentError(
@@ -396,9 +410,9 @@ class _WordGenerator {
         ? minLetters
         : Random().nextInt(maxLetters - minLetters) + minLetters;
 
-    String result = '';
+    List<String> result = [];
     for (int i = 0; i < nbLetters; i++) {
-      result += removeDiacritics(_randomLetterFromFrequency.toUpperCase());
+      result.add(removeDiacritics(_randomLetterFromFrequency.toUpperCase()));
     }
     return result;
   }
@@ -490,13 +504,13 @@ String get _randomLetterFromFrequency {
   }
 }
 
-class WordProblemMock extends WordProblem {
+class WordProblemMock extends LetterProblem {
   WordProblemMock()
       : super._(
-          word: 'BJOONUR',
-          solutions: Solutions([
-            Solution(word: 'BONJOUR'),
-            Solution(word: 'JOUR'),
+          letters: 'BJOONUR'.split(''),
+          solutions: WordSolutions([
+            WordSolution(word: 'BONJOUR'),
+            WordSolution(word: 'JOUR'),
           ]),
           uselessLetter: null,
         );
