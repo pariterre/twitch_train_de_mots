@@ -102,8 +102,12 @@ class GameManager {
 
   SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
+  bool get hasUselessLetter =>
+      ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
   bool get hasHiddenLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter;
+  int get hiddenLetterIndex =>
+      hasHiddenLetter ? _currentProblem!.hiddenLettersIndex : -1;
 
   /// --------- ///
   /// CALLBACKS ///
@@ -178,7 +182,7 @@ class GameManager {
       maximumNbOfWords: cm.maximumWordsNumber,
       addUselessLetter: ConfigurationManager.instance
           .difficulty(_roundCount + SuccessLevel.threeStars.toInt())
-          .hasHiddenLetter,
+          .hasUselessLetter,
     );
 
     _isSearchingNextProblem = false;
@@ -212,10 +216,9 @@ class GameManager {
     }
     _currentProblem = _nextProblem;
     _nextProblem = null;
+
     // Prepare the problem according to the results of the current round
-    if (!cm.difficulty(_roundCount).hasHiddenLetter) {
-      _currentProblem!.tossUselessLetter();
-    }
+    if (!hasUselessLetter) _currentProblem!.tossUselessLetter();
 
     // Reinitialize the round timer and players
     _roundDuration = cm.roundDuration.inMilliseconds;
@@ -410,7 +413,7 @@ class GameManager {
     if (currentLevel == SuccessLevel.threeStars) return 0;
 
     final nextLevel = SuccessLevel.values[currentLevel.index + 1];
-    return _pointsToObtain(nextLevel);
+    return _pointsToObtain(nextLevel) - problem!.currentScore;
   }
 
   int _pointsToObtain(SuccessLevel level) {

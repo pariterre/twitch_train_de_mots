@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/letter.dart';
+import 'package:train_de_mots/models/valuable_letter.dart';
 import 'package:train_de_mots/models/player.dart';
 
 class WordSolution {
@@ -27,7 +27,7 @@ class WordSolution {
   int get value =>
       word
           .split('')
-          .map((e) => Letter.getValueOfLetter(e))
+          .map((e) => ValuableLetter.getValueOfLetter(e))
           .reduce((a, b) => a + b) ~/
       (wasStolen ? ConfigurationManager.instance.stealingPenaltyFactor : 1);
 

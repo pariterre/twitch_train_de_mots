@@ -26,8 +26,8 @@ class LetterProblem {
   String? _extraUselessLetter;
   bool get hasUselessLetter => _extraUselessLetter != null;
 
-  int? _hiddenLettersIndex;
-  bool get hasHiddenLetters => _hiddenLettersIndex != null;
+  int _hiddenLetterIndex = -1;
+  int get hiddenLettersIndex => _scrambleIndices[_hiddenLetterIndex];
 
   ///
   /// Returns the maximum score that can be obtained by finding all the solutions
@@ -79,6 +79,11 @@ class LetterProblem {
     for (int i = 0; i < _solutions.length; i++) {
       scrambleLetters();
     }
+
+    // Set the hidden letter index (even if not required). We use [_letters]
+    // instead of [letters] because we do not want to hide the useless letter
+    // if it exists
+    _hiddenLetterIndex = Random().nextInt(_letters.length);
   }
 
   ///

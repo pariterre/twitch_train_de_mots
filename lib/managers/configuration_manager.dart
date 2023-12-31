@@ -334,17 +334,24 @@ class ConfigurationManager {
   }
 
   static const _difficulties = {
-    1: Difficulty(
+    0: Difficulty(
       thresholdFactorOneStar: 0.35,
       thresholdFactorTwoStars: 0.5,
       thresholdFactorThreeStars: 0.75,
       hasUselessLetter: false,
       hasHiddenLetter: false,
     ),
-    4: Difficulty(
+    3: Difficulty(
       thresholdFactorOneStar: 0.45,
       thresholdFactorTwoStars: 0.65,
       thresholdFactorThreeStars: 0.8,
+      hasUselessLetter: false,
+      hasHiddenLetter: false,
+    ),
+    5: Difficulty(
+      thresholdFactorOneStar: 0.5,
+      thresholdFactorTwoStars: 0.75,
+      thresholdFactorThreeStars: 0.85,
       hasUselessLetter: false,
       hasHiddenLetter: false,
     ),

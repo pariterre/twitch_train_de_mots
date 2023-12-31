@@ -86,6 +86,8 @@ class ThemeManager {
 
   final letterColorLight = const Color.fromARGB(255, 247, 217, 127);
   final letterColorDark = const Color.fromARGB(255, 200, 150, 0);
+  final hiddenLetterColorLight = const Color.fromARGB(255, 255, 140, 111);
+  final hiddenLetterColorDark = const Color.fromARGB(255, 201, 57, 0);
 
   double _leaderTitleSize = 26.0;
   double get leaderTitleSize => _leaderTitleSize;

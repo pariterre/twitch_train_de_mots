@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/letter.dart';
+import 'package:train_de_mots/models/valuable_letter.dart';
 
 double _letterWidth = 80;
 double _letterHeight = 90;
@@ -59,6 +59,8 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     final displayerWidth =
         _letterWidth * letters.length + 2 * _letterPadding * (letters.length);
 
+    final hiddenIndex = gm.hiddenLetterIndex;
+
     return SizedBox(
       width: displayerWidth,
       height: _letterHeight * 1.2,
@@ -69,16 +71,18 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
               curve: Curves.easeInOut,
               left:
                   (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
-              child: _Letter(letter: letters[index])),
+              child: _Letter(
+                  letter: letters[index], isHidden: index == hiddenIndex)),
       ]),
     );
   }
 }
 
 class _Letter extends StatefulWidget {
-  const _Letter({required this.letter});
+  const _Letter({required this.letter, required this.isHidden});
 
   final String letter;
+  final bool isHidden;
 
   @override
   State<_Letter> createState() => _LetterState();
@@ -106,7 +110,7 @@ class _LetterState extends State<_Letter> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
-    final letterWidget = Letter(widget.letter);
+    final valuableLetter = ValuableLetter(widget.letter);
 
     // Create a letter that ressemble those on a Scrabble board
     return Card(
@@ -118,39 +122,41 @@ class _LetterState extends State<_Letter> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              tm.letterColorLight,
-              tm.letterColorDark,
-            ],
+            colors: widget.isHidden
+                ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
+                : [tm.letterColorLight, tm.letterColorDark],
             stops: const [0, 0.4],
           ),
           border: Border.all(color: Colors.black),
           borderRadius: const BorderRadius.all(Radius.circular(5)),
         ),
-        child: Stack(
-          children: [
-            Center(
-              child: Text(
-                letterWidget.data,
-                style: TextStyle(
-                  color: tm.textColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: _letterSize,
-                ),
+        child: widget.isHidden
+            ? null
+            : Stack(
+                children: [
+                  Center(
+                    child: Text(
+                      valuableLetter.data,
+                      style: TextStyle(
+                        color: tm.textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: _letterSize,
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
+                      child: Text(
+                        valuableLetter.value.toString(),
+                        style: TextStyle(
+                            color: tm.textColor, fontSize: _numberSize),
+                      ),
+                    ),
+                  )
+                ],
               ),
-            ),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 2.0, right: 4.0),
-                child: Text(
-                  letterWidget.value.toString(),
-                  style: TextStyle(color: tm.textColor, fontSize: _numberSize),
-                ),
-              ),
-            )
-          ],
-        ),
       ),
     );
   }

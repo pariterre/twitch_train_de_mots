@@ -1,8 +1,8 @@
-class Letter {
+class ValuableLetter {
   final String data;
   final int value;
 
-  Letter(this.data) : value = getValueOfLetter(data);
+  ValuableLetter(this.data) : value = getValueOfLetter(data);
 
   // The value of the letter is the same as the number of points it gives in Scrabble (French)
   static int getValueOfLetter(String letter) {
