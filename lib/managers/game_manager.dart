@@ -221,7 +221,8 @@ class GameManager {
     if (!hasUselessLetter) _currentProblem!.tossUselessLetter();
 
     // Reinitialize the round timer and players
-    _roundDuration = cm.roundDuration.inMilliseconds;
+    _roundDuration =
+        cm.roundDuration.inMilliseconds + cm.postRoundDuration.inMilliseconds;
     for (final player in players) {
       player.resetForNextRound();
     }

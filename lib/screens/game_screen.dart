@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
@@ -213,10 +214,15 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
+    int timeRemaining = (gm.timeRemaining ?? 0) -
+        ConfigurationManager.instance.postRoundDuration.inSeconds;
+
     late String text;
     switch (gm.gameStatus) {
       case GameStatus.roundStarted:
-        text = 'Temps restant à la manche : ${gm.timeRemaining}';
+        text = timeRemaining > 0
+            ? 'Temps restant à la manche : $timeRemaining secondes'
+            : 'Arrivée en gare';
         break;
       case GameStatus.roundPreparing:
         text = 'Préparation de la manche...';

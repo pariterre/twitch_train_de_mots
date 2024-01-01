@@ -11,6 +11,7 @@ const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
 
 const _roundDurationDefault = 120;
+const _postRoundDurationDefault = 6;
 const _cooldownPeriodDefault = 12;
 const _cooldownPeriodAfterStealDefault = 25;
 const _timeBeforeScramblingLettersDefault = 15;
@@ -97,6 +98,14 @@ class ConfigurationManager {
   Duration get roundDuration => _roundDuration;
   set roundDuration(Duration value) {
     _roundDuration = value;
+    _saveConfiguration();
+  }
+
+  Duration _postRoundDuration =
+      const Duration(seconds: _postRoundDurationDefault);
+  Duration get postRoundDuration => _postRoundDuration;
+  set postRoundDuration(Duration value) {
+    _postRoundDuration = value;
     _saveConfiguration();
   }
 
@@ -264,6 +273,8 @@ class ConfigurationManager {
 
       _roundDuration =
           Duration(seconds: map['roundDuration'] ?? _roundDurationDefault);
+      _postRoundDuration = Duration(
+          seconds: map['postRoundDuration'] ?? _postRoundDurationDefault);
       _cooldownPeriod =
           Duration(seconds: map['cooldownPeriod'] ?? _cooldownPeriodDefault);
       _cooldownPeriodAfterSteal = Duration(
@@ -303,6 +314,7 @@ class ConfigurationManager {
     _showLeaderBoard = _showLeaderBoardDefault;
 
     _roundDuration = const Duration(seconds: _roundDurationDefault);
+    _postRoundDuration = const Duration(seconds: _postRoundDurationDefault);
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
     _cooldownPeriodAfterSteal =
         const Duration(seconds: _cooldownPeriodAfterStealDefault);
