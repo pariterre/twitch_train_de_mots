@@ -6,6 +6,10 @@ import 'package:twitch_manager/twitch_manager.dart' as tm;
 class TwitchManager {
   final onTwitchManagerReady = CustomCallback();
 
+  void initialize({bool useMock = false}) {
+    _isMockActive = useMock;
+  }
+
   ///
   /// Get if the manager is connected or not
   bool get hasManager => _manager != null;
@@ -58,7 +62,7 @@ class TwitchManager {
 
   ///
   /// Twitch options
-  final _isMockActive = true;
+  bool _isMockActive = false;
   final _debugOptions = tm.TwitchDebugPanelOptions(chatters: [
     tm.TwitchChatterMock(displayName: 'Viewer1'),
     tm.TwitchChatterMock(displayName: 'Viewer2'),

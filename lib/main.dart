@@ -4,13 +4,15 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
-bool _useDatabaseMock = true;
+bool _useDatabaseMock = false;
 bool _useGameManagerMock = false;
+bool _useTwitchManagerMock = false;
 
 void main() async {
   // Initialize singleton
@@ -69,6 +71,12 @@ void main() async {
     SoundManager.initialize(),
     ThemeManager.initialize(),
   ]);
+
+  if (_useTwitchManagerMock) {
+    TwitchManager.instance.initialize(useMock: true);
+  } else {
+    TwitchManager.instance.initialize();
+  }
 
   runApp(const MyApp());
 }
