@@ -390,11 +390,8 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 
-    return WillPopScope(
-      onWillPop: () async {
-        cm.finalizeConfigurationChanges();
-        return true;
-      },
+    return PopScope(
+      onPopInvoked: (didPop) => cm.finalizeConfigurationChanges(),
       child: AlertDialog(
         title: Text(
           'Configuration du jeu',

@@ -75,10 +75,7 @@ class TwitchManager {
       tm.TwitchScope.chatRead,
       tm.TwitchScope.readFollowers,
     ],
-    redirectAddress: 'https://twitchauthentication.pariterre.net:3000',
-    useAuthenticationService: true,
-    authenticationServiceAddress:
-        'wss://twitchauthentication.pariterre.net:3002',
+    redirectDomain: 'twitchauthentication.pariterre.net',
   );
 
   ///

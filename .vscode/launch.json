@@ -7,7 +7,8 @@
         {
             "name": "train_de_mots",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": ["--web-browser-flag=--disable-web-security"]
         }
     ]
 }
