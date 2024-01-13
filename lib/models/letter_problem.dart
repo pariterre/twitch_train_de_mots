@@ -75,7 +75,7 @@ class LetterProblem {
 
     // Give a good scramble to the letters
     _scrambleIndices = List.generate(
-        letters.length + (hasUselessLetter ? 1 : 0), (index) => index);
+        _letters.length + (hasUselessLetter ? 1 : 0), (index) => index);
     for (int i = 0; i < _solutions.length; i++) {
       scrambleLetters();
     }

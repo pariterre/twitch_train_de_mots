@@ -461,16 +461,20 @@ class GameManagerMock extends GameManager {
       GameManager._instance!._roundCount = roundCount;
     }
     if (successLevel != null) {
-      GameManager._instance!._roundCount = successLevel.toInt();
+      GameManager._instance!._roundCount += successLevel.toInt();
       (GameManager._instance! as GameManagerMock)._successLevel = successLevel;
     }
+
+    Timer.periodic(
+        const Duration(milliseconds: 100), GameManager._instance!._gameLoop);
+    GameManager._instance!._initializeWordProblem();
+  }
+
+  @override
+  Future<void> _initializeWordProblem() async {
+    await super._initializeWordProblem();
+    onNextProblemReady.notifyListeners();
   }
 
   GameManagerMock._internal() : super._internal();
-
-  @override
-  Future<void> _startNewRound() async {}
-
-  @override
-  void _gameLoop(Timer timer) {}
 }
