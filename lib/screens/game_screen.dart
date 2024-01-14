@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
-import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/letter_displayer.dart';
+import 'package:train_de_mots/widgets/solutions_displayer.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -214,8 +213,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
-    int timeRemaining = (gm.timeRemaining ?? 0) -
-        ConfigurationManager.instance.postRoundDuration.inSeconds;
+    int timeRemaining = gm.timeRemaining ?? 0;
 
     late String text;
     switch (gm.gameStatus) {

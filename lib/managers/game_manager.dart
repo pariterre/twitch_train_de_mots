@@ -28,11 +28,14 @@ class GameManager {
   GameStatus _gameStatus = GameStatus.initializing;
   GameStatus get gameStatus => _gameStatus;
   int? _roundDuration;
-  int? get timeRemaining => _roundDuration == null
+  int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
       ? null
-      : (_roundDuration! -
-              (DateTime.now().millisecondsSinceEpoch -
-                  _roundStartedAt!.millisecondsSinceEpoch)) ~/
+      : ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
+          ConfigurationManager.instance.postRoundDuration.inSeconds;
+  int? get _roundStartedSince => _roundStartedAt == null
+      ? null
+      : (DateTime.now().millisecondsSinceEpoch -
+              _roundStartedAt!.millisecondsSinceEpoch) ~/
           1000;
   DateTime? _roundStartedAt;
   DateTime? _nextTickAt;
@@ -104,12 +107,10 @@ class GameManager {
 
   bool get hasUselessLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
-  bool get hasHiddenLetter {
-    final roundConfig = ConfigurationManager.instance.difficulty(_roundCount);
-    return roundConfig.hasHiddenLetter &&
-        timeRemaining != null &&
-        timeRemaining! > roundConfig.revealHiddenLetterAtTimeLeft;
-  }
+  bool get hasHiddenLetter =>
+      ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
+      !_isHiddenLetterRevealed;
+  bool _isHiddenLetterRevealed = false;
 
   int get hiddenLetterIndex =>
       hasHiddenLetter ? _currentProblem!.hiddenLettersIndex : -1;
@@ -128,6 +129,7 @@ class GameManager {
   final onRoundIsOver = CustomCallback<VoidCallback>();
   final onTimerTicks = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
+  final onRevealHiddenLetter = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
@@ -238,6 +240,7 @@ class GameManager {
 
     // Start the round
     _gameStatus = GameStatus.roundStarted;
+    _isHiddenLetterRevealed = false;
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
@@ -369,6 +372,20 @@ class GameManager {
       onScrablingLetters.notifyListeners();
     }
 
+    // Manage hidden letter
+    debugPrint((!_isHiddenLetterRevealed).toString());
+    debugPrint(ConfigurationManager.instance
+        .difficulty(_roundCount)
+        .hasHiddenLetter
+        .toString());
+    if (!_isHiddenLetterRevealed &&
+        ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
+        timeRemaining! <=
+            cm.difficulty(_roundCount).revealHiddenLetterAtTimeLeft) {
+      _isHiddenLetterRevealed = true;
+      onRevealHiddenLetter.notifyListeners();
+    }
+
     onTimerTicks.notifyListeners();
   }
 
@@ -383,7 +400,8 @@ class GameManager {
     // if the timer is over
     // if all the words have been found
     bool shouldEndTheRound = _forceEndTheRound ||
-        timeRemaining! <= 0 ||
+        timeRemaining! <=
+            ConfigurationManager.instance.postRoundDuration.inSeconds ||
         _currentProblem!.areAllSolutionsFound;
     if (!shouldEndTheRound) return;
 

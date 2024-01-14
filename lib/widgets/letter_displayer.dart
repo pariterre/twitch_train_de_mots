@@ -24,6 +24,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     final gm = GameManager.instance;
     gm.onScrablingLetters.addListener(_refresh);
+    gm.onRevealHiddenLetter.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -36,6 +37,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     final gm = GameManager.instance;
     gm.onScrablingLetters.removeListener(_refresh);
+    gm.onRevealHiddenLetter.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
