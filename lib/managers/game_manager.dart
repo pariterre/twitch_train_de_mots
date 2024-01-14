@@ -104,8 +104,13 @@ class GameManager {
 
   bool get hasUselessLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
-  bool get hasHiddenLetter =>
-      ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter;
+  bool get hasHiddenLetter {
+    final roundConfig = ConfigurationManager.instance.difficulty(_roundCount);
+    return roundConfig.hasHiddenLetter &&
+        timeRemaining != null &&
+        timeRemaining! > roundConfig.revealHiddenLetterAtTimeLeft;
+  }
+
   int get hiddenLetterIndex =>
       hasHiddenLetter ? _currentProblem!.hiddenLettersIndex : -1;
 
@@ -446,8 +451,8 @@ class GameManagerMock extends GameManager {
       throw ManagerAlreadyInitializedException(
           'GameManager should not be initialized twice');
     }
-
     GameManager._instance = GameManagerMock._internal();
+
     if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
     if (problem != null) {
       GameManager._instance!._currentProblem = problem;
@@ -467,6 +472,8 @@ class GameManagerMock extends GameManager {
 
     Timer.periodic(
         const Duration(milliseconds: 100), GameManager._instance!._gameLoop);
+
+    GameManager._instance!._initializeTrySolutionCallback();
     GameManager._instance!._initializeWordProblem();
   }
 

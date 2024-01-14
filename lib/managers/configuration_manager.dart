@@ -338,71 +338,78 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  ///
+  /// Get the difficulty for a given level
   Difficulty difficulty(int level) {
-    // The difficulty is equal to the closest difficulty level in the map down below
-    final difficultyLevel =
-        _difficulties.keys.firstWhere((index) => index >= level);
-    return _difficulties[difficultyLevel]!;
+    if (level < 3) {
+      // Levels 1, 2 and 3
+      return const Difficulty(
+        thresholdFactorOneStar: 0.35,
+        thresholdFactorTwoStars: 0.5,
+        thresholdFactorThreeStars: 0.75,
+        hasUselessLetter: false,
+        hasHiddenLetter: false,
+      );
+    } else if (level < 6) {
+      // Levels 4, 5 and 6
+      return const Difficulty(
+        thresholdFactorOneStar: 0.5,
+        thresholdFactorTwoStars: 0.75,
+        thresholdFactorThreeStars: 0.85,
+        hasUselessLetter: false,
+        hasHiddenLetter: false,
+      );
+    } else if (level < 9) {
+      // Levels 7, 8 and 9
+      return const Difficulty(
+        thresholdFactorOneStar: 0.5,
+        thresholdFactorTwoStars: 0.75,
+        thresholdFactorThreeStars: 0.85,
+        hasUselessLetter: true,
+        hasHiddenLetter: false,
+      );
+    } else if (level < 12) {
+      // Levels 10, 11 and 12
+      return const Difficulty(
+        thresholdFactorOneStar: 0.5,
+        thresholdFactorTwoStars: 0.75,
+        thresholdFactorThreeStars: 0.85,
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: 30,
+      );
+    } else if (level < 15) {
+      // Levels 13, 14 and 15
+      return const Difficulty(
+        thresholdFactorOneStar: 0.65,
+        thresholdFactorTwoStars: 0.85,
+        thresholdFactorThreeStars: 0.9,
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: 30,
+      );
+    } else if (level < 18) {
+      // Levels 16, 17 and 18
+      return const Difficulty(
+        thresholdFactorOneStar: 0.7,
+        thresholdFactorTwoStars: 0.9,
+        thresholdFactorThreeStars: 0.95,
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: 15,
+      );
+    } else {
+      // Levels 19 and above
+      return const Difficulty(
+        thresholdFactorOneStar: 0.75,
+        thresholdFactorTwoStars: 0.95,
+        thresholdFactorThreeStars: 1.0,
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: -1,
+      );
+    }
   }
-
-  static const _difficulties = {
-    0: Difficulty(
-      thresholdFactorOneStar: 0.35,
-      thresholdFactorTwoStars: 0.5,
-      thresholdFactorThreeStars: 0.75,
-      hasUselessLetter: false,
-      hasHiddenLetter: false,
-    ),
-    3: Difficulty(
-      thresholdFactorOneStar: 0.45,
-      thresholdFactorTwoStars: 0.65,
-      thresholdFactorThreeStars: 0.8,
-      hasUselessLetter: false,
-      hasHiddenLetter: false,
-    ),
-    5: Difficulty(
-      thresholdFactorOneStar: 0.5,
-      thresholdFactorTwoStars: 0.75,
-      thresholdFactorThreeStars: 0.85,
-      hasUselessLetter: false,
-      hasHiddenLetter: false,
-    ),
-    8: Difficulty(
-      thresholdFactorOneStar: 0.5,
-      thresholdFactorTwoStars: 0.75,
-      thresholdFactorThreeStars: 0.85,
-      hasUselessLetter: true,
-      hasHiddenLetter: false,
-    ),
-    12: Difficulty(
-      thresholdFactorOneStar: 0.5,
-      thresholdFactorTwoStars: 0.75,
-      thresholdFactorThreeStars: 0.85,
-      hasUselessLetter: true,
-      hasHiddenLetter: true,
-    ),
-    15: Difficulty(
-      thresholdFactorOneStar: 0.65,
-      thresholdFactorTwoStars: 0.85,
-      thresholdFactorThreeStars: 0.9,
-      hasUselessLetter: true,
-      hasHiddenLetter: true,
-    ),
-    18: Difficulty(
-      thresholdFactorOneStar: 0.7,
-      thresholdFactorTwoStars: 0.9,
-      thresholdFactorThreeStars: 0.95,
-      hasUselessLetter: true,
-      hasHiddenLetter: true,
-    ),
-    21: Difficulty(
-      thresholdFactorOneStar: 0.75,
-      thresholdFactorTwoStars: 0.95,
-      thresholdFactorThreeStars: 1.0,
-      hasUselessLetter: true,
-      hasHiddenLetter: true,
-    ),
-  };
 
   //// MODIFYING THE CONFIGURATION ////
 
