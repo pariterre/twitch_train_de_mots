@@ -107,13 +107,12 @@ class GameManager {
 
   bool get hasUselessLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
+
   bool get hasHiddenLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
       !_isHiddenLetterRevealed;
   bool _isHiddenLetterRevealed = false;
-
-  int get hiddenLetterIndex =>
-      hasHiddenLetter ? _currentProblem!.hiddenLettersIndex : -1;
+  int get hiddenLetterIndex => _currentProblem?.hiddenLettersIndex ?? -1;
 
   /// --------- ///
   /// CALLBACKS ///
@@ -373,11 +372,6 @@ class GameManager {
     }
 
     // Manage hidden letter
-    debugPrint((!_isHiddenLetterRevealed).toString());
-    debugPrint(ConfigurationManager.instance
-        .difficulty(_roundCount)
-        .hasHiddenLetter
-        .toString());
     if (!_isHiddenLetterRevealed &&
         ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
         timeRemaining! <=

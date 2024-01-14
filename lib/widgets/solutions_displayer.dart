@@ -41,6 +41,8 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
 
+    _fireworksControllers.forEach((key, value) => value.dispose());
+
     super.dispose();
   }
 

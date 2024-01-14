@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/valuable_letter.dart';
+import 'package:train_de_mots/widgets/fireworks.dart';
 
 double _letterWidth = 80;
 double _letterHeight = 90;
@@ -18,33 +19,65 @@ class LetterDisplayer extends StatefulWidget {
 }
 
 class _LetterDisplayerState extends State<LetterDisplayer> {
+  final List<FireworksController> _fireworksControllers = [];
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
     gm.onScrablingLetters.addListener(_refresh);
-    gm.onRevealHiddenLetter.addListener(_refresh);
-    gm.onRoundStarted.addListener(_refresh);
+    gm.onRevealHiddenLetter.addListener(_onRevealHiddenLetter);
+    gm.onRoundStarted.addListener(_onRoundStarted);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
+
+    _reinitializeFireworks();
   }
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = GameManager.instance;
     gm.onScrablingLetters.removeListener(_refresh);
-    gm.onRevealHiddenLetter.removeListener(_refresh);
-    gm.onRoundStarted.removeListener(_refresh);
+    gm.onRevealHiddenLetter.removeListener(_onRevealHiddenLetter);
+    gm.onRoundStarted.removeListener(_onRoundStarted);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
+
+    for (var e in _fireworksControllers) {
+      e.dispose();
+    }
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
+  void _onRoundStarted() {
+    _reinitializeFireworks();
+    setState(() {});
+  }
+
+  void _onRevealHiddenLetter() {
+    final gm = GameManager.instance;
+    final hiddenIndex = gm.hiddenLetterIndex;
+    _fireworksControllers[hiddenIndex].trigger();
+    setState(() {});
+  }
+
+  void _reinitializeFireworks() {
+    final gm = GameManager.instance;
+    if (gm.problem == null) return;
+
+    _fireworksControllers.clear();
+    final letters = gm.problem!.letters;
+    for (final _ in letters) {
+      _fireworksControllers.add(FireworksController());
+    }
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +94,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     final displayerWidth =
         _letterWidth * letters.length + 2 * _letterPadding * (letters.length);
 
-    final hiddenIndex = gm.hiddenLetterIndex;
+    final hiddenIndex = gm.hasHiddenLetter ? gm.hiddenLetterIndex : -1;
 
     return SizedBox(
       width: displayerWidth,
@@ -73,8 +106,17 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
               curve: Curves.easeInOut,
               left:
                   (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
-              child: _Letter(
-                  letter: letters[index], isHidden: index == hiddenIndex)),
+              child: Stack(
+                children: [
+                  _Letter(
+                      letter: letters[index], isHidden: index == hiddenIndex),
+                  SizedBox(
+                    width: _letterWidth,
+                    height: _letterHeight,
+                    child: Fireworks(controller: _fireworksControllers[index]),
+                  ),
+                ],
+              )),
       ]),
     );
   }
