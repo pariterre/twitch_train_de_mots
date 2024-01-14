@@ -27,7 +27,7 @@ class LetterProblem {
   bool get hasUselessLetter => _extraUselessLetter != null;
 
   int _hiddenLetterIndex = -1;
-  int get hiddenLettersIndex => _scrambleIndices[_hiddenLetterIndex];
+  int get hiddenLettersIndex => _hiddenLetterIndex;
 
   ///
   /// Returns the maximum score that can be obtained by finding all the solutions
