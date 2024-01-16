@@ -5,9 +5,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
-import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/success_level.dart';
-import 'package:train_de_mots/models/letter_problem.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
 bool _useDatabaseMock = true;
@@ -20,24 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (_useDatabaseMock) {
-    await DatabaseManagerMock.initialize(
-      dummyIsSignedIn: true,
-      emailIsVerified: true,
-      dummyTeamName: 'Les Bleuets',
-      dummyResults: {
-        'Les Verts': 3,
-        'Les Oranges': 6,
-        'Les Roses': 1,
-        'Les Jaunes': 5,
-        'Les Blancs': 1,
-        'Les Bleus': 0,
-        'Les Noirs': 1,
-        'Les Rouges': 2,
-        'Les Violets': 3,
-        'Les Gris': 0,
-        'Les Bruns': 0,
-      },
-    );
+    await MocksConfiguration.initializeDatabaseMocks();
   } else {
     await DatabaseManager.initialize();
   }
@@ -45,25 +26,9 @@ void main() async {
   await ConfigurationManager.initialize();
 
   if (_useGameManagerMock) {
-    await GameManagerMock.initialize(
-      gameStatus: GameStatus.roundPreparing,
-      problem: _useProblemMock ? LetterProblemMock() : null,
-      players: [
-        Player(name: 'Player 1')..score = 100,
-        Player(name: 'Player 2')
-          ..score = 200
-          ..hasStolen(),
-        Player(name: 'Player 3')..score = 300,
-        Player(name: 'Player 4')..score = 150,
-        Player(name: 'Player 5')
-          ..score = 250
-          ..hasStolen()
-          ..hasStolen(),
-        Player(name: 'Player 6')..score = 350,
-      ],
-      roundCount: 10,
-      successLevel: SuccessLevel.oneStar,
-    );
+    await MocksConfiguration.initializeGameManagerMocks(
+        letterProblemMock:
+            _useProblemMock ? MocksConfiguration.letterProblemMock : null);
   } else {
     await GameManager.initialize();
   }

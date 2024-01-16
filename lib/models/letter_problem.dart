@@ -526,13 +526,12 @@ String get _randomLetterFromFrequency {
 }
 
 class LetterProblemMock extends LetterProblem {
-  LetterProblemMock()
-      : super._(
-          letters: 'BJOONUR'.split(''),
-          solutions: WordSolutions([
-            WordSolution(word: 'BONJOUR'),
-            WordSolution(word: 'JOUR'),
-          ]),
+  LetterProblemMock({
+    required String letters,
+    required WordSolutions solutions,
+  }) : super._(
+          letters: letters.split(''),
+          solutions: solutions,
           uselessLetter: null,
         );
 }
