@@ -6,6 +6,8 @@ import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 class MocksConfiguration {
+  static bool showDebugOptions = true;
+
   static LetterProblemMock get letterProblemMock => LetterProblemMock(
       letters: 'BJOONUR',
       solutions: WordSolutions([

@@ -321,10 +321,7 @@ class GameManager {
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
     _roundCount = 0;
-    for (final player in players) {
-      player.score = 0;
-      player.resetForNextRound();
-    }
+    players.clear();
   }
 
   ///
