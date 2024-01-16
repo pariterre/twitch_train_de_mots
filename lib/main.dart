@@ -8,16 +8,11 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
-bool _useDatabaseMock = true;
-bool _useGameManagerMock = true;
-bool _useProblemMock = true;
-bool _useTwitchManagerMock = true;
-
 void main() async {
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (_useDatabaseMock) {
+  if (MocksConfiguration.useDatabaseMock) {
     await MocksConfiguration.initializeDatabaseMocks();
   } else {
     await DatabaseManager.initialize();
@@ -25,10 +20,11 @@ void main() async {
 
   await ConfigurationManager.initialize();
 
-  if (_useGameManagerMock) {
+  if (MocksConfiguration.useGameManagerMock) {
     await MocksConfiguration.initializeGameManagerMocks(
-        letterProblemMock:
-            _useProblemMock ? MocksConfiguration.letterProblemMock : null);
+        letterProblemMock: MocksConfiguration.useProblemMock
+            ? MocksConfiguration.letterProblemMock
+            : null);
   } else {
     await GameManager.initialize();
   }
@@ -38,7 +34,7 @@ void main() async {
     ThemeManager.initialize(),
   ]);
 
-  if (_useTwitchManagerMock) {
+  if (MocksConfiguration.useTwitchManagerMock) {
     TwitchManager.instance.initialize(useMock: true);
   } else {
     TwitchManager.instance.initialize();
