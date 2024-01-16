@@ -395,7 +395,7 @@ class GameManager {
     // if all the words have been found
     bool shouldEndTheRound = _forceEndTheRound ||
         timeRemaining! <=
-            ConfigurationManager.instance.postRoundDuration.inSeconds ||
+            -ConfigurationManager.instance.postRoundDuration.inSeconds ||
         _currentProblem!.areAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
