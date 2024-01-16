@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ConfigurationDrawer extends StatefulWidget {
   const ConfigurationDrawer({super.key});
@@ -69,29 +70,38 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                       title: const Text('Configuration du thème'),
                       onTap: () => _showThemeConfiguration(context),
                     ),
-                    ListTile(
-                      title: const Text('Configuration du jeu'),
-                      onTap: () {
-                        _showGameConfiguration(context);
-                      },
-                    ),
+                    if (cm.useDebugOptions)
+                      ListTile(
+                        title: const Text('Configuration du jeu'),
+                        onTap: () {
+                          _showGameConfiguration(context);
+                        },
+                      ),
                   ],
                 ),
                 Column(
                   children: [
-                    ListTile(
-                      title: const Text('Terminer la rounde actuelle'),
-                      enabled: gm.gameStatus == GameStatus.roundStarted,
-                      onTap: () async {
-                        await gm.requestTerminateRound();
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                    ),
+                    const ListTile(
+                        title: Text('Pause café'), onTap: _buyMeACoffee),
                     const Divider(),
+                    if (cm.useDebugOptions)
+                      Column(
+                        children: [
+                          ListTile(
+                            title: const Text('Terminer la rounde actuelle'),
+                            enabled: gm.gameStatus == GameStatus.roundStarted,
+                            onTap: () async {
+                              await gm.requestTerminateRound();
+                              if (context.mounted) Navigator.pop(context);
+                            },
+                          ),
+                          const Divider(),
+                        ],
+                      ),
                     ListTile(
                         tileColor: Colors.black,
                         title: const Text(
-                          'Sortir du train',
+                          'Sortir du train (Déconnexion)',
                           style: TextStyle(color: Colors.white),
                         ),
                         onTap: () async {
@@ -108,27 +118,28 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           await dm.logOut();
                           if (context.mounted) Navigator.pop(context);
                         }),
-                    ListTile(
-                      tileColor: Colors.red,
-                      title: const Text('Réinitialiser la configuration'),
-                      enabled: cm.canChangeProblem,
-                      onTap: () async {
-                        final result = await showDialog<bool?>(
-                            context: context,
-                            builder: (context) => const _AreYouSureDialog(
-                                  title: 'Réinitialiser la configuration',
-                                  message:
-                                      'Êtes-vous sûr de vouloir réinitialiser la configuration?',
-                                  yesTitle: 'Réinitialiser',
-                                ));
-                        if (result == null || !result) return;
+                    if (cm.useDebugOptions)
+                      ListTile(
+                        tileColor: Colors.red,
+                        title: const Text('Réinitialiser la configuration'),
+                        enabled: cm.canChangeProblem,
+                        onTap: () async {
+                          final result = await showDialog<bool?>(
+                              context: context,
+                              builder: (context) => const _AreYouSureDialog(
+                                    title: 'Réinitialiser la configuration',
+                                    message:
+                                        'Êtes-vous sûr de vouloir réinitialiser la configuration?',
+                                    yesTitle: 'Réinitialiser',
+                                  ));
+                          if (result == null || !result) return;
 
-                        cm.resetConfiguration();
-                        tm.reset();
+                          cm.resetConfiguration();
+                          tm.reset();
 
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                    ),
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                      ),
                   ],
                 ),
               ],
@@ -138,6 +149,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
       ),
     );
   }
+}
+
+void _buyMeACoffee() async {
+  await launchUrl(Uri.parse('https://www.buymeacoffee.com/pariterre?l=fr'));
 }
 
 void _showThemeConfiguration(context) {
@@ -229,12 +244,13 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
                       cm.showLeaderBoard = value;
                     }),
                 const SizedBox(height: 12),
-                _BooleanInputField(
-                    label: 'Montrer les réponses au survol\nde la souris',
-                    value: cm.showAnswersTooltip,
-                    onChanged: (value) {
-                      cm.showAnswersTooltip = value;
-                    }),
+                if (cm.useDebugOptions)
+                  _BooleanInputField(
+                      label: 'Montrer les réponses au survol\nde la souris',
+                      value: cm.showAnswersTooltip,
+                      onChanged: (value) {
+                        cm.showAnswersTooltip = value;
+                      }),
               ],
             ),
           ),

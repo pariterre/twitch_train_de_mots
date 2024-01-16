@@ -30,6 +30,8 @@ const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
 class ConfigurationManager {
+  bool get useDebugOptions => false;
+
   ///
   /// Declare the singleton
   static ConfigurationManager get instance {
