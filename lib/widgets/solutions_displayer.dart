@@ -293,7 +293,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                   ),
                   if (widget.solution.foundBy.lastSolutionFound ==
                           widget.solution &&
-                      widget.solution.foundBy.cooldownRemaining.inSeconds > 0)
+                      widget.solution.foundBy.isInCooldownPeriod)
                     Padding(
                       padding: const EdgeInsets.only(left: 15.0),
                       child: SizedBox(

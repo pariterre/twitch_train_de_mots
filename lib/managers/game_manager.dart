@@ -171,6 +171,8 @@ class GameManager {
   /// Otherwise, the UI would be spammed with updates.
   bool _forceRepickProblem = false;
   bool _hasAPlayerBeenUpdate = false;
+  // This helps calling [_hasAPlayerBeenUpdate] a single frame after a player is out of cooldown
+  final Map<String, bool> _playersWasInCooldownLastFrame = {};
 
   Future<void> _searchForNextProblem() async {
     if (_isSearchingNextProblem) return;
@@ -312,6 +314,7 @@ class GameManager {
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
+    _playersWasInCooldownLastFrame[player.name] = true;
   }
 
   ///
@@ -356,7 +359,12 @@ class GameManager {
 
     // Manager players cooling down
     for (final player in players) {
-      if (player.isInCooldownPeriod) _hasAPlayerBeenUpdate = true;
+      if (player.isInCooldownPeriod) {
+        _hasAPlayerBeenUpdate = true;
+      } else if (_playersWasInCooldownLastFrame[player.name] ?? false) {
+        _playersWasInCooldownLastFrame[player.name] = false;
+        _hasAPlayerBeenUpdate = true;
+      }
     }
     if (_hasAPlayerBeenUpdate) {
       onPlayerUpdate.notifyListeners();
