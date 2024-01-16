@@ -18,9 +18,9 @@ const _timeBeforeScramblingLettersDefault = 15;
 
 const _nbLetterInSmallestWordDefault = 4;
 const _minimumWordLetterDefault = 6;
-const _maximumWordLetterDefault = 7;
-const _minimumWordsNumberDefault = 25;
-const _maximumWordsNumberDefault = 35;
+const _maximumWordLetterDefault = 10;
+const _minimumWordsNumberDefault = 20;
+const _maximumWordsNumberDefault = 40;
 
 const _stealingPenaltyFactorDefault = 2;
 
@@ -70,7 +70,7 @@ class ConfigurationManager {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
-  }) _problemGenerator = LetterProblem.generateFromRandom;
+  }) _problemGenerator = ProblemGenerator.generateFromRandom;
   Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,

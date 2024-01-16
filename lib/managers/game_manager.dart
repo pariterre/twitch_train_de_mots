@@ -452,9 +452,11 @@ class GameManager {
 }
 
 class GameManagerMock extends GameManager {
+  LetterProblemMock? _problemMocker;
+
   static Future<void> initialize({
     GameStatus? gameStatus,
-    LetterProblem? problem,
+    LetterProblemMock? problem,
     List<Player>? players,
     int? roundCount,
     SuccessLevel? successLevel,
@@ -466,33 +468,57 @@ class GameManagerMock extends GameManager {
     GameManager._instance = GameManagerMock._internal();
 
     if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
-    if (problem != null) {
-      GameManager._instance!._currentProblem = problem;
-    }
+
     if (players != null) {
       for (final player in players) {
         GameManager._instance!.players.add(player);
       }
     }
+
+    GameManager._instance!._gameStatus = GameStatus.initializing;
     if (roundCount != null) {
       GameManager._instance!._roundCount = roundCount;
+      GameManager._instance!._gameStatus = GameStatus.roundReady;
     }
     if (successLevel != null) {
       GameManager._instance!._roundCount += successLevel.toInt();
       (GameManager._instance! as GameManagerMock)._successLevel = successLevel;
     }
 
+    GameManager._instance!._initializeTrySolutionCallback();
+    if (problem == null) {
+      GameManager._instance!._searchForNextProblem();
+    } else {
+      (GameManager._instance! as GameManagerMock)._problemMocker = problem;
+      GameManager._instance!._currentProblem = problem;
+      GameManager._instance!._nextProblem = problem;
+      GameManager._instance!._gameStatus = GameStatus.roundReady;
+
+      Future.delayed(const Duration(seconds: 1)).then((value) =>
+          GameManager._instance!.onNextProblemReady.notifyListeners());
+    }
+
     Timer.periodic(
         const Duration(milliseconds: 100), GameManager._instance!._gameLoop);
-
-    GameManager._instance!._initializeTrySolutionCallback();
-    GameManager._instance!._initializeWordProblem();
   }
 
   @override
-  Future<void> _initializeWordProblem() async {
-    await super._initializeWordProblem();
-    onNextProblemReady.notifyListeners();
+  Future<void> _searchForNextProblem() async {
+    if (_problemMocker == null) {
+      await super._searchForNextProblem();
+    } else {
+      _nextProblem = _problemMocker;
+
+      // Make sure the game don't run if the player is not logged in
+      final dm = DatabaseManager.instance;
+      dm.onLoggedOut.addListener(() => requestTerminateRound());
+      dm.onFullyLoggedIn.addListener(() {
+        if (gameStatus != GameStatus.initializing) _startNewRound();
+      });
+
+      _isSearchingNextProblem = false;
+    }
+    GameManager._instance!.onGameIsInitializing.notifyListeners();
   }
 
   GameManagerMock._internal() : super._internal();

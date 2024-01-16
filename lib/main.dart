@@ -10,9 +10,10 @@ import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
-bool _useDatabaseMock = false;
-bool _useGameManagerMock = false;
-bool _useTwitchManagerMock = false;
+bool _useDatabaseMock = true;
+bool _useGameManagerMock = true;
+bool _useProblemMock = true;
+bool _useTwitchManagerMock = true;
 
 void main() async {
   // Initialize singleton
@@ -46,7 +47,7 @@ void main() async {
   if (_useGameManagerMock) {
     await GameManagerMock.initialize(
       gameStatus: GameStatus.roundPreparing,
-      problem: WordProblemMock(),
+      problem: _useProblemMock ? LetterProblemMock() : null,
       players: [
         Player(name: 'Player 1')..score = 100,
         Player(name: 'Player 2')
@@ -60,7 +61,7 @@ void main() async {
           ..hasStolen(),
         Player(name: 'Player 6')..score = 350,
       ],
-      roundCount: 3,
+      roundCount: 10,
       successLevel: SuccessLevel.oneStar,
     );
   } else {
