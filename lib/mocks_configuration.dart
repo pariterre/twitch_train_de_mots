@@ -34,6 +34,10 @@ class MocksConfiguration {
         WordSolution(word: 'repaf'),
         WordSolution(word: 'repag'),
         WordSolution(word: 'repah'),
+        WordSolution(word: 'repai'),
+        WordSolution(word: 'repaj'),
+        WordSolution(word: 'repak'),
+        WordSolution(word: 'repal'),
         WordSolution(word: 'repaaa'),
         WordSolution(word: 'repaab'),
         WordSolution(word: 'repaac'),
@@ -42,6 +46,9 @@ class MocksConfiguration {
         WordSolution(word: 'repaaaa'),
         WordSolution(word: 'repaaab'),
         WordSolution(word: 'repaaac'),
+        WordSolution(word: 'repaaaaa'),
+        WordSolution(word: 'repaaaab'),
+        WordSolution(word: 'repaaaac'),
       ]));
 
   static Future<void> initializeGameManagerMocks(

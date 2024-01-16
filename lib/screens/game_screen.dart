@@ -60,12 +60,9 @@ class _GameScreenState extends State<GameScreen> {
                       children: [
                         LetterDisplayer(),
                         SizedBox(height: 20),
-                        SizedBox(
-                          height: 640,
-                          child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: SolutionsDisplayer()),
-                        ),
+                        SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SolutionsDisplayer()),
                       ],
                     ),
                   ],

@@ -82,44 +82,58 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
       solutionsByLength.add(solutions.solutionsOfLength(i));
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var solutions
-            in solutionsByLength.where((element) => element.isNotEmpty))
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    'Mots de ${solutions.first.word.length} lettres',
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: tm.textColor,
-                        fontSize: tm.textSize),
-                  ),
-                ),
-                Expanded(
-                  child: LayoutBuilder(builder: (context, constraint) {
-                    return SizedBox(
-                      height: constraint.maxHeight,
-                      child: Stack(
-                        children: [
-                          _SolutionWrapper(solutions: solutions),
-                          _FireworksWrapper(
-                              solutions: solutions,
-                              fireworksControllers: _fireworksControllers),
-                        ],
+    const headerHeight = 350;
+    const solutionTileHeight = 58.0;
+    final maxHeight = MediaQuery.of(context).size.height - headerHeight;
+    final nbSolutionPerColumn =
+        maxHeight ~/ solutionTileHeight - 1; // -1 accounts for the header
+
+    return SizedBox(
+      height: maxHeight,
+      child: Wrap(
+        direction: Axis.vertical,
+        children: [
+          for (var solutions
+              in solutionsByLength.where((element) => element.isNotEmpty))
+            SizedBox(
+              height: solutions.length > nbSolutionPerColumn
+                  ? double.infinity
+                  : (solutions.length + 1) * solutionTileHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        'Mots de ${solutions.first.word.length} lettres',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: tm.textColor,
+                            fontSize: tm.textSize),
                       ),
-                    );
-                  }),
+                    ),
+                    Expanded(
+                      child: LayoutBuilder(builder: (context, constraint) {
+                        return SizedBox(
+                          height: constraint.maxHeight,
+                          child: Stack(
+                            children: [
+                              _SolutionWrapper(solutions: solutions),
+                              _FireworksWrapper(
+                                  solutions: solutions,
+                                  fireworksControllers: _fireworksControllers),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
