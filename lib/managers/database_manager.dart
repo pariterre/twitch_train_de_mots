@@ -425,7 +425,8 @@ void _insertResultInList(TeamResult current, List<TeamResult> out) {
       (e) => e.name == current.name && e.station == current.station);
 
   if (currentIndex < 0) {
-    final index = out.indexWhere((e) => e.station == current.station);
+    final index =
+        out.indexWhere((e) => (e.station ?? 0) <= (current.station ?? -1));
     if (index < 0) {
       out.add(current);
     } else {
