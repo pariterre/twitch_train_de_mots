@@ -107,6 +107,9 @@ class GameManager {
 
   bool get hasUselessLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
+  bool _isUselessLetterRevealed = false;
+  bool get isUselessLetterRevealed => _isUselessLetterRevealed;
+  int get uselessLetterIndex => _currentProblem?.uselessLetterIndex ?? -1;
 
   bool get hasHiddenLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
@@ -128,6 +131,7 @@ class GameManager {
   final onRoundIsOver = CustomCallback<VoidCallback>();
   final onTimerTicks = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
+  final onRevealUselessLetter = CustomCallback<VoidCallback>();
   final onRevealHiddenLetter = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
@@ -181,6 +185,14 @@ class GameManager {
     _forceRepickProblem = false;
     _isSearchingNextProblem = true;
 
+    bool addUselessLetter = false;
+    for (final level in SuccessLevel.values) {
+      addUselessLetter = ConfigurationManager.instance
+          .difficulty(_roundCount + level.toInt())
+          .hasUselessLetter;
+      if (addUselessLetter) break;
+    }
+
     final cm = ConfigurationManager.instance;
     _nextProblem = await cm.problemGenerator(
       nbLetterInSmallestWord: cm.nbLetterInSmallestWord,
@@ -188,9 +200,7 @@ class GameManager {
       maxLetters: cm.maximumWordLetter,
       minimumNbOfWords: cm.minimumWordsNumber,
       maximumNbOfWords: cm.maximumWordsNumber,
-      addUselessLetter: ConfigurationManager.instance
-          .difficulty(_roundCount + SuccessLevel.threeStars.toInt())
-          .hasUselessLetter,
+      addUselessLetter: addUselessLetter,
     );
 
     _isSearchingNextProblem = false;
@@ -241,6 +251,7 @@ class GameManager {
 
     // Start the round
     _gameStatus = GameStatus.roundStarted;
+    _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
@@ -374,6 +385,17 @@ class GameManager {
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners();
+    }
+
+    // Manage useless letter
+    if (!_isUselessLetterRevealed &&
+        ConfigurationManager.instance
+            .difficulty(_roundCount)
+            .hasUselessLetter &&
+        timeRemaining! <=
+            cm.difficulty(_roundCount).revealUselessLetterAtTimeLeft) {
+      _isUselessLetterRevealed = true;
+      onRevealUselessLetter.notifyListeners();
     }
 
     // Manage hidden letter

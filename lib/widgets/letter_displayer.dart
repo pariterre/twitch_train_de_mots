@@ -27,6 +27,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     final gm = GameManager.instance;
     gm.onScrablingLetters.addListener(_refresh);
+    gm.onRevealUselessLetter.addListener(_onRevealUselessLetter);
     gm.onRevealHiddenLetter.addListener(_onRevealHiddenLetter);
     gm.onRoundStarted.addListener(_onRoundStarted);
 
@@ -40,6 +41,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void dispose() {
     final gm = GameManager.instance;
     gm.onScrablingLetters.removeListener(_refresh);
+    gm.onRevealUselessLetter.removeListener(_onRevealUselessLetter);
     gm.onRevealHiddenLetter.removeListener(_onRevealHiddenLetter);
     gm.onRoundStarted.removeListener(_onRoundStarted);
 
@@ -56,6 +58,13 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void _refresh() => setState(() {});
   void _onRoundStarted() {
     _reinitializeFireworks();
+    setState(() {});
+  }
+
+  void _onRevealUselessLetter() {
+    final gm = GameManager.instance;
+    final uselessIndex = gm.uselessLetterIndex;
+    _fireworksControllers[uselessIndex].trigger();
     setState(() {});
   }
 
@@ -94,6 +103,8 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     final displayerWidth =
         _letterWidth * letters.length + 2 * _letterPadding * (letters.length);
 
+    final revealedUselessIndex =
+        gm.isUselessLetterRevealed ? gm.uselessLetterIndex : -1;
     final hiddenIndex = gm.hasHiddenLetter ? gm.hiddenLetterIndex : -1;
 
     return SizedBox(
@@ -109,7 +120,10 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
               child: Stack(
                 children: [
                   _Letter(
-                      letter: letters[index], isHidden: index == hiddenIndex),
+                    letter: letters[index],
+                    uselessIsRevealed: index == revealedUselessIndex,
+                    isHidden: index == hiddenIndex,
+                  ),
                   SizedBox(
                     width: _letterWidth,
                     height: _letterHeight,
@@ -123,9 +137,14 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 }
 
 class _Letter extends StatefulWidget {
-  const _Letter({required this.letter, required this.isHidden});
+  const _Letter({
+    required this.letter,
+    required this.uselessIsRevealed,
+    required this.isHidden,
+  });
 
   final String letter;
+  final bool uselessIsRevealed;
   final bool isHidden;
 
   @override
@@ -166,9 +185,11 @@ class _LetterState extends State<_Letter> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: widget.isHidden
-                ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
-                : [tm.letterColorLight, tm.letterColorDark],
+            colors: widget.uselessIsRevealed
+                ? [tm.uselessLetterColorLight, tm.uselessLetterColorDark]
+                : widget.isHidden
+                    ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
+                    : [tm.letterColorLight, tm.letterColorDark],
             stops: const [0, 0.4],
           ),
           border: Border.all(color: Colors.black),

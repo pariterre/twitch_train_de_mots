@@ -25,6 +25,7 @@ class LetterProblem {
 
   String? _extraUselessLetter;
   bool get hasUselessLetter => _extraUselessLetter != null;
+  int get uselessLetterIndex => _letters.length;
 
   int _hiddenLetterIndex = -1;
   int get hiddenLettersIndex => _hiddenLetterIndex;

@@ -4,6 +4,7 @@ class Difficulty {
   final double thresholdFactorThreeStars;
 
   final bool hasUselessLetter;
+  final int revealUselessLetterAtTimeLeft;
 
   final bool hasHiddenLetter;
   final int revealHiddenLetterAtTimeLeft;
@@ -13,6 +14,7 @@ class Difficulty {
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
     required this.hasUselessLetter,
+    this.revealUselessLetterAtTimeLeft = -1,
     required this.hasHiddenLetter,
     this.revealHiddenLetterAtTimeLeft = -1,
   });

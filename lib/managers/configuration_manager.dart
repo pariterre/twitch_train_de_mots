@@ -369,6 +369,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
         hasUselessLetter: true,
+        revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: false,
       );
     } else if (level < 12) {
@@ -378,6 +379,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
         hasUselessLetter: true,
+        revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
       );
@@ -388,6 +390,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.9,
         hasUselessLetter: true,
+        revealUselessLetterAtTimeLeft: 15,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
       );
@@ -398,6 +401,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.9,
         thresholdFactorThreeStars: 0.95,
         hasUselessLetter: true,
+        revealUselessLetterAtTimeLeft: -1,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 15,
       );
