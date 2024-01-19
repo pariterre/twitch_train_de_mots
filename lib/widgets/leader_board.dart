@@ -138,7 +138,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
       roundScore: roundScore,
       totalScore: player.score.toString(),
       isTitle: false,
-      isStealer: player.isAStealer,
+      isStealer: player.roundStealCount > 0,
     );
   }
 

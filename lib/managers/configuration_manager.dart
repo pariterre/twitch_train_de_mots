@@ -23,7 +23,7 @@ const _maximumWordLetterDefault = 10;
 const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
-const _stealingPenaltyFactorDefault = 2;
+const _stealingTimePenaltyFactorDefault = 2;
 
 const _canStealDefault = true;
 
@@ -188,11 +188,11 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _stealingPenaltyFactor = _stealingPenaltyFactorDefault;
-  int get stealingPenaltyFactor => _stealingPenaltyFactor;
-  set stealingPenaltyFactor(int value) {
-    if (_stealingPenaltyFactor == value) return;
-    _stealingPenaltyFactor = value;
+  int _stealingTimePenaltyFactor = _stealingTimePenaltyFactorDefault;
+  int get stealingTimePenaltyFactor => _stealingTimePenaltyFactor;
+  set stealingTimePenaltyFactor(int value) {
+    if (_stealingTimePenaltyFactor == value) return;
+    _stealingTimePenaltyFactor = value;
 
     _saveConfiguration();
   }
@@ -298,8 +298,8 @@ class ConfigurationManager {
       _maximumWordsNumber =
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
-      _stealingPenaltyFactor =
-          map['stealingPenaltyFactor'] ?? _stealingPenaltyFactorDefault;
+      _stealingTimePenaltyFactor =
+          map['stealingTimePenaltyFactor'] ?? _stealingTimePenaltyFactorDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
@@ -330,7 +330,7 @@ class ConfigurationManager {
     _minimumWordsNumber = _minimumWordsNumberDefault;
     _maximumWordsNumber = _maximumWordsNumberDefault;
 
-    _stealingPenaltyFactor = _stealingPenaltyFactorDefault;
+    _stealingTimePenaltyFactor = _stealingTimePenaltyFactorDefault;
 
     _canSteal = _canStealDefault;
 

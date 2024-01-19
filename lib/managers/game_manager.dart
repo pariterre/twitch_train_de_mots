@@ -297,7 +297,7 @@ class GameManager {
       if (!cm.canSteal ||
           solution.wasStolen ||
           solution.foundBy == player ||
-          player.isAStealer ||
+          player.roundStealCount > 0 ||
           DateTime.now().isBefore(solution.foundAt.add(cooldownTimer))) {
         return;
       }
@@ -309,7 +309,7 @@ class GameManager {
     solution.foundBy = player;
     player.lastSolutionFound = solution;
     if (solution.wasStolen) {
-      solution.foundBy.hasStolen();
+      solution.foundBy.addToStealCount();
 
       solution.stolenFrom.lastSolutionFound = null;
       solution.stolenFrom.resetCooldown();
@@ -441,12 +441,11 @@ class GameManager {
   }
 
   SuccessLevel get completedLevel {
-    if (problem!.currentScore < _pointsToObtain(SuccessLevel.oneStar)) {
+    if (problem!.teamScore < _pointsToObtain(SuccessLevel.oneStar)) {
       return SuccessLevel.failed;
-    } else if (problem!.currentScore < _pointsToObtain(SuccessLevel.twoStars)) {
+    } else if (problem!.teamScore < _pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.oneStar;
-    } else if (problem!.currentScore <
-        _pointsToObtain(SuccessLevel.threeStars)) {
+    } else if (problem!.teamScore < _pointsToObtain(SuccessLevel.threeStars)) {
       return SuccessLevel.twoStars;
     } else {
       return SuccessLevel.threeStars;
@@ -458,7 +457,7 @@ class GameManager {
     if (currentLevel == SuccessLevel.threeStars) return 0;
 
     final nextLevel = SuccessLevel.values[currentLevel.index + 1];
-    return _pointsToObtain(nextLevel) - problem!.currentScore;
+    return _pointsToObtain(nextLevel) - problem!.teamScore;
   }
 
   int _pointsToObtain(SuccessLevel level) {

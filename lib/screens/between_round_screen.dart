@@ -156,16 +156,15 @@ class _LeaderBoard extends StatelessWidget {
       return Center(child: _buildTitleTile('Aucun joueur n\'a joué'));
     }
 
-    final highestScore = players.fold<int>(
-        0, (previousValue, player) => max(previousValue, player.score));
-    final nbHighestScore =
-        players.where((player) => player.score == highestScore).length;
+    final highestScore = players.fold(0, (prev, e) => max(prev, e.score));
+    final nbHighestScore = players.where((e) => e.score == highestScore).length;
 
-    final highestStealCount = players.fold<int>(
-        0, (previousValue, player) => max(previousValue, player.stealCount));
-    final biggestStealers = players.where((player) {
-      return highestStealCount != 0 && player.stealCount == highestStealCount;
-    }).toList();
+    final highestStealCount =
+        players.fold(0, (prev, e) => max(prev, e.gameStealCount));
+    final biggestStealers = players
+        .where((e) =>
+            highestStealCount != 0 && e.gameStealCount == highestStealCount)
+        .toList();
 
     return SingleChildScrollView(
       child: Row(

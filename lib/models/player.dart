@@ -6,14 +6,16 @@ class Player {
 
   int score = 0;
 
-  bool _isAStealer = false;
-  bool get isAStealer => _isAStealer;
-  void hasStolen() {
-    _isAStealer = true;
-    stealCount++;
+  void addToStealCount() {
+    _roundStealCount++;
+    _gameStealCount++;
   }
 
-  int stealCount = 0;
+  int _roundStealCount = 0;
+  int get roundStealCount => _roundStealCount;
+
+  int _gameStealCount = 0;
+  int get gameStealCount => _gameStealCount;
 
   WordSolution? lastSolutionFound;
 
@@ -25,7 +27,7 @@ class Player {
   bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
 
   void resetForNextRound() {
-    _isAStealer = false;
+    _roundStealCount = 0;
     _cooldownEndAt = DateTime.now();
   }
 

@@ -67,13 +67,13 @@ class MocksConfiguration {
         Player(name: 'Player 1')..score = 100,
         Player(name: 'Player 2')
           ..score = 200
-          ..hasStolen(),
+          ..addToStealCount(),
         Player(name: 'Player 3')..score = 300,
         Player(name: 'Player 4')..score = 150,
         Player(name: 'Player 5')
           ..score = 250
-          ..hasStolen()
-          ..hasStolen(),
+          ..addToStealCount()
+          ..addToStealCount(),
         Player(name: 'Player 6')..score = 350,
       ],
       roundCount: 10,

@@ -1,8 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/valuable_letter.dart';
 import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/valuable_letter.dart';
 
 class WordSolution {
   final String word;
@@ -24,12 +23,10 @@ class WordSolution {
   Player? _stolenFrom;
   Player get stolenFrom => _stolenFrom!;
 
-  int get value =>
-      word
-          .split('')
-          .map((e) => ValuableLetter.getValueOfLetter(e))
-          .reduce((a, b) => a + b) ~/
-      (wasStolen ? ConfigurationManager.instance.stealingPenaltyFactor : 1);
+  int get value => word
+      .split('')
+      .map((e) => ValuableLetter.getValueOfLetter(e))
+      .reduce((a, b) => a + b);
 
   WordSolution({required String word})
       : word = removeDiacritics(word.toUpperCase());
@@ -85,6 +82,6 @@ class WordSolutions extends DelegatingList<WordSolution> {
 
   ///
   /// Get the maximum possible score for this solution
-  int get maximumPossibleScore => _solutions.fold<int>(
-      0, (previousValue, element) => previousValue + element.value);
+  int get maximumPossibleScore =>
+      _solutions.fold(0, (prev, e) => prev + e.value);
 }

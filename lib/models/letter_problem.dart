@@ -32,13 +32,13 @@ class LetterProblem {
 
   ///
   /// Returns the maximum score that can be obtained by finding all the solutions
-  int get maximumScore => _solutions.fold(0, (prev, e) => prev + e.value);
+  int get maximumScore => _solutions.maximumPossibleScore;
 
   ///
   /// Returns the current score of all the found solutions
-  int get currentScore => _solutions
+  int get teamScore => _solutions
       .where((e) => e.isFound)
-      .map((e) => e.value)
+      .map((e) => e.wasStolen ? 0 : e.value)
       .fold(0, (prev, e) => prev + e);
 
   static initialize({required int nbLetterInSmallestWord}) async {
