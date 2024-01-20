@@ -14,7 +14,7 @@ const _showLeaderBoardDefault = false;
 const _roundDurationDefault = 120;
 const _postRoundDurationDefault = 6;
 const _cooldownPeriodDefault = 12;
-const _cooldownPeriodAfterStealDefault = 25;
+const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
 
 const _nbLetterInSmallestWordDefault = 4;
@@ -22,8 +22,6 @@ const _minimumWordLetterDefault = 6;
 const _maximumWordLetterDefault = 10;
 const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
-
-const _stealingTimePenaltyFactorDefault = 2;
 
 const _canStealDefault = true;
 
@@ -119,11 +117,11 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  Duration _cooldownPeriodAfterSteal =
-      const Duration(seconds: _cooldownPeriodAfterStealDefault);
-  Duration get cooldownPeriodAfterSteal => _cooldownPeriodAfterSteal;
-  set cooldownPeriodAfterSteal(Duration value) {
-    _cooldownPeriodAfterSteal = value;
+  Duration _cooldownPenaltyAfterSteal =
+      const Duration(seconds: _cooldownPenaltyAfterStealDefault);
+  Duration get cooldownPenaltyAfterSteal => _cooldownPenaltyAfterSteal;
+  set cooldownPenaltyAfterSteal(Duration value) {
+    _cooldownPenaltyAfterSteal = value;
     _saveConfiguration();
   }
 
@@ -188,15 +186,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _stealingTimePenaltyFactor = _stealingTimePenaltyFactorDefault;
-  int get stealingTimePenaltyFactor => _stealingTimePenaltyFactor;
-  set stealingTimePenaltyFactor(int value) {
-    if (_stealingTimePenaltyFactor == value) return;
-    _stealingTimePenaltyFactor = value;
-
-    _saveConfiguration();
-  }
-
   bool _canSteal = _canStealDefault;
   bool get canSteal => _canSteal;
   set canSteal(bool value) {
@@ -241,7 +230,7 @@ class ConfigurationManager {
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
       'cooldownPeriod': cooldownPeriod.inSeconds,
-      'cooldownPeriodAfterSteal': cooldownPeriodAfterSteal.inSeconds,
+      'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
       'nbLetterInSmallestWord': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
@@ -280,9 +269,9 @@ class ConfigurationManager {
           seconds: map['postRoundDuration'] ?? _postRoundDurationDefault);
       _cooldownPeriod =
           Duration(seconds: map['cooldownPeriod'] ?? _cooldownPeriodDefault);
-      _cooldownPeriodAfterSteal = Duration(
-          seconds: map['cooldownPeriodAfterSteal'] ??
-              _cooldownPeriodAfterStealDefault);
+      _cooldownPenaltyAfterSteal = Duration(
+          seconds: map['cooldownPenaltyAfterSteal'] ??
+              _cooldownPenaltyAfterStealDefault);
       _timeBeforeScramblingLetters = Duration(
           seconds: map['timeBeforeScramblingLetters'] ??
               _timeBeforeScramblingLettersDefault);
@@ -297,9 +286,6 @@ class ConfigurationManager {
           map['minimumWordsNumber'] ?? _minimumWordsNumberDefault;
       _maximumWordsNumber =
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
-
-      _stealingTimePenaltyFactor =
-          map['stealingTimePenaltyFactor'] ?? _stealingTimePenaltyFactorDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
 
@@ -319,8 +305,8 @@ class ConfigurationManager {
     _roundDuration = const Duration(seconds: _roundDurationDefault);
     _postRoundDuration = const Duration(seconds: _postRoundDurationDefault);
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
-    _cooldownPeriodAfterSteal =
-        const Duration(seconds: _cooldownPeriodAfterStealDefault);
+    _cooldownPenaltyAfterSteal =
+        const Duration(seconds: _cooldownPenaltyAfterStealDefault);
     _timeBeforeScramblingLetters =
         const Duration(seconds: _timeBeforeScramblingLettersDefault);
 
@@ -329,8 +315,6 @@ class ConfigurationManager {
     _maximumWordLetter = _maximumWordLetterDefault;
     _minimumWordsNumber = _minimumWordsNumberDefault;
     _maximumWordsNumber = _maximumWordsNumberDefault;
-
-    _stealingTimePenaltyFactor = _stealingTimePenaltyFactorDefault;
 
     _canSteal = _canStealDefault;
 

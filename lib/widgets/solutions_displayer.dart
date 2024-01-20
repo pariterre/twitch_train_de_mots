@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
@@ -260,7 +260,6 @@ class _SolutionTileState extends State<_SolutionTile> {
 
   Widget _buildTile() {
     final tm = ThemeManager.instance;
-    final gc = ConfigurationManager.instance;
 
     if (widget.fireworks != null) {
       return Fireworks(
@@ -301,9 +300,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                         child: Clock(
                           timeRemaining:
                               widget.solution.foundBy.cooldownRemaining,
-                          maxDuration: widget.solution.wasStolen
-                              ? gc.cooldownPeriodAfterSteal
-                              : gc.cooldownPeriod,
+                          maxDuration: widget.solution.foundBy.cooldownDuration,
                         ),
                       ),
                     ),

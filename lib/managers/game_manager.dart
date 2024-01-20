@@ -283,7 +283,6 @@ class GameManager {
     if (solution == null) return;
 
     // Add to player score
-    Duration cooldownTimer = cm.cooldownPeriod;
     if (solution.isFound) {
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
@@ -292,19 +291,16 @@ class GameManager {
       // if the game is not configured to allow it
       // or if the word was already stolen once
       // or the player is trying to steal from themselves
-      // or the player has already stolen once during this round
       // or was stolen in less than the cooldown of the previous founder
       if (!cm.canSteal ||
           solution.wasStolen ||
           solution.foundBy == player ||
-          player.roundStealCount > 0 ||
-          DateTime.now().isBefore(solution.foundAt.add(cooldownTimer))) {
+          solution.foundBy.isInCooldownPeriod) {
         return;
       }
 
       // Remove the score to original founder and override the cooldown
       solution.foundBy.score -= solution.value;
-      cooldownTimer = cm.cooldownPeriodAfterSteal;
     }
     solution.foundBy = player;
     player.lastSolutionFound = solution;
@@ -312,13 +308,12 @@ class GameManager {
       solution.foundBy.addToStealCount();
 
       solution.stolenFrom.lastSolutionFound = null;
-      solution.stolenFrom.resetCooldown();
 
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 
     player.score += solution.value;
-    player.startCooldown(duration: cooldownTimer);
+    player.startCooldown();
 
     // Call the listeners of solution found
     onSolutionFound.notifyListenersWithParameter(solution);

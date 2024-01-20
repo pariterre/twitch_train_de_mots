@@ -87,7 +87,8 @@ class _SplashScreenState extends State<SplashScreen> {
                           'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
                           '\n'
                           'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
-                          'vos collègues sans scrupules peuvent vous voler vos mots!',
+                          'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train!'
+                          'Heureusement pour vous, les voleurs seront ralentit dans leur travail.',
                           style: TextStyle(
                             fontSize: 24.0,
                             color: tm.textColor,

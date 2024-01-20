@@ -488,11 +488,11 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                 firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
                 secondLabel: 'Voleur',
                 secondInitialValue:
-                    cm.cooldownPeriodAfterSteal.inSeconds.toString(),
+                    cm.cooldownPenaltyAfterSteal.inSeconds.toString(),
                 enableSecond: cm.canSteal,
                 onChanged: (normal, stealer) {
                   cm.cooldownPeriod = Duration(seconds: normal);
-                  cm.cooldownPeriodAfterSteal = Duration(seconds: stealer);
+                  cm.cooldownPenaltyAfterSteal = Duration(seconds: stealer);
                 },
                 enabled: cm.canChangeDurations,
                 disabledTooltip:

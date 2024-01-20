@@ -38,7 +38,7 @@ class LetterProblem {
   /// Returns the current score of all the found solutions
   int get teamScore => _solutions
       .where((e) => e.isFound)
-      .map((e) => e.wasStolen ? 0 : e.value)
+      .map((e) => e.wasStolen ? e.value ~/ 3 : e.value)
       .fold(0, (prev, e) => prev + e);
 
   static initialize({required int nbLetterInSmallestWord}) async {
