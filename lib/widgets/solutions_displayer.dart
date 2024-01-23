@@ -221,6 +221,9 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
+
+    final gm = GameManager.instance;
+    gm.onRoundIsPreparing.addListener(_refresh);
   }
 
   @override
@@ -232,6 +235,9 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
+
+    final gm = GameManager.instance;
+    gm.onRoundIsPreparing.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});

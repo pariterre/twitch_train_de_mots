@@ -8,12 +8,15 @@ import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 
+const _autoplayDefault = true;
+const _autoplayDurationDefault = 25;
+
 const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
 
-const _roundDurationDefault = 15;
+const _roundDurationDefault = 120;
 const _postRoundGracePeriodDurationDefault = 6;
-const _postRoundShowCaseDurationDefault = 10;
+const _postRoundShowCaseDurationDefault = 8;
 const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
@@ -81,6 +84,21 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
   }) get problemGenerator => _problemGenerator;
+
+  bool _autoplay = _autoplayDefault;
+  bool get autoplay => _autoplay;
+  set autoplay(bool value) {
+    _autoplay = value;
+    _saveConfiguration();
+  }
+
+  Duration _autoplayDuration =
+      const Duration(seconds: _autoplayDurationDefault);
+  Duration get autoplayDuration => _autoplayDuration;
+  set autoplayDuration(Duration value) {
+    _autoplayDuration = value;
+    _saveConfiguration();
+  }
 
   bool _showAnswersTooltip = _showAnswersTooltipDefault;
   bool get showAnswersTooltip => _showAnswersTooltip;
@@ -235,6 +253,8 @@ class ConfigurationManager {
   /// Serialize the configuration to a map
   Map<String, dynamic> serialize() {
     return {
+      'autoplay': autoplay,
+      'autoplayDuration': autoplayDuration.inSeconds,
       'showAnswersTooltip': showAnswersTooltip,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
@@ -269,6 +289,10 @@ class ConfigurationManager {
     final data = prefs.getString('gameConfiguration');
     if (data != null) {
       final map = jsonDecode(data);
+
+      _autoplay = map['autoplay'] ?? _autoplayDefault;
+      _autoplayDuration = Duration(
+          seconds: map['autoplayDuration'] ?? _autoplayDurationDefault);
 
       _showAnswersTooltip =
           map['showAnswersTooltip'] ?? _showAnswersTooltipDefault;
@@ -314,6 +338,9 @@ class ConfigurationManager {
   ///
   /// Reset the configuration to the default values
   void resetConfiguration() {
+    _autoplay = _autoplayDefault;
+    _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
+
     _showAnswersTooltip = _showAnswersTooltipDefault;
     _showLeaderBoard = _showLeaderBoardDefault;
 

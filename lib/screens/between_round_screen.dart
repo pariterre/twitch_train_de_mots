@@ -95,14 +95,12 @@ class _ContinueButton extends StatefulWidget {
 }
 
 class _ContinueButtonState extends State<_ContinueButton> {
-  bool _isGameReadyToPlay = false;
-
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onNextProblemReady.addListener(_onNextProblemReady);
+    gm.onTimerTicks.addListener(_refresh);
   }
 
   @override
@@ -110,18 +108,31 @@ class _ContinueButtonState extends State<_ContinueButton> {
     super.dispose();
 
     final gm = GameManager.instance;
-    gm.onNextProblemReady.removeListener(_onNextProblemReady);
+    gm.onTimerTicks.removeListener(_refresh);
   }
 
-  void _onNextProblemReady() {
-    _isGameReadyToPlay = true;
-    setState(() {});
-  }
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
+
+    String buttonText;
+    if (!gm.isNextProblemReady) {
+      buttonText = 'Aiguillage du train en cours...';
+    } else if (gm.successLevel == SuccessLevel.failed) {
+      buttonText = 'Relancer le train';
+    } else {
+      buttonText = 'Prendre les rails';
+    }
+    if (gm.nextRoundStartIn != null) {
+      if (gm.nextRoundStartIn!.inSeconds <= 0) {
+        buttonText += ' (Lancement imminent!)';
+      } else {
+        buttonText += ' (${gm.nextRoundStartIn!.inSeconds} secondes)';
+      }
+    }
 
     return Column(
       children: [
@@ -134,12 +145,8 @@ class _ContinueButtonState extends State<_ContinueButton> {
         const SizedBox(height: 12),
         ThemedElevatedButton(
             onPressed:
-                _isGameReadyToPlay ? () => gm.requestStartNewRound() : null,
-            buttonText: _isGameReadyToPlay
-                ? (gm.successLevel == SuccessLevel.failed
-                    ? 'Relancer le train'
-                    : 'Prendre les rails')
-                : 'Aiguillage du train en cours...'),
+                gm.isNextProblemReady ? () => gm.requestStartNewRound() : null,
+            buttonText: buttonText),
       ],
     );
   }

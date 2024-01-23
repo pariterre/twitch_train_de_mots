@@ -206,48 +206,56 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
         'Configuration du thème',
         style: TextStyle(color: tm.backgroundColorDark),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const _ColorPickerInputField(label: 'Choisir la couleur du temps'),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const _FontSizePickerInputField(
-                    label: 'Choisir la taille du thème'),
-                const SizedBox(height: 12),
-                _SliderInputField(
-                  label: 'Volume de la musique',
-                  value: cm.musicVolume,
-                  onChanged: (value) => cm.musicVolume = value,
-                  thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
-                ),
-                const SizedBox(height: 12),
-                _SliderInputField(
-                  label: 'Volume des sons',
-                  value: cm.soundVolume,
-                  onChanged: (value) => cm.soundVolume = value,
-                  thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
-                ),
-                const SizedBox(height: 12),
-                _BooleanInputField(
-                    label: 'Afficher le tableau des cheminot\u2022e\u2022s',
-                    value: cm.showLeaderBoard,
-                    onChanged: (value) => cm.showLeaderBoard = value),
-                const SizedBox(height: 12),
-                if (cm.useDebugOptions)
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _ColorPickerInputField(label: 'Choisir la couleur du temps'),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _FontSizePickerInputField(
+                      label: 'Choisir la taille du thème'),
+                  const SizedBox(height: 12),
+                  _SliderInputField(
+                    label: 'Volume de la musique',
+                    value: cm.musicVolume,
+                    onChanged: (value) => cm.musicVolume = value,
+                    thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
+                  ),
+                  const SizedBox(height: 12),
+                  _SliderInputField(
+                    label: 'Volume des sons',
+                    value: cm.soundVolume,
+                    onChanged: (value) => cm.soundVolume = value,
+                    thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                  ),
+                  const SizedBox(height: 12),
                   _BooleanInputField(
-                      label: 'Montrer les réponses au survol\nde la souris',
-                      value: cm.showAnswersTooltip,
-                      onChanged: (value) => cm.showAnswersTooltip = value),
-              ],
+                      label: 'Afficher le tableau des cheminot\u2022e\u2022s',
+                      value: cm.showLeaderBoard,
+                      onChanged: (value) => cm.showLeaderBoard = value),
+                  const SizedBox(height: 12),
+                  _BooleanInputField(
+                      label:
+                          'Relancer automatiquement\n(effectif à la prochaine pause)',
+                      value: cm.autoplay,
+                      onChanged: (value) => cm.autoplay = value),
+                  const SizedBox(height: 12),
+                  if (cm.useDebugOptions)
+                    _BooleanInputField(
+                        label: 'Montrer les réponses au survol\nde la souris',
+                        value: cm.showAnswersTooltip,
+                        onChanged: (value) => cm.showAnswersTooltip = value),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-        ],
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

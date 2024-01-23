@@ -39,6 +39,9 @@ class GameManager {
               _roundStartedAt!.millisecondsSinceEpoch) ~/
           1000;
   DateTime? _roundStartedAt;
+  DateTime? _nextRoundStartAt;
+  Duration? get nextRoundStartIn =>
+      _nextRoundStartAt?.difference(DateTime.now());
   DateTime? _nextTickAt;
   int _roundCount = 0;
   int get roundCount => _roundCount;
@@ -47,6 +50,7 @@ class GameManager {
 
   LetterProblem? _currentProblem;
   LetterProblem? _nextProblem;
+  bool get isNextProblemReady => _nextProblem != null;
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
   SuccessLevel? _successLevel;
@@ -255,6 +259,7 @@ class GameManager {
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
     _roundStartedAt = DateTime.now();
+    _nextRoundStartAt = null;
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
     onRoundStarted.notifyListeners();
@@ -334,6 +339,8 @@ class GameManager {
   ///
   /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
   void _gameLoop(Timer timer) {
+    onTimerTicks.notifyListeners();
+
     if ((_gameStatus == GameStatus.initializing ||
             _gameStatus == GameStatus.roundPreparing) &&
         _nextProblem != null) {
@@ -341,9 +348,17 @@ class GameManager {
         _gameStatus = GameStatus.roundReady;
       }
       onNextProblemReady.notifyListeners();
+
       return;
     }
-    if (_gameStatus == GameStatus.roundReady) return;
+    if (_gameStatus == GameStatus.roundReady) {
+      if (_nextRoundStartAt != null &&
+          DateTime.now().isAfter(_nextRoundStartAt!)) {
+        _startNewRound();
+      }
+
+      return;
+    }
 
     _gameTick();
     _endOfRound();
@@ -402,8 +417,6 @@ class GameManager {
       _isHiddenLetterRevealed = true;
       onRevealHiddenLetter.notifyListeners();
     }
-
-    onTimerTicks.notifyListeners();
   }
 
   ///
@@ -433,8 +446,15 @@ class GameManager {
     _roundStartedAt = null;
     _gameStatus = GameStatus.revealAnswers;
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
+      onRoundIsPreparing.notifyListeners();
       _gameStatus = GameStatus.roundPreparing;
     });
+
+    // Launch the automatic start of the round time if needed
+    if (cm.autoplay) {
+      _nextRoundStartAt = DateTime.now()
+          .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
+    }
 
     // Just make sure the next problem is being search, if one was found or is
     // being searched, it will be automatically skipped anyway
