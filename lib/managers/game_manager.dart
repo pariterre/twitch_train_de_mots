@@ -16,6 +16,7 @@ enum GameStatus {
   roundPreparing,
   roundReady,
   roundStarted,
+  revealAnswers,
 }
 
 class GameManager {
@@ -31,7 +32,7 @@ class GameManager {
   int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
       ? null
       : ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
-          ConfigurationManager.instance.postRoundDuration.inSeconds;
+          ConfigurationManager.instance.postRoundGracePeriodDuration.inSeconds;
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -239,8 +240,8 @@ class GameManager {
     if (!hasUselessLetter) _currentProblem!.tossUselessLetter();
 
     // Reinitialize the round timer and players
-    _roundDuration =
-        cm.roundDuration.inMilliseconds + cm.postRoundDuration.inMilliseconds;
+    _roundDuration = cm.roundDuration.inMilliseconds +
+        cm.postRoundGracePeriodDuration.inMilliseconds;
     for (final player in players) {
       player.resetForNextRound();
     }
@@ -411,13 +412,16 @@ class GameManager {
     // Do not end the round if we are not playing
     if (_gameStatus != GameStatus.roundStarted) return;
 
+    final cm = ConfigurationManager.instance;
+
     // End round
     // if the request was made
     // if the timer is over
     // if all the words have been found
     bool shouldEndTheRound = _forceEndTheRound ||
         timeRemaining! <=
-            -ConfigurationManager.instance.postRoundDuration.inSeconds ||
+            -ConfigurationManager
+                .instance.postRoundGracePeriodDuration.inSeconds ||
         _currentProblem!.areAllSolutionsFound;
     if (!shouldEndTheRound) return;
 
@@ -427,8 +431,13 @@ class GameManager {
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
-    _gameStatus = GameStatus.roundPreparing;
+    _gameStatus = GameStatus.revealAnswers;
+    Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
+      _gameStatus = GameStatus.roundPreparing;
+    });
 
+    // Just make sure the next problem is being search, if one was found or is
+    // being searched, it will be automatically skipped anyway
     _searchForNextProblem();
 
     DatabaseManager.instance.registerTrainStationReached(roundCount);

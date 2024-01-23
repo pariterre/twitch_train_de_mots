@@ -177,6 +177,7 @@ class _LeaderBoard extends StatelessWidget {
                 (index) {
                   final player = players[index];
                   final isBiggestStealer = biggestStealers.contains(player);
+                  const stealColor = Color.fromARGB(255, 255, 200, 200);
 
                   return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +188,7 @@ class _LeaderBoard extends StatelessWidget {
                             highlight: isBiggestStealer,
                             prefixIcon: Icon(Icons.local_police,
                                 color: isBiggestStealer
-                                    ? Colors.red
+                                    ? stealColor
                                     : Colors.transparent),
                             suffixText: isBiggestStealer
                                 ? ' (Plus grand voleur!)'
@@ -334,10 +335,12 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   TextStyle _playerStyle(bool isBiggestStealer) {
+    const stealColor = Color.fromARGB(255, 255, 200, 200);
+
     return TextStyle(
       fontSize: 20.0,
       fontWeight: isBiggestStealer ? FontWeight.bold : FontWeight.normal,
-      color: isBiggestStealer ? Colors.red : Colors.white,
+      color: isBiggestStealer ? stealColor : Colors.white,
     );
   }
 

@@ -119,39 +119,43 @@ class _HeaderState extends State<_Header> {
 
     if (gm.problem == null) return Container();
 
-    final pointsToGo =
-        GameManager.instance.completedLevel == SuccessLevel.failed
-            ? GameManager.instance.remainingPointsToNextLevel()
-            : 0;
+    late String title;
 
-    late String toGoText;
-    if (pointsToGo > 0) {
-      toGoText = ' ($pointsToGo points avant destination)';
-    } else {
-      toGoText = ' (Destination atteinte!)';
+    switch (gm.gameStatus) {
+      case GameStatus.roundStarted:
+        final pointsToGo =
+            GameManager.instance.completedLevel == SuccessLevel.failed
+                ? GameManager.instance.remainingPointsToNextLevel()
+                : 0;
+
+        late String toGoText;
+        if (pointsToGo > 0) {
+          toGoText = ' ($pointsToGo points avant destination)';
+        } else {
+          toGoText = ' (Destination atteinte!)';
+        }
+
+        title =
+            ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText';
+        break;
+      case GameStatus.revealAnswers:
+        title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
+        break;
+      case GameStatus.roundReady:
+      case GameStatus.roundPreparing:
+      case GameStatus.initializing:
+        title = 'Le Train de mots!';
+        break;
     }
+
     return Column(
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (gm.gameStatus != GameStatus.roundStarted)
-              Text(
-                'Le Train de mots!',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: tm.titleSize,
-                    color: tm.textColor),
-              ),
-            if (gm.gameStatus == GameStatus.roundStarted)
-              Text(
-                ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: tm.titleSize,
-                    color: tm.textColor),
-              ),
-          ],
+        Text(
+          title,
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: tm.titleSize,
+              color: tm.textColor),
         ),
         const SizedBox(height: 20),
         Card(
@@ -225,8 +229,12 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case GameStatus.roundReady:
         text = 'Prochaine manche prête!';
         break;
-      default:
-        text = 'Erreur';
+      case GameStatus.revealAnswers:
+        text = 'Les solutions étaient :';
+        break;
+      case GameStatus.initializing:
+        text = 'Initialisation...';
+        break;
     }
 
     return Text(

@@ -11,8 +11,9 @@ import 'package:train_de_mots/models/letter_problem.dart';
 const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
 
-const _roundDurationDefault = 120;
-const _postRoundDurationDefault = 6;
+const _roundDurationDefault = 15;
+const _postRoundGracePeriodDurationDefault = 6;
+const _postRoundShowCaseDurationDefault = 10;
 const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
@@ -102,11 +103,19 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  Duration _postRoundDuration =
-      const Duration(seconds: _postRoundDurationDefault);
-  Duration get postRoundDuration => _postRoundDuration;
-  set postRoundDuration(Duration value) {
-    _postRoundDuration = value;
+  Duration _postRoundGracePeriodDuration =
+      const Duration(seconds: _postRoundGracePeriodDurationDefault);
+  Duration get postRoundGracePeriodDuration => _postRoundGracePeriodDuration;
+  set postRoundGracePeriodDuration(Duration value) {
+    _postRoundGracePeriodDuration = value;
+    _saveConfiguration();
+  }
+
+  Duration _postRoundShowCaseDuration =
+      const Duration(seconds: _postRoundShowCaseDurationDefault);
+  Duration get postRoundShowCaseDuration => _postRoundShowCaseDuration;
+  set postRoundShowCaseDuration(Duration value) {
+    _postRoundShowCaseDuration = value;
     _saveConfiguration();
   }
 
@@ -229,6 +238,8 @@ class ConfigurationManager {
       'showAnswersTooltip': showAnswersTooltip,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
+      'postRoundGracePeriodDuration': postRoundGracePeriodDuration.inSeconds,
+      'postRoundShowCaseDuration': postRoundShowCaseDuration.inSeconds,
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
@@ -265,8 +276,12 @@ class ConfigurationManager {
 
       _roundDuration =
           Duration(seconds: map['roundDuration'] ?? _roundDurationDefault);
-      _postRoundDuration = Duration(
-          seconds: map['postRoundDuration'] ?? _postRoundDurationDefault);
+      _postRoundGracePeriodDuration = Duration(
+          seconds: map['postRoundGracePeriodDuration'] ??
+              _postRoundGracePeriodDurationDefault);
+      _postRoundShowCaseDuration = Duration(
+          seconds: map['postRoundShowCaseDuration'] ??
+              _postRoundShowCaseDurationDefault);
       _cooldownPeriod =
           Duration(seconds: map['cooldownPeriod'] ?? _cooldownPeriodDefault);
       _cooldownPenaltyAfterSteal = Duration(
@@ -303,7 +318,10 @@ class ConfigurationManager {
     _showLeaderBoard = _showLeaderBoardDefault;
 
     _roundDuration = const Duration(seconds: _roundDurationDefault);
-    _postRoundDuration = const Duration(seconds: _postRoundDurationDefault);
+    _postRoundGracePeriodDuration =
+        const Duration(seconds: _postRoundGracePeriodDurationDefault);
+    _postRoundShowCaseDuration =
+        const Duration(seconds: _postRoundShowCaseDurationDefault);
     _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
     _cooldownPenaltyAfterSteal =
         const Duration(seconds: _cooldownPenaltyAfterStealDefault);

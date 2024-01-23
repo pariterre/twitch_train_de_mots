@@ -47,7 +47,7 @@ class ThemeManager {
 
   final titleSize = 32.0;
 
-  final textUnsolvedColor = Colors.white;
+  final textUnsolvedColor = const Color.fromARGB(255, 243, 253, 206);
   final textSolvedColor = Colors.black;
   Color _mainColor = _mainColorDefault;
   Color get mainColor => _mainColor;

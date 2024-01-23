@@ -530,9 +530,10 @@ class LetterProblemMock extends LetterProblem {
   LetterProblemMock({
     required String letters,
     required WordSolutions solutions,
+    String uselessLetter = 'X',
   }) : super._(
           letters: letters.split(''),
           solutions: solutions,
-          uselessLetter: null,
+          uselessLetter: uselessLetter,
         );
 }

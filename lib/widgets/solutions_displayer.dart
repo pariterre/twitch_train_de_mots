@@ -259,6 +259,7 @@ class _SolutionTileState extends State<_SolutionTile> {
   }
 
   Widget _buildTile() {
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
     if (widget.fireworks != null) {
@@ -272,7 +273,8 @@ class _SolutionTileState extends State<_SolutionTile> {
     return Container(
       decoration: _boxDecoration,
       padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
-      child: widget.solution.isFound
+      child: widget.solution.isFound ||
+              gm.gameStatus == GameStatus.revealAnswers
           ? Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -289,17 +291,16 @@ class _SolutionTileState extends State<_SolutionTile> {
                                 ? tm.textSolvedColor
                                 : tm.textUnsolvedColor),
                       ),
-                      Flexible(
-                        child: Text(
-                          ' (${widget.solution.foundBy.name})',
-                          style: TextStyle(
-                              fontSize: tm.textSize,
-                              color: widget.solution.isFound
-                                  ? tm.textSolvedColor
-                                  : tm.textUnsolvedColor),
-                          overflow: TextOverflow.ellipsis,
+                      if (widget.solution.isFound)
+                        Flexible(
+                          child: Text(
+                            ' (${widget.solution.foundBy.name})',
+                            style: TextStyle(
+                                fontSize: tm.textSize,
+                                color: tm.textSolvedColor),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
