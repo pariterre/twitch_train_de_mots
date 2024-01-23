@@ -40,31 +40,42 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
+    late TextStyle textStyle;
+    if (widget.reversedStyle) {
+      textStyle = tm.buttonTextStyle.copyWith(
+          color: tm.elevatedButtonStyle.backgroundColor!
+              .resolve({MaterialState.focused}));
+    } else {
+      textStyle = tm.buttonTextStyle;
+    }
+    if (widget.onPressed == null) {
+      final redGray = (textStyle.color!.red * 1.5).toInt().clamp(200, 245);
+      final greenGray = (textStyle.color!.green * 1.5).toInt().clamp(200, 245);
+      final blueGray = (textStyle.color!.blue * 1.5).toInt().clamp(200, 245);
+      textStyle = textStyle.copyWith(
+          color: Color(
+              0xFF000000 + redGray * 256 * 256 + greenGray * 256 + blueGray));
+    }
+
     return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            spreadRadius: 4,
-            offset: const Offset(3, 3),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-          onPressed: widget.onPressed,
-          style: widget.reversedStyle
-              ? tm.elevatedButtonStyle.copyWith(
-                  backgroundColor:
-                      MaterialStatePropertyAll(tm.buttonTextStyle.color))
-              : tm.elevatedButtonStyle,
-          child: Text(widget.buttonText,
-              style: widget.reversedStyle
-                  ? tm.buttonTextStyle.copyWith(
-                      color: tm.elevatedButtonStyle.backgroundColor!
-                          .resolve({MaterialState.focused}))
-                  : tm.buttonTextStyle)),
-    );
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              spreadRadius: 4,
+              offset: const Offset(3, 3),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+            onPressed: widget.onPressed,
+            style: widget.reversedStyle
+                ? tm.elevatedButtonStyle.copyWith(
+                    backgroundColor:
+                        MaterialStatePropertyAll(tm.buttonTextStyle.color))
+                : tm.elevatedButtonStyle,
+            child: Text(widget.buttonText, style: textStyle)));
   }
 }

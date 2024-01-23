@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,18 +62,17 @@ class ThemeManager {
   late Color _backgroundColorLight;
   Color get backgroundColorLight => _backgroundColorLight;
   void _updateBackgroundColors() {
-    _backgroundColorDark = mainColor;
+    final darkRed = min(mainColor.red, 100);
+    final darkGreen = min(mainColor.green, 100);
+    final darkBlue = min(mainColor.blue, 100);
+    _backgroundColorDark =
+        Color(0xFF000000 + darkRed * 0x10000 + darkGreen * 0x100 + darkBlue);
 
-    final red = mainColor.red;
-    final green = mainColor.green;
-    final blue = mainColor.blue;
-    if (red >= green && red >= blue) {
-      _backgroundColorLight = const Color.fromARGB(255, 255, 200, 200);
-    } else if (green >= red && green >= blue) {
-      _backgroundColorLight = const Color.fromARGB(255, 200, 255, 200);
-    } else {
-      _backgroundColorLight = const Color.fromARGB(255, 200, 200, 255);
-    }
+    final red = max(mainColor.red, 150);
+    final green = max(mainColor.green, 150);
+    final blue = max(mainColor.blue, 150);
+    _backgroundColorLight =
+        Color(0xFF000000 + red * 0x10000 + green * 0x100 + blue);
   }
 
   final solutionUnsolvedColorLight = Colors.green[200];
@@ -104,8 +104,8 @@ class ThemeManager {
   final leaderTextColor = Colors.white;
   final leaderStealerColor = Colors.red;
 
-  late final buttonTextStyle =
-      TextStyle(color: mainColor, fontSize: 20, fontWeight: FontWeight.bold);
+  late final buttonTextStyle = TextStyle(
+      color: backgroundColorDark, fontSize: 20, fontWeight: FontWeight.bold);
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: textColor,
     padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),

@@ -204,7 +204,7 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
     return AlertDialog(
       title: Text(
         'Configuration du thème',
-        style: TextStyle(color: tm.mainColor),
+        style: TextStyle(color: tm.backgroundColorDark),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -222,35 +222,27 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
                 _SliderInputField(
                   label: 'Volume de la musique',
                   value: cm.musicVolume,
-                  onChanged: (value) {
-                    cm.musicVolume = value;
-                  },
+                  onChanged: (value) => cm.musicVolume = value,
                   thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
                 ),
                 const SizedBox(height: 12),
                 _SliderInputField(
                   label: 'Volume des sons',
                   value: cm.soundVolume,
-                  onChanged: (value) {
-                    cm.soundVolume = value;
-                  },
+                  onChanged: (value) => cm.soundVolume = value,
                   thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
                 ),
                 const SizedBox(height: 12),
                 _BooleanInputField(
                     label: 'Afficher le tableau des cheminot\u2022e\u2022s',
                     value: cm.showLeaderBoard,
-                    onChanged: (value) {
-                      cm.showLeaderBoard = value;
-                    }),
+                    onChanged: (value) => cm.showLeaderBoard = value),
                 const SizedBox(height: 12),
                 if (cm.useDebugOptions)
                   _BooleanInputField(
                       label: 'Montrer les réponses au survol\nde la souris',
                       value: cm.showAnswersTooltip,
-                      onChanged: (value) {
-                        cm.showAnswersTooltip = value;
-                      }),
+                      onChanged: (value) => cm.showAnswersTooltip = value),
               ],
             ),
           ),
@@ -299,8 +291,8 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(widget.label,
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
         ),
         ColorPicker(
           pickerColor: tm.mainColor,
@@ -411,7 +403,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
       child: AlertDialog(
         title: Text(
           'Configuration du jeu',
-          style: TextStyle(color: tm.mainColor),
+          style: TextStyle(color: tm.backgroundColorDark),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -539,8 +531,8 @@ class _IntegerInputField extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(label,
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
         ),
         SizedBox(
           width: 150,
@@ -611,8 +603,8 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(widget.label,
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: tm.mainColor)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -689,13 +681,14 @@ class _BooleanInputField extends StatelessWidget {
           children: [
             Text(label,
                 style: TextStyle(
-                    fontWeight: FontWeight.bold, color: tm.mainColor)),
+                    fontWeight: FontWeight.bold,
+                    color: tm.backgroundColorDark)),
             Checkbox(
               value: value,
               onChanged: (_) => onChanged(!value),
               fillColor: MaterialStateProperty.resolveWith((state) {
                 if (state.contains(MaterialState.selected)) {
-                  return tm.mainColor;
+                  return tm.backgroundColorDark;
                 }
                 return Colors.white;
               }),
@@ -737,9 +730,7 @@ class _SliderInputField extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: tm.mainColor,
-            ),
+                fontWeight: FontWeight.bold, color: tm.backgroundColorDark),
           ),
           Slider(
             value: value,
@@ -748,7 +739,7 @@ class _SliderInputField extends StatelessWidget {
             max: max,
             divisions: divisions,
             label: thumbLabel,
-            activeColor: tm.mainColor,
+            activeColor: tm.backgroundColorDark,
             inactiveColor: Colors.grey,
           ),
         ],
