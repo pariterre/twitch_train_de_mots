@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:twitch_manager/models/twitch_listener.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
@@ -34,7 +35,7 @@ class TwitchManager {
         context: context,
         builder: (context) => tm.TwitchAuthenticationScreen(
               isMockActive: _isMockActive,
-              debugPanelOptions: _debugOptions,
+              debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
               onFinishedConnexion: (manager) {
                 Navigator.of(context).pop(manager);
               },
@@ -63,11 +64,6 @@ class TwitchManager {
   ///
   /// Twitch options
   bool _isMockActive = false;
-  final _debugOptions = tm.TwitchDebugPanelOptions(chatters: [
-    tm.TwitchChatterMock(displayName: 'Viewer1'),
-    tm.TwitchChatterMock(displayName: 'Viewer2'),
-    tm.TwitchChatterMock(displayName: 'Viewer3'),
-  ]);
   final _appInfo = tm.TwitchAppInfo(
     appName: 'Train de mots',
     twitchAppId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',

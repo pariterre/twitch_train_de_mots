@@ -4,6 +4,7 @@ import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
+import 'package:twitch_manager/twitch_manager.dart';
 
 class MocksConfiguration {
   static bool showDebugOptions = false;
@@ -101,4 +102,12 @@ class MocksConfiguration {
       },
     );
   }
+
+  static TwitchDebugPanelOptions get twitchDebugPanelOptions =>
+      TwitchDebugPanelOptions(chatters: [
+        TwitchChatterMock(displayName: 'Viewer1'),
+        TwitchChatterMock(displayName: 'Viewer2'),
+        TwitchChatterMock(displayName: 'Viewer3'),
+        TwitchChatterMock(displayName: 'ViewerWithAVeryVeryVeryLongName'),
+      ]);
 }

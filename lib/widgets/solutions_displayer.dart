@@ -265,47 +265,57 @@ class _SolutionTileState extends State<_SolutionTile> {
       return Fireworks(
           key: widget.fireworks!.key, controller: widget.fireworks!);
     }
+    final showCooldown = widget.solution.isFound &&
+        (widget.solution.foundBy.lastSolutionFound == widget.solution &&
+            widget.solution.foundBy.isInCooldownPeriod);
 
     return Container(
       decoration: _boxDecoration,
+      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
       child: widget.solution.isFound
-          ? Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.solution.word,
-                    style: TextStyle(
-                        fontSize: tm.textSize,
-                        fontWeight: FontWeight.bold,
-                        color: widget.solution.isFound
-                            ? tm.textSolvedColor
-                            : tm.textUnsolvedColor),
-                  ),
-                  Text(
-                    ' (${widget.solution.foundBy.name})',
-                    style: TextStyle(
-                        fontSize: tm.textSize,
-                        color: widget.solution.isFound
-                            ? tm.textSolvedColor
-                            : tm.textUnsolvedColor),
-                  ),
-                  if (widget.solution.foundBy.lastSolutionFound ==
-                          widget.solution &&
-                      widget.solution.foundBy.isInCooldownPeriod)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 15.0),
-                      child: SizedBox(
-                        height: 15,
-                        child: Clock(
-                          timeRemaining:
-                              widget.solution.foundBy.cooldownRemaining,
-                          maxDuration: widget.solution.foundBy.cooldownDuration,
+          ? Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Row(
+                    children: [
+                      Text(
+                        widget.solution.word,
+                        style: TextStyle(
+                            fontSize: tm.textSize,
+                            fontWeight: FontWeight.bold,
+                            color: widget.solution.isFound
+                                ? tm.textSolvedColor
+                                : tm.textUnsolvedColor),
+                      ),
+                      Flexible(
+                        child: Text(
+                          ' (${widget.solution.foundBy.name})',
+                          style: TextStyle(
+                              fontSize: tm.textSize,
+                              color: widget.solution.isFound
+                                  ? tm.textSolvedColor
+                                  : tm.textUnsolvedColor),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                if (showCooldown)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0),
+                    child: SizedBox(
+                      height: 15,
+                      child: Clock(
+                        timeRemaining:
+                            widget.solution.foundBy.cooldownRemaining,
+                        maxDuration: widget.solution.foundBy.cooldownDuration,
+                      ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             )
           : null,
     );
