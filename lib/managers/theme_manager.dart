@@ -7,7 +7,7 @@ import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 
 const _textSizeDefault = 20.0;
-const _mainColorDefault = Colors.blueGrey;
+const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);
 
 class ThemeManager {
   // Declare the singleton

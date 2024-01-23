@@ -255,7 +255,6 @@ class ConfigurationManager {
     return {
       'autoplay': autoplay,
       'autoplayDuration': autoplayDuration.inSeconds,
-      'showAnswersTooltip': showAnswersTooltip,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
       'postRoundGracePeriodDuration': postRoundGracePeriodDuration.inSeconds,
@@ -294,8 +293,7 @@ class ConfigurationManager {
       _autoplayDuration = Duration(
           seconds: map['autoplayDuration'] ?? _autoplayDurationDefault);
 
-      _showAnswersTooltip =
-          map['showAnswersTooltip'] ?? _showAnswersTooltipDefault;
+      _showAnswersTooltip = false;
       _showLeaderBoard = map['showLeaderBoard'] ?? _showLeaderBoardDefault;
 
       _roundDuration =
