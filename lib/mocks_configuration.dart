@@ -76,6 +76,11 @@ class MocksConfiguration {
           ..addToStealCount()
           ..addToStealCount(),
         Player(name: 'Player 6')..score = 350,
+        Player(name: 'PlayerWithAVeryVeryVeryLongName')
+          ..score = 400
+          ..addToStealCount()
+          ..addToStealCount(),
+        Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')..score = 350,
       ],
       roundCount: 10,
       successLevel: SuccessLevel.oneStar,
