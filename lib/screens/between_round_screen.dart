@@ -147,6 +147,17 @@ class _ContinueButtonState extends State<_ContinueButton> {
             onPressed:
                 gm.isNextProblemReady ? () => gm.requestStartNewRound() : null,
             buttonText: buttonText),
+        const SizedBox(height: 12),
+        if (gm.nextRoundStartIn != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: TextButton(
+                onPressed: () => gm.cancelAutomaticStart(),
+                child: Text(
+                  'Annuler le démarrage automatique',
+                  style: TextStyle(color: tm.textColor),
+                )),
+          )
       ],
     );
   }

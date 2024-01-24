@@ -42,6 +42,7 @@ class GameManager {
   DateTime? _nextRoundStartAt;
   Duration? get nextRoundStartIn =>
       _nextRoundStartAt?.difference(DateTime.now());
+  void cancelAutomaticStart() => _nextRoundStartAt = null;
   DateTime? _nextTickAt;
   int _roundCount = 0;
   int get roundCount => _roundCount;

@@ -468,6 +468,23 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                     'La durée d\'une manche ne peut pas être changée en cours de partie',
               ),
               const SizedBox(height: 12),
+              _DoubleIntegerInputField(
+                label: 'Durée post-ronde (secondes)',
+                firstLabel: 'Période de grâce',
+                secondLabel: 'Vitrine',
+                firstInitialValue:
+                    cm.postRoundGracePeriodDuration.inSeconds.toString(),
+                secondInitialValue:
+                    cm.postRoundShowCaseDuration.inSeconds.toString(),
+                onChanged: (first, second) {
+                  cm.postRoundGracePeriodDuration = Duration(seconds: first);
+                  cm.postRoundShowCaseDuration = Duration(seconds: second);
+                },
+                enabled: cm.canChangeDurations,
+                disabledTooltip:
+                    'La durée d\'une manche ne peut pas être changée en cours de partie',
+              ),
+              const SizedBox(height: 12),
               _IntegerInputField(
                 label: 'Temps avant de mélanger les lettres (secondes)',
                 initialValue:
