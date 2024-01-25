@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
+import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.onClickStart});
@@ -31,6 +33,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final dm = DatabaseManager.instance;
     dm.onLoggedIn.addListener(_refresh);
     dm.onLoggedOut.addListener(_refresh);
+
+    _prepareReleaseNotesIfNeeded();
   }
 
   @override
@@ -54,6 +58,26 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _refresh() => setState(() {});
+
+  void _prepareReleaseNotesIfNeeded() {
+    final cm = ConfigurationManager.instance;
+
+    if (cm.lastReleaseNotesShown == '') {
+      // Do not show releases notes if it's the first time the app is launched
+      cm.lastReleaseNotesShown = cm.releaseNotes.last.version;
+      return;
+    }
+
+    if (cm.lastReleaseNotesShown != cm.releaseNotes.last.version) {
+      cm.lastReleaseNotesShown = cm.releaseNotes.last.version;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (context) => const WordTrainAboutDialog(),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

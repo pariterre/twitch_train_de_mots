@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -100,6 +101,17 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                 ),
                 Column(
                   children: [
+                    ListTile(
+                      leading: const Icon(Icons.info),
+                      iconColor: Colors.blueGrey,
+                      title: const Text('À propos'),
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const WordTrainAboutDialog();
+                        },
+                      ),
+                    ),
                     const ListTile(
                       tileColor: Color.fromARGB(255, 221, 134, 102),
                       leading: Icon(Icons.coffee),

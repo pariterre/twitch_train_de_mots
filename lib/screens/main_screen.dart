@@ -81,39 +81,42 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final dm = DatabaseManager.instance;
+    final tm = ThemeManager.instance;
 
     return Scaffold(
       body: SingleChildScrollView(
           child: Background(
-        child: Stack(
-          children: [
-            dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
-                ? SplashScreen(onClickStart: _onClickedBegin)
-                : Stack(
-                    children: [
-                      const GameScreen(),
-                      if (gm.gameStatus == GameStatus.roundPreparing ||
-                          gm.gameStatus == GameStatus.roundReady)
-                        const BetweenRoundsOverlay(),
-                    ],
-                  ),
-            Builder(builder: (context) {
-              return Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                      onPressed: () => Scaffold.of(context).openDrawer(),
-                      icon: const Icon(
-                        Icons.menu,
-                        color: Colors.black,
-                        size: 32,
-                      )),
-                ),
-              );
-            })
-          ],
-        ),
+        child: TwitchManager.instance.hasNotManager
+            ? Center(child: CircularProgressIndicator(color: tm.mainColor))
+            : Stack(
+                children: [
+                  dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
+                      ? SplashScreen(onClickStart: _onClickedBegin)
+                      : Stack(
+                          children: [
+                            const GameScreen(),
+                            if (gm.gameStatus == GameStatus.roundPreparing ||
+                                gm.gameStatus == GameStatus.roundReady)
+                              const BetweenRoundsOverlay(),
+                          ],
+                        ),
+                  Builder(builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: IconButton(
+                            onPressed: () => Scaffold.of(context).openDrawer(),
+                            icon: const Icon(
+                              Icons.menu,
+                              color: Colors.black,
+                              size: 32,
+                            )),
+                      ),
+                    );
+                  })
+                ],
+              ),
       )),
       drawer: const ConfigurationDrawer(),
     );

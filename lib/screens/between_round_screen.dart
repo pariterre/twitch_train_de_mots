@@ -176,8 +176,8 @@ class _ContinueButtonState extends State<_ContinueButton> {
             child: TextButton(
                 onPressed: () async {
                   cm.autoplay = false;
-                  if (!cm.hasShownAutoplayDialog) {
-                    cm.hasShownAutoplayDialog = true;
+                  if (cm.shouldShowAutoplayDialog) {
+                    cm.shouldShowAutoplayDialog = false;
                     await _showAutoplayDialog();
                   }
                   gm.cancelAutomaticStart();

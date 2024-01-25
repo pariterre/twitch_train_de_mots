@@ -7,9 +7,12 @@ import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
+import 'package:train_de_mots/models/release_notes.dart';
+
+const String _lastReleaseNotesShownDefault = '';
 
 const _autoplayDefault = true;
-const _hasShownAutoplayDialogDefault = false;
+const _shouldShowAutoplayDialogDefault = false;
 const _autoplayDurationDefault = 25;
 
 const _showAnswersTooltipDefault = false;
@@ -34,6 +37,58 @@ const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
 class ConfigurationManager {
+  final List<ReleaseNotes> releaseNotes = const [
+    ReleaseNotes(
+      version: '0.1.0',
+      codeName: 'Petit train va loin',
+      notes: 'Le jeu est maintenant fonctionnel! On peut jouer en équipe sur '
+          'Twitch pour faire avancer le petit Train du Nord',
+    ),
+    ReleaseNotes(version: '0.2.0', codeName: 'Travail d\'équipe', features: [
+      FeatureNotes(
+          description: 'Il est maintenant possible d\'enregistrer les scores '
+              'des équipes pour les comparer au monde entier! Qui sera la '
+              'meilleure équipe de cheminot\u2022e\u2022s?'),
+      FeatureNotes(
+          description:
+              'Travail sur la rapidité de l\'algorithme de génération des '
+              'problèmes, ce qui permet d\'avoir des mots plus longs'),
+      FeatureNotes(
+          description: 'Ajusté la difficulté des niveaux en ajoutant les '
+              'lettres inutiles et cachées',
+          userWhoRequested: 'Helene_Ducrocq'),
+    ]),
+    ReleaseNotes(
+        version: '0.2.1',
+        codeName: 'Ouverture sur le monde',
+        notes: 'Le petit Train du Nord a pris les rails du monde entier! Et '
+            'avec cela vient de nouvelles fonctionnalités!',
+        features: [
+          FeatureNotes(
+            description:
+                'Un mode autonome a été ajouté pour permettre au jeu de se '
+                'lancer par lui-même',
+            userWhoRequested: 'NghtmrTV',
+          ),
+          FeatureNotes(
+            description: 'Il est maintenant possible de voler des mots à ses '
+                'cocheminot\u2022e\u2022s plus d\'une fois par ronde',
+            userWhoRequested: 'NghtmrTV',
+          ),
+          FeatureNotes(
+            description:
+                'Les réponses sont maintenant affichées quelques secondes à la '
+                'fin de la ronde',
+            userWhoRequested: 'NghtmrTV',
+          ),
+          FeatureNotes(
+              description:
+                  'Ajouté une boite d\'affichage pour les notes de versions, que '
+                  'vous êtes en train de lire!',
+              userWhoRequested: 'NghtmrTV'),
+        ]),
+  ];
+
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
 
   ///
@@ -86,6 +141,13 @@ class ConfigurationManager {
     required bool addUselessLetter,
   }) get problemGenerator => _problemGenerator;
 
+  String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
+  String get lastReleaseNotesShown => _lastReleaseNotesShown;
+  set lastReleaseNotesShown(String value) {
+    _lastReleaseNotesShown = value;
+    _saveConfiguration();
+  }
+
   bool _autoplay = _autoplayDefault;
   bool get autoplay => _autoplay;
   set autoplay(bool value) {
@@ -93,10 +155,10 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  bool _hasShownAutoplayDialog = _hasShownAutoplayDialogDefault;
-  bool get hasShownAutoplayDialog => _hasShownAutoplayDialog;
-  set hasShownAutoplayDialog(bool value) {
-    _hasShownAutoplayDialog = value;
+  bool _shouldShowAutoplayDialog = _shouldShowAutoplayDialogDefault;
+  bool get shouldShowAutoplayDialog => _shouldShowAutoplayDialog;
+  set shouldShowAutoplayDialog(bool value) {
+    _shouldShowAutoplayDialog = value;
     _saveConfiguration();
   }
 
@@ -261,8 +323,9 @@ class ConfigurationManager {
   /// Serialize the configuration to a map
   Map<String, dynamic> serialize() {
     return {
+      'lastReleaseNotesShown': lastReleaseNotesShown,
       'autoplay': autoplay,
-      'showAutoPlayDialog': hasShownAutoplayDialog,
+      'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
       'autoplayDuration': autoplayDuration.inSeconds,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
@@ -298,9 +361,12 @@ class ConfigurationManager {
     if (data != null) {
       final map = jsonDecode(data);
 
+      _lastReleaseNotesShown =
+          map['lastReleaseNotesShown'] ?? _lastReleaseNotesShownDefault;
+
       _autoplay = map['autoplay'] ?? _autoplayDefault;
-      _hasShownAutoplayDialog =
-          map['showAutoPlayDialog'] ?? _hasShownAutoplayDialogDefault;
+      _shouldShowAutoplayDialog =
+          map['shouldShowAutoplayDialog'] ?? _shouldShowAutoplayDialogDefault;
       _autoplayDuration = Duration(
           seconds: map['autoplayDuration'] ?? _autoplayDurationDefault);
 
@@ -347,8 +413,10 @@ class ConfigurationManager {
   ///
   /// Reset the configuration to the default values
   void resetConfiguration() {
+    _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
+
     _autoplay = _autoplayDefault;
-    _hasShownAutoplayDialog = _hasShownAutoplayDialogDefault;
+    _shouldShowAutoplayDialog = _shouldShowAutoplayDialogDefault;
     _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
 
     _showAnswersTooltip = _showAnswersTooltipDefault;
