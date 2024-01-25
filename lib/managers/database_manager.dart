@@ -174,6 +174,7 @@ class DatabaseManager {
       FirebaseFirestore.instance.collection('teams');
 
   static const String bestStationKey = 'bestStation';
+  static const String bestScoreKey = 'bestScore';
 
   ///
   /// Returns the name of the current team

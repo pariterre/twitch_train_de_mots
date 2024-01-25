@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/models/player_result.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/team_result.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
@@ -359,16 +360,13 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildIndividualLeaderboardScore({required double width}) {
-    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
-    final dm = DatabaseManager.instance;
 
     const scoreWidth = 80.0;
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
-        future: dm.getBestScoresOfTrainStationsReached(
-            top: 10, currentStation: gm.roundCount),
+        future: Future.value(<PlayerResult>[]),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -379,12 +377,12 @@ class _LeaderBoard extends StatelessWidget {
             );
           }
 
-          final teams = snapshot.data as List<TeamResult>;
+          final players = snapshot.data as List<PlayerResult>;
 
-          if (teams.isEmpty) {
-            return Center(
-                child: _buildTitleTile('Aucune équipe n\'a encore joué'));
-          }
+          // if (players.isEmpty) {
+          //   return Center(
+          //       child: _buildTitleTile('Aucun\u2022e cheminot\u2022e'));
+          // }
 
           return SingleChildScrollView(
             child: Padding(
@@ -398,12 +396,13 @@ class _LeaderBoard extends StatelessWidget {
                       children: [
                         _buildTitleTile(
                             'Meilleur\u2022e\u2022s cheminot\u2022e\u2022s'),
-                        ...teams.map(
-                          (team) => _buildNamedTile(
-                            team.name!,
-                            highlight: team.name == dm.teamName &&
-                                team.station == gm.roundCount,
-                            prefixText: '${team.rank}.',
+                        _buildNamedTile('À venir dans les prochains jours!',
+                            width: width),
+                        ...players.map(
+                          (player) => _buildNamedTile(
+                            player.name!,
+                            highlight: false,
+                            prefixText: '${player.rank}.',
                             width: nameWidth,
                           ),
                         ),
@@ -414,12 +413,9 @@ class _LeaderBoard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _buildTitleTile('Score'),
-                          ...teams.map(
-                            (team) => _buildScoreTile(
-                              team.station!,
-                              team.name! == dm.teamName &&
-                                  team.station! == gm.roundCount,
-                            ),
+                          _buildTitleTile(''),
+                          ...players.map(
+                            (player) => _buildScoreTile(player.score!, false),
                           )
                         ]),
                   ),
