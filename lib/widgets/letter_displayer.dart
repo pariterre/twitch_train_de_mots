@@ -91,11 +91,8 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
 
-    if (gm.problem == null) {
-      return Center(child: CircularProgressIndicator(color: tm.mainColor));
-    }
+    if (gm.problem == null) return Container();
 
     final letters = gm.problem!.letters;
     final scrambleIndices = gm.problem!.scrambleIndices;

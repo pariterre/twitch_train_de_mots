@@ -67,14 +67,29 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                 Column(
                   children: [
                     ListTile(
-                      title: const Text('Configuration du thème'),
-                      onTap: () => _showThemeConfiguration(context),
+                      leading: const Icon(Icons.settings),
+                      iconColor: tm.backgroundColorDark,
+                      title: const Text('Configuration du jeu'),
+                      onTap: () => _showGameConfiguration(context),
                     ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.star, color: Colors.amber),
+                      title: Text(gm.hasPlayedAtLeastOnce
+                          ? 'Terminer la rounde actuelle'
+                          : 'Afficher le tableau des cheminot·e·s'),
+                      enabled: true,
+                      onTap: () async {
+                        await gm.requestTerminateRound();
+                        if (context.mounted) Navigator.pop(context);
+                      },
+                    ),
+                    const Divider(),
                     if (cm.useDebugOptions)
                       ListTile(
-                        title: const Text('Configuration du jeu'),
+                        title: const Text('Configuration du jeu (dev)'),
                         onTap: () {
-                          _showGameConfiguration(context);
+                          _showGameDevConfiguration(context);
                         },
                       ),
                   ],
@@ -82,24 +97,14 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                 Column(
                   children: [
                     const ListTile(
-                        title: Text('Pause café'), onTap: _buyMeACoffee),
-                    const Divider(),
-                    if (cm.useDebugOptions)
-                      Column(
-                        children: [
-                          ListTile(
-                            title: const Text('Terminer la rounde actuelle'),
-                            enabled: gm.gameStatus == GameStatus.roundStarted,
-                            onTap: () async {
-                              await gm.requestTerminateRound();
-                              if (context.mounted) Navigator.pop(context);
-                            },
-                          ),
-                          const Divider(),
-                        ],
-                      ),
+                      tileColor: Color.fromARGB(255, 221, 134, 102),
+                      leading: Icon(Icons.coffee),
+                      title: Text('Pause café'),
+                      onTap: _buyMeACoffee,
+                    ),
                     ListTile(
                         tileColor: Colors.black,
+                        leading: const Icon(Icons.logout),
                         title: const Text(
                           'Sortir du train (Déconnexion)',
                           style: TextStyle(color: Colors.white),
@@ -155,23 +160,23 @@ void _buyMeACoffee() async {
   await launchUrl(Uri.parse('https://www.buymeacoffee.com/pariterre?l=fr'));
 }
 
-void _showThemeConfiguration(context) {
+void _showGameConfiguration(context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return const _ThemeConfiguration();
+      return const _GameConfiguration();
     },
   );
 }
 
-class _ThemeConfiguration extends StatefulWidget {
-  const _ThemeConfiguration();
+class _GameConfiguration extends StatefulWidget {
+  const _GameConfiguration();
 
   @override
-  State<_ThemeConfiguration> createState() => _ThemeConfigurationState();
+  State<_GameConfiguration> createState() => _GameConfigurationState();
 }
 
-class _ThemeConfigurationState extends State<_ThemeConfiguration> {
+class _GameConfigurationState extends State<_GameConfiguration> {
   @override
   void initState() {
     super.initState();
@@ -203,7 +208,7 @@ class _ThemeConfigurationState extends State<_ThemeConfiguration> {
 
     return AlertDialog(
       title: Text(
-        'Configuration du thème',
+        'Configuration du jeu',
         style: TextStyle(color: tm.backgroundColorDark),
       ),
       content: SingleChildScrollView(
@@ -366,23 +371,23 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
   }
 }
 
-void _showGameConfiguration(BuildContext context) async {
+void _showGameDevConfiguration(BuildContext context) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return const _GameConfiguration();
+      return const _GameDevConfiguration();
     },
   );
 }
 
-class _GameConfiguration extends StatefulWidget {
-  const _GameConfiguration();
+class _GameDevConfiguration extends StatefulWidget {
+  const _GameDevConfiguration();
 
   @override
-  State<_GameConfiguration> createState() => _GameConfigurationState();
+  State<_GameDevConfiguration> createState() => _GameDevConfigurationState();
 }
 
-class _GameConfigurationState extends State<_GameConfiguration> {
+class _GameDevConfigurationState extends State<_GameDevConfiguration> {
   @override
   void initState() {
     super.initState();
@@ -410,7 +415,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
       onPopInvoked: (didPop) => cm.finalizeConfigurationChanges(),
       child: AlertDialog(
         title: Text(
-          'Configuration du jeu',
+          'Configuration du jeu (dev)',
           style: TextStyle(color: tm.backgroundColorDark),
         ),
         content: SingleChildScrollView(

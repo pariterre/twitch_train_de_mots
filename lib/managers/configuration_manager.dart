@@ -9,6 +9,7 @@ import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 
 const _autoplayDefault = true;
+const _hasShownAutoplayDialogDefault = false;
 const _autoplayDurationDefault = 25;
 
 const _showAnswersTooltipDefault = false;
@@ -89,6 +90,13 @@ class ConfigurationManager {
   bool get autoplay => _autoplay;
   set autoplay(bool value) {
     _autoplay = value;
+    _saveConfiguration();
+  }
+
+  bool _hasShownAutoplayDialog = _hasShownAutoplayDialogDefault;
+  bool get hasShownAutoplayDialog => _hasShownAutoplayDialog;
+  set hasShownAutoplayDialog(bool value) {
+    _hasShownAutoplayDialog = value;
     _saveConfiguration();
   }
 
@@ -254,6 +262,7 @@ class ConfigurationManager {
   Map<String, dynamic> serialize() {
     return {
       'autoplay': autoplay,
+      'showAutoPlayDialog': hasShownAutoplayDialog,
       'autoplayDuration': autoplayDuration.inSeconds,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
@@ -290,6 +299,8 @@ class ConfigurationManager {
       final map = jsonDecode(data);
 
       _autoplay = map['autoplay'] ?? _autoplayDefault;
+      _hasShownAutoplayDialog =
+          map['showAutoPlayDialog'] ?? _hasShownAutoplayDialogDefault;
       _autoplayDuration = Duration(
           seconds: map['autoplayDuration'] ?? _autoplayDurationDefault);
 
@@ -337,6 +348,7 @@ class ConfigurationManager {
   /// Reset the configuration to the default values
   void resetConfiguration() {
     _autoplay = _autoplayDefault;
+    _hasShownAutoplayDialog = _hasShownAutoplayDialogDefault;
     _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
 
     _showAnswersTooltip = _showAnswersTooltipDefault;

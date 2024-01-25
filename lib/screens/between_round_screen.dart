@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
@@ -37,7 +38,6 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    if (gm.problem == null) return Container();
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -68,9 +68,11 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 24.0),
-                    gm.successLevel == SuccessLevel.failed
-                        ? const _DefeatHeader()
-                        : const _VictoryHeader(),
+                    if (!gm.hasPlayedAtLeastOnce) const _LeaderBoardHeader(),
+                    if (gm.hasPlayedAtLeastOnce)
+                      gm.successLevel == SuccessLevel.failed
+                          ? const _DefeatHeader()
+                          : const _VictoryHeader(),
                     const _LeaderBoard(),
                     const SizedBox(height: 16.0),
                     const _ContinueButton(),
@@ -112,15 +114,35 @@ class _ContinueButtonState extends State<_ContinueButton> {
 
   void _refresh() => setState(() {});
 
+  Future<void> _showAutoplayDialog() async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Démarrage automatique'),
+        content:
+            const Text('Vous venez de désactiver le démarrage automatique.\n'
+                'Vous pouvez le réactiver dans les paramètres du jeu.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
+    final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 
     String buttonText;
     if (!gm.isNextProblemReady) {
       buttonText = 'Aiguillage du train en cours...';
-    } else if (gm.successLevel == SuccessLevel.failed) {
+    } else if (gm.successLevel == SuccessLevel.failed &&
+        gm.hasPlayedAtLeastOnce) {
       buttonText = 'Relancer le train';
     } else {
       buttonText = 'Prendre les rails';
@@ -151,9 +173,16 @@ class _ContinueButtonState extends State<_ContinueButton> {
           Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: TextButton(
-                onPressed: () => gm.cancelAutomaticStart(),
+                onPressed: () async {
+                  cm.autoplay = false;
+                  if (!cm.hasShownAutoplayDialog) {
+                    cm.hasShownAutoplayDialog = true;
+                    await _showAutoplayDialog();
+                  }
+                  gm.cancelAutomaticStart();
+                },
                 child: Text(
-                  'Annuler le démarrage automatique',
+                  'Désactiver le démarrage automatique',
                   style: TextStyle(color: tm.textColor),
                 )),
           )
@@ -408,11 +437,12 @@ class _LeaderBoard extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Expanded(
-            child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: _buildGameScore(width: 500)),
-          ),
+          if (gm.hasPlayedAtLeastOnce)
+            Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: _buildGameScore(width: 500)),
+            ),
           if (gm.successLevel == SuccessLevel.failed)
             Expanded(
               child: Column(
@@ -568,6 +598,62 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               ),
               const SizedBox(height: 16.0),
             ],
+          ),
+          Icon(Icons.star,
+              color: Colors.amber,
+              size: 70.0,
+              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+        ],
+      ),
+    );
+  }
+}
+
+class _LeaderBoardHeader extends StatefulWidget {
+  const _LeaderBoardHeader();
+
+  @override
+  State<_LeaderBoardHeader> createState() => _LeaderBoardHeaderState();
+}
+
+class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
+  @override
+  void initState() {
+    super.initState();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final tm = ThemeManager.instance;
+    tm.onChanged.removeListener(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.star,
+              color: Colors.amber,
+              size: 70.0,
+              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+          Text(
+            'Le tableau des cheminot\u2022e\u2022s',
+            style: TextStyle(
+                fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
           ),
           Icon(Icons.star,
               color: Colors.amber,

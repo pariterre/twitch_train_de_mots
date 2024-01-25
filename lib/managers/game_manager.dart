@@ -56,6 +56,8 @@ class GameManager {
   LetterProblem? get problem => _currentProblem;
   SuccessLevel? _successLevel;
 
+  bool _hasPlayedAtLeastOnce = false;
+  bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
   bool _forceEndTheRound = false;
 
   /// ----------- ///
@@ -105,6 +107,10 @@ class GameManager {
   ///
   /// Provide a way to request the premature end of the round
   Future<void> requestTerminateRound() async {
+    if (gameStatus == GameStatus.initializing) {
+      _initializeCallbacks();
+      _gameStatus = GameStatus.roundPreparing;
+    }
     if (_gameStatus != GameStatus.roundStarted) return;
     _forceEndTheRound = true;
   }
@@ -212,14 +218,18 @@ class GameManager {
     _isSearchingNextProblem = false;
   }
 
+  void _initializeCallbacks() {
+    onGameIsInitializing.notifyListeners();
+    _initializeTrySolutionCallback();
+    _gameStatus = GameStatus.roundPreparing;
+  }
+
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
     if (_gameStatus == GameStatus.initializing) {
-      onGameIsInitializing.notifyListeners();
-      _initializeTrySolutionCallback();
-      _gameStatus = GameStatus.roundPreparing;
+      _initializeCallbacks();
     }
 
     if (_gameStatus != GameStatus.roundPreparing &&
@@ -256,6 +266,7 @@ class GameManager {
     _searchForNextProblem();
 
     // Start the round
+    _hasPlayedAtLeastOnce = true;
     _gameStatus = GameStatus.roundStarted;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
@@ -466,7 +477,8 @@ class GameManager {
   }
 
   SuccessLevel get completedLevel {
-    if (problem!.teamScore < _pointsToObtain(SuccessLevel.oneStar)) {
+    if (problem == null ||
+        problem!.teamScore < _pointsToObtain(SuccessLevel.oneStar)) {
       return SuccessLevel.failed;
     } else if (problem!.teamScore < _pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.oneStar;
