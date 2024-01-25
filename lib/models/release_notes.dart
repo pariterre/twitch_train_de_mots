@@ -14,6 +14,11 @@ class ReleaseNotes {
 class FeatureNotes {
   final String description;
   final String? userWhoRequested;
+  final String? urlOfUserWhoRequested;
 
-  const FeatureNotes({required this.description, this.userWhoRequested});
+  const FeatureNotes({
+    required this.description,
+    this.userWhoRequested,
+    this.urlOfUserWhoRequested,
+  });
 }

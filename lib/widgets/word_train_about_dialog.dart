@@ -1,5 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
+import 'package:train_de_mots/models/release_notes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WordTrainAboutDialog extends StatelessWidget {
   const WordTrainAboutDialog({super.key});
@@ -20,6 +23,43 @@ class WordTrainAboutDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildFeatures(List<FeatureNotes> features) {
+    return features
+        .map((feature) => Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('•'),
+                  const SizedBox(width: 8.0),
+                  Flexible(
+                    child: RichText(
+                        text: TextSpan(children: [
+                      TextSpan(text: feature.description),
+                      if (feature.userWhoRequested != null)
+                        TextSpan(children: [
+                          const TextSpan(text: ' (proposé par '),
+                          TextSpan(
+                              text: feature.userWhoRequested!,
+                              style:
+                                  const TextStyle(fontStyle: FontStyle.italic),
+                              recognizer: feature.urlOfUserWhoRequested == null
+                                  ? null
+                                  : (TapGestureRecognizer()
+                                    ..onTap = () {
+                                      launchUrl(Uri.parse(
+                                          feature.urlOfUserWhoRequested!));
+                                    })),
+                          const TextSpan(text: ')'),
+                        ]),
+                    ])),
+                  ),
+                ],
+              ),
+            ))
+        .toList();
   }
 
   Widget _buildReleaseNotes() {
@@ -60,34 +100,7 @@ class WordTrainAboutDialog extends StatelessWidget {
                               child: Text(release.notes!),
                             ),
                           const SizedBox(height: 8.0),
-                          ...release.features.map((feature) => Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, bottom: 4.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('•'),
-                                    const SizedBox(width: 8.0),
-                                    Flexible(
-                                      child: RichText(
-                                          text: TextSpan(children: [
-                                        TextSpan(text: feature.description),
-                                        if (feature.userWhoRequested != null)
-                                          TextSpan(children: [
-                                            const TextSpan(
-                                                text: ' (proposé par '),
-                                            TextSpan(
-                                                text: feature.userWhoRequested!,
-                                                style: const TextStyle(
-                                                    fontStyle:
-                                                        FontStyle.italic)),
-                                            const TextSpan(text: ')'),
-                                          ]),
-                                      ])),
-                                    ),
-                                  ],
-                                ),
-                              )),
+                          ..._buildFeatures(release.features),
                         ],
                       ),
                     ))

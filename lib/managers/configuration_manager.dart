@@ -46,17 +46,21 @@ class ConfigurationManager {
     ),
     ReleaseNotes(version: '0.2.0', codeName: 'Travail d\'équipe', features: [
       FeatureNotes(
-          description: 'Il est maintenant possible d\'enregistrer les scores '
-              'des équipes pour les comparer au monde entier! Qui sera la '
-              'meilleure équipe de cheminot\u2022e\u2022s?'),
+        description: 'Il est maintenant possible d\'enregistrer les scores '
+            'des équipes pour les comparer au monde entier! Qui sera la '
+            'meilleure équipe de cheminot\u2022e\u2022s?',
+      ),
       FeatureNotes(
-          description:
-              'Travail sur la rapidité de l\'algorithme de génération des '
-              'problèmes, ce qui permet d\'avoir des mots plus longs'),
+        description:
+            'Travail sur la rapidité de l\'algorithme de génération des '
+            'problèmes, ce qui permet d\'avoir des mots plus longs',
+      ),
       FeatureNotes(
-          description: 'Ajusté la difficulté des niveaux en ajoutant les '
-              'lettres inutiles et cachées',
-          userWhoRequested: 'Helene_Ducrocq'),
+        description: 'Ajusté la difficulté des niveaux en ajoutant les '
+            'lettres inutiles et cachées',
+        userWhoRequested: 'Helene_Ducrocq',
+        urlOfUserWhoRequested: 'https://twitch.tv/helene_ducrocq',
+      ),
     ]),
     ReleaseNotes(
         version: '0.2.1',
@@ -69,23 +73,28 @@ class ConfigurationManager {
                 'Un mode autonome a été ajouté pour permettre au jeu de se '
                 'lancer par lui-même',
             userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
           ),
           FeatureNotes(
             description: 'Il est maintenant possible de voler des mots à ses '
                 'cocheminot\u2022e\u2022s plus d\'une fois par ronde',
             userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
           ),
           FeatureNotes(
             description:
                 'Les réponses sont maintenant affichées quelques secondes à la '
                 'fin de la ronde',
             userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
           ),
           FeatureNotes(
-              description:
-                  'Ajouté une boite d\'affichage pour les notes de versions, que '
-                  'vous êtes en train de lire!',
-              userWhoRequested: 'NghtmrTV'),
+            description:
+                'Ajouté une boite d\'affichage pour les notes de versions, que '
+                'vous êtes en train de lire!',
+            userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
+          ),
         ]),
   ];
 
