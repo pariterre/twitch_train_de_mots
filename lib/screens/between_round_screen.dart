@@ -214,7 +214,9 @@ class _LeaderBoard extends StatelessWidget {
         .toList();
 
     const scoreWidth = 80.0;
-    final nameWidth = width - scoreWidth;
+    const spacer = 20.0;
+    const stealWidth = 60.0;
+    final nameWidth = width - (stealWidth + scoreWidth + spacer);
 
     return SingleChildScrollView(
       child: SizedBox(
@@ -239,13 +241,10 @@ class _LeaderBoard extends StatelessWidget {
                           _buildNamedTile(
                             player.name,
                             highlight: isBiggestStealer,
-                            prefixIcon: Icon(Icons.local_police,
+                            suffixIcon: Icon(Icons.local_police,
                                 color: isBiggestStealer
                                     ? stealColor
                                     : Colors.transparent),
-                            suffixText: isBiggestStealer
-                                ? ' (Plus grand voleur!)'
-                                : null,
                             width: nameWidth,
                           ),
                           if (players.length > nbHighestScore &&
@@ -259,28 +258,58 @@ class _LeaderBoard extends StatelessWidget {
                         ]);
                   },
                 ).toList()),
-            SizedBox(
-              width: scoreWidth,
-              child: Column(
-                  children: players.asMap().keys.map(
-                (index) {
-                  final player = players[index];
-                  final isBiggestStealer = biggestStealers.contains(player);
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: stealWidth,
+                  child: Column(
+                      children: players.asMap().keys.map(
+                    (index) {
+                      final player = players[index];
+                      final isBiggestStealer = biggestStealers.contains(player);
 
-                  return Column(children: [
-                    if (index == 0) _buildTitleTile('Score'),
-                    _buildScoreTile(player.score, isBiggestStealer),
-                    if (players.length > nbHighestScore &&
-                        index + 1 == nbHighestScore)
-                      Column(
-                        children: [
-                          const SizedBox(height: 12.0),
-                          _buildTitleTile('')
-                        ],
-                      )
-                  ]);
-                },
-              ).toList()),
+                      return Column(children: [
+                        if (index == 0) _buildTitleTile('Vols'),
+                        _buildScoreTile(
+                            player.gameStealCount, isBiggestStealer),
+                        if (players.length > nbHighestScore &&
+                            index + 1 == nbHighestScore)
+                          Column(
+                            children: [
+                              const SizedBox(height: 12.0),
+                              _buildTitleTile('')
+                            ],
+                          )
+                      ]);
+                    },
+                  ).toList()),
+                ),
+                const SizedBox(width: spacer),
+                SizedBox(
+                  width: scoreWidth,
+                  child: Column(
+                      children: players.asMap().keys.map(
+                    (index) {
+                      final player = players[index];
+                      final isBiggestStealer = biggestStealers.contains(player);
+
+                      return Column(children: [
+                        if (index == 0) _buildTitleTile('Score'),
+                        _buildScoreTile(player.score, isBiggestStealer),
+                        if (players.length > nbHighestScore &&
+                            index + 1 == nbHighestScore)
+                          Column(
+                            children: [
+                              const SizedBox(height: 12.0),
+                              _buildTitleTile('')
+                            ],
+                          )
+                      ]);
+                    },
+                  ).toList()),
+                ),
+              ],
             ),
           ],
         ),
@@ -486,36 +515,29 @@ class _LeaderBoard extends StatelessWidget {
   Widget _buildNamedTile(
     String name, {
     bool highlight = false,
-    Widget? prefixIcon,
+    Widget? suffixIcon,
     String? prefixText,
-    String? suffixText,
     required double width,
   }) {
     final style = _playerStyle(highlight);
-    if (prefixIcon != null && prefixText != null) {
-      throw ArgumentError(
-          'prefixIcon and prefixText cannot be both non-null at the same time');
-    }
 
     return SizedBox(
       width: width,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: EdgeInsets.only(
+            top: 8.0, bottom: 8.0, left: prefixText == null ? 10 : 50),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(
-                width: 50,
-                child: Align(
-                    alignment: Alignment.centerRight,
-                    child: prefixText != null
-                        ? Text(prefixText, style: style)
-                        : prefixIcon)),
+            if (prefixText != null)
+              Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(prefixText, style: style)),
             const SizedBox(width: 12.0),
-            Flexible(
+            Expanded(
                 child:
                     Text(name, style: style, overflow: TextOverflow.ellipsis)),
-            if (suffixText != null) Text(suffixText, style: style),
+            if (suffixIcon != null) suffixIcon,
           ],
         ),
       ),

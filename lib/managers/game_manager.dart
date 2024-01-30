@@ -566,6 +566,9 @@ class GameManagerMock extends GameManager {
   }
 
   @override
+  bool get hasPlayedAtLeastOnce => true;
+
+  @override
   Future<void> _searchForNextProblem() async {
     if (_problemMocker == null) {
       await super._searchForNextProblem();
