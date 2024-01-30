@@ -20,7 +20,7 @@ const _showLeaderBoardDefault = false;
 
 const _roundDurationDefault = 120;
 const _postRoundGracePeriodDurationDefault = 6;
-const _postRoundShowCaseDurationDefault = 8;
+const _postRoundShowCaseDurationDefault = 10;
 const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;

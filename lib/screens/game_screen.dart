@@ -7,6 +7,7 @@ import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/letter_displayer.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
+import 'package:train_de_mots/widgets/train_path.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -52,14 +53,14 @@ class _GameScreenState extends State<GameScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 32),
+                    SizedBox(height: 20),
                     _Header(),
-                    SizedBox(height: 32),
+                    SizedBox(height: 10),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         LetterDisplayer(),
-                        SizedBox(height: 20),
+                        SizedBox(height: 15),
                         SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: SolutionsDisplayer()),
@@ -83,6 +84,9 @@ class _Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<_Header> {
+  int _previousScore = 0;
+  final _trainPath = TrainPathController(millisecondsPerStep: 300);
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +95,8 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onRoundIsOver.addListener(_refresh);
+    gm.onRoundStarted.addListener(_setTrainPath);
+    _setTrainPath();
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -102,6 +108,7 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onRoundIsOver.removeListener(_refresh);
+    gm.onRoundStarted.removeListener(_setTrainPath);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
@@ -110,7 +117,33 @@ class _HeaderState extends State<_Header> {
   }
 
   void _refresh() => setState(() {});
-  void _onSolutionFound(solution) => setState(() {});
+  void _onSolutionFound(solution) {
+    int currentScore = GameManager.instance.problem!.teamScore;
+    if (_previousScore < currentScore) {
+      for (int i = _previousScore; i < currentScore; i++) {
+        _trainPath.moveForward();
+      }
+    } else {
+      for (int i = _previousScore; i > currentScore; i--) {
+        _trainPath.moveBackward();
+      }
+    }
+    _previousScore = currentScore;
+
+    setState(() {});
+  }
+
+  void _setTrainPath() {
+    final gm = GameManager.instance;
+
+    _previousScore = 0;
+    _trainPath.nbSteps = gm.problem!.maximumScore;
+    _trainPath.hallMarks = [
+      gm.pointsToObtain(SuccessLevel.oneStar),
+      gm.pointsToObtain(SuccessLevel.twoStars),
+      gm.pointsToObtain(SuccessLevel.threeStars),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +167,7 @@ class _HeaderState extends State<_Header> {
         } else {
           toGoText = ' (Destination atteinte!)';
         }
+        toGoText = '';
 
         title =
             ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText';
@@ -150,6 +184,18 @@ class _HeaderState extends State<_Header> {
 
     return Column(
       children: [
+        if (gm.gameStatus == GameStatus.roundStarted)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: Card(
+              color: tm.mainColor,
+              elevation: 10,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                child: _HeaderTimer(),
+              ),
+            ),
+          ),
         Text(
           title,
           style: TextStyle(
@@ -157,15 +203,12 @@ class _HeaderState extends State<_Header> {
               fontSize: tm.titleSize,
               color: tm.textColor),
         ),
-        const SizedBox(height: 20),
-        Card(
-          color: tm.mainColor,
-          elevation: 10,
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-            child: _HeaderTimer(),
+        if (gm.gameStatus == GameStatus.roundStarted)
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child:
+                TrainPath(controller: _trainPath, pathLength: 600, height: 75),
           ),
-        ),
       ],
     );
   }

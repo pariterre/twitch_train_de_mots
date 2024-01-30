@@ -478,11 +478,11 @@ class GameManager {
 
   SuccessLevel get completedLevel {
     if (problem == null ||
-        problem!.teamScore < _pointsToObtain(SuccessLevel.oneStar)) {
+        problem!.teamScore < pointsToObtain(SuccessLevel.oneStar)) {
       return SuccessLevel.failed;
-    } else if (problem!.teamScore < _pointsToObtain(SuccessLevel.twoStars)) {
+    } else if (problem!.teamScore < pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.oneStar;
-    } else if (problem!.teamScore < _pointsToObtain(SuccessLevel.threeStars)) {
+    } else if (problem!.teamScore < pointsToObtain(SuccessLevel.threeStars)) {
       return SuccessLevel.twoStars;
     } else {
       return SuccessLevel.threeStars;
@@ -494,10 +494,10 @@ class GameManager {
     if (currentLevel == SuccessLevel.threeStars) return 0;
 
     final nextLevel = SuccessLevel.values[currentLevel.index + 1];
-    return _pointsToObtain(nextLevel) - problem!.teamScore;
+    return pointsToObtain(nextLevel) - problem!.teamScore;
   }
 
-  int _pointsToObtain(SuccessLevel level) {
+  int pointsToObtain(SuccessLevel level) {
     final difficulty = ConfigurationManager.instance.difficulty(roundCount);
 
     final maxScore = problem!.maximumScore;

@@ -1,0 +1,348 @@
+import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/widgets/fireworks.dart';
+
+class TrainPathController {
+  int _nbSteps = 1;
+  final List<int> _hallMarks = [];
+  final int millisecondsPerStep;
+
+  TrainPathController({required this.millisecondsPerStep});
+
+  set nbSteps(int? nbSteps) {
+    if (nbSteps == null) throw Exception('nbSteps must not be null');
+
+    _currentStep = 0;
+    _nbSteps = nbSteps;
+    steps = List.generate(_nbSteps, (index) => index / _nbSteps);
+  }
+
+  set hallMarks(List<int> hallMarks) {
+    _hallMarks.clear();
+    _hallMarks.addAll(hallMarks);
+
+    _hallMarks.sort();
+    _resetFireworks();
+  }
+
+  void _resetFireworks() {
+    for (final firework in _fireworksControllers) {
+      firework.dispose();
+    }
+    _fireworksControllers.clear();
+    for (final _ in _hallMarks) {
+      _fireworksControllers.add(FireworksController());
+    }
+  }
+
+  Function()? _refreshCallback;
+
+  final List<Function()> nextMoves = [];
+  int _currentStep = 0;
+  int get currentStep => _currentStep;
+  bool _isMoving = false;
+  bool _reversed = false;
+  bool _isStationary = false;
+  List<double> steps = [];
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  final List<FireworksController> _fireworksControllers = [];
+
+  double get position =>
+      _reversed ? _getReversedPosition() : _getForwardPosition();
+
+  double _getForwardPosition() {
+    final starting = (_currentStep - (_isStationary ? 0 : 1)) / _nbSteps;
+    final ending = _currentStep / _nbSteps;
+    return starting + (ending - starting) * _animation.value;
+  }
+
+  double _getReversedPosition() {
+    final starting = (_currentStep + (_isStationary ? 0 : 1)) / _nbSteps;
+    final ending = _currentStep / _nbSteps;
+    return ending - (ending - starting) * _animation.value;
+  }
+
+  void moveForward() {
+    nextMoves.add(_moveForward);
+    _move();
+  }
+
+  void moveBackward() {
+    nextMoves.add(_moveBack);
+    _move();
+  }
+
+  void _move() async {
+    if (_isMoving) return;
+
+    _isMoving = true;
+    while (nextMoves.isNotEmpty) {
+      await nextMoves.removeAt(0)();
+    }
+    _isMoving = false;
+  }
+
+  Future<void> _moveForward() async {
+    _isStationary = false;
+
+    _currentStep++;
+    if (_currentStep > _nbSteps) {
+      _currentStep = _nbSteps;
+      _isStationary = true;
+    }
+
+    _reversed = false;
+    await _controller.forward(from: 0.0);
+    if (_hallMarks.contains(_currentStep)) {
+      _fireworksControllers[_hallMarks.indexOf(_currentStep)].trigger();
+    }
+    if (_refreshCallback != null) _refreshCallback!();
+  }
+
+  Future<void> _moveBack() async {
+    _isStationary = false;
+
+    _currentStep--;
+    if (_currentStep < 0) {
+      _currentStep = 0;
+      _isStationary = true;
+    }
+
+    _reversed = true;
+    if (_refreshCallback != null) _refreshCallback!();
+    await _controller.reverse(from: 1.0);
+  }
+
+  void dispose() {
+    _controller.dispose();
+  }
+
+  void _initialize(
+    TickerProvider provider, {
+    required Function() refreshCallback,
+  }) {
+    _controller = AnimationController(
+        vsync: provider, duration: Duration(milliseconds: millisecondsPerStep));
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.linear,
+    );
+    _controller.animateTo(1, duration: Duration.zero);
+
+    _refreshCallback = refreshCallback;
+  }
+}
+
+class TrainPath extends StatefulWidget {
+  const TrainPath({
+    super.key,
+    required this.controller,
+    required this.pathLength,
+    required this.height,
+  });
+
+  final TrainPathController controller;
+  final double height;
+  final double pathLength;
+
+  @override
+  State<TrainPath> createState() => _TrainPathState();
+}
+
+class _TrainPathState extends State<TrainPath>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+
+    widget.controller._initialize(this, refreshCallback: () => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    widget.controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        _Rail(
+            leftHeight: widget.height * 0.20,
+            rightHeight: widget.height * 0.10,
+            pathLength: widget.pathLength,
+            controller: widget.controller),
+        ...widget.controller._hallMarks.map((starPosition) => _Hallmark(
+              controller: widget.controller,
+              pathLength: widget.pathLength,
+              hallmarkSize: widget.height * 0.6,
+              starPosition: starPosition,
+            )),
+        _Train(
+            iconSize: widget.height,
+            pathLength: widget.pathLength,
+            controller: widget.controller),
+        ...widget.controller._hallMarks.asMap().entries.map((e) {
+          final index = e.key;
+          final starPosition = e.value;
+          return _HallmarkFireworks(
+            trainController: widget.controller,
+            fireworksController: widget.controller._fireworksControllers[index],
+            pathLength: widget.pathLength,
+            hallmarkSize: widget.height * 0.6,
+            starPosition: starPosition,
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _Rail extends StatelessWidget {
+  const _Rail({
+    required this.controller,
+    required this.leftHeight,
+    required this.rightHeight,
+    required this.pathLength,
+  });
+
+  final TrainPathController controller;
+  final double leftHeight;
+  final double rightHeight;
+  final double pathLength;
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return AnimatedBuilder(
+        animation: controller._animation,
+        builder: (context, child) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: tm.backgroundColorDark,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(10.0),
+                    bottomLeft: Radius.circular(10.0),
+                  ),
+                ),
+                height: leftHeight,
+                width: pathLength * controller.position,
+              ),
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.grey, // Set the color of the rail
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(10.0),
+                    bottomRight: Radius.circular(10.0),
+                  ),
+                ),
+                height: rightHeight,
+                width: pathLength * (1 - controller.position),
+              ),
+            ],
+          );
+        });
+  }
+}
+
+class _Hallmark extends StatelessWidget {
+  const _Hallmark({
+    required this.controller,
+    required this.starPosition,
+    required this.pathLength,
+    required this.hallmarkSize,
+  });
+
+  final TrainPathController controller;
+  final double pathLength;
+  final int starPosition;
+  final double hallmarkSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        controller.currentStep >= starPosition ? Colors.amber : Colors.grey;
+
+    return Positioned(
+        left:
+            starPosition * pathLength / controller._nbSteps - hallmarkSize / 2,
+        top: hallmarkSize * 0.25,
+        child: Icon(Icons.star, color: color, size: hallmarkSize, shadows: [
+          Shadow(color: color.shade300, blurRadius: hallmarkSize * 0.15)
+        ]));
+  }
+}
+
+class _HallmarkFireworks extends StatelessWidget {
+  const _HallmarkFireworks({
+    required this.trainController,
+    required this.fireworksController,
+    required this.pathLength,
+    required this.starPosition,
+    required this.hallmarkSize,
+  });
+
+  final TrainPathController trainController;
+  final FireworksController fireworksController;
+  final double pathLength;
+  final int starPosition;
+  final double hallmarkSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+        left: starPosition * pathLength / trainController._nbSteps -
+            hallmarkSize / 2,
+        top: hallmarkSize * 0.25,
+        child: SizedBox(
+            width: hallmarkSize,
+            height: hallmarkSize,
+            child: Fireworks(controller: fireworksController)));
+  }
+}
+
+class _Train extends StatelessWidget {
+  const _Train({
+    required this.controller,
+    required this.iconSize,
+    required this.pathLength,
+  });
+
+  final TrainPathController controller;
+  final double iconSize;
+  final double pathLength;
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return AnimatedBuilder(
+      animation: controller._animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(controller.position * pathLength + iconSize * 0.5,
+              -iconSize * 0.1),
+          child: Container(
+            decoration: BoxDecoration(
+                color: tm.backgroundColorLight.withOpacity(0.5),
+                shape: BoxShape.circle),
+            width: iconSize,
+            height: iconSize,
+            padding: EdgeInsets.all(iconSize / 10),
+            transform: Transform.flip(flipX: true).transform,
+            child: Image.asset('assets/images/splash_screen.png',
+                opacity: const AlwaysStoppedAnimation(0.5)),
+          ),
+        );
+      },
+    );
+  }
+}
