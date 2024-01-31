@@ -322,8 +322,6 @@ class _Train extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
     return AnimatedBuilder(
       animation: controller._animation,
       builder: (context, child) {
@@ -331,16 +329,13 @@ class _Train extends StatelessWidget {
           offset: Offset(controller.position * pathLength + iconSize * 0.5,
               -iconSize * 0.1),
           child: Container(
-            decoration: BoxDecoration(
-                color: tm.backgroundColorLight.withOpacity(0.5),
-                shape: BoxShape.circle),
-            width: iconSize,
-            height: iconSize,
-            padding: EdgeInsets.all(iconSize / 10),
-            transform: Transform.flip(flipX: true).transform,
-            child: Image.asset('assets/images/splash_screen.png',
-                opacity: const AlwaysStoppedAnimation(0.5)),
-          ),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              width: iconSize,
+              height: iconSize,
+              padding: EdgeInsets.all(iconSize / 10),
+              transform: Transform.flip(flipX: true).transform,
+              child: Image.asset('assets/images/splash_screen.png',
+                  opacity: const AlwaysStoppedAnimation(0.9))),
         );
       },
     );
