@@ -184,9 +184,17 @@ class _HeaderState extends State<_Header> {
 
     return Column(
       children: [
-        if (gm.gameStatus == GameStatus.roundStarted)
+        Text(
+          title,
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: tm.titleSize,
+              color: tm.textColor),
+        ),
+        if (gm.gameStatus == GameStatus.roundStarted ||
+            gm.gameStatus == GameStatus.revealAnswers)
           Padding(
-            padding: const EdgeInsets.only(bottom: 20.0),
+            padding: const EdgeInsets.only(top: 10),
             child: Card(
               color: tm.mainColor,
               elevation: 10,
@@ -196,16 +204,10 @@ class _HeaderState extends State<_Header> {
               ),
             ),
           ),
-        Text(
-          title,
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: tm.titleSize,
-              color: tm.textColor),
-        ),
-        if (gm.gameStatus == GameStatus.roundStarted)
+        if (gm.gameStatus == GameStatus.roundStarted ||
+            gm.gameStatus == GameStatus.revealAnswers)
           Padding(
-            padding: const EdgeInsets.only(top: 10.0),
+            padding: const EdgeInsets.only(top: 20.0),
             child:
                 TrainPath(controller: _trainPath, pathLength: 600, height: 75),
           ),
