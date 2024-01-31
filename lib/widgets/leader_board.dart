@@ -66,54 +66,58 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
     return Container(
       padding: const EdgeInsets.all(12.0),
-      width: 400,
+      width: 425,
+      height: 350,
       child: cm.showLeaderBoard
           ? Card(
               color: tm.mainColor,
               elevation: 10,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text('Tableau des cheminot\u2022e\u2022s',
-                          style: TextStyle(
-                            fontSize: 26,
-                            color: tm.leaderTextColor,
-                          )),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      children: [
-                        _buildTitleTile(),
-                        const SizedBox(height: 12.0),
-                        if (players.isNotEmpty)
-                          for (var player in players)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4.0),
-                              child: _buildPlayerTile(
-                                player: player,
-                                roundScore:
-                                    problem?.scoreOf(player).toString() ?? '0',
-                              ),
-                            ),
-                      ],
-                    ),
-                  ),
-                  if (players.isEmpty)
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Center(
-                        child: Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Text('En attente de joueurs...',
-                          style: TextStyle(
-                              fontSize: 20, color: tm.leaderTextColor)),
-                    )),
-                  const SizedBox(height: 12.0),
-                ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text('Tableau des cheminot\u2022e\u2022s',
+                            style: TextStyle(
+                              fontSize: 26,
+                              color: tm.leaderTextColor,
+                            )),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        children: [
+                          _buildTitleTile(),
+                          const SizedBox(height: 12.0),
+                          if (players.isNotEmpty)
+                            for (var player in players)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4.0),
+                                child: _buildPlayerTile(
+                                  player: player,
+                                  roundScore:
+                                      problem?.scoreOf(player).toString() ??
+                                          '0',
+                                ),
+                              ),
+                        ],
+                      ),
+                    ),
+                    if (players.isEmpty)
+                      Center(
+                          child: Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text('En attente de joueurs...',
+                            style: TextStyle(
+                                fontSize: 20, color: tm.leaderTextColor)),
+                      )),
+                    const SizedBox(height: 12.0),
+                  ],
+                ),
               ),
             )
           : null,
@@ -133,12 +137,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
     required Player player,
     required String roundScore,
   }) {
-    return _buildGenericTile(
-      player: player.name,
-      roundScore: roundScore,
-      totalScore: player.score.toString(),
-      isTitle: false,
-      isStealer: player.roundStealCount > 0,
+    return SizedBox(
+      width: 400,
+      child: _buildGenericTile(
+        player: player.name,
+        roundScore: roundScore,
+        totalScore: player.score.toString(),
+        isTitle: false,
+        isStealer: player.roundStealCount > 0,
+      ),
     );
   }
 
@@ -158,7 +165,8 @@ class _LeaderBoardState extends State<LeaderBoard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(player, style: style),
+        Flexible(
+            child: Text(player, style: style, overflow: TextOverflow.ellipsis)),
         SizedBox(
             width: tm.leaderTextSize * 7,
             child: Center(

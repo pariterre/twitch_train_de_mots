@@ -82,7 +82,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
       solutionsByLength.add(solutions.solutionsOfLength(i));
     }
 
-    const headerHeight = 350;
+    const headerHeight = 375;
     const solutionTileHeight = 58.0;
     final maxHeight = MediaQuery.of(context).size.height - headerHeight;
     final nbSolutionPerColumn =
