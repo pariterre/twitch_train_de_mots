@@ -1,6 +1,6 @@
 # train_de_mots
 
-A new Flutter project.
+Jeu de mots pour animer des soirées entre amis sur Twitch
 
 ## Getting Started
 

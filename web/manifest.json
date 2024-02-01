@@ -1,11 +1,11 @@
 {
-    "name": "train_de_mots",
-    "short_name": "train_de_mots",
+    "name": "Le Train de Mots",
+    "short_name": "Le Train de Mots",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Jeu de mots pour animer des soirées entre amis sur Twitch",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
