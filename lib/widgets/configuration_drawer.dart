@@ -256,7 +256,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                   ),
                   const SizedBox(height: 12),
                   _BooleanInputField(
-                      label: 'Afficher le tableau des cheminot\u2022e\u2022s',
+                      label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
                       value: cm.showLeaderBoard,
                       onChanged: (value) => cm.showLeaderBoard = value),
                   const SizedBox(height: 12),

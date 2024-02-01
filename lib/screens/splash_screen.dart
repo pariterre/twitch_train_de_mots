@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           '\n'
                           'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
                           'Trouvez le plus de mots possibles pour emmener le train à destination. '
-                          'Le ou la meilleure cheminot\u2022e sera couronné\u2022e de gloire!\n'
+                          'Le ou la meilleure cheminot\u00b7e sera couronné\u00b7e de gloire!\n'
                           '\n'
                           'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
                           'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
@@ -248,7 +248,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
                 child: Text(
-                    'Ô Cheminot\u2022te! J\'ai une mission pour vous sur le Petit Train du Nord! '
+                    'Ô Cheminot\u00b7te! J\'ai une mission pour vous sur le Petit Train du Nord! '
                     'Mais avant toute chose, veuillez identifier votre équipe!',
                     style: TextStyle(
                       fontSize: 24.0,
@@ -424,7 +424,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
       padding: const EdgeInsets.only(bottom: 16.0, left: 32.0, right: 32.0),
       child: Text(
           'Svp, valider votre adresse courriel; vous serez automatiquement '
-          'redirigé\u2022e vers le train par la suite.',
+          'redirigé\u00b7e vers le train par la suite.',
           textAlign: TextAlign.center,
           style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
     );
@@ -441,7 +441,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     return Column(
       children: [
         Text(
-            'Dernière chose avant de partir, quel est le nom de votre équipe de cheminot\u2022te\u2022s?',
+            'Dernière chose avant de partir, quel est le nom de votre équipe de cheminot\u00b7te\u00b7s?',
             textAlign: TextAlign.center,
             style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
         const SizedBox(height: 24.0),

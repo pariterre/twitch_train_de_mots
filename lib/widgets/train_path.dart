@@ -9,9 +9,7 @@ class TrainPathController {
 
   TrainPathController({required this.millisecondsPerStep});
 
-  set nbSteps(int? nbSteps) {
-    if (nbSteps == null) throw Exception('nbSteps must not be null');
-
+  set nbSteps(int nbSteps) {
     _currentStep = 0;
     _nbSteps = nbSteps;
     steps = List.generate(_nbSteps, (index) => index / _nbSteps);

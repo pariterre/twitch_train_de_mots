@@ -80,7 +80,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text('Tableau des cheminot\u2022e\u2022s',
+                        child: Text('Tableau des cheminot\u00b7e\u00b7s',
                             style: TextStyle(
                               fontSize: 26,
                               color: tm.leaderTextColor,
@@ -126,7 +126,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
   Widget _buildTitleTile() {
     return _buildGenericTile(
-      player: 'Cheminot\u2022e\u2022s',
+      player: 'Cheminot\u00b7e\u00b7s',
       roundScore: 'Points',
       totalScore: 'Total',
       isTitle: true,

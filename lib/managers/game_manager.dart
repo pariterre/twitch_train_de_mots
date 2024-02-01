@@ -501,7 +501,7 @@ class GameManager {
   int pointsToObtain(SuccessLevel level) {
     final difficulty = ConfigurationManager.instance.difficulty(roundCount);
 
-    final maxScore = problem!.maximumScore;
+    final maxScore = problem?.maximumScore ?? 0;
     switch (level) {
       case SuccessLevel.oneStar:
         return (maxScore * difficulty.thresholdFactorOneStar).toInt();

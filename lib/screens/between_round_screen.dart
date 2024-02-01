@@ -227,7 +227,7 @@ class _LeaderBoard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (index == 0)
-                            _buildTitleTile('Meilleur\u2022e cheminot\u2022e'),
+                            _buildTitleTile('Meilleur\u00b7e cheminot\u00b7e'),
                           _buildNamedTile(
                             player.name,
                             highlight: isBiggestStealer,
@@ -242,7 +242,7 @@ class _LeaderBoard extends StatelessWidget {
                             Column(
                               children: [
                                 const SizedBox(height: 12.0),
-                                _buildTitleTile('Autres cheminot\u2022e\u2022s')
+                                _buildTitleTile('Autres cheminot\u00b7e\u00b7s')
                               ],
                             )
                         ]);
@@ -347,7 +347,7 @@ class _LeaderBoard extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitleTile('Meilleur\u2022e\u2022s équipes'),
+                        _buildTitleTile('Meilleur\u00b7e\u00b7s équipes'),
                         ...teams.map(
                           (team) => _buildNamedTile(
                             team.name,
@@ -407,7 +407,7 @@ class _LeaderBoard extends StatelessWidget {
           if (players.isEmpty) {
             return Center(
                 child:
-                    _buildTitleTile('Aucun\u2022e cheminot\u2022e n\'a joué'));
+                    _buildTitleTile('Aucun\u00b7e cheminot\u00b7e n\'a joué'));
           }
 
           return SingleChildScrollView(
@@ -421,7 +421,7 @@ class _LeaderBoard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTitleTile(
-                            'Meilleur\u2022e\u2022s cheminot\u2022e\u2022s'),
+                            'Meilleur\u00b7e\u00b7s cheminot\u00b7e\u00b7s'),
                         ...players.map(
                           (player) => _buildNamedTile(
                             player.name,
@@ -670,7 +670,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
               size: 70.0,
               shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
           Text(
-            'Le tableau des cheminot\u2022e\u2022s',
+            'Le tableau des cheminot\u00b7e\u00b7s',
             style: TextStyle(
                 fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
           ),

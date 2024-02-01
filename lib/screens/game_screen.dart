@@ -137,7 +137,7 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
 
     _previousScore = 0;
-    _trainPath.nbSteps = gm.problem!.maximumScore;
+    _trainPath.nbSteps = gm.problem?.maximumScore ?? 1;
     _trainPath.hallMarks = [
       gm.pointsToObtain(SuccessLevel.oneStar),
       gm.pointsToObtain(SuccessLevel.twoStars),

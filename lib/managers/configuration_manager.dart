@@ -48,7 +48,7 @@ class ConfigurationManager {
       FeatureNotes(
         description: 'Il est maintenant possible d\'enregistrer les scores '
             'des équipes pour les comparer au monde entier! Qui sera la '
-            'meilleure équipe de cheminot\u2022e\u2022s?',
+            'meilleure équipe de cheminot\u00b7e\u00b7s?',
       ),
       FeatureNotes(
         description:
@@ -77,7 +77,7 @@ class ConfigurationManager {
           ),
           FeatureNotes(
             description: 'Il est maintenant possible de voler des mots à ses '
-                'cocheminot\u2022e\u2022s plus d\'une fois par ronde',
+                'cocheminot\u00b7e\u00b7s plus d\'une fois par ronde',
             userWhoRequested: 'NghtmrTV',
             urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
           ),
@@ -108,9 +108,9 @@ class ConfigurationManager {
               'ce qui permet de voir les stations futures',
         ),
         FeatureNotes(
-          description: 'Le score du ou de la meilleur\u2022e cheminot\u2022e '
+          description: 'Le score du ou de la meilleur\u00b7e cheminot\u00b7e '
               'est maintenant affiché dans le tableau final. Qui sera le ou la '
-              'meilleur\u2022e?',
+              'meilleur\u00b7e?',
           userWhoRequested: 'Kyaroline',
           urlOfUserWhoRequested: 'https://twitch.tv/kyaroline',
         ),
