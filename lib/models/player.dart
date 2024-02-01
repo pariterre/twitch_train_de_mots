@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -78,4 +80,29 @@ class Players extends DelegatingList<Player> {
       [..._players]..sort(compare ?? (a, b) => b.score - a.score),
     );
   }
+
+  ///
+  /// Get the players with the best score
+  List<Player> get bestPlayers {
+    final bestScore = this.bestScore;
+    return _players.where((element) => element.score == bestScore).toList();
+  }
+
+  ///
+  /// Get the best score
+  int get bestScore => fold(0, (int prev, Player e) => max(prev, e.score));
+
+  ///
+  /// Get the biggest stealers
+  List<Player> get biggestStealers {
+    final maxStealCount = this.maxStealCount;
+    return _players
+        .where((element) => element.gameStealCount == maxStealCount)
+        .toList();
+  }
+
+  ///
+  /// Get the max steal count
+  int get maxStealCount =>
+      fold(0, (int prev, Player e) => max(prev, e.gameStealCount));
 }

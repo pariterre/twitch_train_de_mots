@@ -1,13 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/player_result.dart';
+import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/success_level.dart';
-import 'package:train_de_mots/models/team_result.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
@@ -197,21 +194,14 @@ class _LeaderBoard extends StatelessWidget {
 
   Widget _buildGameScore({required double width}) {
     final gm = GameManager.instance;
-    final players = gm.players.sort((a, b) => b.score - a.score);
+    final players = gm.players.sort();
 
     if (players.isEmpty) {
       return Center(child: _buildTitleTile('Aucun joueur n\'a joué'));
     }
 
-    final highestScore = players.fold(0, (prev, e) => max(prev, e.score));
-    final nbHighestScore = players.where((e) => e.score == highestScore).length;
-
-    final highestStealCount =
-        players.fold(0, (prev, e) => max(prev, e.gameStealCount));
-    final biggestStealers = players
-        .where((e) =>
-            highestStealCount != 0 && e.gameStealCount == highestStealCount)
-        .toList();
+    final nbHighestScore = players.bestPlayers.length;
+    final biggestStealers = players.biggestStealers;
 
     const scoreWidth = 80.0;
     const spacer = 20.0;
@@ -272,7 +262,8 @@ class _LeaderBoard extends StatelessWidget {
                       return Column(children: [
                         if (index == 0) _buildTitleTile('Vols'),
                         _buildScoreTile(
-                            player.gameStealCount, isBiggestStealer),
+                            score: player.gameStealCount,
+                            highlight: isBiggestStealer),
                         if (players.length > nbHighestScore &&
                             index + 1 == nbHighestScore)
                           Column(
@@ -296,7 +287,8 @@ class _LeaderBoard extends StatelessWidget {
 
                       return Column(children: [
                         if (index == 0) _buildTitleTile('Score'),
-                        _buildScoreTile(player.score, isBiggestStealer),
+                        _buildScoreTile(
+                            score: player.score, highlight: isBiggestStealer),
                         if (players.length > nbHighestScore &&
                             index + 1 == nbHighestScore)
                           Column(
@@ -326,8 +318,8 @@ class _LeaderBoard extends StatelessWidget {
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
-        future: dm.getBestScoresOfTrainStationsReached(
-            top: 10, currentStation: gm.roundCount),
+        future: dm.getBestTrainStationsReached(
+            top: 10, stationReached: gm.roundCount),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -358,9 +350,9 @@ class _LeaderBoard extends StatelessWidget {
                         _buildTitleTile('Meilleur\u2022e\u2022s équipes'),
                         ...teams.map(
                           (team) => _buildNamedTile(
-                            team.name!,
+                            team.name,
                             highlight: team.name == dm.teamName &&
-                                team.station == gm.roundCount,
+                                team.bestStation == gm.roundCount,
                             prefixText: '${team.rank}.',
                             width: nameWidth,
                           ),
@@ -374,9 +366,9 @@ class _LeaderBoard extends StatelessWidget {
                           _buildTitleTile('Stations'),
                           ...teams.map(
                             (team) => _buildScoreTile(
-                              team.station!,
-                              team.name! == dm.teamName &&
-                                  team.station! == gm.roundCount,
+                              score: team.bestStation,
+                              highlight: team.name == dm.teamName &&
+                                  team.bestStation == gm.roundCount,
                             ),
                           )
                         ]),
@@ -389,13 +381,17 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildIndividualLeaderboardScore({required double width}) {
+    final gm = GameManager.instance;
     final tm = ThemeManager.instance;
+
+    final bestPlayers = gm.players.bestPlayers;
 
     const scoreWidth = 80.0;
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
-        future: Future.value(<PlayerResult>[]),
+        future: DatabaseManager.instance
+            .getBestPlayers(top: 10, bestPlayers: bestPlayers),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -408,10 +404,11 @@ class _LeaderBoard extends StatelessWidget {
 
           final players = snapshot.data as List<PlayerResult>;
 
-          // if (players.isEmpty) {
-          //   return Center(
-          //       child: _buildTitleTile('Aucun\u2022e cheminot\u2022e'));
-          // }
+          if (players.isEmpty) {
+            return Center(
+                child:
+                    _buildTitleTile('Aucun\u2022e cheminot\u2022e n\'a joué'));
+          }
 
           return SingleChildScrollView(
             child: Padding(
@@ -425,12 +422,12 @@ class _LeaderBoard extends StatelessWidget {
                       children: [
                         _buildTitleTile(
                             'Meilleur\u2022e\u2022s cheminot\u2022e\u2022s'),
-                        _buildNamedTile('À venir dans les prochains jours!',
-                            width: width),
                         ...players.map(
                           (player) => _buildNamedTile(
-                            player.name!,
-                            highlight: false,
+                            player.name,
+                            highlight: bestPlayers.any((e) =>
+                                e.name == player.name &&
+                                e.score == player.score),
                             prefixText: '${player.rank}.',
                             width: nameWidth,
                           ),
@@ -442,9 +439,13 @@ class _LeaderBoard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           _buildTitleTile('Score'),
-                          _buildTitleTile(''),
                           ...players.map(
-                            (player) => _buildScoreTile(player.score!, false),
+                            (player) => _buildScoreTile(
+                              score: player.score,
+                              highlight: bestPlayers.any((e) =>
+                                  e.name == player.name &&
+                                  e.score == player.score),
+                            ),
                           )
                         ]),
                   ),
@@ -544,8 +545,8 @@ class _LeaderBoard extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreTile(int score, bool isBiggestStealer) {
-    final style = _playerStyle(isBiggestStealer);
+  Widget _buildScoreTile({required int score, required bool highlight}) {
+    final style = _playerStyle(highlight);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -310,7 +310,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                     ],
                   ),
                 ),
-                if (showCooldown)
+                if (showCooldown && gm.gameStatus == GameStatus.roundStarted)
                   Padding(
                     padding: const EdgeInsets.only(left: 15.0),
                     child: SizedBox(

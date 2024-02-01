@@ -6,10 +6,10 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
-import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/word_solution.dart';
-import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
+import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/success_level.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 
 enum GameStatus {
   initializing,
@@ -472,7 +472,8 @@ class GameManager {
     // being searched, it will be automatically skipped anyway
     _searchForNextProblem();
 
-    DatabaseManager.instance.registerTrainStationReached(roundCount);
+    DatabaseManager.instance.sendResults(
+        stationReached: roundCount, bestPlayers: players.bestPlayers);
     onRoundIsOver.notifyListeners();
   }
 

@@ -92,7 +92,7 @@ class MocksConfiguration {
       dummyIsSignedIn: true,
       emailIsVerified: true,
       dummyTeamName: 'Les Bleuets',
-      dummyResults: {
+      dummyBestStationResults: {
         'Les Verts': 3,
         'Les Oranges': 6,
         'Les Roses': 1,
@@ -104,6 +104,16 @@ class MocksConfiguration {
         'Les Violets': 3,
         'Les Gris': 0,
         'Les Bruns': 0,
+      },
+      dummyBestPlayerResults: {
+        'Player 1': 300,
+        'Player 2': 600,
+        'Player 3': 100,
+        'Player 4': 100,
+        'Player 5': 50,
+        'Player 6': 0,
+        'PlayerWithAVeryVeryVeryLongName': 300,
+        'AnotherPlayerWithAVeryVeryVeryLongName': 250,
       },
     );
   }
