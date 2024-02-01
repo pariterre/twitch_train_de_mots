@@ -96,6 +96,26 @@ class ConfigurationManager {
             urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
           ),
         ]),
+    ReleaseNotes(
+      version: '0.3.0',
+      codeName: 'Connais-toi toi-même',
+      notes: 'La connaissance de soi est d\'une importance capitale. C\'est '
+          'une meilleure représentation de vous-mêmes vous est proposée',
+      features: [
+        FeatureNotes(
+          description:
+              'Le petit train avance maintenant visuellement sur la carte, '
+              'ce qui permet de voir les stations futures',
+        ),
+        FeatureNotes(
+          description: 'Le score du ou de la meilleur\u2022e cheminot\u2022e '
+              'est maintenant affiché dans le tableau final. Qui sera le ou la '
+              'meilleur\u2022e?',
+          userWhoRequested: 'Kyaroline',
+          urlOfUserWhoRequested: 'https://twitch.tv/kyaroline',
+        ),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
