@@ -97,7 +97,8 @@ class Players extends DelegatingList<Player> {
   List<Player> get biggestStealers {
     final maxStealCount = this.maxStealCount;
     return _players
-        .where((element) => element.gameStealCount == maxStealCount)
+        .where((element) =>
+            element.gameStealCount == maxStealCount && maxStealCount > 0)
         .toList();
   }
 
