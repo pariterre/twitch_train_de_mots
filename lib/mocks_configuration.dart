@@ -62,7 +62,7 @@ class MocksConfiguration {
   static Future<void> initializeGameManagerMocks(
       {LetterProblemMock? letterProblemMock}) async {
     GameManagerMock.initialize(
-      gameStatus: GameStatus.roundPreparing,
+      gameStatus: GameStatus.initializing,
       problem: letterProblemMock,
       players: [
         Player(name: 'Player 1')..score = 100,

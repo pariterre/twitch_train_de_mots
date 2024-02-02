@@ -237,7 +237,6 @@ class GameManager {
       return;
     }
 
-    final cm = ConfigurationManager.instance;
     onRoundIsPreparing.notifyListeners();
 
     // Wait until a problem is found
@@ -254,6 +253,18 @@ class GameManager {
     // Prepare the problem according to the results of the current round
     if (!hasUselessLetter) _currentProblem!.tossUselessLetter();
 
+    // Start searching for the next problem as soon as possible to avoid
+    // waiting for the next round
+    _searchForNextProblem();
+
+    // Start the round
+    _setValuesAtStartRound();
+    onRoundStarted.notifyListeners();
+  }
+
+  void _setValuesAtStartRound() {
+    final cm = ConfigurationManager.instance;
+
     // Reinitialize the round timer and players
     _roundDuration = cm.roundDuration.inMilliseconds +
         cm.postRoundGracePeriodDuration.inMilliseconds;
@@ -261,20 +272,15 @@ class GameManager {
       player.resetForNextRound();
     }
 
-    // Start searching for the next problem as soon as possible to avoid
-    // waiting for the next round
-    _searchForNextProblem();
-
-    // Start the round
     _hasPlayedAtLeastOnce = true;
-    _gameStatus = GameStatus.roundStarted;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
     _roundStartedAt = DateTime.now();
     _nextRoundStartAt = null;
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
-    onRoundStarted.notifyListeners();
+
+    _gameStatus = GameStatus.roundStarted;
   }
 
   ///
@@ -531,8 +537,6 @@ class GameManagerMock extends GameManager {
     }
     GameManager._instance = GameManagerMock._internal();
 
-    if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
-
     if (players != null) {
       for (final player in players) {
         GameManager._instance!.players.add(player);
@@ -556,10 +560,14 @@ class GameManagerMock extends GameManager {
       (GameManager._instance! as GameManagerMock)._problemMocker = problem;
       GameManager._instance!._currentProblem = problem;
       GameManager._instance!._nextProblem = problem;
-      GameManager._instance!._gameStatus = GameStatus.roundReady;
 
       Future.delayed(const Duration(seconds: 1)).then((value) =>
           GameManager._instance!.onNextProblemReady.notifyListeners());
+    }
+
+    if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
+    if (gameStatus == GameStatus.roundStarted) {
+      GameManager._instance!._setValuesAtStartRound();
     }
 
     Timer.periodic(

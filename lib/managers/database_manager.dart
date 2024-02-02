@@ -493,7 +493,7 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   Future<TeamResult> _getBestStationOf({required String teamName}) async {
-    final station = _dummyBestStationsResults[teamName]!;
+    final station = _dummyBestStationsResults[teamName] ?? 0;
     return TeamResult(teamName, station);
   }
 
