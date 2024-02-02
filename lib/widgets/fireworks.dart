@@ -4,9 +4,15 @@ import 'dart:math';
 class FireworksController {
   final key = UniqueKey();
 
+  Color minColor;
+  Color maxColor;
   bool huge;
 
-  FireworksController({this.huge = false});
+  FireworksController({
+    this.huge = false,
+    this.minColor = const Color.fromARGB(185, 0, 155, 0),
+    this.maxColor = const Color.fromARGB(185, 255, 255, 50),
+  });
 
   void trigger() {
     if (_explode != null) _explode!(huge);
@@ -14,6 +20,19 @@ class FireworksController {
 
   void dispose() {
     _explode = null;
+  }
+
+  Color get color {
+    final rand = Random();
+    final alpha =
+        minColor.alpha + rand.nextInt(maxColor.alpha - minColor.alpha + 1);
+    final red = minColor.red + rand.nextInt(maxColor.red - minColor.red + 1);
+    final green =
+        minColor.green + rand.nextInt(maxColor.green - minColor.green + 1);
+    final blue =
+        minColor.blue + rand.nextInt(maxColor.blue - minColor.blue + 1);
+
+    return Color.fromARGB(alpha, red, green, blue);
   }
 
   Function? _explode;
@@ -74,17 +93,19 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   late BoxConstraints _constraints;
 
   void _explode(bool huge) {
+    final rand = Random();
+
     setState(() {
       particles.addAll(List.generate(
         numParticles,
         (_) => _Particle(
-          x: _constraints.maxWidth / 2,
-          y: _constraints.maxHeight / 2,
-          radius: 10 + Random().nextDouble() * 10,
-          angle: Random().nextDouble() * 2 * pi,
-          speed: Random().nextDouble() * (huge ? 10 : 6),
-          decaySpeed: (Random().nextDouble() * 0.5 + 0.5) / (huge ? 3 : 2),
-        ),
+            x: _constraints.maxWidth / 2,
+            y: _constraints.maxHeight / 2,
+            radius: 10 + rand.nextDouble() * 10,
+            angle: rand.nextDouble() * 2 * pi,
+            speed: rand.nextDouble() * (huge ? 10 : 6),
+            decaySpeed: (rand.nextDouble() * 0.5 + 0.5) / (huge ? 3 : 2),
+            color: widget.controller.color),
       ));
     });
     _animationController.reset();
@@ -120,11 +141,10 @@ class _Particle {
   double angle;
   double speed;
   double decaySpeed;
+  Color color;
 
   final rand = Random();
-  late final Paint _painter = Paint()
-    ..color = Color.fromARGB(
-        185, rand.nextInt(255), rand.nextInt(155) + 100, rand.nextInt(50));
+  late final Paint _painter = Paint()..color = color;
 
   _Particle({
     required this.x,
@@ -133,6 +153,7 @@ class _Particle {
     required this.angle,
     required this.speed,
     required this.decaySpeed,
+    required this.color,
   });
 }
 

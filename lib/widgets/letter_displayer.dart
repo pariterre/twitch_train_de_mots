@@ -82,7 +82,10 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     _fireworksControllers.clear();
     final letters = gm.problem!.letters;
     for (final _ in letters) {
-      _fireworksControllers.add(FireworksController());
+      _fireworksControllers.add(FireworksController(
+        minColor: const Color.fromARGB(184, 0, 100, 200),
+        maxColor: const Color.fromARGB(184, 100, 120, 255),
+      ));
     }
 
     setState(() {});

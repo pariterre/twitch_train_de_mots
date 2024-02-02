@@ -29,7 +29,9 @@ class TrainPathController {
     }
     _fireworksControllers.clear();
     for (final _ in _hallMarks) {
-      _fireworksControllers.add(FireworksController());
+      _fireworksControllers.add(FireworksController(
+          minColor: const Color.fromARGB(185, 255, 155, 0),
+          maxColor: const Color.fromARGB(185, 255, 255, 50)));
     }
   }
 

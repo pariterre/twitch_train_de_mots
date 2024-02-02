@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
+import 'package:train_de_mots/screens/debug_screen.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
 void main() async {
@@ -51,7 +52,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: MainScreen.route,
-      routes: {MainScreen.route: (ctx) => const MainScreen()},
+      routes: {
+        MainScreen.route: (ctx) => const MainScreen(),
+        DebugScreen.route: (ctx) => const DebugScreen()
+      },
     );
   }
 }
