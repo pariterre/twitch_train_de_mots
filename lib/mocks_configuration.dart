@@ -62,7 +62,7 @@ class MocksConfiguration {
   static Future<void> initializeGameManagerMocks(
       {LetterProblemMock? letterProblemMock}) async {
     GameManagerMock.initialize(
-      gameStatus: GameStatus.initializing,
+      gameStatus: GameStatus.roundPreparing,
       problem: letterProblemMock,
       players: [
         Player(name: 'Player 1')..score = 100,
@@ -83,7 +83,7 @@ class MocksConfiguration {
         Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')..score = 350,
       ],
       roundCount: 10,
-      successLevel: SuccessLevel.oneStar,
+      successLevel: SuccessLevel.failed,
     );
   }
 
@@ -106,14 +106,14 @@ class MocksConfiguration {
         'Les Bruns': 0,
       },
       dummyBestPlayerResults: {
-        'Player 1': 300,
-        'Player 2': 600,
-        'Player 3': 100,
-        'Player 4': 100,
-        'Player 5': 50,
-        'Player 6': 0,
-        'PlayerWithAVeryVeryVeryLongName': 300,
-        'AnotherPlayerWithAVeryVeryVeryLongName': 250,
+        'Player 1': (300, 'Les Verts'),
+        'Player 2': (250, 'Les Oranges'),
+        'Player 3': (600, 'Les Roses'),
+        'Player 4': (500, 'Les Jaunes'),
+        'Player 5': (600, 'Les Blancs'),
+        'Player 6': (250, 'Les Bleus'),
+        'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
+        'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
       },
     );
   }

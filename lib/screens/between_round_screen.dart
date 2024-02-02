@@ -424,7 +424,7 @@ class _LeaderBoard extends StatelessWidget {
                             'Meilleur\u00b7e\u00b7s cheminot\u00b7e\u00b7s'),
                         ...players.map(
                           (player) => _buildNamedTile(
-                            player.name,
+                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
                             highlight: bestPlayers.any((e) =>
                                 e.name == player.name &&
                                 e.score == player.score),

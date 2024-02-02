@@ -17,7 +17,7 @@ class SoundManager {
   static SoundManager get instance {
     if (_instance == null) {
       throw ManagerNotInitializedException(
-          "SoundManager must be initialized before being used");
+          'SoundManager must be initialized before being used');
     }
     return _instance!;
   }
@@ -31,7 +31,7 @@ class SoundManager {
   static Future<void> initialize() async {
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
-          "SoundManager should not be initialized twice");
+          'SoundManager should not be initialized twice');
     }
 
     SoundManager._instance = SoundManager._internal();

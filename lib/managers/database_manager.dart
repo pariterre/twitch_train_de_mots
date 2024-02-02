@@ -182,6 +182,7 @@ class DatabaseManager {
 
   static const String bestStationKey = 'bestStation';
   static const String bestScoreKey = 'bestScore';
+  static const String playerTeamNameKey = 'team';
 
   ///
   /// Returns the name of the current team
@@ -249,7 +250,7 @@ class DatabaseManager {
     for (final bestPlayers in bestPlayers) {
       await _playersCollection
           .doc(bestPlayers.name)
-          .set({bestScoreKey: bestPlayers.score, "team": teamName});
+          .set({bestScoreKey: bestPlayers.score, playerTeamNameKey: teamName});
     }
   }
 
@@ -332,7 +333,8 @@ class DatabaseManager {
 
     // Add the current results if necessary (only the best one were fetched)
     for (final bestPlayer in bestPlayers) {
-      final currentResult = PlayerResult(bestPlayer.name, bestPlayer.score);
+      final currentResult =
+          PlayerResult(bestPlayer.name, bestPlayer.score, teamName);
       _insertResultInList(currentResult, out);
     }
 
@@ -341,7 +343,7 @@ class DatabaseManager {
     // If our score did not get to the top, add it at the bottom
     for (final bestPlayer in bestPlayers) {
       _limitNumberOfResults(
-          top, PlayerResult(bestPlayer.name, bestPlayer.score), out);
+          top, PlayerResult(bestPlayer.name, bestPlayer.score, teamName), out);
     }
 
     return out;
@@ -355,7 +357,7 @@ class DatabaseManagerMock extends DatabaseManager {
   String _dummyTeamName = 'Les Bleuets';
   String _dummyPassword = '123456';
   Map<String, int> _dummyBestStationsResults = {};
-  Map<String, int> _dummyBestPlayersResults = {};
+  Map<String, (int, String)> _dummyBestPlayersResults = {};
 
   DatabaseManagerMock._internal() : super._internal();
 
@@ -366,7 +368,7 @@ class DatabaseManagerMock extends DatabaseManager {
     String? dummyTeamName,
     String? dummyPassword,
     Map<String, int>? dummyBestStationResults,
-    Map<String, int>? dummyBestPlayerResults,
+    Map<String, (int, String)>? dummyBestPlayerResults,
   }) async {
     if (DatabaseManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -483,9 +485,9 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   Future<List<PlayerResult>> _getBestPlayers({bool ordered = false}) async {
-    final out = _dummyBestPlayersResults.entries
-        .map((e) => PlayerResult(e.key, e.value))
-        .toList();
+    final out = _dummyBestPlayersResults.entries.map((e) {
+      return PlayerResult(e.key, e.value.$1, e.value.$2);
+    }).toList();
     if (ordered) out.sort((a, b) => b.score.compareTo(a.score));
 
     return out;
@@ -499,8 +501,10 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   Future<PlayerResult> _getBestScoreOf({required String playerName}) async {
-    final score = _dummyBestPlayersResults[playerName]!;
-    return PlayerResult(playerName, score);
+    final value = _dummyBestPlayersResults[playerName]!;
+    final score = value.$1;
+    final teamName = value.$2;
+    return PlayerResult(playerName, score, teamName);
   }
 
   @override
@@ -512,7 +516,7 @@ class DatabaseManagerMock extends DatabaseManager {
   Future<void> _putBestScoreForPlayers(
       {required String teamName, required List<Player> bestPlayers}) async {
     for (final bestPlayer in bestPlayers) {
-      _dummyBestPlayersResults[bestPlayer.name] = bestPlayer.score;
+      _dummyBestPlayersResults[bestPlayer.name] = (bestPlayer.score, teamName);
     }
   }
 }

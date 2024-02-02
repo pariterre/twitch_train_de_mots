@@ -34,13 +34,17 @@ class TeamResult extends DatabaseResult {
 }
 
 class PlayerResult extends DatabaseResult {
+  String teamName;
+
   int score;
   @override
   int get value => score;
 
   PlayerResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
-      : score = doc.exists ? (doc.data()?[DatabaseManager.bestScoreKey]) : -1,
+      : teamName =
+            doc.exists ? (doc.data()?[DatabaseManager.playerTeamNameKey]) : '',
+        score = doc.exists ? (doc.data()?[DatabaseManager.bestScoreKey]) : -1,
         super(doc.exists ? (doc.id) : '');
 
-  PlayerResult(super.name, this.score);
+  PlayerResult(super.name, this.score, this.teamName);
 }
