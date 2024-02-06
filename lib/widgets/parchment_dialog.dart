@@ -69,7 +69,8 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
             SizedBox(
                 width: widget.width,
                 height: widget.height,
-                child: Image.asset('images/parchment.png', fit: BoxFit.fill)),
+                child: Image.asset('assets/images/parchment.png',
+                    fit: BoxFit.fill)),
             Padding(
               padding: widget.padding ??
                   const EdgeInsets.symmetric(horizontal: 50.0),
