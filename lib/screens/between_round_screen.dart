@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/success_level.dart';
+import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
@@ -115,17 +116,16 @@ class _ContinueButtonState extends State<_ContinueButton> {
   Future<void> _showAutoplayDialog() async {
     await showDialog(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: const Text('Démarrage automatique'),
+      builder: (BuildContext context) => ParchmentDialog(
+        title: 'Démarrage automatique',
         content:
             const Text('Vous venez de désactiver le démarrage automatique.\n'
                 'Vous pouvez le réactiver dans les paramètres du jeu.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+        acceptButtonTitle: 'OK',
+        width: 500,
+        height: 200,
+        padding: const EdgeInsets.symmetric(horizontal: 50.0),
+        onAccept: () => Navigator.of(context).pop(),
       ),
     );
   }

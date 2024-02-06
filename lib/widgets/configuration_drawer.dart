@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -804,24 +805,14 @@ class _AreYouSureDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
-    return AlertDialog(
-      title: Text(title, style: TextStyle(color: tm.mainColor)),
-      content: Text(message, style: TextStyle(color: tm.mainColor)),
-      actions: [
-        TextButton(
-          child: Text('Annuler',
-              style: TextStyle(
-                  color: tm.mainColor, fontSize: tm.buttonTextStyle.fontSize)),
-          onPressed: () => Navigator.pop(context, false),
-        ),
-        ThemedElevatedButton(
-          onPressed: () => Navigator.pop(context, true),
-          reversedStyle: true,
-          buttonText: yesTitle,
-        ),
-      ],
+    return ParchmentDialog(
+      title: title,
+      width: 400,
+      height: 200,
+      content: Text(message),
+      acceptButtonTitle: yesTitle,
+      onCancel: () => Navigator.pop(context, false),
+      onAccept: () => Navigator.pop(context, true),
     );
   }
 }
