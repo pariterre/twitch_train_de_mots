@@ -495,6 +495,10 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
+        message: 'Nous nous enfonçons de plus en plus au Nord et les stations '
+            's\'éloignent les unes des autres...\n'
+            'Le travail d\'équipe de vos cheminot\u00b7e\u00b7s sera de la plus '
+            'haute importance!',
         hasUselessLetter: false,
         hasHiddenLetter: false,
       );
@@ -504,6 +508,10 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
+        message: 'Faites attention, cheminot\u00b7e\u00b7s, vous arrivez dans '
+            'terres non défrichées!\n'
+            'Malgré tous nos efforts, nous ne pouvons vous '
+            'assurer que vous recevrez lettres vous seront toutes utiles!',
         hasUselessLetter: true,
         revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: false,
@@ -514,6 +522,11 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
+        message:
+            'Votre chemin est tout bonnement incroyable, cheminot\u00b7e\u00b7s! '
+            'Vous avez réussi à vous frayer un chemin dans des terres inconnues!\n'
+            'Mais les rails sont de plus en plus difficiles à entretenir... '
+            'ne vous surprenez pas s\'il en manque des bouts',
         hasUselessLetter: true,
         revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: true,
@@ -525,6 +538,11 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.9,
+        message:
+            'Encore une fois, toutes mes félicitations, cheminot\u00b7e\u00b7s! '
+            'Vous avez emmené le Petit Train du Nord où nul autre n\'a osé aller, enfin depuis longtemps!\n'
+            'Il sera de plus en plus difficile de vous aidez, mais nous faisons '
+            'au mieux pour encore révéler les lettres qui vous seront utiles!',
         hasUselessLetter: true,
         revealUselessLetterAtTimeLeft: 15,
         hasHiddenLetter: true,
@@ -536,8 +554,11 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.7,
         thresholdFactorTwoStars: 0.9,
         thresholdFactorThreeStars: 0.95,
+        message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
+            'cheminot\u00b7e\u00b7s, et les communications deviennent difficiles...\n'
+            'Notre équipe continue de faire de son mieux pour vous aider, mais '
+            'ne comptez plus trop sur nous!',
         hasUselessLetter: true,
-        revealUselessLetterAtTimeLeft: -1,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 15,
       );
@@ -547,6 +568,10 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.95,
         thresholdFactorThreeStars: 1.0,
+        message: 'Cheminot\u00b7e\u00b7s, vous atteignez maintenant la limite '
+            'de nos communication. À partir d\'ici, vous êtes seul\u00b7e\u00b7s '
+            'dans cette aventure!\n'
+            'Nous vous souhaitons bonne chance dans votre quête du Nord!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: -1,

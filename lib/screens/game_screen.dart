@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
@@ -6,6 +7,7 @@ import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/letter_displayer.dart';
+import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/widgets/train_path.dart';
 
@@ -20,6 +22,9 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+
+    final gm = GameManager.instance;
+    gm.onShowMessage = _showMessageDialog;
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -38,6 +43,24 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _refresh() => setState(() {});
+
+  Future<void> _showMessageDialog(String message) async {
+    final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
+
+    await showDialog(
+        context: context,
+        builder: (context) => ParchmentDialog(
+              title: 'Un télégramme pour vous!',
+              content: Text(message, style: TextStyle(fontSize: tm.textSize)),
+              width: 500,
+              height: 600,
+              acceptButtonTitle: 'Merci!',
+              autoAcceptDuration:
+                  cm.autoplay ? const Duration(seconds: 10) : null,
+              onAccept: () => Navigator.of(context).pop(),
+            ));
+  }
 
   @override
   Widget build(BuildContext context) {

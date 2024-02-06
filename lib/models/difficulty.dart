@@ -9,10 +9,13 @@ class Difficulty {
   final bool hasHiddenLetter;
   final int revealHiddenLetterAtTimeLeft;
 
+  final String? message;
+
   const Difficulty({
     required this.thresholdFactorOneStar,
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
+    this.message,
     required this.hasUselessLetter,
     this.revealUselessLetterAtTimeLeft = -1,
     required this.hasHiddenLetter,

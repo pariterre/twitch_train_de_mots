@@ -115,6 +115,7 @@ class GameManager {
     _forceEndTheRound = true;
   }
 
+  String? _lastMessageToPlayers;
   SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
   bool get hasUselessLetter =>
@@ -148,6 +149,7 @@ class GameManager {
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
+  Future<void> Function(String)? onShowMessage;
 
   /// -------- ///
   /// INTERNAL ///
@@ -221,6 +223,9 @@ class GameManager {
   void _initializeCallbacks() {
     onGameIsInitializing.notifyListeners();
     _initializeTrySolutionCallback();
+    if (onShowMessage == null) {
+      throw Exception('onShowMessage must be set before starting the game');
+    }
     _gameStatus = GameStatus.roundPreparing;
   }
 
@@ -257,8 +262,19 @@ class GameManager {
     // waiting for the next round
     _searchForNextProblem();
 
+    // Send a message to players if required
+    final message =
+        ConfigurationManager.instance.difficulty(_roundCount).message;
+    if (message != _lastMessageToPlayers) {
+      _lastMessageToPlayers = message;
+      if (_lastMessageToPlayers != null) {
+        await onShowMessage!(_lastMessageToPlayers!);
+      }
+    }
+
     // Start the round
     _setValuesAtStartRound();
+
     onRoundStarted.notifyListeners();
   }
 

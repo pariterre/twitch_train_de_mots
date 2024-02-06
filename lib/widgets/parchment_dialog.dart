@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-class ParchmentDialog extends StatelessWidget {
+class ParchmentDialog extends StatefulWidget {
   const ParchmentDialog({
     super.key,
     required this.title,
@@ -10,6 +12,7 @@ class ParchmentDialog extends StatelessWidget {
     required this.content,
     this.onAccept,
     this.acceptButtonTitle = 'OK',
+    this.autoAcceptDuration,
     this.onCancel,
     this.cancelButtonTitle = 'Annuler',
   });
@@ -22,33 +25,63 @@ class ParchmentDialog extends StatelessWidget {
 
   final String acceptButtonTitle;
   final Function()? onAccept;
+  final Duration? autoAcceptDuration;
+
   final String cancelButtonTitle;
   final Function()? onCancel;
+
+  @override
+  State<ParchmentDialog> createState() => _ParchmentDialogState();
+}
+
+class _ParchmentDialogState extends State<ParchmentDialog> {
+  Duration? _autoAcceptDuration;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autoAcceptDuration != null) {
+      _autoAcceptDuration = widget.autoAcceptDuration;
+
+      Timer(widget.autoAcceptDuration!, () => Navigator.of(context).pop());
+      Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() {
+          _autoAcceptDuration =
+              Duration(seconds: _autoAcceptDuration!.inSeconds - 1);
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       content: SizedBox(
-        width: width,
-        height: height,
+        width: widget.width,
+        height: widget.height,
         child: Stack(
           alignment: Alignment.center,
           children: [
             SizedBox(
-                width: width,
-                height: height,
+                width: widget.width,
+                height: widget.height,
                 child: Image.asset('images/parchment.png', fit: BoxFit.fill)),
             Padding(
-              padding: padding ?? const EdgeInsets.symmetric(horizontal: 50.0),
+              padding: widget.padding ??
+                  const EdgeInsets.symmetric(horizontal: 50.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
+                  Text(widget.title,
                       style: const TextStyle(
                           fontSize: 24.0, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8.0),
-                  content,
+                  widget.content,
                   Align(
                     alignment: Alignment.centerRight,
                     child: Padding(
@@ -56,9 +89,9 @@ class ParchmentDialog extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (onCancel != null)
+                          if (widget.onCancel != null)
                             TextButton(
-                              onPressed: onCancel,
+                              onPressed: widget.onCancel,
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
@@ -67,13 +100,13 @@ class ParchmentDialog extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                cancelButtonTitle,
+                                widget.cancelButtonTitle,
                                 style: const TextStyle(color: Colors.black),
                               ),
                             ),
-                          if (onAccept != null)
+                          if (widget.onAccept != null)
                             TextButton(
-                              onPressed: onAccept,
+                              onPressed: widget.onAccept,
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16.0),
@@ -82,7 +115,8 @@ class ParchmentDialog extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                acceptButtonTitle,
+                                '${widget.acceptButtonTitle}'
+                                '${_autoAcceptDuration != null ? ' (${_autoAcceptDuration!.inSeconds} secondes)' : ''}',
                                 style: const TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold),

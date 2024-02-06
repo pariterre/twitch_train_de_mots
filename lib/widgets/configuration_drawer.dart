@@ -281,6 +281,8 @@ class _GameConfigurationState extends State<_GameConfiguration> {
           ),
         ),
       ),
+      acceptButtonTitle: 'Fermer',
+      onAccept: () => Navigator.pop(context),
     );
   }
 }
