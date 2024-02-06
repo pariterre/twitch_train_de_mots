@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
-import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ConfigurationDrawer extends StatefulWidget {
@@ -221,62 +220,65 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   @override
   Widget build(BuildContext context) {
     final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
 
-    return AlertDialog(
-      title: Text(
-        'Configuration du jeu',
-        style: TextStyle(color: tm.backgroundColorDark),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _ColorPickerInputField(label: 'Choisir la couleur du temps'),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: 400,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const _FontSizePickerInputField(
-                      label: 'Choisir la taille du thème'),
-                  const SizedBox(height: 12),
-                  _SliderInputField(
-                    label: 'Volume de la musique',
-                    value: cm.musicVolume,
-                    onChanged: (value) => cm.musicVolume = value,
-                    thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
-                  ),
-                  const SizedBox(height: 12),
-                  _SliderInputField(
-                    label: 'Volume des sons',
-                    value: cm.soundVolume,
-                    onChanged: (value) => cm.soundVolume = value,
-                    thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
-                  ),
-                  const SizedBox(height: 12),
-                  _BooleanInputField(
-                      label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
-                      value: cm.showLeaderBoard,
-                      onChanged: (value) => cm.showLeaderBoard = value),
-                  const SizedBox(height: 12),
-                  _BooleanInputField(
-                      label:
-                          'Relancer automatiquement\n(effectif à la prochaine pause)',
-                      value: cm.autoplay,
-                      onChanged: (value) => cm.autoplay = value),
-                  const SizedBox(height: 12),
-                  if (cm.useDebugOptions)
+    return ParchmentDialog(
+      title: 'Configuration du jeu',
+      width: 800,
+      height: MediaQuery.of(context).size.height * 0.9,
+      padding: const EdgeInsets.only(left: 80.0, right: 50),
+      content: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.65,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const _ColorPickerInputField(
+                  label: 'Choisir la couleur du thème'),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _FontSizePickerInputField(
+                        label: 'Choisir la taille du thème'),
+                    const SizedBox(height: 12),
+                    _SliderInputField(
+                      label: 'Volume de la musique',
+                      value: cm.musicVolume,
+                      onChanged: (value) => cm.musicVolume = value,
+                      thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
+                    ),
+                    const SizedBox(height: 12),
+                    _SliderInputField(
+                      label: 'Volume des sons',
+                      value: cm.soundVolume,
+                      onChanged: (value) => cm.soundVolume = value,
+                      thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                    ),
+                    const SizedBox(height: 12),
                     _BooleanInputField(
-                        label: 'Montrer les réponses au survol\nde la souris',
-                        value: cm.showAnswersTooltip,
-                        onChanged: (value) => cm.showAnswersTooltip = value),
-                ],
+                        label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
+                        value: cm.showLeaderBoard,
+                        onChanged: (value) => cm.showLeaderBoard = value),
+                    const SizedBox(height: 12),
+                    _BooleanInputField(
+                        label:
+                            'Relancer automatiquement\n(effectif à la prochaine pause)',
+                        value: cm.autoplay,
+                        onChanged: (value) => cm.autoplay = value),
+                    const SizedBox(height: 12),
+                    if (cm.useDebugOptions)
+                      _BooleanInputField(
+                          label: 'Montrer les réponses au survol\nde la souris',
+                          value: cm.showAnswersTooltip,
+                          onChanged: (value) => cm.showAnswersTooltip = value),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-          ],
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
@@ -321,8 +323,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(widget.label,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         ColorPicker(
           pickerColor: tm.mainColor,
@@ -426,128 +427,125 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
   @override
   Widget build(BuildContext context) {
     final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
 
     return PopScope(
       onPopInvoked: (didPop) => cm.finalizeConfigurationChanges(),
-      child: AlertDialog(
-        title: Text(
-          'Configuration du jeu (dev)',
-          style: TextStyle(color: tm.backgroundColorDark),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _IntegerInputField(
-                label: 'Nombre de lettres des mots les plus courts',
-                initialValue: cm.nbLetterInSmallestWord.toString(),
-                onChanged: (value) => cm.nbLetterInSmallestWord = value,
-                enabled: cm.canChangeProblem,
-                disabledTooltip:
-                    'Le nombre de lettres des mots les plus courts ne peut pas\n'
-                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
-              ),
-              const SizedBox(height: 12),
-              _DoubleIntegerInputField(
-                label: 'Nombre de lettres à piger',
-                firstLabel: 'Minimum',
-                firstInitialValue: cm.minimumWordLetter.toString(),
-                secondLabel: 'Maximum',
-                secondInitialValue: cm.maximumWordLetter.toString(),
-                onChanged: (mininum, maximum) {
-                  cm.minimumWordLetter = mininum;
-                  cm.maximumWordLetter = maximum;
-                },
-                enabled: cm.canChangeProblem,
-                disabledTooltip: 'Le nombre de lettres à piger ne peut pas\n'
-                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
-              ),
-              const SizedBox(height: 12),
-              _DoubleIntegerInputField(
-                label: 'Nombre de mots à trouver',
-                firstLabel: 'Minimum',
-                firstInitialValue: cm.minimumWordsNumber.toString(),
-                secondLabel: 'Maximum',
-                secondInitialValue: cm.maximumWordsNumber.toString(),
-                onChanged: (mininum, maximum) {
-                  cm.minimumWordsNumber = mininum;
-                  cm.maximumWordsNumber = maximum;
-                },
-                enabled: cm.canChangeProblem,
-                disabledTooltip: 'Le nombre de mots à trouver ne peut pas\n'
-                    'être changé en cours de partie ou lorsque le jeu cherche un mot',
-              ),
-              const SizedBox(height: 12),
-              _IntegerInputField(
-                label: 'Durée d\'une manche (secondes)',
-                initialValue: cm.roundDuration.inSeconds.toString(),
-                onChanged: (value) =>
-                    cm.roundDuration = Duration(seconds: value),
-                enabled: cm.canChangeDurations,
-                disabledTooltip:
-                    'La durée d\'une manche ne peut pas être changée en cours de partie',
-              ),
-              const SizedBox(height: 12),
-              _DoubleIntegerInputField(
-                label: 'Durée post-ronde (secondes)',
-                firstLabel: 'Période de grâce',
-                secondLabel: 'Vitrine',
-                firstInitialValue:
-                    cm.postRoundGracePeriodDuration.inSeconds.toString(),
-                secondInitialValue:
-                    cm.postRoundShowCaseDuration.inSeconds.toString(),
-                onChanged: (first, second) {
-                  cm.postRoundGracePeriodDuration = Duration(seconds: first);
-                  cm.postRoundShowCaseDuration = Duration(seconds: second);
-                },
-                enabled: cm.canChangeDurations,
-                disabledTooltip:
-                    'La durée d\'une manche ne peut pas être changée en cours de partie',
-              ),
-              const SizedBox(height: 12),
-              _IntegerInputField(
-                label: 'Temps avant de mélanger les lettres (secondes)',
-                initialValue:
-                    cm.timeBeforeScramblingLetters.inSeconds.toString(),
-                onChanged: (value) =>
-                    cm.timeBeforeScramblingLetters = Duration(seconds: value),
-              ),
-              const SizedBox(height: 12),
-              _BooleanInputField(
-                label: 'Voler un mot est permis',
-                value: cm.canSteal,
-                onChanged: (value) => cm.canSteal = value,
-              ),
-              const SizedBox(height: 12),
-              _DoubleIntegerInputField(
-                label: 'Période de récupération (secondes)',
-                firstLabel: 'Normale',
-                firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
-                secondLabel: 'Voleur',
-                secondInitialValue:
-                    cm.cooldownPenaltyAfterSteal.inSeconds.toString(),
-                enableSecond: cm.canSteal,
-                onChanged: (normal, stealer) {
-                  cm.cooldownPeriod = Duration(seconds: normal);
-                  cm.cooldownPenaltyAfterSteal = Duration(seconds: stealer);
-                },
-                enabled: cm.canChangeDurations,
-                disabledTooltip:
-                    'Les périodes de récupération ne peuvent pas être\n'
-                    'changées en cours de partie',
-              ),
-              const SizedBox(height: 24),
-              ThemedElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                reversedStyle: true,
-                buttonText: 'Terminer',
-              ),
-              const SizedBox(height: 12),
-            ],
+      child: ParchmentDialog(
+        title: 'Configuration du jeu (dev)',
+        width: 500,
+        height: MediaQuery.of(context).size.height * 0.9,
+        content: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.65,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _IntegerInputField(
+                  label: 'Nombre de lettres des mots les plus courts',
+                  initialValue: cm.nbLetterInSmallestWord.toString(),
+                  onChanged: (value) => cm.nbLetterInSmallestWord = value,
+                  enabled: cm.canChangeProblem,
+                  disabledTooltip:
+                      'Le nombre de lettres des mots les plus courts ne peut pas\n'
+                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
+                ),
+                const SizedBox(height: 12),
+                _DoubleIntegerInputField(
+                  label: 'Nombre de lettres à piger',
+                  firstLabel: 'Minimum',
+                  firstInitialValue: cm.minimumWordLetter.toString(),
+                  secondLabel: 'Maximum',
+                  secondInitialValue: cm.maximumWordLetter.toString(),
+                  onChanged: (mininum, maximum) {
+                    cm.minimumWordLetter = mininum;
+                    cm.maximumWordLetter = maximum;
+                  },
+                  enabled: cm.canChangeProblem,
+                  disabledTooltip: 'Le nombre de lettres à piger ne peut pas\n'
+                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
+                ),
+                const SizedBox(height: 12),
+                _DoubleIntegerInputField(
+                  label: 'Nombre de mots à trouver',
+                  firstLabel: 'Minimum',
+                  firstInitialValue: cm.minimumWordsNumber.toString(),
+                  secondLabel: 'Maximum',
+                  secondInitialValue: cm.maximumWordsNumber.toString(),
+                  onChanged: (mininum, maximum) {
+                    cm.minimumWordsNumber = mininum;
+                    cm.maximumWordsNumber = maximum;
+                  },
+                  enabled: cm.canChangeProblem,
+                  disabledTooltip: 'Le nombre de mots à trouver ne peut pas\n'
+                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
+                ),
+                const SizedBox(height: 12),
+                _IntegerInputField(
+                  label: 'Durée d\'une manche (secondes)',
+                  initialValue: cm.roundDuration.inSeconds.toString(),
+                  onChanged: (value) =>
+                      cm.roundDuration = Duration(seconds: value),
+                  enabled: cm.canChangeDurations,
+                  disabledTooltip:
+                      'La durée d\'une manche ne peut pas être changée en cours de partie',
+                ),
+                const SizedBox(height: 12),
+                _DoubleIntegerInputField(
+                  label: 'Durée post-ronde (secondes)',
+                  firstLabel: 'Période de grâce',
+                  secondLabel: 'Vitrine',
+                  firstInitialValue:
+                      cm.postRoundGracePeriodDuration.inSeconds.toString(),
+                  secondInitialValue:
+                      cm.postRoundShowCaseDuration.inSeconds.toString(),
+                  onChanged: (first, second) {
+                    cm.postRoundGracePeriodDuration = Duration(seconds: first);
+                    cm.postRoundShowCaseDuration = Duration(seconds: second);
+                  },
+                  enabled: cm.canChangeDurations,
+                  disabledTooltip:
+                      'La durée d\'une manche ne peut pas être changée en cours de partie',
+                ),
+                const SizedBox(height: 12),
+                _IntegerInputField(
+                  label: 'Temps avant de mélanger les lettres (secondes)',
+                  initialValue:
+                      cm.timeBeforeScramblingLetters.inSeconds.toString(),
+                  onChanged: (value) =>
+                      cm.timeBeforeScramblingLetters = Duration(seconds: value),
+                ),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                  label: 'Voler un mot est permis',
+                  value: cm.canSteal,
+                  onChanged: (value) => cm.canSteal = value,
+                ),
+                const SizedBox(height: 12),
+                _DoubleIntegerInputField(
+                  label: 'Période de récupération (secondes)',
+                  firstLabel: 'Normale',
+                  firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
+                  secondLabel: 'Voleur',
+                  secondInitialValue:
+                      cm.cooldownPenaltyAfterSteal.inSeconds.toString(),
+                  enableSecond: cm.canSteal,
+                  onChanged: (normal, stealer) {
+                    cm.cooldownPeriod = Duration(seconds: normal);
+                    cm.cooldownPenaltyAfterSteal = Duration(seconds: stealer);
+                  },
+                  enabled: cm.canChangeDurations,
+                  disabledTooltip:
+                      'Les périodes de récupération ne peuvent pas être\n'
+                      'changées en cours de partie',
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
+        acceptButtonTitle: 'Fermer',
+        onAccept: () => Navigator.pop(context),
       ),
     );
   }
@@ -570,16 +568,13 @@ class _IntegerInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
     final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
-          child: Text(label,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
+          child:
+              Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         SizedBox(
           width: 150,
@@ -642,16 +637,13 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
     final child = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(widget.label,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, color: tm.backgroundColorDark)),
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -726,10 +718,7 @@ class _BooleanInputField extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: tm.backgroundColorDark)),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
             Checkbox(
               value: value,
               onChanged: (_) => onChanged(!value),
@@ -776,8 +765,7 @@ class _SliderInputField extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-                fontWeight: FontWeight.bold, color: tm.backgroundColorDark),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Slider(
             value: value,
