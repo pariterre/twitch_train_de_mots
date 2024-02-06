@@ -116,6 +116,30 @@ class ConfigurationManager {
         ),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.1',
+      codeName: 'Tous pour un et un pour un',
+      notes:
+          'Oui, la citation est bien "un pour tous", mais maintenant que l\'unique score '
+          'du ou de la meilleure cheminot\u00b7e de l\'équipe est enregistré au '
+          'tableau d\'honneur, nous aurons probablement droits à des élans '
+          'd\'individualisme! Mais qui saura résister à l\'appel de la gloire '
+          'pour faire avancer le train?',
+      features: [
+        FeatureNotes(
+            description:
+                'Le score du ou de la meilleure cheminot\u00b7e de l\'équipe est '
+                'enregistré au tableau d\'honneur'),
+        FeatureNotes(
+            description:
+                'Quelques ajustements pour améliorer le visuel des bulles de '
+                'notification'),
+        FeatureNotes(
+            description:
+                'Les feux d\'artifices ont maintenant leurs palettes de '
+                'couleur individualisées'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
