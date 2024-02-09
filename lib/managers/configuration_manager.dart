@@ -519,7 +519,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.85,
-        message: 'Nous nous enfonçons de plus en plus au Nord et les stations '
+        message: 'Vous vous enfoncez de plus en plus au Nord et les stations '
             's\'éloignent les unes des autres...\n'
             'Le travail d\'équipe de vos cheminot\u00b7e\u00b7s sera de la plus '
             'haute importance!',

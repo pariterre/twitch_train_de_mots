@@ -115,7 +115,7 @@ class GameManager {
     _forceEndTheRound = true;
   }
 
-  String? _lastMessageToPlayers;
+  final List<String> _messagesToPlayers = [];
   SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
 
   bool get hasUselessLetter =>
@@ -262,20 +262,27 @@ class GameManager {
     // waiting for the next round
     _searchForNextProblem();
 
-    // Send a message to players if required
-    final message =
-        ConfigurationManager.instance.difficulty(_roundCount).message;
-    if (message != _lastMessageToPlayers) {
-      _lastMessageToPlayers = message;
-      if (_lastMessageToPlayers != null) {
-        await onShowMessage!(_lastMessageToPlayers!);
-      }
-    }
+    // Send a message to players if required, but only once per session
+    await _manageMessageToPlayers();
 
     // Start the round
     _setValuesAtStartRound();
 
     onRoundStarted.notifyListeners();
+  }
+
+  ///
+  /// Manage the message to players. This is called at the start of a round and
+  /// sends a telegram to the players if required. The message is skipped if it
+  /// was previously sent.
+  Future<void> _manageMessageToPlayers() async {
+    final message =
+        ConfigurationManager.instance.difficulty(_roundCount).message;
+
+    if (message == null || _messagesToPlayers.contains(message)) return;
+
+    _messagesToPlayers.add(message);
+    await onShowMessage!(message);
   }
 
   void _setValuesAtStartRound() {

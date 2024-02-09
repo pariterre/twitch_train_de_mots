@@ -43,7 +43,10 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
     if (widget.autoAcceptDuration != null) {
       _autoAcceptDuration = widget.autoAcceptDuration;
 
-      Timer(widget.autoAcceptDuration!, () => Navigator.of(context).pop());
+      Timer(widget.autoAcceptDuration!, () {
+        if (!mounted) return;
+        Navigator.of(context).pop();
+      });
       Timer.periodic(const Duration(seconds: 1), (timer) {
         if (!mounted) {
           timer.cancel();
