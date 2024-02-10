@@ -529,11 +529,7 @@ String get _randomLetterFromFrequency {
 class LetterProblemMock extends LetterProblem {
   LetterProblemMock({
     required String letters,
-    required WordSolutions solutions,
-    String uselessLetter = 'X',
-  }) : super._(
-          letters: letters.split(''),
-          solutions: solutions,
-          uselessLetter: uselessLetter,
-        );
+    required super.solutions,
+    String super.uselessLetter = 'X',
+  }) : super._(letters: letters.split(''));
 }

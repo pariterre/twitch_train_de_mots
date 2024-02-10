@@ -48,9 +48,7 @@ class Players extends DelegatingList<Player> {
   ///
   /// Create the delegate (that is _players and super._innerList are the same)
   Players() : this._([]);
-  Players._(List<Player> players)
-      : _players = players,
-        super(players);
+  Players._(super.players) : _players = players;
 
   ///
   /// Get if the player with the given name is registered

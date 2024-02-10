@@ -40,9 +40,7 @@ class WordSolutions extends DelegatingList<WordSolution> {
   ///
   /// Create the delegate (that is _solutions and super._innerList are the same)
   WordSolutions(List<WordSolution>? solutions) : this._(solutions ?? []);
-  WordSolutions._(List<WordSolution> solutions)
-      : _solutions = solutions,
-        super(solutions);
+  WordSolutions._(super.solutions) : _solutions = solutions;
 
   ///
   /// Sort the subWords by length and alphabetically (default)
