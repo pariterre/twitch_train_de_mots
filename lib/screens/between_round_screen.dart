@@ -319,7 +319,8 @@ class _LeaderBoard extends StatelessWidget {
 
     return FutureBuilder(
         future: dm.getBestTrainStationsReached(
-            top: 10, stationReached: gm.roundCount),
+            top: 50,
+            stationReached: gm.hasPlayedAtLeastOnce ? gm.roundCount : null),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -390,8 +391,8 @@ class _LeaderBoard extends StatelessWidget {
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
-        future: DatabaseManager.instance
-            .getBestPlayers(top: 10, bestPlayers: bestPlayers),
+        future: DatabaseManager.instance.getBestPlayers(
+            top: 50, bestPlayers: gm.hasPlayedAtLeastOnce ? bestPlayers : null),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(

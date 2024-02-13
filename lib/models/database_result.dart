@@ -16,11 +16,12 @@ abstract class DatabaseResult {
 
   ///
   /// Constructor
-  DatabaseResult(this.name);
+  DatabaseResult({required this.name});
 }
 
 class TeamResult extends DatabaseResult {
   int bestStation;
+  List<PlayerResult> bestPlayers;
 
   @override
   int get value => bestStation;
@@ -28,23 +29,31 @@ class TeamResult extends DatabaseResult {
   TeamResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
       : bestStation =
             doc.exists ? (doc.data()?[DatabaseManager.bestStationKey]) : -1,
-        super(doc.exists ? (doc.id) : '');
+        bestPlayers = doc.exists
+            ? (((doc.data()?[DatabaseManager.bestPlayersKey])?['names']
+                        as List?)
+                    ?.map((name) => PlayerResult(
+                        name: name,
+                        teamName: doc.id,
+                        score: doc.data()?[DatabaseManager.bestPlayersKey]
+                            ?['score'])))?.toList() ??
+                []
+            : [],
+        super(name: doc.exists ? (doc.id) : '');
 
-  TeamResult(super.name, this.bestStation);
+  TeamResult({
+    required super.name,
+    required this.bestStation,
+    List<PlayerResult>? bestPlayers,
+  }) : bestPlayers = bestPlayers ?? [];
 }
 
 class PlayerResult extends DatabaseResult {
   String teamName;
-
   int score;
   @override
   int get value => score;
 
-  PlayerResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
-      : teamName =
-            doc.exists ? (doc.data()?[DatabaseManager.playerTeamNameKey]) : '',
-        score = doc.exists ? (doc.data()?[DatabaseManager.bestScoreKey]) : -1,
-        super(doc.exists ? (doc.id) : '');
-
-  PlayerResult(super.name, this.score, this.teamName);
+  PlayerResult(
+      {required super.name, required this.teamName, required this.score});
 }
