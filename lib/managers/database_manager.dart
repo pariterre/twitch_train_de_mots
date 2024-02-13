@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:train_de_mots/firebase_options.dart';
@@ -177,8 +178,9 @@ class DatabaseManager {
       FirebaseFirestore.instance.collection('teams');
 
   static const String bestStationKey = 'bestStation';
-  static const String bestScoreKey = 'bestScore';
   static const String bestPlayersKey = 'bestPlayers';
+  static const String bestPlayersNameKey = 'names';
+  static const String bestPlayersScoreKey = 'score';
 
   ///
   /// Returns the name of the current team
@@ -211,31 +213,29 @@ class DatabaseManager {
 
   ///
   /// Returns the best result for a given team
-  Future<TeamResult> _getResultsOf({required String teamName}) async =>
-      (await _getTeamsResults()).firstWhere((team) => team.name == teamName);
-
-  ///
-  /// Returns the best result for a given player
-  Future<PlayerResult> _getBestScoreOf({required String playerName}) async =>
-      (await _getPlayersResult())
-          .firstWhere((player) => player.name == playerName);
+  Future<TeamResult?> _getResultsOf({required String teamName}) async =>
+      (await _getTeamsResults())
+          .firstWhereOrNull((team) => team.name == teamName);
 
   ///
   /// Send a new train reached score to the database
-  Future<void> _putStationReachForATeam({required TeamResult team}) async {
-    await _teamResultsCollection
-        .doc(team.name)
-        .set({bestStationKey: team.bestStation});
-  }
+  Future<void> _putTeamResults({required TeamResult team}) async {
+    await _teamResultsCollection.doc(team.name).set({
+      bestStationKey: team.bestStation,
+      bestPlayersKey: team.bestPlayers.isEmpty
+          ? null
+          : {
+              bestPlayersNameKey: team.bestPlayers.map((e) => e.name).toList(),
+              bestPlayersScoreKey: team.bestPlayers.first.score
+            }
+    });
 
-  ///
-  /// Send a new score to the database
-  Future<void> _putBestScoreForPlayers(
-      {required String teamName, required List<Player> bestPlayers}) async {
-    for (final bestPlayers in bestPlayers) {
-      await _playersCollection
-          .doc(bestPlayers.name)
-          .set({bestScoreKey: bestPlayers.score, playerTeamNameKey: teamName});
+    // Update the cache results
+    final index = _teamResultsCache!.indexWhere((e) => e.name == team.name);
+    if (index >= 0) {
+      _teamResultsCache![index] = team;
+    } else {
+      _teamResultsCache!.add(team);
     }
   }
 
@@ -254,27 +254,32 @@ class DatabaseManager {
     _isSendingData = true;
 
     // Get the previous result for this team to see if we need to update it
-    final previousStation = await _getBestStationOf(teamName: teamName);
+    final previousTeamResult = await _getResultsOf(teamName: teamName);
+    final List<PlayerResult> previousBestPlayers =
+        previousTeamResult == null ? [] : [...previousTeamResult.bestPlayers];
+    final previousBestScore =
+        previousBestPlayers.isEmpty ? -1 : previousBestPlayers.first.score;
+    final currentBestScore = bestPlayers.isEmpty ? -1 : bestPlayers.first.score;
+    previousTeamResult?.bestPlayers.clear();
 
-    // If the new station reached is better than the previous one, update it
-    if (stationReached > previousStation.value) {
-      await _putStationReachForATeam(
-          team: TeamResult(teamName, stationReached));
+    // Construct the TeamResult without best players
+    final teamResults =
+        previousTeamResult == null || stationReached > previousTeamResult.value
+            ? TeamResult(name: teamName, bestStation: stationReached)
+            : previousTeamResult;
+
+    // Set the best players for the team
+    if (currentBestScore >= previousBestScore) {
+      teamResults.bestPlayers.addAll(bestPlayers
+          .map((e) =>
+              PlayerResult(name: e.name, score: e.score, teamName: teamName))
+          .toList());
+    }
+    if (previousBestScore >= currentBestScore) {
+      teamResults.bestPlayers.addAll(previousBestPlayers);
     }
 
-    // Get the previous best scores for the players
-    final List<Player> out = [];
-    for (final bestPlayer in bestPlayers) {
-      final previousScore = await _getBestScoreOf(playerName: bestPlayer.name);
-      if (bestPlayer.score > previousScore.value) {
-        out.add(bestPlayer);
-      }
-    }
-
-    // If we have new best scores, update them
-    if (out.isNotEmpty) {
-      await _putBestScoreForPlayers(teamName: teamName, bestPlayers: out);
-    }
+    await _putTeamResults(team: teamResults);
 
     _isSendingData = false;
   }
@@ -483,15 +488,20 @@ class DatabaseManagerMock extends DatabaseManager {
         .toList();
     out.sort((a, b) => b.bestStation.compareTo(a.bestStation));
 
+    final players = await _getPlayersResult();
+    for (final team in out) {
+      team.bestPlayers.addAll(players.where((e) => e.teamName == team.name));
+    }
+
     return out;
   }
 
   @override
-  Future<List<PlayerResult>> _getPlayersResult({bool ordered = false}) async {
+  Future<List<PlayerResult>> _getPlayersResult() async {
     final out = _dummyBestPlayersResults.entries.map((e) {
       return PlayerResult(name: e.key, score: e.value.$1, teamName: e.value.$2);
     }).toList();
-    if (ordered) out.sort((a, b) => b.score.compareTo(a.score));
+    out.sort((a, b) => b.score.compareTo(a.score));
 
     return out;
   }
@@ -503,23 +513,13 @@ class DatabaseManagerMock extends DatabaseManager {
   }
 
   @override
-  Future<PlayerResult> _getBestScoreOf({required String playerName}) async {
-    final value = _dummyBestPlayersResults[playerName]!;
-    final score = value.$1;
-    return PlayerResult(name: playerName, score: score, teamName: value.$2);
-  }
-
-  @override
-  Future<void> _putStationReachForATeam({required TeamResult team}) async {
+  Future<void> _putTeamResults({required TeamResult team}) async {
     _dummyBestStationsResults[team.name] = team.bestStation;
-  }
-
-  @override
-  Future<void> _putBestScoreForPlayers(
-      {required String teamName, required List<Player> bestPlayers}) async {
-    for (final bestPlayer in bestPlayers) {
-      _dummyBestPlayersResults[bestPlayer.name] = (bestPlayer.score, teamName);
-    }
+    _dummyBestPlayersResults.removeWhere((key, value) => value.$2 == team.name);
+    _dummyBestPlayersResults.addAll({
+      for (final player in team.bestPlayers)
+        player.name: (player.score, team.name)
+    });
   }
 }
 

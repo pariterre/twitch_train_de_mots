@@ -20,8 +20,8 @@ abstract class DatabaseResult {
 }
 
 class TeamResult extends DatabaseResult {
-  int bestStation;
-  List<PlayerResult> bestPlayers;
+  final int bestStation;
+  final List<PlayerResult> bestPlayers;
 
   @override
   int get value => bestStation;
@@ -30,13 +30,14 @@ class TeamResult extends DatabaseResult {
       : bestStation =
             doc.exists ? (doc.data()?[DatabaseManager.bestStationKey]) : -1,
         bestPlayers = doc.exists
-            ? (((doc.data()?[DatabaseManager.bestPlayersKey])?['names']
-                        as List?)
-                    ?.map((name) => PlayerResult(
-                        name: name,
-                        teamName: doc.id,
-                        score: doc.data()?[DatabaseManager.bestPlayersKey]
-                            ?['score'])))?.toList() ??
+            ? (((doc.data()?[DatabaseManager.bestPlayersKey])?[
+                            DatabaseManager.bestPlayersNameKey] as List?)
+                        ?.map((name) => PlayerResult(
+                            name: name,
+                            teamName: doc.id,
+                            score: doc.data()?[DatabaseManager.bestPlayersKey]
+                                ?[DatabaseManager.bestPlayersScoreKey])))
+                    ?.toList() ??
                 []
             : [],
         super(name: doc.exists ? (doc.id) : '');
@@ -49,8 +50,8 @@ class TeamResult extends DatabaseResult {
 }
 
 class PlayerResult extends DatabaseResult {
-  String teamName;
-  int score;
+  final String teamName;
+  final int score;
   @override
   int get value => score;
 
