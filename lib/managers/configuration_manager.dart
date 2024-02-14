@@ -140,6 +140,22 @@ class ConfigurationManager {
                 'couleur individualisées'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.2',
+      codeName: 'Mes ami\u00b7e\u00b7s sont mes ennemi\u00b7e\u00b7s',
+      notes:
+          'Le Train de Mots est un jeu d\'équipe, jusqu\'à ce que ce ne le soit plus! '
+          'Le jeu montre maintenant le joueur MVP de votre équipe de façon plus '
+          'précise. Vous savez maintenant qui cibler pour devenir le ou la '
+          'meilleur\u00b7e cheminot\u00b7e!',
+      features: [
+        FeatureNotes(
+            description:
+                'Le ou la joueuse MVP de votre équipe est maintenant affiché en or '
+                'dans la page de fin de ronde. De plus, sa tuile est elle aussi '
+                'affichée avec sa propre couleur lorsqu\'il ou elle trouve une solution'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
