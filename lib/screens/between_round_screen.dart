@@ -4,6 +4,7 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/database_result.dart';
+import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
@@ -192,6 +193,82 @@ class _ContinueButtonState extends State<_ContinueButton> {
 class _LeaderBoard extends StatelessWidget {
   const _LeaderBoard();
 
+  final Color _winnerColor = Colors.amber;
+  final Color _stealerColor = const Color.fromARGB(255, 255, 200, 200);
+
+  Color? _highlightBestScoreColor(
+      {required Player player,
+      required TeamResult team,
+      required Players players}) {
+    // Define some aliases
+    final biggestStealers = players.biggestStealers;
+    final bestPlayers = team.bestPlayers.map((e) => e.name);
+
+    // Check some feats of the player
+    final isBiggestStealer = biggestStealers.contains(player);
+    final isBestPlayer = bestPlayers.contains(player.name);
+
+    // Define the color to use
+    if (isBestPlayer) {
+      return _winnerColor;
+    } else if (isBiggestStealer) {
+      return _stealerColor;
+    } else {
+      return null;
+    }
+  }
+
+  Color? _highlightBestTeamColor({required TeamResult team}) {
+    final dm = DatabaseManager.instance;
+    final gm = GameManager.instance;
+
+    final shouldHighlight = team.name == dm.teamName &&
+        (team.bestStation == gm.roundCount || !gm.hasPlayedAtLeastOnce);
+    if (shouldHighlight) {
+      return _winnerColor;
+    } else {
+      return null;
+    }
+  }
+
+  Color? _highlightBestPlayerColor({required PlayerResult player}) {
+    final dm = DatabaseManager.instance;
+    final gm = GameManager.instance;
+
+    final bestPlayers = gm.players.bestPlayers;
+    final shouldHighlight = bestPlayers
+            .any((e) => (e.name == player.name && e.score == player.score)) ||
+        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
+
+    if (shouldHighlight) {
+      return _winnerColor;
+    } else {
+      return null;
+    }
+  }
+
+  Icon? _playerSuffixIcon(
+      {required Player player,
+      required TeamResult teamResult,
+      required Players players}) {
+    // Define some aliases
+    final biggestStealers = players.biggestStealers;
+    final bestPlayers = teamResult.bestPlayers.map((e) => e.name);
+
+    // Check some feats of the player
+    final isBiggestStealer = biggestStealers.contains(player);
+    final isBestPlayer = bestPlayers.contains(player.name);
+
+    // Define the icon to use
+    if (isBestPlayer) {
+      return const Icon(Icons.emoji_events, color: Colors.amber);
+    } else if (isBiggestStealer) {
+      return const Icon(Icons.local_police, color: Colors.red);
+    } else {
+      return null;
+    }
+  }
+
   Widget _buildGameScore({required double width}) {
     final gm = GameManager.instance;
     final players = gm.players.sort();
@@ -201,112 +278,133 @@ class _LeaderBoard extends StatelessWidget {
     }
 
     final nbHighestScore = players.bestPlayers.length;
-    final biggestStealers = players.biggestStealers;
 
     const scoreWidth = 80.0;
     const spacer = 20.0;
     const stealWidth = 60.0;
     final nameWidth = width - (stealWidth + scoreWidth + spacer);
 
-    return SingleChildScrollView(
-      child: SizedBox(
-        width: width,
-        child: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: players.asMap().keys.map(
-                  (index) {
-                    final player = players[index];
-                    final isBiggestStealer = biggestStealers.contains(player);
-                    const stealColor = Color.fromARGB(255, 255, 200, 200);
+    return FutureBuilder(
+        future: DatabaseManager.instance.getCurrentTeamResults(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return SizedBox(
+              width: 80,
+              height: 80,
+              child: Center(
+                  child: CircularProgressIndicator(
+                      color: ThemeManager.instance.mainColor)),
+            );
+          }
 
-                    return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (index == 0)
-                            _buildTitleTile('Meilleur\u00b7e cheminot\u00b7e'),
-                          _buildNamedTile(
-                            player.name,
-                            highlight: isBiggestStealer,
-                            suffixIcon: Icon(Icons.local_police,
-                                color: isBiggestStealer
-                                    ? stealColor
-                                    : Colors.transparent),
-                            width: nameWidth,
-                          ),
-                          if (players.length > nbHighestScore &&
-                              index + 1 == nbHighestScore)
-                            Column(
+          final team = snapshot.data as TeamResult;
+
+          return SingleChildScrollView(
+            child: SizedBox(
+              width: width,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: players.asMap().keys.map(
+                        (index) {
+                          final player = players[index];
+                          final highlightColor = _highlightBestScoreColor(
+                              player: player, players: players, team: team);
+                          final suffixIcon = _playerSuffixIcon(
+                              player: player,
+                              players: players,
+                              teamResult: team);
+
+                          return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 12.0),
-                                _buildTitleTile('Autres cheminot\u00b7e\u00b7s')
-                              ],
-                            )
-                        ]);
-                  },
-                ).toList()),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: stealWidth,
-                  child: Column(
-                      children: players.asMap().keys.map(
-                    (index) {
-                      final player = players[index];
-                      final isBiggestStealer = biggestStealers.contains(player);
+                                if (index == 0)
+                                  _buildTitleTile(
+                                      'Meilleur\u00b7e cheminot\u00b7e'),
+                                _buildNamedTile(
+                                  player.name,
+                                  highlightColor: highlightColor,
+                                  suffixIcon: suffixIcon,
+                                  width: nameWidth,
+                                ),
+                                if (players.length > nbHighestScore &&
+                                    index + 1 == nbHighestScore)
+                                  Column(
+                                    children: [
+                                      const SizedBox(height: 12.0),
+                                      _buildTitleTile(
+                                          'Autres cheminot\u00b7e\u00b7s')
+                                    ],
+                                  )
+                              ]);
+                        },
+                      ).toList()),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: stealWidth,
+                        child: Column(
+                            children: players.asMap().keys.map(
+                          (index) {
+                            final player = players[index];
+                            final highlightColor = _highlightBestScoreColor(
+                                player: player, players: players, team: team);
 
-                      return Column(children: [
-                        if (index == 0) _buildTitleTile('Vols'),
-                        _buildScoreTile(
-                            score: player.gameStealCount,
-                            highlight: isBiggestStealer),
-                        if (players.length > nbHighestScore &&
-                            index + 1 == nbHighestScore)
-                          Column(
-                            children: [
-                              const SizedBox(height: 12.0),
-                              _buildTitleTile('')
-                            ],
-                          )
-                      ]);
-                    },
-                  ).toList()),
-                ),
-                const SizedBox(width: spacer),
-                SizedBox(
-                  width: scoreWidth,
-                  child: Column(
-                      children: players.asMap().keys.map(
-                    (index) {
-                      final player = players[index];
-                      final isBiggestStealer = biggestStealers.contains(player);
+                            return Column(children: [
+                              if (index == 0) _buildTitleTile('Vols'),
+                              _buildScoreTile(
+                                  score: player.gameStealCount,
+                                  highlightColor: highlightColor),
+                              if (players.length > nbHighestScore &&
+                                  index + 1 == nbHighestScore)
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 12.0),
+                                    _buildTitleTile('')
+                                  ],
+                                )
+                            ]);
+                          },
+                        ).toList()),
+                      ),
+                      const SizedBox(width: spacer),
+                      SizedBox(
+                        width: scoreWidth,
+                        child: Column(
+                            children: players.asMap().keys.map(
+                          (index) {
+                            final player = players[index];
+                            final highlightColor = _highlightBestScoreColor(
+                                player: player, players: players, team: team);
 
-                      return Column(children: [
-                        if (index == 0) _buildTitleTile('Score'),
-                        _buildScoreTile(
-                            score: player.score, highlight: isBiggestStealer),
-                        if (players.length > nbHighestScore &&
-                            index + 1 == nbHighestScore)
-                          Column(
-                            children: [
-                              const SizedBox(height: 12.0),
-                              _buildTitleTile('')
-                            ],
-                          )
-                      ]);
-                    },
-                  ).toList()),
-                ),
-              ],
+                            return Column(children: [
+                              if (index == 0) _buildTitleTile('Score'),
+                              _buildScoreTile(
+                                  score: player.score,
+                                  highlightColor: highlightColor),
+                              if (players.length > nbHighestScore &&
+                                  index + 1 == nbHighestScore)
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 12.0),
+                                    _buildTitleTile('')
+                                  ],
+                                )
+                            ]);
+                          },
+                        ).toList()),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 
   Widget _buildTeamLeaderboardScore({required double width}) {
@@ -352,8 +450,7 @@ class _LeaderBoard extends StatelessWidget {
                         ...teams.map(
                           (team) => _buildNamedTile(
                             team.name,
-                            highlight: team.name == dm.teamName &&
-                                team.bestStation == gm.roundCount,
+                            highlightColor: _highlightBestTeamColor(team: team),
                             prefixText: '${team.rank}.',
                             width: nameWidth,
                           ),
@@ -368,8 +465,8 @@ class _LeaderBoard extends StatelessWidget {
                           ...teams.map(
                             (team) => _buildScoreTile(
                               score: team.bestStation,
-                              highlight: team.name == dm.teamName &&
-                                  team.bestStation == gm.roundCount,
+                              highlightColor:
+                                  _highlightBestTeamColor(team: team),
                             ),
                           )
                         ]),
@@ -381,7 +478,7 @@ class _LeaderBoard extends StatelessWidget {
         });
   }
 
-  Widget _buildIndividualLeaderboardScore({required double width}) {
+  Widget _builBestPlayersLeaderboardScore({required double width}) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
@@ -426,9 +523,8 @@ class _LeaderBoard extends StatelessWidget {
                         ...players.map(
                           (player) => _buildNamedTile(
                             '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
-                            highlight: bestPlayers.any((e) =>
-                                e.name == player.name &&
-                                e.score == player.score),
+                            highlightColor:
+                                _highlightBestPlayerColor(player: player),
                             prefixText: '${player.rank}.',
                             width: nameWidth,
                           ),
@@ -443,9 +539,8 @@ class _LeaderBoard extends StatelessWidget {
                           ...players.map(
                             (player) => _buildScoreTile(
                               score: player.score,
-                              highlight: bestPlayers.any((e) =>
-                                  e.name == player.name &&
-                                  e.score == player.score),
+                              highlightColor:
+                                  _highlightBestPlayerColor(player: player),
                             ),
                           )
                         ]),
@@ -486,7 +581,7 @@ class _LeaderBoard extends StatelessWidget {
                         const SizedBox(width: 12.0),
                         const VerticalDivider(thickness: 4),
                         const SizedBox(width: 12.0),
-                        _buildIndividualLeaderboardScore(width: 450),
+                        _builBestPlayersLeaderboardScore(width: 450),
                       ],
                     ),
                   ),
@@ -504,24 +599,22 @@ class _LeaderBoard extends StatelessWidget {
             fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white));
   }
 
-  TextStyle _playerStyle(bool isBiggestStealer) {
-    const stealColor = Color.fromARGB(255, 255, 200, 200);
-
+  TextStyle _playerStyle(Color? hightlightColor) {
     return TextStyle(
       fontSize: 20.0,
-      fontWeight: isBiggestStealer ? FontWeight.bold : FontWeight.normal,
-      color: isBiggestStealer ? stealColor : Colors.white,
+      fontWeight: hightlightColor != null ? FontWeight.bold : FontWeight.normal,
+      color: hightlightColor ?? Colors.white,
     );
   }
 
   Widget _buildNamedTile(
     String name, {
-    bool highlight = false,
+    Color? highlightColor,
     Widget? suffixIcon,
     String? prefixText,
     required double width,
   }) {
-    final style = _playerStyle(highlight);
+    final style = _playerStyle(highlightColor);
 
     return SizedBox(
       width: width,
@@ -546,8 +639,8 @@ class _LeaderBoard extends StatelessWidget {
     );
   }
 
-  Widget _buildScoreTile({required int score, required bool highlight}) {
-    final style = _playerStyle(highlight);
+  Widget _buildScoreTile({required int score, required Color? highlightColor}) {
+    final style = _playerStyle(highlightColor);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

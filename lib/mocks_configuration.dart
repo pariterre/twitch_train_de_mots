@@ -104,6 +104,7 @@ class MocksConfiguration {
         'Les Violets': 3,
         'Les Gris': 0,
         'Les Bruns': 0,
+        'Les Bleuets': 4,
       },
       dummyBestPlayerResults: {
         'Player 1': (300, 'Les Verts'),
@@ -114,6 +115,7 @@ class MocksConfiguration {
         'Player 6': (250, 'Les Bleus'),
         'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
         'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
+        'Viewer3': (2, 'Les Bleuets'),
       },
     );
   }

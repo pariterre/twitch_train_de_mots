@@ -284,6 +284,11 @@ class DatabaseManager {
     _isSendingData = false;
   }
 
+  Future<TeamResult> getCurrentTeamResults() async {
+    return await _getResultsOf(teamName: teamName) ??
+        TeamResult(name: teamName, bestStation: -1);
+  }
+
   ///
   /// Returns all the stations for all the teams up to [top]
   /// The [stationReached] is the station reached by the current team
@@ -509,7 +514,14 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   Future<TeamResult> _getResultsOf({required String teamName}) async {
     final station = _dummyBestStationsResults[teamName] ?? 0;
-    return TeamResult(name: teamName, bestStation: station);
+    final bestPlayersOfTeam = _dummyBestPlayersResults.entries
+        .where((e) => e.value.$2 == teamName)
+        .map((e) =>
+            PlayerResult(name: e.key, score: e.value.$1, teamName: teamName))
+        .toList();
+
+    return TeamResult(
+        name: teamName, bestStation: station, bestPlayers: bestPlayersOfTeam);
   }
 
   @override
