@@ -21,7 +21,7 @@ abstract class DatabaseResult {
 
 class TeamResult extends DatabaseResult {
   final int bestStation;
-  final List<PlayerResult> bestPlayers;
+  final List<PlayerResult> mvpPlayers;
 
   @override
   int get value => bestStation;
@@ -29,14 +29,14 @@ class TeamResult extends DatabaseResult {
   TeamResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
       : bestStation =
             doc.exists ? (doc.data()?[DatabaseManager.bestStationKey]) : -1,
-        bestPlayers = doc.exists
-            ? (((doc.data()?[DatabaseManager.bestPlayersKey])?[
-                            DatabaseManager.bestPlayersNameKey] as List?)
+        mvpPlayers = doc.exists
+            ? (((doc.data()?[DatabaseManager.mvpPlayersKey])?[
+                            DatabaseManager.mvpPlayersNameKey] as List?)
                         ?.map((name) => PlayerResult(
                             name: name,
                             teamName: doc.id,
-                            score: doc.data()?[DatabaseManager.bestPlayersKey]
-                                ?[DatabaseManager.bestPlayersScoreKey])))
+                            score: doc.data()?[DatabaseManager.mvpPlayersKey]
+                                ?[DatabaseManager.mvpPlayersScoreKey])))
                     ?.toList() ??
                 []
             : [],
@@ -45,8 +45,8 @@ class TeamResult extends DatabaseResult {
   TeamResult({
     required super.name,
     required this.bestStation,
-    List<PlayerResult>? bestPlayers,
-  }) : bestPlayers = bestPlayers ?? [];
+    List<PlayerResult>? mvpPlayers,
+  }) : mvpPlayers = mvpPlayers ?? [];
 }
 
 class PlayerResult extends DatabaseResult {

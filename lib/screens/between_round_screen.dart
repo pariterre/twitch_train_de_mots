@@ -202,14 +202,14 @@ class _LeaderBoard extends StatelessWidget {
       required Players players}) {
     // Define some aliases
     final biggestStealers = players.biggestStealers;
-    final bestPlayers = team.bestPlayers.map((e) => e.name);
+    final mvpPlayers = team.mvpPlayers.map((e) => e.name);
 
     // Check some feats of the player
     final isBiggestStealer = biggestStealers.contains(player);
-    final isBestPlayer = bestPlayers.contains(player.name);
+    final isMvpPlayer = mvpPlayers.contains(player.name);
 
     // Define the color to use
-    if (isBestPlayer) {
+    if (isMvpPlayer) {
       return _winnerColor;
     } else if (isBiggestStealer) {
       return _stealerColor;
@@ -253,14 +253,14 @@ class _LeaderBoard extends StatelessWidget {
       required Players players}) {
     // Define some aliases
     final biggestStealers = players.biggestStealers;
-    final bestPlayers = teamResult.bestPlayers.map((e) => e.name);
+    final mvpPlayers = teamResult.mvpPlayers.map((e) => e.name);
 
     // Check some feats of the player
     final isBiggestStealer = biggestStealers.contains(player);
-    final isBestPlayer = bestPlayers.contains(player.name);
+    final isMvpPlayer = mvpPlayers.contains(player.name);
 
     // Define the icon to use
-    if (isBestPlayer) {
+    if (isMvpPlayer) {
       return const Icon(Icons.emoji_events, color: Colors.amber);
     } else if (isBiggestStealer) {
       return const Icon(Icons.local_police, color: Colors.red);
@@ -489,7 +489,7 @@ class _LeaderBoard extends StatelessWidget {
 
     return FutureBuilder(
         future: DatabaseManager.instance.getBestPlayers(
-            top: 50, bestPlayers: gm.hasPlayedAtLeastOnce ? bestPlayers : null),
+            top: 50, mvpPlayers: gm.hasPlayedAtLeastOnce ? bestPlayers : null),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(

@@ -502,7 +502,7 @@ class GameManager {
     _searchForNextProblem();
 
     DatabaseManager.instance.sendResults(
-        stationReached: roundCount, bestPlayers: players.bestPlayers);
+        stationReached: roundCount, mvpPlayers: players.bestPlayers);
     onRoundIsOver.notifyListeners();
   }
 

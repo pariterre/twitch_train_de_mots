@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -16,25 +17,39 @@ class SolutionsDisplayer extends StatefulWidget {
 class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   final _fireworksControllers = <WordSolution, FireworksController>{};
 
+  final List<String> _mvpPlayers = [];
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_reinitializeFireworks);
+    gm.onRoundStarted.addListener(_fetchMvpPlayers);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onPlayerUpdate.addListener(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
 
+    _fetchMvpPlayers();
     _reinitializeFireworks();
+  }
+
+  Future<void> _fetchMvpPlayers() async {
+    // It is okay to do that once at the beginning of each round since the best
+    // players can only change when a new game is started anyway.
+    final dm = DatabaseManager.instance;
+    final team = await dm.getCurrentTeamResults();
+    _mvpPlayers.clear();
+    _mvpPlayers.addAll(team.mvpPlayers.map((e) => e.name));
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
+    gm.onRoundStarted.removeListener(_fetchMvpPlayers);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onPlayerUpdate.removeListener(_refresh);
 
@@ -119,7 +134,9 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
                           height: constraint.maxHeight,
                           child: Stack(
                             children: [
-                              _SolutionWrapper(solutions: solutions),
+                              _SolutionWrapper(
+                                  solutions: solutions,
+                                  mvpPlayers: _mvpPlayers),
                               _FireworksWrapper(
                                   solutions: solutions,
                                   fireworksControllers: _fireworksControllers),
@@ -139,9 +156,10 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 }
 
 class _SolutionWrapper extends StatefulWidget {
-  const _SolutionWrapper({required this.solutions});
+  const _SolutionWrapper({required this.solutions, required this.mvpPlayers});
 
   final WordSolutions solutions;
+  final List<String> mvpPlayers;
 
   @override
   State<_SolutionWrapper> createState() => _SolutionWrapperState();
@@ -172,8 +190,8 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
       direction: Axis.vertical,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        ...widget.solutions
-            .map((e) => _SolutionTile(key: ValueKey(e), solution: e))
+        ...widget.solutions.map((e) => _SolutionTile(
+            key: ValueKey(e), solution: e, mvpPlayers: widget.mvpPlayers))
       ],
     );
   }
@@ -202,8 +220,10 @@ class _FireworksWrapper extends StatelessWidget {
 }
 
 class _SolutionTile extends StatefulWidget {
-  const _SolutionTile({super.key, required this.solution, this.fireworks});
+  const _SolutionTile(
+      {super.key, required this.solution, this.fireworks, this.mvpPlayers});
 
+  final List<String>? mvpPlayers;
   final WordSolution solution;
   final FireworksController? fireworks;
 
@@ -361,13 +381,21 @@ class _SolutionTileState extends State<_SolutionTile> {
   LinearGradient get solved {
     final tm = ThemeManager.instance;
 
+    final solvedByMvp =
+        widget.mvpPlayers!.contains(widget.solution.foundBy.name);
+
     return LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [
-        tm.solutionSolvedColorLight!,
-        tm.solutionSolvedColorDark!,
-      ],
+      colors: solvedByMvp
+          ? [
+              tm.solutionSolvedByMvpColorLight,
+              tm.solutionSolvedByMvpColorDark,
+            ]
+          : [
+              tm.solutionSolvedColorLight!,
+              tm.solutionSolvedColorDark!,
+            ],
       stops: const [0.1, 1],
     );
   }
