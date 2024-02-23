@@ -533,7 +533,7 @@ class ConfigurationManager {
       // Levels 4, 5 and 6
       return const Difficulty(
         thresholdFactorOneStar: 0.5,
-        thresholdFactorTwoStars: 0.75,
+        thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
         message: 'Vous vous enfoncez de plus en plus au Nord et les stations '
             's\'éloignent les unes des autres...\n'
@@ -546,12 +546,12 @@ class ConfigurationManager {
       // Levels 7, 8 and 9
       return const Difficulty(
         thresholdFactorOneStar: 0.5,
-        thresholdFactorTwoStars: 0.75,
+        thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
         message: 'Faites attention, cheminot\u00b7e\u00b7s, vous arrivez dans '
             'terres non défrichées!\n'
             'Malgré tous nos efforts, nous ne pouvons vous '
-            'assurer que vous recevrez lettres vous seront toutes utiles!',
+            'assurer que les lettres que vous recevrez vous seront toutes utiles!',
         hasUselessLetter: true,
         revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: false,
@@ -576,7 +576,7 @@ class ConfigurationManager {
       // Levels 13, 14 and 15
       return const Difficulty(
         thresholdFactorOneStar: 0.65,
-        thresholdFactorTwoStars: 0.85,
+        thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
         message:
             'Encore une fois, toutes mes félicitations, cheminot\u00b7e\u00b7s! '
