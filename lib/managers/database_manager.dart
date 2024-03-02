@@ -83,14 +83,16 @@ class DatabaseManager {
   Future<void> setTeamName(String name) async {
     // Make sure it is not already taken
     final teamNames = await _teamNamesCollection.get();
-    if (teamNames.docs
-        .any((element) => element.id.toLowerCase() == name.toLowerCase())) {
+    if (teamNames.docs.any((element) =>
+        element.data()[teamNameKey].toLowerCase() == name.toLowerCase())) {
       throw AuthenticationException(message: 'Ce nom d\'équipe existe déjà...');
     }
 
     // Adds it to the database
     await FirebaseAuth.instance.currentUser?.updateDisplayName(name);
-    await _teamNamesCollection.doc(name).set({});
+    await _teamNamesCollection
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .set({teamNameKey: FirebaseAuth.instance.currentUser!.displayName!});
 
     // Notify the listeners
     onTeamNameSet.notifyListeners();
@@ -177,13 +179,14 @@ class DatabaseManager {
   CollectionReference<Map<String, dynamic>> get _teamResultsCollection =>
       FirebaseFirestore.instance
           .collection('results')
-          .doc('v1.0.0')
+          .doc('v1.0.1')
           .collection('teams');
 
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
       FirebaseFirestore.instance.collection('teams');
 
   static const String bestStationKey = 'bestStation';
+  static const String teamNameKey = 'teamName';
   static const String mvpPlayersKey = 'bestPlayers';
   static const String mvpPlayersNameKey = 'names';
   static const String mvpPlayersScoreKey = 'score';
@@ -226,7 +229,10 @@ class DatabaseManager {
   ///
   /// Send a new train reached score to the database
   Future<void> _putTeamResults({required TeamResult team}) async {
-    await _teamResultsCollection.doc(team.name).set({
+    await _teamResultsCollection
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      teamNameKey: team.name,
       bestStationKey: team.bestStation,
       mvpPlayersKey: team.mvpPlayers.isEmpty
           ? null

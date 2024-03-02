@@ -34,13 +34,14 @@ class TeamResult extends DatabaseResult {
                             DatabaseManager.mvpPlayersNameKey] as List?)
                         ?.map((name) => PlayerResult(
                             name: name,
-                            teamName: doc.id,
+                            teamName:
+                                doc.data()?[DatabaseManager.teamNameKey] ?? '',
                             score: doc.data()?[DatabaseManager.mvpPlayersKey]
                                 ?[DatabaseManager.mvpPlayersScoreKey])))
                     ?.toList() ??
                 []
             : [],
-        super(name: doc.exists ? (doc.id) : '');
+        super(name: doc.data()?[DatabaseManager.teamNameKey] ?? '');
 
   TeamResult({
     required super.name,
