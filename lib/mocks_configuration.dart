@@ -7,12 +7,13 @@ import 'package:train_de_mots/models/word_solution.dart';
 import 'package:twitch_manager/twitch_manager.dart';
 
 class MocksConfiguration {
-  static bool showDebugOptions = false;
+  static bool showDebugOptions = true;
 
   static bool useDatabaseMock = false;
+  static bool useDatabaseEmulators = true;
   static bool useGameManagerMock = false;
   static bool useProblemMock = false;
-  static bool useTwitchManagerMock = false;
+  static bool useTwitchManagerMock = true;
 
   static LetterProblemMock get letterProblemMock => LetterProblemMock(
       letters: 'BJOONUR',

@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:train_de_mots/firebase_options.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -32,6 +33,11 @@ class DatabaseManager {
 
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
+
+    if (MocksConfiguration.useDatabaseEmulators) {
+      FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
+      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+    }
   }
 
   ////////////////////////////////
