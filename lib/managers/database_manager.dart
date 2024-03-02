@@ -282,7 +282,9 @@ class DatabaseManager {
           .toList());
     }
     if (previousBestScore >= currentBestScore) {
-      teamResults.mvpPlayers.addAll(previousBestPlayers);
+      final currentMvpNames = mvpPlayers.map((e) => e.name);
+      teamResults.mvpPlayers.addAll(
+          previousBestPlayers.where((e) => !currentMvpNames.contains(e.name)));
     }
 
     await _putTeamResults(team: teamResults);
