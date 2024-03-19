@@ -395,6 +395,7 @@ class GameManager {
     if (_gameStatus == GameStatus.roundReady) {
       if (_nextRoundStartAt != null &&
           DateTime.now().isAfter(_nextRoundStartAt!)) {
+        _nextRoundStartAt = null;
         _startNewRound();
       }
 

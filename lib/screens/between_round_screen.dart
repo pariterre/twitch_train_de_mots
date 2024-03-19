@@ -150,7 +150,8 @@ class _ContinueButtonState extends State<_ContinueButton> {
       if (gm.nextRoundStartIn!.inSeconds <= 0) {
         buttonText += ' (Lancement imminent!)';
       } else {
-        buttonText += ' (${gm.nextRoundStartIn!.inSeconds} secondes)';
+        buttonText +=
+            ' (${gm.nextRoundStartIn!.inSeconds} seconde${gm.nextRoundStartIn!.inSeconds > 1 ? 's' : ''})';
       }
     }
 
