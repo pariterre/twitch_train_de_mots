@@ -37,5 +37,7 @@ flutter:
     - assets/sounds/LettersScrambling.mp3
     - assets/sounds/SolutionFound.mp3
     - assets/sounds/BestSolutionFound.mp3
+    - assets/sounds/TelegramReceived.mp3
     - assets/sounds/TheSwindler.mp3
+    - assets/sounds/TrainReachedStation.mp3
     - assets/sounds/RoundIsOver.mp3

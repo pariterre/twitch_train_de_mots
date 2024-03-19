@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
@@ -73,16 +74,19 @@ class _MainScreenState extends State<MainScreen> {
 
     await showDialog(
         context: context,
-        builder: (context) => ParchmentDialog(
-              title: 'Un télégramme pour vous!',
-              content: Text(message, style: TextStyle(fontSize: tm.textSize)),
-              width: 500,
-              height: 600,
-              acceptButtonTitle: 'Merci!',
-              autoAcceptDuration:
-                  cm.autoplay ? const Duration(seconds: 10) : null,
-              onAccept: () => Navigator.of(context).pop(),
-            ));
+        builder: (context) {
+          SoundManager.instance.playTelegramReceived();
+          return ParchmentDialog(
+            title: 'Un télégramme pour vous!',
+            content: Text(message, style: TextStyle(fontSize: tm.textSize)),
+            width: 500,
+            height: 600,
+            acceptButtonTitle: 'Merci!',
+            autoAcceptDuration:
+                cm.autoplay ? const Duration(seconds: 10) : null,
+            onAccept: () => Navigator.of(context).pop(),
+          );
+        });
   }
 
   @override

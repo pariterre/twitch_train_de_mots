@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
 
@@ -97,6 +98,7 @@ class TrainPathController {
     await _controller.forward(from: 0.0);
     if (_hallMarks.contains(_currentStep)) {
       _fireworksControllers[_hallMarks.indexOf(_currentStep)].trigger();
+      SoundManager.instance.playTrainReachedStation();
     }
     if (_refreshCallback != null) _refreshCallback!();
   }

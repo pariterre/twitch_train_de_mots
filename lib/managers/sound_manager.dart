@@ -7,11 +7,13 @@ class SoundManager {
   final _gameMusic = AudioPlayer();
 
   final _roundStarted = AudioPlayer();
+  final _telegramReceived = AudioPlayer();
   final _lettersScrambling = AudioPlayer();
   final _roundIsOver = AudioPlayer();
 
   final _normalSolutionFound = AudioPlayer();
   final _bestSolutionFound = AudioPlayer();
+  final _trainReachedStation = AudioPlayer();
 
   /// Declare the singleton
   static SoundManager get instance {
@@ -92,5 +94,17 @@ class SoundManager {
       _normalSolutionFound.play(AssetSource('sounds/SolutionFound.mp3'),
           volume: cm.soundVolume);
     }
+  }
+
+  Future<void> playTelegramReceived() async {
+    final cm = ConfigurationManager.instance;
+    _telegramReceived.play(AssetSource('sounds/TelegramReceived.mp3'),
+        volume: cm.soundVolume);
+  }
+
+  Future<void> playTrainReachedStation() async {
+    final cm = ConfigurationManager.instance;
+    _trainReachedStation.play(AssetSource('sounds/TrainReachedStation.mp3'),
+        volume: cm.soundVolume);
   }
 }
