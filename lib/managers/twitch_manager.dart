@@ -19,7 +19,7 @@ class TwitchManager {
   ///
   /// Call all the listeners when a message is received
   void addChatListener(Function(String sender, String message) callback) =>
-      _chatListeners.add(callback.hashCode.toString(), callback);
+      _chatListeners.startListening(callback);
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
@@ -77,9 +77,6 @@ class TwitchManager {
   /// Holds the callback to call when a message is received
   final _chatListeners =
       TwitchGenericListener<Function(String sender, String message)>();
-  void _onMessageReceived(String sender, String message) {
-    for (final listener in _chatListeners.listeners.values) {
-      listener(sender, message);
-    }
-  }
+  void _onMessageReceived(String sender, String message) =>
+      _chatListeners.forEach((listener) => listener(sender, message));
 }
