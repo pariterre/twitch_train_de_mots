@@ -33,12 +33,11 @@ class TwitchManager {
 
     final manager = await showDialog<tm.TwitchManager>(
         context: context,
-        builder: (context) => tm.TwitchAuthenticationScreen(
+        builder: (context) => tm.TwitchAuthenticationDialog(
               isMockActive: _isMockActive,
               debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
-              onFinishedConnexion: (manager) {
-                Navigator.of(context).pop(manager);
-              },
+              onConnexionEstablished: (manager) =>
+                  Navigator.of(context).pop(manager),
               appInfo: _appInfo,
               reload: true,
             ));
@@ -71,7 +70,7 @@ class TwitchManager {
       tm.TwitchScope.chatRead,
       tm.TwitchScope.readFollowers,
     ],
-    redirectDomain: 'twitchauthentication.pariterre.net',
+    redirectUri: 'twitchauthentication.pariterre.net',
   );
 
   ///
