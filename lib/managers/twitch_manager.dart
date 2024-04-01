@@ -44,7 +44,7 @@ class TwitchManager {
     if (manager == null) return false;
 
     _manager = manager;
-    _manager!.chat.onMessageReceived(_onMessageReceived);
+    _manager!.chat.onMessageReceived.startListening(_onMessageReceived);
     onTwitchManagerReady.notifyListeners();
     return true;
   }
@@ -78,5 +78,5 @@ class TwitchManager {
   final _chatListeners =
       TwitchGenericListener<Function(String sender, String message)>();
   void _onMessageReceived(String sender, String message) =>
-      _chatListeners.forEach((listener) => listener(sender, message));
+      _chatListeners.notifyListerners((callback) => callback(sender, message));
 }
