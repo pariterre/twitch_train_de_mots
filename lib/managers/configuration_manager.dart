@@ -156,6 +156,24 @@ class ConfigurationManager {
                 'affichée avec sa propre couleur lorsqu\'il ou elle trouve une solution'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.3',
+      codeName: 'Plus vites, plus fort, plus loin',
+      notes:
+          'Bien que le Train de mots est un jeu d\'équipe, une petite équipe '
+          'ne devrait pas être pénalisée! Tout le monde peut maintenant partir '
+          'vers le Nord!',
+      features: [
+        FeatureNotes(
+            description:
+                'La période de repos après avoir trouvé un mot est maintenant '
+                'ajustée en fonction du nombre de joueurs présents.'),
+        FeatureNotes(
+            description:
+                'Le jeu est maintenant garanti de trouver un mot avant la fin de '
+                'la ronde, pour plus de plaisir sans attendre!'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
