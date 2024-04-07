@@ -31,8 +31,13 @@ class _SplashScreenState extends State<SplashScreen> {
     tm.onChanged.addListener(_refresh);
 
     final dm = DatabaseManager.instance;
-    dm.onLoggedIn.addListener(_refresh);
+    dm.onLoggedIn.addListener(_startSearchingForNextProblem);
     dm.onLoggedOut.addListener(_refresh);
+
+    if (dm.isLoggedIn) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((timeStamp) => _startSearchingForNextProblem());
+    }
 
     _prepareReleaseNotesIfNeeded();
   }
@@ -48,12 +53,17 @@ class _SplashScreenState extends State<SplashScreen> {
     tm.onChanged.removeListener(_refresh);
 
     final dm = DatabaseManager.instance;
-    dm.onLoggedIn.removeListener(_refresh);
+    dm.onLoggedIn.removeListener(_startSearchingForNextProblem);
     dm.onLoggedOut.removeListener(_refresh);
   }
 
   void _onNextProblemReady() {
     _isGameReadyToPlay = true;
+    setState(() {});
+  }
+
+  Future<void> _startSearchingForNextProblem() async {
+    GameManager.instance.requestSearchForNextProblem();
     setState(() {});
   }
 

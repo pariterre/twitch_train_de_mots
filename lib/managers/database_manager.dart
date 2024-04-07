@@ -185,6 +185,9 @@ class DatabaseManager {
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
       FirebaseFirestore.instance.collection('teams');
 
+  CollectionReference<Map<String, dynamic>> get _wordProblemCollection =>
+      FirebaseFirestore.instance.collection('word_problems');
+
   static const String bestStationKey = 'bestStation';
   static const String teamNameKey = 'teamName';
   static const String mvpPlayersKey = 'bestPlayers';
@@ -374,6 +377,26 @@ class DatabaseManager {
     }
 
     return out;
+  }
+
+  ////////////////////////////
+  /// WORD PROBLEM RELATED ///
+  ////////////////////////////
+
+  ///
+  /// Returns a random word problem
+  Future<String?> fetchWordProblem({
+    bool withUselessLetter = false,
+  }) async {
+    final words = (await _wordProblemCollection.doc('v1.0.1').get()).data();
+    if (words == null) return null;
+
+    if (withUselessLetter) {
+      words.removeWhere((key, value) => !value['hasUseless']);
+    }
+    if (words.isEmpty) return null;
+
+    return words.keys.toList()[Random().nextInt(words.length)];
   }
 }
 

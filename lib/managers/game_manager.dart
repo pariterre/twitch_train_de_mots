@@ -75,7 +75,6 @@ class GameManager {
     GameManager._instance = GameManager._internal();
 
     Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
-    instance._initializeWordProblem();
   }
 
   Future<void> _initializeWordProblem() async {
@@ -85,7 +84,7 @@ class GameManager {
         nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
     _isSearchingNextProblem = false;
     _nextProblem = null;
-    await _searchForNextProblem();
+    await _searchForNextProblem(maxSearchingTime: Duration.zero);
 
     // Make sure the game don't run if the player is not logged in
     final dm = DatabaseManager.instance;
@@ -103,6 +102,12 @@ class GameManager {
   /// Provide a way to request the start of a new round, if the game is not
   /// already started or if the game is not already over.
   Future<void> requestStartNewRound() async => await _startNewRound();
+
+  ///
+  /// Provide a way to request the search for the next problem, if the game is
+  /// not already searching for a problem.
+  Future<void> requestSearchForNextProblem() async =>
+      await _searchForNextProblem(maxSearchingTime: Duration.zero);
 
   ///
   /// Provide a way to request the premature end of the round
@@ -192,7 +197,9 @@ class GameManager {
   // This helps calling [_hasAPlayerBeenUpdate] a single frame after a player is out of cooldown
   final Map<String, bool> _playersWasInCooldownLastFrame = {};
 
-  Future<void> _searchForNextProblem() async {
+  Future<void> _searchForNextProblem(
+      {required Duration maxSearchingTime}) async {
+    // TODO: Put the results to the database
     if (_isSearchingNextProblem) return;
     if (_nextProblem != null && !_forceRepickProblem) return;
 
@@ -215,6 +222,7 @@ class GameManager {
       minimumNbOfWords: cm.minimumWordsNumber,
       maximumNbOfWords: cm.maximumWordsNumber,
       addUselessLetter: addUselessLetter,
+      maxSearchingTime: maxSearchingTime,
     );
 
     _isSearchingNextProblem = false;
@@ -233,14 +241,14 @@ class GameManager {
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
-    if (_gameStatus == GameStatus.initializing) {
-      _initializeCallbacks();
-    }
+    if (_gameStatus == GameStatus.initializing) _initializeCallbacks();
 
     if (_gameStatus != GameStatus.roundPreparing &&
         _gameStatus != GameStatus.roundReady) {
       return;
     }
+
+    final cm = ConfigurationManager.instance;
 
     onRoundIsPreparing.notifyListeners();
 
@@ -260,7 +268,7 @@ class GameManager {
 
     // Start searching for the next problem as soon as possible to avoid
     // waiting for the next round
-    _searchForNextProblem();
+    _searchForNextProblem(maxSearchingTime: cm.roundDuration);
 
     // Send a message to players if required, but only once per session
     await _manageMessageToPlayers();
@@ -500,7 +508,7 @@ class GameManager {
 
     // Just make sure the next problem is being search, if one was found or is
     // being searched, it will be automatically skipped anyway
-    _searchForNextProblem();
+    _searchForNextProblem(maxSearchingTime: Duration.zero);
 
     DatabaseManager.instance.sendResults(
         stationReached: roundCount, mvpPlayers: players.bestPlayers);
@@ -579,7 +587,8 @@ class GameManagerMock extends GameManager {
 
     GameManager._instance!._initializeTrySolutionCallback();
     if (problem == null) {
-      GameManager._instance!._searchForNextProblem();
+      GameManager._instance!
+          ._searchForNextProblem(maxSearchingTime: Duration.zero);
     } else {
       (GameManager._instance! as GameManagerMock)._problemMocker = problem;
       GameManager._instance!._currentProblem = problem;
@@ -602,9 +611,10 @@ class GameManagerMock extends GameManager {
   bool get hasPlayedAtLeastOnce => true;
 
   @override
-  Future<void> _searchForNextProblem() async {
+  Future<void> _searchForNextProblem(
+      {required Duration maxSearchingTime}) async {
     if (_problemMocker == null) {
-      await super._searchForNextProblem();
+      await super._searchForNextProblem(maxSearchingTime: maxSearchingTime);
     } else {
       _nextProblem = _problemMocker;
 

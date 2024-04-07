@@ -200,6 +200,7 @@ class ConfigurationManager {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
+    required Duration maxSearchingTime,
   }) _problemGenerator = ProblemGenerator.generateFromRandom;
   Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
@@ -208,6 +209,7 @@ class ConfigurationManager {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
+    required Duration maxSearchingTime,
   }) get problemGenerator => _problemGenerator;
 
   String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;

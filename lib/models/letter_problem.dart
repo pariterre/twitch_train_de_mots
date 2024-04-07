@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -128,6 +129,12 @@ class LetterProblem {
 }
 
 class ProblemGenerator {
+  static Future<String?> _fetchProblemFromDatabase(
+      {required bool withUselessLetter}) async {
+    return await DatabaseManager.instance
+        .fetchWordProblem(withUselessLetter: withUselessLetter);
+  }
+
   ///
   /// Generates a new word problem from a random string of letters.
   static Future<LetterProblem> generateFromRandom({
@@ -137,6 +144,7 @@ class ProblemGenerator {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
+    required Duration maxSearchingTime,
   }) async {
     List<String> candidateLetters;
     Set<String> subWords;
@@ -152,17 +160,32 @@ class ProblemGenerator {
           'The maximum number of letters should be greater than the minimum number of letters');
     }
 
+    final startingSearchingTime = DateTime.now();
+    var hasTriedFetchingFromDatabase = false;
     do {
       // Generate a first candidate set of letters
       candidateLetters = _WordGenerator.instance
           ._generateRandomLetters(nbLetters: maxLetters, useFrequency: false);
 
+      if (!hasTriedFetchingFromDatabase &&
+          startingSearchingTime
+              .add(maxSearchingTime)
+              .isBefore(DateTime.now())) {
+        // If the time is up, try fetching from the database. If it fails, we
+        // continue with the random letters algorithm
+        final candidateLettersTp = await _fetchProblemFromDatabase(
+          withUselessLetter: addUselessLetter,
+        );
+        if (candidateLettersTp != null) {
+          candidateLetters = candidateLettersTp.split('');
+        }
+        hasTriedFetchingFromDatabase = true;
+      }
+
       do {
         // Find all the words that can be made from the candidate letters
         subWords = await _WordGenerator.instance._findsWordsFromPermutations(
-            from: candidateLetters,
-            nbLetters: nbLetterInSmallestWord,
-            wordsCountLimit: maximumNbOfWords);
+            from: candidateLetters, nbLetters: nbLetterInSmallestWord);
 
         // If the longest words is as long as the candidate, we have found
         // a potentially valid candidate set of letters
@@ -236,6 +259,7 @@ class ProblemGenerator {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
+    required Duration maxSearchingTime,
   }) async {
     final random = Random();
     List<String> candidateLetters;
@@ -243,8 +267,11 @@ class ProblemGenerator {
 
     bool isAValidCandidate = false;
     String? uselessLetter;
+    final startingSearchingTime = DateTime.now();
+    var hasTriedFetchingFromDatabase = false;
     do {
       candidateLetters = [];
+
       subWords = await _WordGenerator.instance
           .wordsWithAtLeast(nbLetterInSmallestWord);
 
@@ -253,6 +280,24 @@ class ProblemGenerator {
         // From the list of all the remaining letters in the alphabet, pick a random one
         candidateLetters
             .add(availableLetters[random.nextInt(availableLetters.length)]);
+
+        if (!hasTriedFetchingFromDatabase &&
+            startingSearchingTime
+                .add(maxSearchingTime)
+                .isBefore(DateTime.now())) {
+          // If the time is up, try fetching from the database. If it fails, we
+          // continue with the random letters algorithm
+          final candidateLettersTp = await _fetchProblemFromDatabase(
+            withUselessLetter: addUselessLetter,
+          );
+          if (candidateLettersTp != null) {
+            candidateLetters = candidateLettersTp.split('');
+            availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            subWords = await _WordGenerator.instance
+                .wordsWithAtLeast(nbLetterInSmallestWord);
+          }
+          hasTriedFetchingFromDatabase = true;
+        }
 
         // Reduce the subWords to only those containing the letters in candidate
         subWords = subWords
@@ -290,10 +335,7 @@ class ProblemGenerator {
           candidateLetters.length <= maxLetters) {
         // This takes time, only do it if the candidate is valid
         subWords = (await _WordGenerator.instance._findsWordsFromPermutations(
-          from: candidateLetters,
-          nbLetters: nbLetterInSmallestWord,
-          wordsCountLimit: maximumNbOfWords,
-        ));
+            from: candidateLetters, nbLetters: nbLetterInSmallestWord));
       }
       isAValidCandidate = subWords.length >= minimumNbOfWords &&
           subWords.length <= maximumNbOfWords;
@@ -337,12 +379,9 @@ class ProblemGenerator {
       final newLetter =
           possibleLetters.removeAt(random.nextInt(possibleLetters.length));
       final newLetters = [...letters, newLetter];
-      final newSolutions =
-          await _WordGenerator.instance._findsWordsFromPermutations(
-        from: newLetters,
-        nbLetters: solutions.nbLettersInSmallest,
-        wordsCountLimit: solutions.length + 1,
-      );
+      final newSolutions = await _WordGenerator.instance
+          ._findsWordsFromPermutations(
+              from: newLetters, nbLetters: solutions.nbLettersInSmallest);
 
       if (newSolutions.length == solutions.length) {
         // The new letter is useless if the number of solutions did not change
@@ -387,14 +426,11 @@ class _WordGenerator {
   ///
   /// Returns all valid words from the permutation of the letters of the word
   /// [from], with at least [nbLetters] and at most [from.length] letters.
-  /// If [wordsCountLimit] is provided, the search terminate as soon as this
-  /// limit is reached.
   Future<Set<String>> _findsWordsFromPermutations({
     required List<String> from,
-    int? wordsCountLimit,
     int nbLetters = 0,
   }) async {
-    // First, we remove all the words form the database that contains any letter
+    // First, we remove all the words from the database that contains any letter
     // which is not in the letters set as the words
     final Set<String> words = {};
     int count = 0;
