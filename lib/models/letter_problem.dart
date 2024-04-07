@@ -129,10 +129,15 @@ class LetterProblem {
 }
 
 class ProblemGenerator {
-  static Future<String?> _fetchProblemFromDatabase(
-      {required bool withUselessLetter}) async {
-    return await DatabaseManager.instance
-        .fetchLetterProblem(withUselessLetter: withUselessLetter);
+  static Future<String?> _fetchProblemFromDatabase({
+    required bool withUselessLetter,
+    required int minNbLetters,
+    required int maxNbLetters,
+  }) async {
+    return await DatabaseManager.instance.fetchLetterProblem(
+        withUselessLetter: withUselessLetter,
+        minNbLetters: minNbLetters,
+        maxNbLetters: maxNbLetters);
   }
 
   ///
@@ -174,8 +179,9 @@ class ProblemGenerator {
         // If the time is up, try fetching from the database. If it fails, we
         // continue with the random letters algorithm
         final candidateLettersTp = await _fetchProblemFromDatabase(
-          withUselessLetter: addUselessLetter,
-        );
+            withUselessLetter: addUselessLetter,
+            minNbLetters: minLetters,
+            maxNbLetters: maxLetters);
         if (candidateLettersTp != null) {
           candidateLetters = candidateLettersTp.split('');
         }
@@ -289,6 +295,8 @@ class ProblemGenerator {
           // continue with the random letters algorithm
           final candidateLettersTp = await _fetchProblemFromDatabase(
             withUselessLetter: addUselessLetter,
+            minNbLetters: minLetters,
+            maxNbLetters: maxLetters,
           );
           if (candidateLettersTp != null) {
             candidateLetters = candidateLettersTp.split('');

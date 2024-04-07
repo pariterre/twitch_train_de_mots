@@ -389,9 +389,19 @@ class DatabaseManager {
 
   ///
   /// Returns a random letter problem
-  Future<String?> fetchLetterProblem({bool withUselessLetter = false}) async {
+  Future<String?> fetchLetterProblem({
+    required bool withUselessLetter,
+    required int minNbLetters,
+    required int maxNbLetters,
+  }) async {
     return null;
-    final words = (await _wordProblemCollection.doc('problems').get()).data();
+
+    // find a random number of letters to pick from
+    final nbLetters =
+        Random().nextInt(maxNbLetters - minNbLetters + 1) + minNbLetters;
+
+    final words =
+        (await _wordProblemCollection.doc('${nbLetters}letters').get()).data();
     if (words == null) return null;
 
     if (withUselessLetter) {
@@ -406,7 +416,7 @@ class DatabaseManager {
     final letters = problem.letters;
     if (problem.hasUselessLetter) letters.removeAt(problem.uselessLetterIndex);
 
-    await _wordProblemCollection.doc('problems').set({
+    await _wordProblemCollection.doc('${letters.length}letters').set({
       letters.join(): {
         'nbSolutions': problem.solutions.length,
         'hasUseless': problem.hasUselessLetter
