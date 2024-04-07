@@ -367,7 +367,12 @@ class GameManager {
     }
 
     player.score += solution.value;
-    player.startCooldown();
+
+    final cooldownDuration = Duration(
+        seconds: (players.length * 2 + 1)
+                .clamp(5, cm.cooldownPeriod.inSeconds) +
+            cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
+    player.startCooldown(duration: cooldownDuration);
 
     // Call the listeners of solution found
     onSolutionFound.notifyListenersWithParameter(solution);

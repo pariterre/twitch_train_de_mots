@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 class Player {
@@ -22,15 +21,15 @@ class Player {
 
   WordSolution? lastSolutionFound;
 
-  void startCooldown() => _cooldownEndAt = DateTime.now().add(cooldownDuration);
+  void startCooldown({required Duration duration}) {
+    _cooldownDuration = duration;
+    _cooldownEndAt = DateTime.now().add(_cooldownDuration);
+  }
+
   DateTime _cooldownEndAt = DateTime.now();
   Duration get cooldownRemaining => _cooldownEndAt.difference(DateTime.now());
-  Duration get cooldownDuration {
-    final cm = ConfigurationManager.instance;
-    return Duration(
-        seconds: cm.cooldownPeriod.inSeconds +
-            cm.cooldownPenaltyAfterSteal.inSeconds * roundStealCount);
-  }
+  Duration _cooldownDuration = Duration.zero;
+  Duration get cooldownDuration => _cooldownDuration;
 
   bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
 
