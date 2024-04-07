@@ -199,7 +199,6 @@ class GameManager {
 
   Future<void> _searchForNextProblem(
       {required Duration maxSearchingTime}) async {
-    // TODO: Put the results to the database
     if (_isSearchingNextProblem) return;
     if (_nextProblem != null && !_forceRepickProblem) return;
 
@@ -490,6 +489,7 @@ class GameManager {
 
     _successLevel = completedLevel;
     _roundCount += _successLevel!.toInt();
+    DatabaseManager.instance.sendLetterProblem(problem: _currentProblem!);
 
     _forceEndTheRound = false;
     _roundDuration = null;

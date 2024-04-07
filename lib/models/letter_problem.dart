@@ -132,7 +132,7 @@ class ProblemGenerator {
   static Future<String?> _fetchProblemFromDatabase(
       {required bool withUselessLetter}) async {
     return await DatabaseManager.instance
-        .fetchWordProblem(withUselessLetter: withUselessLetter);
+        .fetchLetterProblem(withUselessLetter: withUselessLetter);
   }
 
   ///

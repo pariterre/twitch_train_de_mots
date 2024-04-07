@@ -7,9 +7,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
-import 'package:train_de_mots/models/exceptions.dart';
-import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/database_result.dart';
+import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/models/letter_problem.dart';
+import 'package:train_de_mots/models/player.dart';
 
 class DatabaseManager {
   /// Declare the singleton
@@ -186,7 +187,10 @@ class DatabaseManager {
       FirebaseFirestore.instance.collection('teams');
 
   CollectionReference<Map<String, dynamic>> get _wordProblemCollection =>
-      FirebaseFirestore.instance.collection('word_problems');
+      FirebaseFirestore.instance
+          .collection('results')
+          .doc('v1.0.1')
+          .collection('letterProblems');
 
   static const String bestStationKey = 'bestStation';
   static const String teamNameKey = 'teamName';
@@ -384,11 +388,10 @@ class DatabaseManager {
   ////////////////////////////
 
   ///
-  /// Returns a random word problem
-  Future<String?> fetchWordProblem({
-    bool withUselessLetter = false,
-  }) async {
-    final words = (await _wordProblemCollection.doc('v1.0.1').get()).data();
+  /// Returns a random letter problem
+  Future<String?> fetchLetterProblem({bool withUselessLetter = false}) async {
+    return null;
+    final words = (await _wordProblemCollection.doc('problems').get()).data();
     if (words == null) return null;
 
     if (withUselessLetter) {
@@ -397,6 +400,18 @@ class DatabaseManager {
     if (words.isEmpty) return null;
 
     return words.keys.toList()[Random().nextInt(words.length)];
+  }
+
+  Future<void> sendLetterProblem({required LetterProblem problem}) async {
+    final letters = problem.letters;
+    if (problem.hasUselessLetter) letters.removeAt(problem.uselessLetterIndex);
+
+    await _wordProblemCollection.doc('problems').set({
+      letters.join(): {
+        'nbSolutions': problem.solutions.length,
+        'hasUseless': problem.hasUselessLetter
+      }
+    }, SetOptions(merge: true));
   }
 }
 
