@@ -219,7 +219,7 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-  }) _problemGenerator = ProblemGenerator.generateFromRandom;
+  }) _problemGenerator = ProblemGenerator.generateFromRandomWord;
   Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,

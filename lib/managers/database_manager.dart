@@ -394,27 +394,45 @@ class DatabaseManager {
     required int minNbLetters,
     required int maxNbLetters,
   }) async {
-    return null;
-
     // find a random number of letters to pick from
-    final nbLetters =
-        Random().nextInt(maxNbLetters - minNbLetters + 1) + minNbLetters;
+    final databaseKeys = List.generate(
+            maxNbLetters - minNbLetters + 1, (index) => index + minNbLetters)
+        .map((index) => '${index}letters')
+        .toList();
 
-    final words =
-        (await _wordProblemCollection.doc('${nbLetters}letters').get()).data();
-    if (words == null) return null;
+    final random = Random();
+
+    Map<String, dynamic>? words;
+    while (true) {
+      if (databaseKeys.isEmpty) return null;
+
+      final key = databaseKeys.removeAt(random.nextInt(databaseKeys.length));
+      words = (await _wordProblemCollection.doc(key).get()).data();
+      if (words != null) break;
+    }
 
     if (withUselessLetter) {
       words.removeWhere((key, value) => !value['hasUseless']);
     }
     if (words.isEmpty) return null;
 
-    return words.keys.toList()[Random().nextInt(words.length)];
+    return words.keys.toList()[random.nextInt(words.length)];
   }
 
   Future<void> sendLetterProblem({required LetterProblem problem}) async {
     final letters = problem.letters;
     if (problem.hasUselessLetter) letters.removeAt(problem.uselessLetterIndex);
+
+    if (!problem.hasUselessLetter) {
+      // Do not override the existing problem if it is the same but was already
+      // confirmed to have solutions with useless letters when the current one
+      // does not have any
+      final existing =
+          (await _wordProblemCollection.doc('${letters.length}letters').get())
+              .data();
+
+      if (existing?.containsKey(letters.join()) ?? false) return;
+    }
 
     await _wordProblemCollection.doc('${letters.length}letters').set({
       letters.join(): {
@@ -594,6 +612,23 @@ class DatabaseManagerMock extends DatabaseManager {
       for (final player in team.mvpPlayers)
         player.name: (player.score, team.name)
     });
+  }
+
+  ///////////////////////////////////////
+  //// WORD PROBLEM RELATED MOCKINGS ////
+  ///////////////////////////////////////
+
+  @override
+  Future<String?> fetchLetterProblem({
+    required bool withUselessLetter,
+    required int minNbLetters,
+    required int maxNbLetters,
+  }) async =>
+      null;
+
+  @override
+  Future<void> sendLetterProblem({required LetterProblem problem}) async {
+    // Do nothing
   }
 }
 

@@ -370,6 +370,128 @@ class ProblemGenerator {
   }
 
   ///
+  /// Generates a new word problem from a random longest word. Apart from the
+  /// randomization of the candidate letters, the algorithm is the same as the
+  /// [generateFromRandom] method.
+  static Future<LetterProblem> generateFromRandomWord({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+    required bool addUselessLetter,
+    required Duration maxSearchingTime,
+  }) async {
+    List<String> candidateLetters;
+    Set<String> subWords;
+
+    bool isAValidCandidate = false;
+    // We have to deduce the number of letters to add to the candidate. It is
+    // way too long otherwise
+    if (addUselessLetter) maxLetters--;
+    String? uselessLetter;
+
+    if (maxLetters < minLetters) {
+      throw ArgumentError(
+          'The maximum number of letters should be greater than the minimum number of letters');
+    }
+
+    final random = Random();
+    final wordsToPickFrom =
+        (await _WordGenerator.instance.wordsWithAtLeast(minLetters))
+            .where((e) => e.length <= maxLetters);
+    final startingSearchingTime = DateTime.now();
+    var hasTriedFetchingFromDatabase = false;
+    do {
+      // Generate a first candidate set of letters
+      candidateLetters = wordsToPickFrom
+          .elementAt(random.nextInt(wordsToPickFrom.length))
+          .split('');
+
+      if (!hasTriedFetchingFromDatabase &&
+          startingSearchingTime
+              .add(maxSearchingTime)
+              .isBefore(DateTime.now())) {
+        // If the time is up, try fetching from the database. If it fails, we
+        // continue with the random letters algorithm
+        final candidateLettersTp = await _fetchProblemFromDatabase(
+            withUselessLetter: addUselessLetter,
+            minNbLetters: minLetters,
+            maxNbLetters: maxLetters);
+        if (candidateLettersTp != null) {
+          candidateLetters = candidateLettersTp.split('');
+        }
+        hasTriedFetchingFromDatabase = true;
+      }
+
+      do {
+        // Find all the words that can be made from the candidate letters
+        subWords = await _WordGenerator.instance._findsWordsFromPermutations(
+            from: candidateLetters, nbLetters: nbLetterInSmallestWord);
+
+        // If the longest words is as long as the candidate, we have found
+        // a potentially valid candidate set of letters
+        if (subWords.fold<int>(
+                0, (prev, element) => max(prev, element.length)) ==
+            candidateLetters.length) {
+          break;
+        }
+
+        // If we cut too much, we have to start over
+        if (subWords.length < minimumNbOfWords ||
+            candidateLetters.length < minLetters) break;
+
+        // Otherwise, drop one of the letters that is not in any of the longest
+        // words
+        final nbLettersInLongest =
+            subWords.fold<int>(0, (prev, element) => max(prev, element.length));
+        final longestSubWords = subWords
+            .where((word) => word.length == nbLettersInLongest)
+            .toList();
+        final lettersToRemove = candidateLetters
+            .where((letter) =>
+                !longestSubWords.any((word) => word.contains(letter)))
+            .toList();
+        if (lettersToRemove.isEmpty) {
+          // If the combination of letters of the longest words contains all the
+          // letters pick a random letter to remove
+          lettersToRemove.add(candidateLetters[
+              Random().nextInt(candidateLetters.length - 1) + 1]);
+        }
+        for (final letter in lettersToRemove) {
+          candidateLetters.remove(letter);
+        }
+
+        // Make sure the UI is updated
+        await Future.delayed(Duration.zero);
+      } while (true);
+
+      // Make sure the number of words as solution is valid
+      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+          subWords.length <= maximumNbOfWords &&
+          candidateLetters.length >= minLetters;
+
+      if (isAValidCandidate && addUselessLetter) {
+        // Add a useless letter to the problem if required
+        uselessLetter = await _findUselessLetter(
+            letters: candidateLetters,
+            solutions: WordSolutions(
+                subWords.map((e) => WordSolution(word: e)).toList()));
+
+        // If it is not possible to add a new letter, reject the letters candidate
+        isAValidCandidate = uselessLetter != null;
+      }
+    } while (!isAValidCandidate);
+
+    // The candidate is valid, return the problem
+    return LetterProblem._(
+        letters: candidateLetters,
+        solutions:
+            WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
+        uselessLetter: uselessLetter);
+  }
+
+  ///
   /// This method returns a letter that do not change the numbers of solutions
   /// to the problem.
   /// If the method returns null, it means it is not possible to add a useless
