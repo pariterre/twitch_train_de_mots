@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to modify their own personal folder
+    match /teams/{teamId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == teamId;
+    }
+
+    // Deny every calls to the backup database
+    match /results/v1.0.0 {
+    	allow read, write: if false;
+    }
+    
+    // Allow every authenticated users to post and read problems
+    match /results/v1.0.1/letterProblems/{documents=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow every users to post their results
+    match /results/v1.0.1/teams/{teamId}/{documents=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == teamId;
+    }
+  }
+}
