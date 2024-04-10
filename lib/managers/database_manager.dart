@@ -279,9 +279,9 @@ class DatabaseManager {
     final previousBestScore =
         previousBestPlayers.isEmpty ? -1 : previousBestPlayers.first.score;
     final currentBestScore = mvpPlayers.isEmpty ? -1 : mvpPlayers.first.score;
-    previousTeamResult?.mvpPlayers.clear();
 
     // Construct the TeamResult without mvp players
+    previousTeamResult?.mvpPlayers.clear();
     final teamResults =
         previousTeamResult == null || stationReached > previousTeamResult.value
             ? TeamResult(name: teamName, bestStation: stationReached)
@@ -295,7 +295,7 @@ class DatabaseManager {
           .toList());
     }
     if (previousBestScore >= currentBestScore) {
-      final currentMvpNames = mvpPlayers.map((e) => e.name);
+      final currentMvpNames = teamResults.mvpPlayers.map((e) => e.name);
       teamResults.mvpPlayers.addAll(
           previousBestPlayers.where((e) => !currentMvpNames.contains(e.name)));
     }

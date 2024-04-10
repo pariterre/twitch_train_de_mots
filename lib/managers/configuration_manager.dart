@@ -174,6 +174,24 @@ class ConfigurationManager {
                 'la ronde, pour plus de plaisir sans attendre!'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.4',
+      codeName: 'Je vAzalée encore plus loin',
+      notes:
+          'Certain\u00b7e\u00b7s cheminot\u00b7e\u00b7s ont vu le Petit Train'
+          'du Nord les priver de leurs prouesses. On aurait pu accepter cet état '
+          'de fait... mais non! Et rendons à César ce qui est Azalee et réparons '
+          'ce problème...',
+      features: [
+        FeatureNotes(
+            description:
+                'Réparation du bogue qui supprimait le score du ou de la meilleur\u00b7e '
+                'cheminot\u00b7e de l\'équipe à la fin de la ronde si ce même joueur '
+                'est le ou la MVP de la ronde courante',
+            userWhoRequested: 'LaLoutreBurlesques',
+            urlOfUserWhoRequested: 'https://twitch.tv/laloutreburlesques'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
