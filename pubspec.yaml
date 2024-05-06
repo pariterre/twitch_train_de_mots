@@ -40,4 +40,5 @@ flutter:
     - assets/sounds/TelegramReceived.mp3
     - assets/sounds/TheSwindler.mp3
     - assets/sounds/TrainReachedStation.mp3
+    - assets/sounds/TrainLostStation.mp3
     - assets/sounds/RoundIsOver.mp3

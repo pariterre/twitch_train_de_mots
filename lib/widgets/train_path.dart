@@ -113,8 +113,13 @@ class TrainPathController {
     }
 
     _reversed = true;
-    if (_refreshCallback != null) _refreshCallback!();
     await _controller.reverse(from: 1.0);
+    if (_hallMarks.contains(_currentStep + 1)) {
+      _fireworksControllers[_hallMarks.indexOf(_currentStep + 1)]
+          .triggerReversed();
+      SoundManager.instance.playTrainLostStation();
+    }
+    if (_refreshCallback != null) _refreshCallback!();
   }
 
   void dispose() {

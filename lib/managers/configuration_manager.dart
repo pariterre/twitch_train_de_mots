@@ -192,6 +192,20 @@ class ConfigurationManager {
             urlOfUserWhoRequested: 'https://twitch.tv/laloutreburlesques'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.5',
+      codeName: 'Le tintamare',
+      notes:
+          'Petit update pour indiquer aux joueurs et joueuses que le train a '
+          'reculé derrière la station!',
+      features: [
+        FeatureNotes(
+            description:
+                'L\'animation des explosions a été réécrites pour permettre de '
+                'l\'inverser. Cette inversion est utilisée pour indiquer que le '
+                'train a reculé derrière la station'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;

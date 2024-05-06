@@ -18,6 +18,10 @@ class FireworksController {
     if (_explode != null) _explode!(huge);
   }
 
+  void triggerReversed() {
+    if (_explode != null) _explode!(huge, reversed: true);
+  }
+
   void dispose() {
     _explode = null;
   }
@@ -48,6 +52,7 @@ class Fireworks extends StatefulWidget {
 }
 
 class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
+  bool _isReversed = false;
   late AnimationController _animationController;
   List<_Particle> particles = [];
   final int numParticles = 100;
@@ -57,16 +62,12 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
     super.initState();
 
     _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    );
+        vsync: this, duration: const Duration(milliseconds: 1500));
 
     _animationController.addListener(() {
       updateParticles();
       setState(() {});
     });
-
-    _animationController.forward();
   }
 
   @override
@@ -78,21 +79,32 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   }
 
   void updateParticles() {
-    for (var particle in particles) {
-      final double dx = cos(particle.angle) * particle.speed;
-      final double dy = sin(particle.angle) * particle.speed / 1.5;
+    final explosion = 1 - pow(1 - _animationController.value, 4);
 
-      particle.x += dx;
-      particle.y += dy;
-      particle.radius -= particle.decaySpeed;
+    for (var particle in particles) {
+      // Find the final position after the explosion
+      final dx = cos(particle.angle) *
+          particle.speed *
+          _animationController.duration!.inMilliseconds;
+      final dy = sin(particle.angle) *
+          particle.speed *
+          _animationController.duration!.inMilliseconds;
+
+      particle.x = particle.xInitial + dx * explosion;
+      particle.y = particle.yInitial + dy * explosion;
+
+      final visibilityDecay =
+          pow(particle.visibilityTime - _animationController.value, 3);
+      particle.radius = particle.radiusInitial * visibilityDecay;
     }
 
-    particles.removeWhere((particle) => particle.radius <= 0);
+    particles.removeWhere((particle) =>
+        _isReversed ? _animationController.value == 0 : particle.radius <= 0);
   }
 
   late BoxConstraints _constraints;
 
-  void _explode(bool huge) {
+  void _explode(bool huge, {bool reversed = false}) {
     final rand = Random();
 
     setState(() {
@@ -101,15 +113,25 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
         (_) => _Particle(
             x: _constraints.maxWidth / 2,
             y: _constraints.maxHeight / 2,
-            radius: 10 + rand.nextDouble() * 10,
+            radius: 10 + rand.nextDouble() * 100,
             angle: rand.nextDouble() * 2 * pi,
-            speed: rand.nextDouble() * (huge ? 10 : 6),
-            decaySpeed: (rand.nextDouble() * 0.5 + 0.5) / (huge ? 3 : 2),
+            speed: rand.nextDouble() * (huge ? 0.650 : 0.350),
+            visibilityTime: (_animationController.duration!.inMilliseconds -
+                    (rand.nextDouble() * 0.5 + 0.5) *
+                        (_animationController.duration!.inMilliseconds *
+                            (huge ? 1 : 0.5))) /
+                _animationController.duration!.inMilliseconds,
             color: widget.controller.color),
       ));
     });
-    _animationController.reset();
-    _animationController.forward();
+    if (reversed) {
+      _isReversed = true;
+      _animationController.reverse(from: 1);
+    } else {
+      _isReversed = false;
+      _animationController.reset();
+      _animationController.forward();
+    }
   }
 
   @override
@@ -119,7 +141,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
     widget.controller._explode = _explode;
 
     return GestureDetector(
-      onTap: () => _explode(widget.controller.huge),
+      onTap: () => _explode(widget.controller.huge, reversed: false),
       child: LayoutBuilder(
         builder: (context, constraints) {
           _constraints = constraints;
@@ -136,11 +158,14 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
 
 class _Particle {
   double x;
+  double xInitial;
   double y;
+  double yInitial;
   double radius;
+  double radiusInitial;
   double angle;
   double speed;
-  double decaySpeed;
+  double visibilityTime;
   Color color;
 
   final rand = Random();
@@ -152,9 +177,11 @@ class _Particle {
     required this.radius,
     required this.angle,
     required this.speed,
-    required this.decaySpeed,
+    required this.visibilityTime,
     required this.color,
-  });
+  })  : xInitial = x,
+        yInitial = y,
+        radiusInitial = radius;
 }
 
 class _FireworksPainter extends CustomPainter {

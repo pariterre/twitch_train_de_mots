@@ -107,4 +107,10 @@ class SoundManager {
     _trainReachedStation.play(AssetSource('sounds/TrainReachedStation.mp3'),
         volume: cm.soundVolume);
   }
+
+  Future<void> playTrainLostStation() async {
+    final cm = ConfigurationManager.instance;
+    _trainReachedStation.play(AssetSource('sounds/TrainLostStation.mp3'),
+        volume: cm.soundVolume);
+  }
 }
