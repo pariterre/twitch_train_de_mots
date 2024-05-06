@@ -612,7 +612,7 @@ class ConfigurationManager {
       // Levels 10, 11 and 12
       return const Difficulty(
         thresholdFactorOneStar: 0.5,
-        thresholdFactorTwoStars: 0.75,
+        thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
         message:
             'Votre chemin est tout bonnement incroyable, cheminot\u00b7e\u00b7s! '
