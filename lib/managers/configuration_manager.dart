@@ -206,6 +206,17 @@ class ConfigurationManager {
                 'train a reculé derrière la station'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.3.6',
+      codeName: 'Scintillement',
+      notes:
+          'Un petit ajustement pour rendre le jeu plus agréable pour les yeux!',
+      features: [
+        FeatureNotes(
+            description:
+                'Les étoiles scintillent maintenant dans le ciel de nuit!'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
