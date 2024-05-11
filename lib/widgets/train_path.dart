@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
+import 'package:train_de_mots/widgets/growing_widget.dart';
 
 class TrainPathController {
   int _nbSteps = 1;
@@ -275,16 +276,26 @@ class _Hallmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        controller.currentStep >= starPosition ? Colors.amber : Colors.grey;
+    final isSuccess = controller.currentStep >= starPosition;
+    final color = isSuccess ? Colors.amber : Colors.grey;
+
+    final starWidget = Icon(Icons.star,
+        color: color,
+        size: hallmarkSize,
+        shadows: [
+          Shadow(color: color.shade300, blurRadius: hallmarkSize * 0.15)
+        ]);
 
     return Positioned(
         left:
             starPosition * pathLength / controller._nbSteps - hallmarkSize / 2,
         top: hallmarkSize * 0.25,
-        child: Icon(Icons.star, color: color, size: hallmarkSize, shadows: [
-          Shadow(color: color.shade300, blurRadius: hallmarkSize * 0.15)
-        ]));
+        child: isSuccess
+            ? GrowingWidget(
+                growingFactor: 0.9,
+                duration: const Duration(milliseconds: 750),
+                child: starWidget)
+            : starWidget);
   }
 }
 
@@ -341,8 +352,12 @@ class _Train extends StatelessWidget {
               height: iconSize,
               padding: EdgeInsets.all(iconSize / 10),
               transform: Transform.flip(flipX: true).transform,
-              child: Image.asset('assets/images/splash_screen.png',
-                  opacity: const AlwaysStoppedAnimation(0.9))),
+              child: GrowingWidget(
+                growingFactor: 0.97,
+                duration: const Duration(milliseconds: 1500),
+                child: Image.asset('assets/images/splash_screen.png',
+                    opacity: const AlwaysStoppedAnimation(0.9)),
+              )),
         );
       },
     );

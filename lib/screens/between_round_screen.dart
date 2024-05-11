@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
+import 'package:train_de_mots/widgets/growing_widget.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
@@ -248,7 +249,7 @@ class _LeaderBoard extends StatelessWidget {
     }
   }
 
-  Icon? _playerSuffixIcon(
+  Widget? _playerSuffixWidget(
       {required Player player,
       required TeamResult teamResult,
       required Players players}) {
@@ -262,9 +263,15 @@ class _LeaderBoard extends StatelessWidget {
 
     // Define the icon to use
     if (isMvpPlayer) {
-      return const Icon(Icons.emoji_events, color: Colors.amber);
+      return const GrowingWidget(
+          growingFactor: 0.9,
+          duration: Duration(milliseconds: 1000),
+          child: Icon(Icons.emoji_events, color: Colors.amber));
     } else if (isBiggestStealer) {
-      return const Icon(Icons.local_police, color: Colors.red);
+      return const GrowingWidget(
+          growingFactor: 0.93,
+          duration: Duration(milliseconds: 500),
+          child: Icon(Icons.local_police, color: Colors.red));
     } else {
       return null;
     }
@@ -314,7 +321,7 @@ class _LeaderBoard extends StatelessWidget {
                           final player = players[index];
                           final highlightColor = _highlightBestScoreColor(
                               player: player, players: players, team: team);
-                          final suffixIcon = _playerSuffixIcon(
+                          final suffixIcon = _playerSuffixWidget(
                               player: player,
                               players: players,
                               teamResult: team);
@@ -688,10 +695,13 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.star,
-              color: Colors.amber,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+          GrowingWidget(
+            growingFactor: 0.9,
+            duration: const Duration(milliseconds: 1000),
+            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
+              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+            ]),
+          ),
           Column(
             children: [
               Text(
@@ -713,10 +723,13 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               const SizedBox(height: 16.0),
             ],
           ),
-          Icon(Icons.star,
-              color: Colors.amber,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+          GrowingWidget(
+            growingFactor: 0.9,
+            duration: const Duration(milliseconds: 1000),
+            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
+              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+            ]),
+          ),
         ],
       ),
     );
@@ -760,19 +773,25 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.star,
-              color: Colors.amber,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+          GrowingWidget(
+            growingFactor: 0.9,
+            duration: const Duration(milliseconds: 1000),
+            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
+              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+            ]),
+          ),
           Text(
             'Le tableau des cheminot\u00b7e\u00b7s',
             style: TextStyle(
                 fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
           ),
-          Icon(Icons.star,
-              color: Colors.amber,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]),
+          GrowingWidget(
+            growingFactor: 0.9,
+            duration: const Duration(milliseconds: 1000),
+            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
+              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+            ]),
+          ),
         ],
       ),
     );
@@ -889,10 +908,12 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.star,
-              color: Colors.grey,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade800, blurRadius: 15.0)]),
+          GrowingWidget(
+              growingFactor: 0.9,
+              duration: const Duration(milliseconds: 1000),
+              child: Icon(Icons.star, color: Colors.grey, size: 70.0, shadows: [
+                Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
+              ])),
           Column(
             children: [
               Text(
@@ -920,10 +941,13 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               const SizedBox(height: 16.0),
             ],
           ),
-          Icon(Icons.star,
-              color: Colors.grey,
-              size: 70.0,
-              shadows: [Shadow(color: Colors.grey.shade800, blurRadius: 15.0)]),
+          GrowingWidget(
+            growingFactor: 0.9,
+            duration: const Duration(milliseconds: 1000),
+            child: Icon(Icons.star, color: Colors.grey, size: 70.0, shadows: [
+              Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
+            ]),
+          ),
         ],
       ),
     );
