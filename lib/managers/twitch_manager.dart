@@ -65,7 +65,7 @@ class TwitchManager {
   bool _isMockActive = false;
   final _appInfo = tm.TwitchAppInfo(
     appName: 'Train de mots',
-    twitchAppId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+    twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
     scope: const [
       tm.TwitchScope.chatRead,
       tm.TwitchScope.readFollowers,
