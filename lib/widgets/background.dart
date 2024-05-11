@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/widgets/snowfall_overlay.dart';
 
 class Background extends StatefulWidget {
   const Background({super.key, this.child});
@@ -89,6 +90,7 @@ class _BackgroundState extends State<Background>
             fit: BoxFit.cover,
           ),
         ),
+        const SnowfallOverlay(),
         if (widget.child != null) widget.child!,
       ],
     );
