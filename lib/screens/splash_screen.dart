@@ -95,6 +95,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final dm = DatabaseManager.instance;
 
     return Background(
+      withSnowfall: false,
       child: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: Center(

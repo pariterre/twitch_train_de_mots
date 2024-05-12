@@ -3,8 +3,9 @@ import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/widgets/snowfall_overlay.dart';
 
 class Background extends StatefulWidget {
-  const Background({super.key, this.child});
+  const Background({super.key, this.child, this.withSnowfall = true});
 
+  final bool withSnowfall;
   final Widget? child;
 
   @override
@@ -90,7 +91,7 @@ class _BackgroundState extends State<Background>
             fit: BoxFit.cover,
           ),
         ),
-        const SnowfallOverlay(),
+        if (widget.withSnowfall) const SnowfallOverlay(),
         if (widget.child != null) widget.child!,
       ],
     );

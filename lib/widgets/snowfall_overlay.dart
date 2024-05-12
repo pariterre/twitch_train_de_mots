@@ -66,31 +66,34 @@ class _Snowflake extends StatefulWidget {
 class _SnowflakeState extends State<_Snowflake> {
   late double xOffset = widget.initialXOffset;
   late double yOffset = widget.initialYOffset;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    startFalling();
+    _timer = Timer.periodic(
+        const Duration(milliseconds: 50),
+        (timer) => setState(() {
+              xOffset += widget.xSpeed;
+              yOffset += widget.ySpeed;
+
+              // Wrap around the screen
+              if (xOffset > MediaQuery.of(context).size.width + widget.size) {
+                xOffset = 0;
+              }
+              if (xOffset < -widget.size) {
+                xOffset = MediaQuery.of(context).size.width;
+              }
+              if (yOffset > MediaQuery.of(context).size.height) {
+                yOffset = -widget.size;
+              }
+            }));
   }
 
-  void startFalling() {
-    Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      setState(() {
-        xOffset += widget.xSpeed;
-        yOffset += widget.ySpeed;
-
-        // Wrap around the screen
-        if (xOffset > MediaQuery.of(context).size.width + widget.size) {
-          xOffset = 0;
-        }
-        if (xOffset < -widget.size) {
-          xOffset = MediaQuery.of(context).size.width;
-        }
-        if (yOffset > MediaQuery.of(context).size.height) {
-          yOffset = -widget.size;
-        }
-      });
-    });
+  @override
+  void dispose() {
+    super.dispose();
+    _timer?.cancel();
   }
 
   @override

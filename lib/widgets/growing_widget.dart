@@ -25,6 +25,12 @@ class _GrowingWidgetState extends State<GrowingWidget>
       Tween<double>(begin: 1, end: widget.growingFactor).animate(_controller);
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
         animation: _animation,
