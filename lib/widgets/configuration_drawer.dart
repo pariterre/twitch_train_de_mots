@@ -459,16 +459,6 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _IntegerInputField(
-                  label: 'Nombre de lettres des mots les plus courts',
-                  initialValue: cm.nbLetterInSmallestWord.toString(),
-                  onChanged: (value) => cm.nbLetterInSmallestWord = value,
-                  enabled: cm.canChangeProblem,
-                  disabledTooltip:
-                      'Le nombre de lettres des mots les plus courts ne peut pas\n'
-                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
-                ),
-                const SizedBox(height: 12),
                 _DoubleIntegerInputField(
                   label: 'Nombre de lettres à piger',
                   firstLabel: 'Minimum',

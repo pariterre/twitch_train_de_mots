@@ -9,9 +9,12 @@ class Difficulty {
   final bool hasHiddenLetter;
   final int revealHiddenLetterAtTimeLeft;
 
+  final int nbLettersOfShortestWord;
+
   final String? message;
 
   const Difficulty({
+    required this.nbLettersOfShortestWord,
     required this.thresholdFactorOneStar,
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
@@ -21,4 +24,11 @@ class Difficulty {
     required this.hasHiddenLetter,
     this.revealHiddenLetterAtTimeLeft = -1,
   });
+
+  bool hasSameRulesForPickingLetters(covariant Difficulty other) {
+    if (identical(this, other)) return true;
+
+    return hasUselessLetter == other.hasUselessLetter &&
+        nbLettersOfShortestWord == other.nbLettersOfShortestWord;
+  }
 }

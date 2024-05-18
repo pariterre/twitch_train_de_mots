@@ -50,11 +50,11 @@ class GameManager {
   int _scramblingLetterTimer = 0;
 
   LetterProblem? _currentProblem;
-  LetterProblem? _nextProblem;
-  bool get isNextProblemReady => _nextProblem != null;
+  final List<LetterProblem?> _nextProblems = [];
+  bool get isNextProblemReady => _nextProblems.every((e) => e != null);
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
-  SuccessLevel? _successLevel;
+  SuccessLevel _successLevel = SuccessLevel.failed;
 
   bool _hasPlayedAtLeastOnce = false;
   bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
@@ -82,10 +82,12 @@ class GameManager {
   Future<void> _initializeWordProblem() async {
     final cm = ConfigurationManager.instance;
 
-    await LetterProblem.initialize(
-        nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
+    for (int i = 0; i < cm.lastLevelWithRules; i++) {
+      await LetterProblem.initialize(
+          nbLetterInSmallestWord: cm.difficulty(i).nbLettersOfShortestWord);
+    }
     _isSearchingNextProblem = false;
-    _nextProblem = null;
+    _nextProblems.clear();
     await _searchForNextProblem(maxSearchingTime: Duration.zero);
 
     // Make sure the game don't run if the player is not logged in
@@ -123,7 +125,7 @@ class GameManager {
   }
 
   final List<String> _messagesToPlayers = [];
-  SuccessLevel get successLevel => _successLevel ?? SuccessLevel.failed;
+  SuccessLevel get successLevel => _successLevel;
 
   bool get hasUselessLetter =>
       ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
@@ -213,29 +215,36 @@ class GameManager {
   Future<void> _searchForNextProblem(
       {required Duration maxSearchingTime}) async {
     if (_isSearchingNextProblem) return;
-    if (_nextProblem != null && !_forceRepickProblem) return;
+    if (_nextProblems.isNotEmpty && !_forceRepickProblem) return;
+
+    final cm = ConfigurationManager.instance;
 
     _forceRepickProblem = false;
     _isSearchingNextProblem = true;
+    _nextProblems.clear();
 
-    bool addUselessLetter = false;
-    for (final level in SuccessLevel.values) {
-      addUselessLetter = ConfigurationManager.instance
-          .difficulty(_roundCount + level.toInt())
-          .hasUselessLetter;
-      if (addUselessLetter) break;
+    for (int i = 0; i < 4; i++) {
+      // The first element is always the first level (in case of a restart of the game)
+      // The others depend on the current round count
+      final difficulty = cm.difficulty(i == 0 ? 0 : _roundCount + i);
+      final previousDifficulty = cm.difficulty(_roundCount + i - 1);
+
+      if (i != 0 &&
+          difficulty.hasSameRulesForPickingLetters(previousDifficulty)) {
+        _nextProblems.add(_nextProblems.last);
+        continue;
+      } else {
+        _nextProblems.add(await cm.problemGenerator(
+          nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
+          minLetters: cm.minimumWordLetter,
+          maxLetters: cm.maximumWordLetter,
+          minimumNbOfWords: cm.minimumWordsNumber,
+          maximumNbOfWords: cm.maximumWordsNumber,
+          addUselessLetter: difficulty.hasUselessLetter,
+          maxSearchingTime: maxSearchingTime,
+        ));
+      }
     }
-
-    final cm = ConfigurationManager.instance;
-    _nextProblem = await cm.problemGenerator(
-      nbLetterInSmallestWord: cm.nbLetterInSmallestWord,
-      minLetters: cm.minimumWordLetter,
-      maxLetters: cm.maximumWordLetter,
-      minimumNbOfWords: cm.minimumWordsNumber,
-      maximumNbOfWords: cm.maximumWordsNumber,
-      addUselessLetter: addUselessLetter,
-      maxSearchingTime: maxSearchingTime,
-    );
 
     _isSearchingNextProblem = false;
   }
@@ -270,11 +279,9 @@ class GameManager {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
-    if (_currentProblem != null && _successLevel == SuccessLevel.failed) {
-      _restartGame();
-    }
-    _currentProblem = _nextProblem;
-    _nextProblem = null;
+    if (_successLevel == SuccessLevel.failed) _restartGame();
+    _currentProblem = _nextProblems[_successLevel.toInt()];
+    _nextProblems.clear();
 
     // Prepare the problem according to the results of the current round
     if (!hasUselessLetter) _currentProblem!.tossUselessLetter();
@@ -347,7 +354,8 @@ class GameManager {
 
     // Find if the proposed word is valid
     final solution = problem!.trySolution(message,
-        nbLetterInSmallestWord: cm.nbLetterInSmallestWord);
+        nbLetterInSmallestWord:
+            cm.difficulty(_roundCount).nbLettersOfShortestWord);
     if (solution == null) return;
 
     // Add to player score
@@ -400,19 +408,20 @@ class GameManager {
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
     _roundCount = 0;
+    _successLevel = SuccessLevel.failed;
     _isAllowedToSendResults =
         ConfigurationManager.instance.isAllowedToSendResults;
     players.clear();
   }
 
   ///
-  /// Tick the game timer. If the timer is over, [_roundIsOver] is called.
+  /// Tick the game timer. If the timer is over, [_endOfRound] is called.
   void _gameLoop(Timer timer) {
     onTimerTicks.notifyListeners();
 
     if ((_gameStatus == GameStatus.initializing ||
             _gameStatus == GameStatus.roundPreparing) &&
-        _nextProblem != null) {
+        _nextProblems.length == 4) {
       if (_gameStatus == GameStatus.roundPreparing) {
         _gameStatus = GameStatus.roundReady;
       }
@@ -509,7 +518,7 @@ class GameManager {
     if (!shouldEndTheRound) return;
 
     _successLevel = completedLevel;
-    _roundCount += _successLevel!.toInt();
+    _roundCount += _successLevel.toInt();
     DatabaseManager.instance.sendLetterProblem(problem: _currentProblem!);
 
     _forceEndTheRound = false;
@@ -616,7 +625,7 @@ class GameManagerMock extends GameManager {
     } else {
       (GameManager._instance! as GameManagerMock)._problemMocker = problem;
       GameManager._instance!._currentProblem = problem;
-      GameManager._instance!._nextProblem = problem;
+      GameManager._instance!._nextProblems.add(problem);
 
       Future.delayed(const Duration(seconds: 1)).then((value) =>
           GameManager._instance!.onNextProblemReady.notifyListeners());
@@ -640,7 +649,7 @@ class GameManagerMock extends GameManager {
     if (_problemMocker == null) {
       await super._searchForNextProblem(maxSearchingTime: maxSearchingTime);
     } else {
-      _nextProblem = _problemMocker;
+      _nextProblems.add(_problemMocker);
 
       // Make sure the game don't run if the player is not logged in
       final dm = DatabaseManager.instance;

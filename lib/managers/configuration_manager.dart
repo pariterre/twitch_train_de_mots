@@ -26,7 +26,6 @@ const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
 
-const _nbLetterInSmallestWordDefault = 4;
 const _minimumWordLetterDefault = 6;
 const _maximumWordLetterDefault = 10;
 const _minimumWordsNumberDefault = 20;
@@ -382,16 +381,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
-  int get nbLetterInSmallestWord => _nbLetterInSmallestWord;
-  set nbLetterInSmallestWord(int value) {
-    if (_nbLetterInSmallestWord == value) return;
-    _nbLetterInSmallestWord = value;
-
-    _tellGameManagerToRepickProblem();
-    _saveConfiguration();
-  }
-
   int _minimumWordLetter = _minimumWordLetterDefault;
   int get minimumWordLetter => _minimumWordLetter;
   set minimumWordLetter(int value) {
@@ -467,8 +456,7 @@ class ConfigurationManager {
   }
 
   bool get isAllowedToSendResults {
-    return _nbLetterInSmallestWord == _nbLetterInSmallestWordDefault &&
-        _minimumWordLetter == _minimumWordLetterDefault &&
+    return _minimumWordLetter == _minimumWordLetterDefault &&
         _maximumWordLetter == _maximumWordLetterDefault &&
         _minimumWordsNumber == _minimumWordsNumberDefault &&
         _maximumWordsNumber == _maximumWordsNumberDefault &&
@@ -512,7 +500,6 @@ class ConfigurationManager {
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
-      'nbLetterInSmallestWord': nbLetterInSmallestWord,
       'minimumWordLetter': minimumWordLetter,
       'maximumWordLetter': maximumWordLetter,
       'minimumWordsNumber': minimumWordsNumber,
@@ -569,8 +556,6 @@ class ConfigurationManager {
           seconds: map['timeBeforeScramblingLetters'] ??
               _timeBeforeScramblingLettersDefault);
 
-      _nbLetterInSmallestWord =
-          map['nbLetterInSmallestWord'] ?? _nbLetterInSmallestWordDefault;
       _minimumWordLetter =
           map['minimumWordLetter'] ?? _minimumWordLetterDefault;
       _maximumWordLetter =
@@ -612,7 +597,6 @@ class ConfigurationManager {
     }
 
     if (advancedOptions) {
-      _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
       _minimumWordLetter = _minimumWordLetterDefault;
       _maximumWordLetter = _maximumWordLetterDefault;
       _minimumWordsNumber = _minimumWordsNumberDefault;
@@ -640,10 +624,12 @@ class ConfigurationManager {
 
   ///
   /// Get the difficulty for a given level
+  final int lastLevelWithRules = 30;
   Difficulty difficulty(int level) {
     if (level < 3) {
       // Levels 1, 2 and 3
       return const Difficulty(
+        nbLettersOfShortestWord: 4,
         thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
@@ -653,6 +639,7 @@ class ConfigurationManager {
     } else if (level < 6) {
       // Levels 4, 5 and 6
       return const Difficulty(
+        nbLettersOfShortestWord: 4,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -666,6 +653,7 @@ class ConfigurationManager {
     } else if (level < 9) {
       // Levels 7, 8 and 9
       return const Difficulty(
+        nbLettersOfShortestWord: 4,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -680,6 +668,7 @@ class ConfigurationManager {
     } else if (level < 12) {
       // Levels 10, 11 and 12
       return const Difficulty(
+        nbLettersOfShortestWord: 4,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -696,6 +685,7 @@ class ConfigurationManager {
     } else if (level < 15) {
       // Levels 13, 14 and 15
       return const Difficulty(
+        nbLettersOfShortestWord: 4,
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
@@ -712,8 +702,27 @@ class ConfigurationManager {
     } else if (level < 18) {
       // Levels 16, 17 and 18
       return const Difficulty(
+        nbLettersOfShortestWord: 5,
+        thresholdFactorOneStar: 0.65,
+        thresholdFactorTwoStars: 0.75,
+        thresholdFactorThreeStars: 0.9,
+        message:
+            'Ô malheur cheminot\u00b7e\u00b7s! Le carburant se raréfie et les '
+            'et les réserves s\'épuisent... Nous ne pouvons plus nous permettre '
+            'des petites avancées! Il faudra donc trouver des mots plus longs '
+            'pour avancer!\n'
+            'Bonne chance pour la suite!',
+        hasUselessLetter: true,
+        revealUselessLetterAtTimeLeft: 15,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: 30,
+      );
+    } else if (level < 21) {
+      // Levels 19, 20 and 21
+      return const Difficulty(
+        nbLettersOfShortestWord: 5,
         thresholdFactorOneStar: 0.7,
-        thresholdFactorTwoStars: 0.9,
+        thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.95,
         message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
             'cheminot\u00b7e\u00b7s, et les communications deviennent difficiles...\n'
@@ -723,16 +732,30 @@ class ConfigurationManager {
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 15,
       );
-    } else {
-      // Levels 19 and above
+    } else if (level < 24) {
+      // Levels 22, 23 and 24
       return const Difficulty(
+        nbLettersOfShortestWord: 5,
         thresholdFactorOneStar: 0.75,
-        thresholdFactorTwoStars: 0.95,
+        thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,
-        message: 'Cheminot\u00b7e\u00b7s, vous atteignez maintenant la limite '
-            'de nos communication. À partir d\'ici, vous êtes seul\u00b7e\u00b7s '
-            'dans cette aventure!\n'
-            'Nous vous souhaitons bonne chance dans votre quête du Nord!',
+        message:
+            'Cheminot\u00b7e\u00b7s, vou... atteignez maintenant la limit... '
+            'de nos communicat... À partir d\'ici, vo... êtes seul\u00b7e\u00b7s '
+            'dans cette aventu..!\n'
+            'Nous vous souh...ons bonne chance dans votre quête du Nord!',
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: -1,
+      );
+    } else {
+      // Levels 25 and more
+      return const Difficulty(
+        nbLettersOfShortestWord: 6,
+        thresholdFactorOneStar: 0.75,
+        thresholdFactorTwoStars: 0.90,
+        thresholdFactorThreeStars: 1.0,
+        message: '... .., ... ..\n..... ... ..!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: -1,
