@@ -557,6 +557,12 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                       'Les périodes de récupération ne peuvent pas être\n'
                       'changées en cours de partie',
                 ),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                  label: 'Une seule station par manche',
+                  value: cm.oneStationMaxPerRound,
+                  onChanged: (value) => cm.oneStationMaxPerRound = value,
+                ),
                 const SizedBox(height: 24),
               ],
             ),

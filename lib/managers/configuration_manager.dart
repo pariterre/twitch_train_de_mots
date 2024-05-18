@@ -33,6 +33,7 @@ const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
 const _canStealDefault = true;
+const _oneStationMaxPerRoundDefault = false;
 
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
@@ -227,8 +228,13 @@ class ConfigurationManager {
         FeatureNotes(
             description:
                 'Les options de débogue sont rendues disponible pour le bonheur et le plaisir de tous!',
-            userWhoRequested: 'NgthmrTV',
-            urlOfUserWhoRequested: 'https://twitch.tv/ngthmrtv'),
+            userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/NghtmrTV'),
+        FeatureNotes(
+            description:
+                'Il est également possible de ne pas avancer de plus d\'une station par ronde',
+            userWhoRequested: 'NghtmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/NghtmrTV'),
       ],
     ),
   ];
@@ -437,6 +443,13 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  bool _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
+  bool get oneStationMaxPerRound => _oneStationMaxPerRound;
+  set oneStationMaxPerRound(bool value) {
+    _oneStationMaxPerRound = value;
+    _saveConfiguration();
+  }
+
   double _musicVolume = _musicVolumeDefault;
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
@@ -467,7 +480,8 @@ class ConfigurationManager {
             _cooldownPenaltyAfterStealDefault &&
         _timeBeforeScramblingLetters.inSeconds ==
             _timeBeforeScramblingLettersDefault &&
-        _canSteal == _canStealDefault;
+        _canSteal == _canStealDefault &&
+        _oneStationMaxPerRound == _oneStationMaxPerRoundDefault;
   }
 
   //// LISTEN TO GAME MANAGER ////
@@ -504,6 +518,7 @@ class ConfigurationManager {
       'minimumWordsNumber': minimumWordsNumber,
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
+      'oneStationMaxPerRound': oneStationMaxPerRound,
       'musicVolume': musicVolume,
       'soundVolume': soundVolume,
     };
@@ -566,6 +581,8 @@ class ConfigurationManager {
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
+      _oneStationMaxPerRound =
+          map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
 
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
       _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
@@ -609,6 +626,7 @@ class ConfigurationManager {
       _timeBeforeScramblingLetters =
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
       _canSteal = _canStealDefault;
+      _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
       _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
       _cooldownPenaltyAfterSteal =
           const Duration(seconds: _cooldownPenaltyAfterStealDefault);
