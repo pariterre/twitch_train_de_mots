@@ -140,6 +140,14 @@ class ProblemGenerator {
         maxNbLetters: maxNbLetters);
   }
 
+  static DateTime _lastScreenUpdate = DateTime.now();
+  static Future<void> _updateScreenIfNeeded() async {
+    if (DateTime.now().difference(_lastScreenUpdate).inMilliseconds > 60) {
+      _lastScreenUpdate = DateTime.now();
+      await Future.delayed(Duration.zero);
+    }
+  }
+
   ///
   /// Generates a new word problem from a random string of letters.
   static Future<LetterProblem> generateFromRandom({
@@ -168,6 +176,8 @@ class ProblemGenerator {
     final startingSearchingTime = DateTime.now();
     var hasTriedFetchingFromDatabase = false;
     do {
+      await _updateScreenIfNeeded();
+
       // Generate a first candidate set of letters
       candidateLetters = _WordGenerator.instance
           ._generateRandomLetters(nbLetters: maxLetters, useFrequency: false);
@@ -189,6 +199,8 @@ class ProblemGenerator {
       }
 
       do {
+        await _updateScreenIfNeeded();
+
         // Find all the words that can be made from the candidate letters
         subWords = await _WordGenerator.instance._findsWordsFromPermutations(
             from: candidateLetters, nbLetters: nbLetterInSmallestWord);
@@ -225,9 +237,6 @@ class ProblemGenerator {
         for (final letter in lettersToRemove) {
           candidateLetters.remove(letter);
         }
-
-        // Make sure the UI is updated
-        await Future.delayed(Duration.zero);
       } while (true);
 
       // Make sure the number of words as solution is valid
@@ -275,7 +284,9 @@ class ProblemGenerator {
     String? uselessLetter;
     final startingSearchingTime = DateTime.now();
     var hasTriedFetchingFromDatabase = false;
+
     do {
+      await _updateScreenIfNeeded();
       candidateLetters = [];
 
       subWords = await _WordGenerator.instance
@@ -283,6 +294,8 @@ class ProblemGenerator {
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
+        await _updateScreenIfNeeded();
+
         // From the list of all the remaining letters in the alphabet, pick a random one
         candidateLetters
             .add(availableLetters[random.nextInt(availableLetters.length)]);
@@ -326,9 +339,6 @@ class ProblemGenerator {
             .split('')
             .where((letter) => availableLettersInSubWords.contains(letter))
             .join('');
-
-        // Make sure the UI is updated
-        await Future.delayed(Duration.zero);
 
         // Continue as long as there are letters to add
       } while (availableLetters.isNotEmpty && subWords.length > 1);
@@ -403,6 +413,8 @@ class ProblemGenerator {
     final startingSearchingTime = DateTime.now();
     var hasTriedFetchingFromDatabase = false;
     do {
+      await _updateScreenIfNeeded();
+
       // Generate a first candidate set of letters
       candidateLetters = wordsToPickFrom
           .elementAt(random.nextInt(wordsToPickFrom.length))
@@ -425,6 +437,8 @@ class ProblemGenerator {
       }
 
       do {
+        await _updateScreenIfNeeded();
+
         // Find all the words that can be made from the candidate letters
         subWords = await _WordGenerator.instance._findsWordsFromPermutations(
             from: candidateLetters, nbLetters: nbLetterInSmallestWord);
@@ -461,9 +475,6 @@ class ProblemGenerator {
         for (final letter in lettersToRemove) {
           candidateLetters.remove(letter);
         }
-
-        // Make sure the UI is updated
-        await Future.delayed(Duration.zero);
       } while (true);
 
       // Make sure the number of words as solution is valid
@@ -505,7 +516,10 @@ class ProblemGenerator {
         .toList();
 
     final random = Random();
+
     do {
+      await _updateScreenIfNeeded();
+
       final newLetter =
           possibleLetters.removeAt(random.nextInt(possibleLetters.length));
       final newLetters = [...letters, newLetter];
@@ -517,9 +531,6 @@ class ProblemGenerator {
         // The new letter is useless if the number of solutions did not change
         return newLetter;
       }
-
-      // Make sure the UI is updated
-      await Future.delayed(Duration.zero);
     } while (possibleLetters.isNotEmpty);
 
     // If we get here, it means no useless letter could be found
@@ -563,15 +574,12 @@ class _WordGenerator {
     // First, we remove all the words from the database that contains any letter
     // which is not in the letters set as the words
     final Set<String> words = {};
-    int count = 0;
     for (final word in await wordsWithAtLeast(nbLetters)) {
+      await ProblemGenerator._updateScreenIfNeeded();
+
       if (word.split('').every((letter) => from.contains(letter))) {
         words.add(word);
       }
-
-      // Make sure the UI is updated
-      if (count % 30000 == 0) await Future.delayed(Duration.zero);
-      count++;
     }
 
     // Then, count each duplicate letters in each word to make sure at least the

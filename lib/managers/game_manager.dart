@@ -59,6 +59,8 @@ class GameManager {
   bool _hasPlayedAtLeastOnce = false;
   bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
   bool _forceEndTheRound = false;
+  bool _isAllowedToSendResults = true;
+  bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -186,7 +188,18 @@ class GameManager {
     bool repickNow = false,
   }) {
     if (shouldRepickProblem) _forceRepickProblem = true;
-    if (repickNow && shouldRepickProblem) _initializeWordProblem();
+    if (repickNow && _forceRepickProblem) _initializeWordProblem();
+  }
+
+  ///
+  /// Check if the rules are valid. If not, it will prevent the game from
+  /// sending the results to the leaderboard.
+  /// If the rules were invalid at least once during the game, do not allow
+  /// for the results to be sent to the leaderboard either (even if the rules
+  /// are valid now).
+  void _checkForInvalidRules() {
+    _isAllowedToSendResults = _isAllowedToSendResults &&
+        ConfigurationManager.instance.isAllowedToSendResults;
   }
 
   ///
@@ -233,6 +246,7 @@ class GameManager {
     if (onShowMessage == null) {
       throw Exception('onShowMessage must be set before starting the game');
     }
+    ConfigurationManager.instance.onChanged.addListener(_checkForInvalidRules);
     _gameStatus = GameStatus.roundPreparing;
   }
 
@@ -386,6 +400,8 @@ class GameManager {
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
     _roundCount = 0;
+    _isAllowedToSendResults =
+        ConfigurationManager.instance.isAllowedToSendResults;
     players.clear();
   }
 
@@ -515,8 +531,11 @@ class GameManager {
     // being searched, it will be automatically skipped anyway
     _searchForNextProblem(maxSearchingTime: Duration.zero);
 
-    DatabaseManager.instance.sendResults(
-        stationReached: roundCount, mvpPlayers: players.bestPlayers);
+    // If it is permitted to send the results to the leaderboard, do it
+    if (_isAllowedToSendResults) {
+      DatabaseManager.instance.sendResults(
+          stationReached: roundCount, mvpPlayers: players.bestPlayers);
+    }
     onRoundIsOver.notifyListeners();
   }
 

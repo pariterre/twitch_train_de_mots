@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
@@ -44,7 +45,6 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
     final dm = DatabaseManager.instance;
 
@@ -90,13 +90,13 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                       },
                     ),
                     const Divider(),
-                    if (cm.useDebugOptions)
-                      ListTile(
-                        title: const Text('Configuration du jeu (dev)'),
-                        onTap: () {
-                          _showGameDevConfiguration(context);
-                        },
-                      ),
+                    ListTile(
+                      leading: const Icon(Icons.settings_applications_sharp),
+                      title: const Text('Configuration avancée'),
+                      onTap: () {
+                        _showGameDevConfiguration(context);
+                      },
+                    ),
                   ],
                 ),
                 Column(
@@ -139,28 +139,6 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           await dm.logOut();
                           if (context.mounted) Navigator.pop(context);
                         }),
-                    if (cm.useDebugOptions)
-                      ListTile(
-                        tileColor: Colors.red,
-                        title: const Text('Réinitialiser la configuration'),
-                        enabled: cm.canChangeProblem,
-                        onTap: () async {
-                          final result = await showDialog<bool?>(
-                              context: context,
-                              builder: (context) => const _AreYouSureDialog(
-                                    title: 'Réinitialiser la configuration',
-                                    message:
-                                        'Êtes-vous sûr de vouloir réinitialiser la configuration?',
-                                    yesTitle: 'Réinitialiser',
-                                  ));
-                          if (result == null || !result) return;
-
-                          cm.resetConfiguration();
-                          tm.reset();
-
-                          if (context.mounted) Navigator.pop(context);
-                        },
-                      ),
                   ],
                 ),
               ],
@@ -222,68 +200,84 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     final cm = ConfigurationManager.instance;
 
     return ParchmentDialog(
-      title: 'Configuration du jeu',
-      width: 800,
-      height: MediaQuery.of(context).size.height * 0.9,
-      padding: const EdgeInsets.only(left: 80.0, right: 50),
-      content: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.65,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const _ColorPickerInputField(
-                  label: 'Choisir la couleur du thème'),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 400,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _FontSizePickerInputField(
-                        label: 'Choisir la taille du thème'),
-                    const SizedBox(height: 12),
-                    _SliderInputField(
-                      label: 'Volume de la musique',
-                      value: cm.musicVolume,
-                      onChanged: (value) => cm.musicVolume = value,
-                      thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
-                    ),
-                    const SizedBox(height: 12),
-                    _SliderInputField(
-                      label: 'Volume des sons',
-                      value: cm.soundVolume,
-                      onChanged: (value) => cm.soundVolume = value,
-                      thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
-                    ),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                        label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
-                        value: cm.showLeaderBoard,
-                        onChanged: (value) => cm.showLeaderBoard = value),
-                    const SizedBox(height: 12),
-                    _BooleanInputField(
-                        label:
-                            'Relancer automatiquement\n(effectif à la prochaine pause)',
-                        value: cm.autoplay,
-                        onChanged: (value) => cm.autoplay = value),
-                    const SizedBox(height: 12),
-                    if (cm.useDebugOptions)
+        title: 'Configuration du jeu',
+        width: 800,
+        height: MediaQuery.of(context).size.height * 0.9,
+        padding: const EdgeInsets.only(left: 80.0, right: 50),
+        content: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.65,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const _ColorPickerInputField(
+                    label: 'Choisir la couleur du thème'),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: 400,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const _FontSizePickerInputField(
+                          label: 'Choisir la taille du thème'),
+                      const SizedBox(height: 12),
+                      _SliderInputField(
+                        label: 'Volume de la musique',
+                        value: cm.musicVolume,
+                        onChanged: (value) => cm.musicVolume = value,
+                        thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
+                      ),
+                      const SizedBox(height: 12),
+                      _SliderInputField(
+                        label: 'Volume des sons',
+                        value: cm.soundVolume,
+                        onChanged: (value) => cm.soundVolume = value,
+                        thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                      ),
+                      const SizedBox(height: 12),
                       _BooleanInputField(
-                          label: 'Montrer les réponses au survol\nde la souris',
-                          value: cm.showAnswersTooltip,
-                          onChanged: (value) => cm.showAnswersTooltip = value),
-                  ],
+                          label:
+                              'Afficher le tableau des cheminot\u00b7e\u00b7s',
+                          value: cm.showLeaderBoard,
+                          onChanged: (value) => cm.showLeaderBoard = value),
+                      const SizedBox(height: 12),
+                      _BooleanInputField(
+                          label:
+                              'Relancer automatiquement\n(effectif à la prochaine pause)',
+                          value: cm.autoplay,
+                          onChanged: (value) => cm.autoplay = value),
+                      const SizedBox(height: 12),
+                      if (cm.useDebugOptions)
+                        _BooleanInputField(
+                            label:
+                                'Montrer les réponses au survol\nde la souris',
+                            value: cm.showAnswersTooltip,
+                            onChanged: (value) =>
+                                cm.showAnswersTooltip = value),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-            ],
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
-      ),
-      acceptButtonTitle: 'Fermer',
-      onAccept: () => Navigator.pop(context),
-    );
+        acceptButtonTitle: 'Fermer',
+        onAccept: () => Navigator.pop(context),
+        cancelButtonTitle: 'Réinitialiser la configuration',
+        onCancel: () async {
+          final result = await showDialog<bool?>(
+              context: context,
+              builder: (context) => const _AreYouSureDialog(
+                    title: 'Réinitialiser la configuration',
+                    message:
+                        'Êtes-vous sûr de vouloir réinitialiser la configuration?',
+                    yesTitle: 'Réinitialiser',
+                  ));
+          if (result == null || !result) return;
+
+          cm.resetConfiguration(advancedOptions: false, userOptions: true);
+        });
   }
 }
 
@@ -392,7 +386,29 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
 }
 
 void _showGameDevConfiguration(BuildContext context) async {
-  showDialog(
+  final pref = await SharedPreferences.getInstance();
+  if (pref.getBool('wasAdvanceSettingWarningShown') != true) {
+    if (!context.mounted) return;
+    await showDialog(
+        context: context,
+        builder: (ctx) => const ParchmentDialog(
+              title: 'Mise en garde',
+              height: 400,
+              width: 500,
+              content: Text('Attention cheminot\u00b7e!\n\n'
+                  'Les options avancées peuvent être amusantes, mais elles peuvent aussi'
+                  's\'avérer dangereuses! Pour cette raison, votre cheminement '
+                  'ne sera pas sauvegardé si vous avez modifié ces options.\n\n'
+                  'Pour revenir aux options de base, vous pouvez cliquer sur '
+                  'le bouton "Réinitialiser la configuration" dans le parchemin de configuration.\n\n'
+                  'Attention : Il est possible que le jeu devienne instable et très lent.'
+                  'Si cela se produit, utilisez la fonction de réinitialisation.'),
+            ));
+    pref.setBool('wasAdvanceSettingWarningShown', true);
+  }
+
+  if (!context.mounted) return;
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       return const _GameDevConfiguration();
@@ -433,7 +449,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
     return PopScope(
       onPopInvoked: (didPop) => cm.finalizeConfigurationChanges(),
       child: ParchmentDialog(
-        title: 'Configuration du jeu (dev)',
+        title: 'Configuration avancée',
         width: 500,
         height: MediaQuery.of(context).size.height * 0.9,
         content: SizedBox(
@@ -528,7 +544,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                   label: 'Période de récupération (secondes)',
                   firstLabel: 'Normale',
                   firstInitialValue: cm.cooldownPeriod.inSeconds.toString(),
-                  secondLabel: 'Voleur',
+                  secondLabel: 'Pénalité voleur',
                   secondInitialValue:
                       cm.cooldownPenaltyAfterSteal.inSeconds.toString(),
                   enableSecond: cm.canSteal,
@@ -548,6 +564,25 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
         ),
         acceptButtonTitle: 'Fermer',
         onAccept: () => Navigator.pop(context),
+        cancelButtonTitle: 'Réinitialiser la configuration',
+        onCancel: cm.canChangeProblem
+            ? () async {
+                final result = await showDialog<bool?>(
+                    context: context,
+                    builder: (context) => const _AreYouSureDialog(
+                          title: 'Réinitialiser la configuration',
+                          message:
+                              'Êtes-vous sûr de vouloir réinitialiser la configuration?',
+                          yesTitle: 'Réinitialiser',
+                        ));
+                if (result == null || !result) return;
+
+                cm.resetConfiguration(
+                    advancedOptions: true, userOptions: false);
+
+                if (context.mounted) Navigator.pop(context);
+              }
+            : null,
       ),
     );
   }

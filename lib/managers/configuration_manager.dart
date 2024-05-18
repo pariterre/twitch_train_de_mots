@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/difficulty.dart';
@@ -217,6 +218,19 @@ class ConfigurationManager {
                 'Les étoiles scintillent maintenant dans le ciel de nuit!'),
       ],
     ),
+    ReleaseNotes(
+      version: '0.4.0',
+      codeName: 'Liberté',
+      notes:
+          'Certains ont demandé de pouvoir modifier les règles du jeu, et bien soit! Modifions!',
+      features: [
+        FeatureNotes(
+            description:
+                'Les options de débogue sont rendues disponible pour le bonheur et le plaisir de tous!',
+            userWhoRequested: 'NgthmrTV',
+            urlOfUserWhoRequested: 'https://twitch.tv/ngthmrtv'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
@@ -368,6 +382,7 @@ class ConfigurationManager {
     if (_nbLetterInSmallestWord == value) return;
     _nbLetterInSmallestWord = value;
 
+    _tellGameManagerToRepickProblem();
     _saveConfiguration();
   }
 
@@ -436,6 +451,23 @@ class ConfigurationManager {
     _soundVolume = value;
     onSoundChanged.notifyListeners();
     _saveConfiguration();
+  }
+
+  bool get isAllowedToSendResults {
+    return _nbLetterInSmallestWord == _nbLetterInSmallestWordDefault &&
+        _minimumWordLetter == _minimumWordLetterDefault &&
+        _maximumWordLetter == _maximumWordLetterDefault &&
+        _minimumWordsNumber == _minimumWordsNumberDefault &&
+        _maximumWordsNumber == _maximumWordsNumberDefault &&
+        _roundDuration.inSeconds == _roundDurationDefault &&
+        _postRoundGracePeriodDuration.inSeconds ==
+            _postRoundGracePeriodDurationDefault &&
+        _cooldownPeriod.inSeconds == _cooldownPeriodDefault &&
+        _cooldownPenaltyAfterSteal.inSeconds ==
+            _cooldownPenaltyAfterStealDefault &&
+        _timeBeforeScramblingLetters.inSeconds ==
+            _timeBeforeScramblingLettersDefault &&
+        _canSteal == _canStealDefault;
   }
 
   //// LISTEN TO GAME MANAGER ////
@@ -544,39 +576,47 @@ class ConfigurationManager {
 
   ///
   /// Reset the configuration to the default values
-  void resetConfiguration() {
-    _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
+  void resetConfiguration(
+      {required bool advancedOptions, required bool userOptions}) {
+    if (userOptions) {
+      _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
 
-    _autoplay = _autoplayDefault;
-    _shouldShowAutoplayDialog = _shouldShowAutoplayDialogDefault;
-    _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
+      _autoplay = _autoplayDefault;
+      _shouldShowAutoplayDialog = _shouldShowAutoplayDialogDefault;
+      _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
 
-    _showAnswersTooltip = _showAnswersTooltipDefault;
-    _showLeaderBoard = _showLeaderBoardDefault;
+      _showAnswersTooltip = _showAnswersTooltipDefault;
+      _showLeaderBoard = _showLeaderBoardDefault;
 
-    _roundDuration = const Duration(seconds: _roundDurationDefault);
-    _postRoundGracePeriodDuration =
-        const Duration(seconds: _postRoundGracePeriodDurationDefault);
-    _postRoundShowCaseDuration =
-        const Duration(seconds: _postRoundShowCaseDurationDefault);
-    _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
-    _cooldownPenaltyAfterSteal =
-        const Duration(seconds: _cooldownPenaltyAfterStealDefault);
-    _timeBeforeScramblingLetters =
-        const Duration(seconds: _timeBeforeScramblingLettersDefault);
+      _musicVolume = _musicVolumeDefault;
+      _soundVolume = _soundVolumeDefault;
 
-    _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
-    _minimumWordLetter = _minimumWordLetterDefault;
-    _maximumWordLetter = _maximumWordLetterDefault;
-    _minimumWordsNumber = _minimumWordsNumberDefault;
-    _maximumWordsNumber = _maximumWordsNumberDefault;
+      ThemeManager.instance.reset();
+    }
 
-    _canSteal = _canStealDefault;
+    if (advancedOptions) {
+      _nbLetterInSmallestWord = _nbLetterInSmallestWordDefault;
+      _minimumWordLetter = _minimumWordLetterDefault;
+      _maximumWordLetter = _maximumWordLetterDefault;
+      _minimumWordsNumber = _minimumWordsNumberDefault;
+      _maximumWordsNumber = _maximumWordsNumberDefault;
 
-    _musicVolume = _musicVolumeDefault;
-    _soundVolume = _soundVolumeDefault;
+      _roundDuration = const Duration(seconds: _roundDurationDefault);
+      _postRoundGracePeriodDuration =
+          const Duration(seconds: _postRoundGracePeriodDurationDefault);
+      _postRoundShowCaseDuration =
+          const Duration(seconds: _postRoundShowCaseDurationDefault);
+      _timeBeforeScramblingLetters =
+          const Duration(seconds: _timeBeforeScramblingLettersDefault);
+      _canSteal = _canStealDefault;
+      _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
+      _cooldownPenaltyAfterSteal =
+          const Duration(seconds: _cooldownPenaltyAfterStealDefault);
 
-    _tellGameManagerToRepickProblem();
+      _tellGameManagerToRepickProblem();
+      finalizeConfigurationChanges();
+    }
+
     _saveConfiguration();
   }
 
