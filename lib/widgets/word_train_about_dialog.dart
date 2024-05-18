@@ -36,25 +36,28 @@ class WordTrainAboutDialog extends StatelessWidget {
                   const SizedBox(width: 8.0),
                   Flexible(
                     child: RichText(
-                        text: TextSpan(children: [
-                      TextSpan(text: feature.description),
-                      if (feature.userWhoRequested != null)
-                        TextSpan(children: [
-                          const TextSpan(text: ' (proposé par '),
-                          TextSpan(
-                              text: feature.userWhoRequested!,
-                              style:
-                                  const TextStyle(fontStyle: FontStyle.italic),
-                              recognizer: feature.urlOfUserWhoRequested == null
-                                  ? null
-                                  : (TapGestureRecognizer()
-                                    ..onTap = () {
-                                      launchUrl(Uri.parse(
-                                          feature.urlOfUserWhoRequested!));
-                                    })),
-                          const TextSpan(text: ')'),
-                        ]),
-                    ])),
+                        text: TextSpan(
+                            style: const TextStyle(color: Colors.black),
+                            children: [
+                          TextSpan(text: feature.description),
+                          if (feature.userWhoRequested != null)
+                            TextSpan(children: [
+                              const TextSpan(text: ' (proposé par '),
+                              TextSpan(
+                                  text: feature.userWhoRequested!,
+                                  style: const TextStyle(
+                                      fontStyle: FontStyle.italic),
+                                  recognizer: feature.urlOfUserWhoRequested ==
+                                          null
+                                      ? null
+                                      : (TapGestureRecognizer()
+                                        ..onTap = () {
+                                          launchUrl(Uri.parse(
+                                              feature.urlOfUserWhoRequested!));
+                                        })),
+                              const TextSpan(text: ')'),
+                            ]),
+                        ])),
                   ),
                 ],
               ),
