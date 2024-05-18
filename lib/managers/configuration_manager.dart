@@ -234,6 +234,20 @@ class ConfigurationManager {
             urlOfUserWhoRequested: 'https://twitch.tv/NghtmrTV'),
       ],
     ),
+    ReleaseNotes(
+      version: '1.0.0',
+      codeName: 'Un peu plus haut, un peu plus loin',
+      notes:
+          'Le Petit train du Nord se sent mature et désire est enfin considéré comme '
+          'quelque chose comme un grand train!',
+      features: [
+        FeatureNotes(
+          description:
+              'Plusieurs options débogueurs sont maintenant incluses dans la '
+              'progression de difficulté du jeu.',
+        ),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
