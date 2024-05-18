@@ -26,8 +26,6 @@ const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
 
-const _minimumWordLetterDefault = 6;
-const _maximumWordLetterDefault = 10;
 const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
@@ -381,28 +379,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _minimumWordLetter = _minimumWordLetterDefault;
-  int get minimumWordLetter => _minimumWordLetter;
-  set minimumWordLetter(int value) {
-    if (_minimumWordLetter == value) return;
-    if (value > maximumWordLetter) return;
-    _minimumWordLetter = value;
-
-    _tellGameManagerToRepickProblem();
-    _saveConfiguration();
-  }
-
-  int _maximumWordLetter = _maximumWordLetterDefault;
-  int get maximumWordLetter => _maximumWordLetter;
-  set maximumWordLetter(int value) {
-    if (_maximumWordLetter == value) return;
-    if (value < minimumWordLetter) return;
-    _maximumWordLetter = value;
-
-    _tellGameManagerToRepickProblem();
-    _saveConfiguration();
-  }
-
   int _minimumWordsNumber = _minimumWordsNumberDefault;
   int get minimumWordsNumber => _minimumWordsNumber;
   set minimumWordsNumber(int value) {
@@ -456,9 +432,7 @@ class ConfigurationManager {
   }
 
   bool get isAllowedToSendResults {
-    return _minimumWordLetter == _minimumWordLetterDefault &&
-        _maximumWordLetter == _maximumWordLetterDefault &&
-        _minimumWordsNumber == _minimumWordsNumberDefault &&
+    return _minimumWordsNumber == _minimumWordsNumberDefault &&
         _maximumWordsNumber == _maximumWordsNumberDefault &&
         _roundDuration.inSeconds == _roundDurationDefault &&
         _postRoundGracePeriodDuration.inSeconds ==
@@ -500,8 +474,6 @@ class ConfigurationManager {
       'cooldownPeriod': cooldownPeriod.inSeconds,
       'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
       'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
-      'minimumWordLetter': minimumWordLetter,
-      'maximumWordLetter': maximumWordLetter,
       'minimumWordsNumber': minimumWordsNumber,
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
@@ -556,10 +528,6 @@ class ConfigurationManager {
           seconds: map['timeBeforeScramblingLetters'] ??
               _timeBeforeScramblingLettersDefault);
 
-      _minimumWordLetter =
-          map['minimumWordLetter'] ?? _minimumWordLetterDefault;
-      _maximumWordLetter =
-          map['maximumWordLetter'] ?? _maximumWordLetterDefault;
       _minimumWordsNumber =
           map['minimumWordsNumber'] ?? _minimumWordsNumberDefault;
       _maximumWordsNumber =
@@ -597,8 +565,6 @@ class ConfigurationManager {
     }
 
     if (advancedOptions) {
-      _minimumWordLetter = _minimumWordLetterDefault;
-      _maximumWordLetter = _maximumWordLetterDefault;
       _minimumWordsNumber = _minimumWordsNumberDefault;
       _maximumWordsNumber = _maximumWordsNumberDefault;
 
@@ -630,6 +596,8 @@ class ConfigurationManager {
       // Levels 1, 2 and 3
       return const Difficulty(
         nbLettersOfShortestWord: 4,
+        nbLettersMinToDraw: 6,
+        nbLettersMaxToDraw: 7,
         thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
@@ -640,6 +608,8 @@ class ConfigurationManager {
       // Levels 4, 5 and 6
       return const Difficulty(
         nbLettersOfShortestWord: 4,
+        nbLettersMinToDraw: 6,
+        nbLettersMaxToDraw: 10,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -654,6 +624,8 @@ class ConfigurationManager {
       // Levels 7, 8 and 9
       return const Difficulty(
         nbLettersOfShortestWord: 4,
+        nbLettersMinToDraw: 6,
+        nbLettersMaxToDraw: 10,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -669,6 +641,8 @@ class ConfigurationManager {
       // Levels 10, 11 and 12
       return const Difficulty(
         nbLettersOfShortestWord: 4,
+        nbLettersMinToDraw: 6,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -686,6 +660,8 @@ class ConfigurationManager {
       // Levels 13, 14 and 15
       return const Difficulty(
         nbLettersOfShortestWord: 4,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
@@ -703,6 +679,8 @@ class ConfigurationManager {
       // Levels 16, 17 and 18
       return const Difficulty(
         nbLettersOfShortestWord: 5,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
@@ -721,6 +699,8 @@ class ConfigurationManager {
       // Levels 19, 20 and 21
       return const Difficulty(
         nbLettersOfShortestWord: 5,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.7,
         thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.95,
@@ -736,6 +716,8 @@ class ConfigurationManager {
       // Levels 22, 23 and 24
       return const Difficulty(
         nbLettersOfShortestWord: 5,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,
@@ -752,6 +734,8 @@ class ConfigurationManager {
       // Levels 25 and more
       return const Difficulty(
         nbLettersOfShortestWord: 6,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,

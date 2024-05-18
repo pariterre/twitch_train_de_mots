@@ -460,21 +460,6 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _DoubleIntegerInputField(
-                  label: 'Nombre de lettres à piger',
-                  firstLabel: 'Minimum',
-                  firstInitialValue: cm.minimumWordLetter.toString(),
-                  secondLabel: 'Maximum',
-                  secondInitialValue: cm.maximumWordLetter.toString(),
-                  onChanged: (mininum, maximum) {
-                    cm.minimumWordLetter = mininum;
-                    cm.maximumWordLetter = maximum;
-                  },
-                  enabled: cm.canChangeProblem,
-                  disabledTooltip: 'Le nombre de lettres à piger ne peut pas\n'
-                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
-                ),
-                const SizedBox(height: 12),
-                _DoubleIntegerInputField(
                   label: 'Nombre de mots à trouver',
                   firstLabel: 'Minimum',
                   firstInitialValue: cm.minimumWordsNumber.toString(),

@@ -236,8 +236,8 @@ class GameManager {
       } else {
         _nextProblems.add(await cm.problemGenerator(
           nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
-          minLetters: cm.minimumWordLetter,
-          maxLetters: cm.maximumWordLetter,
+          minLetters: difficulty.nbLettersMinToDraw,
+          maxLetters: difficulty.nbLettersMaxToDraw,
           minimumNbOfWords: cm.minimumWordsNumber,
           maximumNbOfWords: cm.maximumWordsNumber,
           addUselessLetter: difficulty.hasUselessLetter,

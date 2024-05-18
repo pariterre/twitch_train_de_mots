@@ -10,11 +10,15 @@ class Difficulty {
   final int revealHiddenLetterAtTimeLeft;
 
   final int nbLettersOfShortestWord;
+  final int nbLettersMinToDraw;
+  final int nbLettersMaxToDraw;
 
   final String? message;
 
   const Difficulty({
     required this.nbLettersOfShortestWord,
+    required this.nbLettersMinToDraw,
+    required this.nbLettersMaxToDraw,
     required this.thresholdFactorOneStar,
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
@@ -29,6 +33,8 @@ class Difficulty {
     if (identical(this, other)) return true;
 
     return hasUselessLetter == other.hasUselessLetter &&
-        nbLettersOfShortestWord == other.nbLettersOfShortestWord;
+        nbLettersOfShortestWord == other.nbLettersOfShortestWord &&
+        nbLettersMinToDraw == other.nbLettersMinToDraw &&
+        nbLettersMaxToDraw == other.nbLettersMaxToDraw;
   }
 }
