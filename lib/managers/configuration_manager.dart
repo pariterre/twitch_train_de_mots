@@ -441,7 +441,6 @@ class ConfigurationManager {
   double get soundVolume => _soundVolume;
   set soundVolume(double value) {
     _soundVolume = value;
-    onSoundChanged.notifyListeners();
     _saveConfiguration();
   }
 

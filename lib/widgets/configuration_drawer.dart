@@ -232,6 +232,8 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                         label: 'Volume des sons',
                         value: cm.soundVolume,
                         onChanged: (value) => cm.soundVolume = value,
+                        onChangedEnd: (value) =>
+                            cm.onSoundChanged.notifyListeners(),
                         thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
                       ),
                       const SizedBox(height: 12),
@@ -763,6 +765,7 @@ class _SliderInputField extends StatelessWidget {
     this.divisions = 100,
     required this.thumbLabel,
     required this.onChanged,
+    this.onChangedEnd,
   });
 
   final String label;
@@ -771,7 +774,8 @@ class _SliderInputField extends StatelessWidget {
   final double max;
   final int divisions;
   final String thumbLabel;
-  final Function(double) onChanged;
+  final Function(double)? onChanged;
+  final Function(double)? onChangedEnd;
 
   @override
   Widget build(BuildContext context) {
@@ -788,6 +792,7 @@ class _SliderInputField extends StatelessWidget {
           Slider(
             value: value,
             onChanged: onChanged,
+            onChangeEnd: onChangedEnd,
             min: min,
             max: max,
             divisions: divisions,

@@ -2,18 +2,22 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 
 class SoundManager {
   final _gameMusic = AudioPlayer();
 
-  final _roundStarted = AudioPlayer();
-  final _telegramReceived = AudioPlayer();
-  final _lettersScrambling = AudioPlayer();
-  final _roundIsOver = AudioPlayer();
+  Future<AudioPlayer> get _soundEffect async {
+    final audio = AudioPlayer();
+    audio.onPlayerComplete.listen((event) {
+      audio.dispose();
+    });
 
-  final _normalSolutionFound = AudioPlayer();
-  final _bestSolutionFound = AudioPlayer();
-  final _trainReachedStation = AudioPlayer();
+    final cm = ConfigurationManager.instance;
+    await audio.setVolume(cm.soundVolume);
+
+    return audio;
+  }
 
   /// Declare the singleton
   static SoundManager get instance {
@@ -65,52 +69,36 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    final cm = ConfigurationManager.instance;
-
-    await _roundStarted.play(AssetSource('sounds/GameStarted.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/GameStarted.mp3'));
   }
 
   Future<void> _onLettersScrambled() async {
-    final cm = ConfigurationManager.instance;
-    _lettersScrambling.play(AssetSource('sounds/LettersScrambling.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/LettersScrambling.mp3'));
   }
 
   Future<void> _onRoundIsOver() async {
-    final cm = ConfigurationManager.instance;
-    _roundIsOver.play(AssetSource('sounds/RoundIsOver.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/RoundIsOver.mp3'));
   }
 
-  Future<void> _onSolutionFound(solution) async {
+  Future<void> _onSolutionFound(WordSolution solution) async {
     final gm = GameManager.instance;
-    final cm = ConfigurationManager.instance;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      _bestSolutionFound.play(AssetSource('sounds/BestSolutionFound.mp3'),
-          volume: cm.soundVolume);
+      (await _soundEffect).play(AssetSource('sounds/BestSolutionFound.mp3'));
     } else {
-      _normalSolutionFound.play(AssetSource('sounds/SolutionFound.mp3'),
-          volume: cm.soundVolume);
+      (await _soundEffect).play(AssetSource('sounds/SolutionFound.mp3'));
     }
   }
 
   Future<void> playTelegramReceived() async {
-    final cm = ConfigurationManager.instance;
-    _telegramReceived.play(AssetSource('sounds/TelegramReceived.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/TelegramReceived.mp3'));
   }
 
   Future<void> playTrainReachedStation() async {
-    final cm = ConfigurationManager.instance;
-    _trainReachedStation.play(AssetSource('sounds/TrainReachedStation.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/TrainReachedStation.mp3'));
   }
 
   Future<void> playTrainLostStation() async {
-    final cm = ConfigurationManager.instance;
-    _trainReachedStation.play(AssetSource('sounds/TrainLostStation.mp3'),
-        volume: cm.soundVolume);
+    (await _soundEffect).play(AssetSource('sounds/TrainLostStation.mp3'));
   }
 }
