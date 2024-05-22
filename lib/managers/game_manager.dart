@@ -230,7 +230,8 @@ class GameManager {
       // The first element is always the first level (in case of a restart of the game)
       // The others depend on the current round count
       final difficulty = cm.difficulty(i == 0 ? 0 : _roundCount + i);
-      final previousDifficulty = cm.difficulty(_roundCount + i - 1);
+      final previousDifficulty =
+          cm.difficulty(i <= 1 ? 0 : _roundCount + i - 1);
 
       if (i != 0 &&
           difficulty.hasSameRulesForPickingLetters(previousDifficulty)) {
