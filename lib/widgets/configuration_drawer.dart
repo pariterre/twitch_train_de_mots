@@ -461,6 +461,15 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
+                Tooltip(
+                  message:
+                      'Activer cette option empêche l\'envoi de vos résultats au tableau d\'honneur',
+                  child: _BooleanInputField(
+                      label: 'Utiliser les paramètres avancés',
+                      value: cm.useCustomAdvancedOptions,
+                      onChanged: (value) =>
+                          cm.useCustomAdvancedOptions = value),
+                ),
                 _DoubleIntegerInputField(
                   label: 'Nombre de mots à trouver',
                   firstLabel: 'Minimum',
@@ -471,9 +480,11 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                     cm.minimumWordsNumber = mininum;
                     cm.maximumWordsNumber = maximum;
                   },
-                  enabled: cm.canChangeProblem,
-                  disabledTooltip: 'Le nombre de mots à trouver ne peut pas\n'
-                      'être changé en cours de partie ou lorsque le jeu cherche un mot',
+                  enabled: cm.useCustomAdvancedOptions && cm.canChangeProblem,
+                  disabledTooltip: cm.useCustomAdvancedOptions
+                      ? 'Le nombre de mots à trouver ne peut pas\n'
+                          'être changé en cours de partie ou lorsque le jeu cherche un mot'
+                      : '',
                 ),
                 const SizedBox(height: 12),
                 _IntegerInputField(
@@ -481,9 +492,10 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                   initialValue: cm.roundDuration.inSeconds.toString(),
                   onChanged: (value) =>
                       cm.roundDuration = Duration(seconds: value),
-                  enabled: cm.canChangeDurations,
-                  disabledTooltip:
-                      'La durée d\'une manche ne peut pas être changée en cours de partie',
+                  enabled: cm.useCustomAdvancedOptions && cm.canChangeDurations,
+                  disabledTooltip: cm.useCustomAdvancedOptions
+                      ? 'La durée d\'une manche ne peut pas être changée en cours de partie'
+                      : '',
                 ),
                 const SizedBox(height: 12),
                 _DoubleIntegerInputField(
@@ -498,9 +510,10 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                     cm.postRoundGracePeriodDuration = Duration(seconds: first);
                     cm.postRoundShowCaseDuration = Duration(seconds: second);
                   },
-                  enabled: cm.canChangeDurations,
-                  disabledTooltip:
-                      'La durée d\'une manche ne peut pas être changée en cours de partie',
+                  enabled: cm.useCustomAdvancedOptions && cm.canChangeDurations,
+                  disabledTooltip: cm.useCustomAdvancedOptions
+                      ? 'La durée d\'une manche ne peut pas être changée en cours de partie'
+                      : '',
                 ),
                 const SizedBox(height: 12),
                 _IntegerInputField(
@@ -509,13 +522,14 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                       cm.timeBeforeScramblingLetters.inSeconds.toString(),
                   onChanged: (value) =>
                       cm.timeBeforeScramblingLetters = Duration(seconds: value),
+                  enabled: cm.useCustomAdvancedOptions,
                 ),
                 const SizedBox(height: 12),
                 _BooleanInputField(
-                  label: 'Voler un mot est permis',
-                  value: cm.canSteal,
-                  onChanged: (value) => cm.canSteal = value,
-                ),
+                    label: 'Voler un mot est permis',
+                    value: cm.canSteal,
+                    onChanged: (value) => cm.canSteal = value,
+                    enabled: cm.useCustomAdvancedOptions),
                 const SizedBox(height: 12),
                 _DoubleIntegerInputField(
                   label: 'Période de récupération (secondes)',
@@ -524,12 +538,12 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                   secondLabel: 'Pénalité voleur',
                   secondInitialValue:
                       cm.cooldownPenaltyAfterSteal.inSeconds.toString(),
-                  enableSecond: cm.canSteal,
+                  enableSecond: cm.useCustomAdvancedOptions && cm.canSteal,
                   onChanged: (normal, stealer) {
                     cm.cooldownPeriod = Duration(seconds: normal);
                     cm.cooldownPenaltyAfterSteal = Duration(seconds: stealer);
                   },
-                  enabled: cm.canChangeDurations,
+                  enabled: cm.useCustomAdvancedOptions && cm.canChangeDurations,
                   disabledTooltip:
                       'Les périodes de récupération ne peuvent pas être\n'
                       'changées en cours de partie',
@@ -539,6 +553,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                   label: 'Une seule station par manche',
                   value: cm.oneStationMaxPerRound,
                   onChanged: (value) => cm.oneStationMaxPerRound = value,
+                  enabled: cm.useCustomAdvancedOptions,
                 ),
                 const SizedBox(height: 24),
               ],
@@ -548,6 +563,9 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
         acceptButtonTitle: 'Fermer',
         onAccept: () => Navigator.pop(context),
         cancelButtonTitle: 'Réinitialiser la configuration',
+        cancelButtonDisabledTooltip:
+            'La configuration avancée ne peut pas être réinitialisée\n'
+            'en cours de partie',
         onCancel: cm.canChangeProblem
             ? () async {
                 final result = await showDialog<bool?>(
@@ -721,28 +739,36 @@ class _DoubleIntegerInputFieldState extends State<_DoubleIntegerInputField> {
 }
 
 class _BooleanInputField extends StatelessWidget {
-  const _BooleanInputField(
-      {required this.label, required this.value, required this.onChanged});
+  const _BooleanInputField({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+  });
   final String label;
   final bool value;
   final Function(bool) onChanged;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
-        onTap: () => onChanged(!value),
+        onTap: enabled ? () => onChanged(!value) : null,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
             Checkbox(
               value: value,
-              onChanged: (_) => onChanged(!value),
+              onChanged: enabled ? (_) => onChanged(!value) : null,
               fillColor: MaterialStateProperty.resolveWith((state) {
+                if (state.contains(MaterialState.disabled)) {
+                  return Colors.grey;
+                }
                 if (state.contains(MaterialState.selected)) {
                   return tm.backgroundColorDark;
                 }

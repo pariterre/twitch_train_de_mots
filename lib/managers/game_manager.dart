@@ -59,7 +59,8 @@ class GameManager {
   bool _hasPlayedAtLeastOnce = false;
   bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
   bool _forceEndTheRound = false;
-  bool _isAllowedToSendResults = true;
+  late bool _isAllowedToSendResults =
+      !ConfigurationManager.instance.useCustomAdvancedOptions;
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   /// ----------- ///
@@ -175,7 +176,9 @@ class GameManager {
   }
 
   static GameManager? _instance;
-  GameManager._internal();
+  GameManager._internal() {
+    ConfigurationManager.instance.onChanged.addListener(_checkForInvalidRules);
+  }
 
   ///
   /// This is a method to tell the game manager that the rules have changed and
@@ -201,7 +204,7 @@ class GameManager {
   /// are valid now).
   void _checkForInvalidRules() {
     _isAllowedToSendResults = _isAllowedToSendResults &&
-        ConfigurationManager.instance.isAllowedToSendResults;
+        !ConfigurationManager.instance.useCustomAdvancedOptions;
   }
 
   ///
@@ -255,7 +258,6 @@ class GameManager {
     if (onShowMessage == null) {
       throw Exception('onShowMessage must be set before starting the game');
     }
-    ConfigurationManager.instance.onChanged.addListener(_checkForInvalidRules);
     _gameStatus = GameStatus.roundPreparing;
   }
 
@@ -410,7 +412,7 @@ class GameManager {
     _roundCount = 0;
     _successLevel = SuccessLevel.failed;
     _isAllowedToSendResults =
-        ConfigurationManager.instance.isAllowedToSendResults;
+        !ConfigurationManager.instance.useCustomAdvancedOptions;
     players.clear();
   }
 

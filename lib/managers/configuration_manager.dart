@@ -12,6 +12,8 @@ import 'package:train_de_mots/models/release_notes.dart';
 
 const String _lastReleaseNotesShownDefault = '';
 
+const _useCustomAdvancedOptionsDefault = false;
+
 const _autoplayDefault = true;
 const _shouldShowAutoplayDialogDefault = false;
 const _autoplayDurationDefault = 25;
@@ -311,6 +313,14 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  bool _useCustomAdvancedOptions = _useCustomAdvancedOptionsDefault;
+  bool get useCustomAdvancedOptions => _useCustomAdvancedOptions;
+  set useCustomAdvancedOptions(bool value) {
+    _useCustomAdvancedOptions = value;
+
+    _saveConfiguration();
+  }
+
   bool _autoplay = _autoplayDefault;
   bool get autoplay => _autoplay;
   set autoplay(bool value) {
@@ -348,7 +358,9 @@ class ConfigurationManager {
   }
 
   Duration _roundDuration = const Duration(seconds: _roundDurationDefault);
-  Duration get roundDuration => _roundDuration;
+  Duration get roundDuration => useCustomAdvancedOptions
+      ? _roundDuration
+      : const Duration(seconds: _roundDurationDefault);
   set roundDuration(Duration value) {
     _roundDuration = value;
     _saveConfiguration();
@@ -356,7 +368,9 @@ class ConfigurationManager {
 
   Duration _postRoundGracePeriodDuration =
       const Duration(seconds: _postRoundGracePeriodDurationDefault);
-  Duration get postRoundGracePeriodDuration => _postRoundGracePeriodDuration;
+  Duration get postRoundGracePeriodDuration => useCustomAdvancedOptions
+      ? _postRoundGracePeriodDuration
+      : const Duration(seconds: _postRoundGracePeriodDurationDefault);
   set postRoundGracePeriodDuration(Duration value) {
     _postRoundGracePeriodDuration = value;
     _saveConfiguration();
@@ -364,14 +378,18 @@ class ConfigurationManager {
 
   Duration _postRoundShowCaseDuration =
       const Duration(seconds: _postRoundShowCaseDurationDefault);
-  Duration get postRoundShowCaseDuration => _postRoundShowCaseDuration;
+  Duration get postRoundShowCaseDuration => useCustomAdvancedOptions
+      ? _postRoundShowCaseDuration
+      : const Duration(seconds: _postRoundShowCaseDurationDefault);
   set postRoundShowCaseDuration(Duration value) {
     _postRoundShowCaseDuration = value;
     _saveConfiguration();
   }
 
   Duration _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
-  Duration get cooldownPeriod => _cooldownPeriod;
+  Duration get cooldownPeriod => useCustomAdvancedOptions
+      ? _cooldownPeriod
+      : const Duration(seconds: _cooldownPeriodDefault);
   set cooldownPeriod(Duration value) {
     _cooldownPeriod = value;
     _saveConfiguration();
@@ -379,7 +397,9 @@ class ConfigurationManager {
 
   Duration _cooldownPenaltyAfterSteal =
       const Duration(seconds: _cooldownPenaltyAfterStealDefault);
-  Duration get cooldownPenaltyAfterSteal => _cooldownPenaltyAfterSteal;
+  Duration get cooldownPenaltyAfterSteal => useCustomAdvancedOptions
+      ? _cooldownPenaltyAfterSteal
+      : const Duration(seconds: _cooldownPenaltyAfterStealDefault);
   set cooldownPenaltyAfterSteal(Duration value) {
     _cooldownPenaltyAfterSteal = value;
     _saveConfiguration();
@@ -387,14 +407,18 @@ class ConfigurationManager {
 
   Duration _timeBeforeScramblingLetters =
       const Duration(seconds: _timeBeforeScramblingLettersDefault);
-  Duration get timeBeforeScramblingLetters => _timeBeforeScramblingLetters;
+  Duration get timeBeforeScramblingLetters => useCustomAdvancedOptions
+      ? _timeBeforeScramblingLetters
+      : const Duration(seconds: _timeBeforeScramblingLettersDefault);
   set timeBeforeScramblingLetters(Duration value) {
     _timeBeforeScramblingLetters = value;
     _saveConfiguration();
   }
 
   int _minimumWordsNumber = _minimumWordsNumberDefault;
-  int get minimumWordsNumber => _minimumWordsNumber;
+  int get minimumWordsNumber => useCustomAdvancedOptions
+      ? _minimumWordsNumber
+      : _minimumWordsNumberDefault;
   set minimumWordsNumber(int value) {
     if (_minimumWordsNumber == value) return;
     if (value > maximumWordsNumber) return;
@@ -405,7 +429,9 @@ class ConfigurationManager {
   }
 
   int _maximumWordsNumber = _maximumWordsNumberDefault;
-  int get maximumWordsNumber => _maximumWordsNumber;
+  int get maximumWordsNumber => useCustomAdvancedOptions
+      ? _maximumWordsNumber
+      : _maximumWordsNumberDefault;
   set maximumWordsNumber(int value) {
     if (_maximumWordsNumber == value) return;
     if (value < minimumWordsNumber) return;
@@ -416,14 +442,16 @@ class ConfigurationManager {
   }
 
   bool _canSteal = _canStealDefault;
-  bool get canSteal => _canSteal;
+  bool get canSteal => useCustomAdvancedOptions ? _canSteal : _canStealDefault;
   set canSteal(bool value) {
     _canSteal = value;
     _saveConfiguration();
   }
 
   bool _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
-  bool get oneStationMaxPerRound => _oneStationMaxPerRound;
+  bool get oneStationMaxPerRound => useCustomAdvancedOptions
+      ? _oneStationMaxPerRound
+      : _oneStationMaxPerRoundDefault;
   set oneStationMaxPerRound(bool value) {
     _oneStationMaxPerRound = value;
     _saveConfiguration();
@@ -444,21 +472,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  bool get isAllowedToSendResults {
-    return _minimumWordsNumber == _minimumWordsNumberDefault &&
-        _maximumWordsNumber == _maximumWordsNumberDefault &&
-        _roundDuration.inSeconds == _roundDurationDefault &&
-        _postRoundGracePeriodDuration.inSeconds ==
-            _postRoundGracePeriodDurationDefault &&
-        _cooldownPeriod.inSeconds == _cooldownPeriodDefault &&
-        _cooldownPenaltyAfterSteal.inSeconds ==
-            _cooldownPenaltyAfterStealDefault &&
-        _timeBeforeScramblingLetters.inSeconds ==
-            _timeBeforeScramblingLettersDefault &&
-        _canSteal == _canStealDefault &&
-        _oneStationMaxPerRound == _oneStationMaxPerRoundDefault;
-  }
-
   //// LISTEN TO GAME MANAGER ////
   void _listenToGameManagerEvents() {
     final gm = GameManager.instance;
@@ -477,6 +490,7 @@ class ConfigurationManager {
   Map<String, dynamic> serialize() {
     return {
       'lastReleaseNotesShown': lastReleaseNotesShown,
+      'useDefaultAdvancedOptions': _useCustomAdvancedOptions,
       'autoplay': autoplay,
       'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
       'autoplayDuration': autoplayDuration.inSeconds,
@@ -511,6 +525,9 @@ class ConfigurationManager {
     final data = prefs.getString('gameConfiguration');
     if (data != null) {
       final map = jsonDecode(data);
+
+      _useCustomAdvancedOptions =
+          map['useDefaultAdvancedOptions'] ?? _useCustomAdvancedOptionsDefault;
 
       _lastReleaseNotesShown =
           map['lastReleaseNotesShown'] ?? _lastReleaseNotesShownDefault;
@@ -578,6 +595,8 @@ class ConfigurationManager {
     }
 
     if (advancedOptions) {
+      _useCustomAdvancedOptions = _useCustomAdvancedOptionsDefault;
+
       _minimumWordsNumber = _minimumWordsNumberDefault;
       _maximumWordsNumber = _maximumWordsNumberDefault;
 

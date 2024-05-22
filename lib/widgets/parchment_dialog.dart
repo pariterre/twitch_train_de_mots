@@ -14,7 +14,8 @@ class ParchmentDialog extends StatefulWidget {
     this.acceptButtonTitle = 'OK',
     this.autoAcceptDuration,
     this.onCancel,
-    this.cancelButtonTitle = 'Annuler',
+    this.cancelButtonTitle,
+    this.cancelButtonDisabledTooltip = '',
   });
 
   final String title;
@@ -27,7 +28,8 @@ class ParchmentDialog extends StatefulWidget {
   final Function()? onAccept;
   final Duration? autoAcceptDuration;
 
-  final String cancelButtonTitle;
+  final String? cancelButtonTitle;
+  final String cancelButtonDisabledTooltip;
   final Function()? onCancel;
 
   @override
@@ -93,19 +95,24 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (widget.onCancel != null)
-                            TextButton(
-                              onPressed: widget.onCancel,
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5.0),
+                          if (widget.cancelButtonTitle != null)
+                            Tooltip(
+                              message: widget.onCancel == null
+                                  ? widget.cancelButtonDisabledTooltip
+                                  : '',
+                              child: TextButton(
+                                onPressed: widget.onCancel,
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5.0),
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                widget.cancelButtonTitle,
-                                style: const TextStyle(color: Colors.black),
+                                child: Text(
+                                  widget.cancelButtonTitle!,
+                                  style: const TextStyle(color: Colors.black),
+                                ),
                               ),
                             ),
                           if (widget.onAccept != null)
