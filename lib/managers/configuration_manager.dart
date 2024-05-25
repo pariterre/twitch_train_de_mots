@@ -713,9 +713,9 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
-        thresholdFactorOneStar: 0.65,
-        thresholdFactorTwoStars: 0.75,
-        thresholdFactorThreeStars: 0.9,
+        thresholdFactorOneStar: 0.35,
+        thresholdFactorTwoStars: 0.5,
+        thresholdFactorThreeStars: 0.75,
         message:
             'Ô malheur cheminot\u00b7e\u00b7s! Le carburant se raréfie et les '
             'et les réserves s\'épuisent... Nous ne pouvons plus nous permettre '
@@ -733,16 +733,16 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
-        thresholdFactorOneStar: 0.7,
-        thresholdFactorTwoStars: 0.85,
-        thresholdFactorThreeStars: 0.95,
+        thresholdFactorOneStar: 0.5,
+        thresholdFactorTwoStars: 0.65,
+        thresholdFactorThreeStars: 0.85,
         message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
             'cheminot\u00b7e\u00b7s, et les communications deviennent difficiles...\n'
             'Notre équipe continue de faire de son mieux pour vous aider, mais '
             'ne comptez plus trop sur nous!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
-        revealHiddenLetterAtTimeLeft: 15,
+        revealHiddenLetterAtTimeLeft: 30,
       );
     } else if (level < 24) {
       // Levels 22, 23 and 24
@@ -750,9 +750,9 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
-        thresholdFactorOneStar: 0.75,
-        thresholdFactorTwoStars: 0.90,
-        thresholdFactorThreeStars: 1.0,
+        thresholdFactorOneStar: 0.65,
+        thresholdFactorTwoStars: 0.75,
+        thresholdFactorThreeStars: 0.9,
         message:
             'Cheminot\u00b7e\u00b7s, vou... atteignez maintenant la limit... '
             'de nos communicat... À partir d\'ici, vo... êtes seul\u00b7e\u00b7s '
@@ -760,10 +760,24 @@ class ConfigurationManager {
             'Nous vous souh...ons bonne chance dans votre quête du Nord!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
-        revealHiddenLetterAtTimeLeft: -1,
+        revealHiddenLetterAtTimeLeft: 15,
+      );
+    } else if (level < 27) {
+      // Levels 25, 26 and 27
+      return const Difficulty(
+        nbLettersOfShortestWord: 5,
+        nbLettersMinToDraw: 7,
+        nbLettersMaxToDraw: 12,
+        thresholdFactorOneStar: 0.7,
+        thresholdFactorTwoStars: 0.85,
+        thresholdFactorThreeStars: 0.95,
+        message: '... .., ... ..\n..... ... ..!',
+        hasUselessLetter: true,
+        hasHiddenLetter: true,
+        revealHiddenLetterAtTimeLeft: 15,
       );
     } else {
-      // Levels 25 and more
+      // Levels 28 and above
       return const Difficulty(
         nbLettersOfShortestWord: 6,
         nbLettersMinToDraw: 7,
@@ -771,7 +785,11 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,
-        message: '... .., ... ..\n..... ... ..!',
+        message: 'OH! OH! OH!\n'
+            'Bonjour cheminot\u00b7e\u00b7s! Que faites vous ici? Mon rennes '
+            'vous a vu passer il y a quelques instants! OH! OH! OH!\n'
+            'Vous entrez dans les terres du Pôle Nord! Le chemin est arride et '
+            'difficile ici... Je vous souhaite bonne chance! OH! OH! OH!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: -1,
