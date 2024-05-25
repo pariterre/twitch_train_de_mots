@@ -11,9 +11,8 @@ class LetterProblem {
   final List<String> _letters;
   List<String> get letters {
     final out = [..._letters];
-    if (_extraUselessLetter != null) {
-      out.add(_extraUselessLetter!);
-    }
+    if (_extraUselessLetter != null) out.add(_extraUselessLetter!);
+
     return out;
   }
 
@@ -24,7 +23,7 @@ class LetterProblem {
   WordSolutions get solutions => _solutions;
   bool get areAllSolutionsFound => _solutions.every((e) => e.isFound);
 
-  String? _extraUselessLetter;
+  final String? _extraUselessLetter;
   bool get hasUselessLetter => _extraUselessLetter != null;
   int get uselessLetterIndex => _letters.length;
 
@@ -118,13 +117,6 @@ class LetterProblem {
     final temp = _scrambleIndices[index1];
     _scrambleIndices[index1] = _scrambleIndices[index2];
     _scrambleIndices[index2] = temp;
-  }
-
-  void tossUselessLetter() {
-    if (!hasUselessLetter) return;
-
-    _extraUselessLetter = null;
-    _initialize();
   }
 }
 
