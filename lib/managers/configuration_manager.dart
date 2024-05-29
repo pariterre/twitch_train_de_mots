@@ -287,7 +287,7 @@ class ConfigurationManager {
 
   ///
   /// The current algorithm used to generate the problems
-  final Future<LetterProblem> Function({
+  final Future<LetterProblem?> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -296,7 +296,7 @@ class ConfigurationManager {
     required bool addUselessLetter,
     required Duration maxSearchingTime,
   }) _problemGenerator = ProblemGenerator.generateFromRandomWord;
-  Future<LetterProblem> Function({
+  Future<LetterProblem?> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,

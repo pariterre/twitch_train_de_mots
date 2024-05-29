@@ -51,7 +51,16 @@ class GameManager {
 
   LetterProblem? _currentProblem;
   final List<LetterProblem?> _nextProblems = [];
-  bool get isNextProblemReady => _nextProblems.every((e) => e != null);
+  bool get isNextProblemReady {
+    if (_nextProblems.length == 4) return true;
+    if (_gameStatus == GameStatus.roundPreparing ||
+        _gameStatus == GameStatus.initializing ||
+        _gameStatus == GameStatus.roundReady) {
+      if (_nextProblems.length > _successLevel.toInt()) return true;
+    }
+    return false;
+  }
+
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
   SuccessLevel _successLevel = SuccessLevel.failed;
@@ -205,21 +214,22 @@ class GameManager {
   Future<void> _searchProblemForRound(
       {required int round, required Duration maxSearchingTime}) async {
     if (_isSearchingNextProblem) return;
-    if (_nextProblems.isNotEmpty && !_forceRepickProblem) return;
-
     final cm = ConfigurationManager.instance;
 
     _forceRepickProblem = false;
     _isSearchingNextProblem = true;
-    _nextProblems.clear();
 
-    for (int i = -1; i < 3; i++) {
+    int i = _nextProblems.length - 1; // -1 is the round 0 (the first round)
+    while (_nextProblems.length < 4) {
+      //If the API tells us we have enough problems, we can stop searching
+      if (isNextProblemReady) break;
+
       // The first element is always the first level (in case of a restart of the game)
       // The others depend on the current round count
       final difficulty = cm.difficulty(i < 0 ? 0 : round + i);
       final previousDifficulty = cm.difficulty(i <= 0 ? 0 : round + i - 1);
 
-      if (i >= 0 &&
+      if (i >= 1 &&
           difficulty.hasSameRulesForPickingLetters(previousDifficulty)) {
         _nextProblems.add(_nextProblems.last);
         continue;
@@ -231,9 +241,10 @@ class GameManager {
           minimumNbOfWords: cm.minimumWordsNumber,
           maximumNbOfWords: cm.maximumWordsNumber,
           addUselessLetter: difficulty.hasUselessLetter,
-          maxSearchingTime: maxSearchingTime,
+          maxSearchingTime: i > 0 ? maxSearchingTime : Duration.zero,
         ));
       }
+      i++;
     }
 
     _isSearchingNextProblem = false;
@@ -270,12 +281,20 @@ class GameManager {
 
     if (_successLevel == SuccessLevel.failed) _restartGame();
     _currentProblem = _nextProblems[_successLevel.toInt()];
-    _nextProblems.clear();
+    if (_roundCount < 1) {
+      _nextProblems.clear();
+    } else {
+      // No need to remove the first element, which is the round to play if they failed
+      while (_nextProblems.length > 1) {
+        _nextProblems.removeAt(1);
+      }
+    }
 
     // Start searching for the next problem as soon as possible to avoid
     // waiting for the next round
     _searchProblemForRound(
-        round: _roundCount + 1, maxSearchingTime: cm.roundDuration);
+        round: _roundCount + 1,
+        maxSearchingTime: Duration(seconds: cm.roundDuration.inSeconds ~/ 2));
 
     // Send a message to players if required, but only once per session
     await _manageMessageToPlayers();
@@ -408,7 +427,7 @@ class GameManager {
 
     if ((_gameStatus == GameStatus.initializing ||
             _gameStatus == GameStatus.roundPreparing) &&
-        _nextProblems.length == 4) {
+        isNextProblemReady) {
       if (_gameStatus == GameStatus.roundPreparing) {
         _gameStatus = GameStatus.roundReady;
       }

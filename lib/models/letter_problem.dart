@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -133,8 +134,9 @@ class ProblemGenerator {
   }
 
   static DateTime _lastScreenUpdate = DateTime.now();
-  static Future<void> _updateScreenIfNeeded() async {
-    if (DateTime.now().difference(_lastScreenUpdate).inMilliseconds > 60) {
+  static Future<void> _updateScreenIfNeeded({double dt = 1 / 60}) async {
+    if (DateTime.now().difference(_lastScreenUpdate).inMilliseconds >
+        dt * 1000) {
       _lastScreenUpdate = DateTime.now();
       await Future.delayed(Duration.zero);
     }
@@ -142,7 +144,7 @@ class ProblemGenerator {
 
   ///
   /// Generates a new word problem from a random string of letters.
-  static Future<LetterProblem> generateFromRandom({
+  static Future<LetterProblem?> generateFromRandom({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -166,18 +168,17 @@ class ProblemGenerator {
     }
 
     final startingSearchingTime = DateTime.now();
-    var hasTriedFetchingFromDatabase = false;
     do {
+      if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
       candidateLetters = _WordGenerator.instance
           ._generateRandomLetters(nbLetters: maxLetters, useFrequency: false);
 
-      if (!hasTriedFetchingFromDatabase &&
-          startingSearchingTime
-              .add(maxSearchingTime)
-              .isBefore(DateTime.now())) {
+      if (startingSearchingTime
+          .add(maxSearchingTime)
+          .isBefore(DateTime.now())) {
         // If the time is up, try fetching from the database. If it fails, we
         // continue with the random letters algorithm
         final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -187,10 +188,10 @@ class ProblemGenerator {
         if (candidateLettersTp != null) {
           candidateLetters = candidateLettersTp.split('');
         }
-        hasTriedFetchingFromDatabase = true;
       }
 
       do {
+        if (GameManager.instance.isNextProblemReady) return null;
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -259,7 +260,7 @@ class ProblemGenerator {
   ///
   /// Generates a new word problem from picking a letter, then subsetting the
   /// words and picking a new letter available in the remainning words.
-  static Future<LetterProblem> generateFromBuildingUp({
+  static Future<LetterProblem?> generateFromBuildingUp({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -275,9 +276,9 @@ class ProblemGenerator {
     bool isAValidCandidate = false;
     String? uselessLetter;
     final startingSearchingTime = DateTime.now();
-    var hasTriedFetchingFromDatabase = false;
 
     do {
+      if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
       candidateLetters = [];
 
@@ -286,16 +287,16 @@ class ProblemGenerator {
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
+        if (GameManager.instance.isNextProblemReady) return null;
         await _updateScreenIfNeeded();
 
         // From the list of all the remaining letters in the alphabet, pick a random one
         candidateLetters
             .add(availableLetters[random.nextInt(availableLetters.length)]);
 
-        if (!hasTriedFetchingFromDatabase &&
-            startingSearchingTime
-                .add(maxSearchingTime)
-                .isBefore(DateTime.now())) {
+        if (startingSearchingTime
+            .add(maxSearchingTime)
+            .isBefore(DateTime.now())) {
           // If the time is up, try fetching from the database. If it fails, we
           // continue with the random letters algorithm
           final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -309,7 +310,6 @@ class ProblemGenerator {
             subWords = await _WordGenerator.instance
                 .wordsWithAtLeast(nbLetterInSmallestWord);
           }
-          hasTriedFetchingFromDatabase = true;
         }
 
         // Reduce the subWords to only those containing the letters in candidate
@@ -375,7 +375,7 @@ class ProblemGenerator {
   /// Generates a new word problem from a random longest word. Apart from the
   /// randomization of the candidate letters, the algorithm is the same as the
   /// [generateFromRandom] method.
-  static Future<LetterProblem> generateFromRandomWord({
+  static Future<LetterProblem?> generateFromRandomWord({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -403,8 +403,8 @@ class ProblemGenerator {
         (await _WordGenerator.instance.wordsWithAtLeast(minLetters))
             .where((e) => e.length <= maxLetters);
     final startingSearchingTime = DateTime.now();
-    var hasTriedFetchingFromDatabase = false;
     do {
+      if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
@@ -412,10 +412,9 @@ class ProblemGenerator {
           .elementAt(random.nextInt(wordsToPickFrom.length))
           .split('');
 
-      if (!hasTriedFetchingFromDatabase &&
-          startingSearchingTime
-              .add(maxSearchingTime)
-              .isBefore(DateTime.now())) {
+      if (startingSearchingTime
+          .add(maxSearchingTime)
+          .isBefore(DateTime.now())) {
         // If the time is up, try fetching from the database. If it fails, we
         // continue with the random letters algorithm
         final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -425,10 +424,10 @@ class ProblemGenerator {
         if (candidateLettersTp != null) {
           candidateLetters = candidateLettersTp.split('');
         }
-        hasTriedFetchingFromDatabase = true;
       }
 
       do {
+        if (GameManager.instance.isNextProblemReady) return null;
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -567,12 +566,16 @@ class _WordGenerator {
     // which is not in the letters set as the words
     final Set<String> words = {};
     for (final word in await wordsWithAtLeast(nbLetters)) {
-      await ProblemGenerator._updateScreenIfNeeded();
-
+      // We should update the screen every now and then here, but doing so makes
+      // the algorithm way too slow. We will update the screen after the loop.
+      // This creates a lag of about 1 to 2 seconds, but it is acceptable (the other
+      // solution is to update every 1/60 seconds, which is takes about 1 minute)
       if (word.split('').every((letter) => from.contains(letter))) {
         words.add(word);
       }
     }
+    // Update the screen here
+    await ProblemGenerator._updateScreenIfNeeded();
 
     // Then, count each duplicate letters in each word to make sure at least the
     // same amount of duplicate exists in the letters set
