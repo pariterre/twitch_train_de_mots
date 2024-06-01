@@ -176,18 +176,21 @@ class _TrainPathState extends State<TrainPath>
 
   @override
   Widget build(BuildContext context) {
+    final hallmarkSize = widget.height * 0.6;
+
     return Stack(
       alignment: Alignment.centerLeft,
       children: [
+        SizedBox(width: widget.pathLength + hallmarkSize / 2, height: 0),
         _Rail(
-            leftHeight: widget.height * 0.20,
-            rightHeight: widget.height * 0.10,
+            progressHeight: widget.height * 0.20,
+            pathToComeHeight: widget.height * 0.10,
             pathLength: widget.pathLength,
             controller: widget.controller),
         ...widget.controller._hallMarks.map((starPosition) => _Hallmark(
               controller: widget.controller,
               pathLength: widget.pathLength,
-              hallmarkSize: widget.height * 0.6,
+              hallmarkSize: hallmarkSize,
               starPosition: starPosition,
             )),
         _Train(
@@ -213,14 +216,14 @@ class _TrainPathState extends State<TrainPath>
 class _Rail extends StatelessWidget {
   const _Rail({
     required this.controller,
-    required this.leftHeight,
-    required this.rightHeight,
+    required this.progressHeight,
+    required this.pathToComeHeight,
     required this.pathLength,
   });
 
   final TrainPathController controller;
-  final double leftHeight;
-  final double rightHeight;
+  final double progressHeight;
+  final double pathToComeHeight;
   final double pathLength;
 
   @override
@@ -241,7 +244,7 @@ class _Rail extends StatelessWidget {
                     bottomLeft: Radius.circular(10.0),
                   ),
                 ),
-                height: leftHeight,
+                height: progressHeight,
                 width: pathLength * controller.position,
               ),
               Container(
@@ -252,7 +255,7 @@ class _Rail extends StatelessWidget {
                     bottomRight: Radius.circular(10.0),
                   ),
                 ),
-                height: rightHeight,
+                height: pathToComeHeight,
                 width: pathLength * (1 - controller.position),
               ),
             ],
