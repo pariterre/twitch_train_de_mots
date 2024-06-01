@@ -73,6 +73,8 @@ class GameManager {
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   WordSolution? _lastStolenSolution;
+  int _remainingPardon = 0;
+  int get remainingPardon => _remainingPardon;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -360,7 +362,7 @@ class GameManager {
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
 
-    if (message == "resteal") {
+    if (message == '!pardon') {
       _pardonLastStealer(player);
       return;
     }
@@ -419,17 +421,21 @@ class GameManager {
     _playersWasInCooldownLastFrame[player.name] = true;
   }
 
-  void _pardonLastStealer(Player player) {
-    if (_lastStolenSolution == null || !_lastStolenSolution!.wasStolen) return;
+  void _pardonLastStealer(Player playerWhoRequestedPardon) {
+    if (_remainingPardon < 1) return;
+
+    if (_lastStolenSolution == null) {
+      // Tell the players that there was no stealer to pardon
+      onStealerPardonned.notifyListenersWithParameter(null);
+      return;
+    }
     final solution = _lastStolenSolution!;
 
     // Do not allow the stealer to pardon themselves
-    if (solution.foundBy == player) return;
-
-    final timeCanPardon = ConfigurationManager.instance.timeCanPardon;
-    if (solution.stolenAt!.add(timeCanPardon).isBefore(DateTime.now())) return;
+    if (solution.foundBy == playerWhoRequestedPardon) return;
 
     // If we get here, the solution is pardonned (so not stolen anymore)
+    _remainingPardon -= 1;
     _lastStolenSolution = null;
     solution.pardonStealer();
     solution.foundBy.removeFromStealCount();
@@ -440,10 +446,12 @@ class GameManager {
   ///
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
+    final cm = ConfigurationManager.instance;
+
     _roundCount = 0;
     _successLevel = SuccessLevel.failed;
-    _isAllowedToSendResults =
-        !ConfigurationManager.instance.useCustomAdvancedOptions;
+    _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
+    _remainingPardon = cm.numberOfPardon;
     players.clear();
   }
 

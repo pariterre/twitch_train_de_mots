@@ -32,8 +32,9 @@ const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
 const _canStealDefault = true;
-const _timeCanPardonDefault = 45;
 const _oneStationMaxPerRoundDefault = false;
+
+const _numberOfPardonDefault = 3;
 
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
@@ -449,19 +450,19 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  Duration _timeCanPardon = const Duration(seconds: _timeCanPardonDefault);
-  Duration get timeCanPardon => _timeCanPardon;
-  set timeCanPardon(Duration value) {
-    _timeCanPardon = value;
-    _saveConfiguration();
-  }
-
   bool _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
   bool get oneStationMaxPerRound => useCustomAdvancedOptions
       ? _oneStationMaxPerRound
       : _oneStationMaxPerRoundDefault;
   set oneStationMaxPerRound(bool value) {
     _oneStationMaxPerRound = value;
+    _saveConfiguration();
+  }
+
+  int _numberOfPardon = _numberOfPardonDefault;
+  int get numberOfPardon => _numberOfPardon;
+  set numberOfPardon(int value) {
+    _numberOfPardon = value;
     _saveConfiguration();
   }
 
@@ -572,10 +573,10 @@ class ConfigurationManager {
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
-      _timeCanPardon =
-          Duration(seconds: map['timeCanPardon'] ?? _timeCanPardonDefault);
       _oneStationMaxPerRound =
           map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
+
+      _numberOfPardon = map['numberOfPardon'] ?? _numberOfPardonDefault;
 
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
       _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
@@ -618,8 +619,8 @@ class ConfigurationManager {
       _timeBeforeScramblingLetters =
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
       _canSteal = _canStealDefault;
-      _timeCanPardon = const Duration(seconds: _timeCanPardonDefault);
       _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
+      _numberOfPardon = _numberOfPardonDefault;
       _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
       _cooldownPenaltyAfterSteal =
           const Duration(seconds: _cooldownPenaltyAfterStealDefault);
@@ -641,7 +642,7 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 7,
-        thresholdFactorOneStar: 0.35,
+        thresholdFactorOneStar: 0.05,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
         hasUselessLetter: false,

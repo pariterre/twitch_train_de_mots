@@ -81,7 +81,9 @@ class SoundManager {
     (await _soundEffect).play(AssetSource('sounds/RoundIsOver.mp3'));
   }
 
-  Future<void> _onSolutionFound(WordSolution solution) async {
+  Future<void> _onSolutionFound(WordSolution? solution) async {
+    if (solution == null) return;
+
     final gm = GameManager.instance;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {

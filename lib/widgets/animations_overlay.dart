@@ -43,7 +43,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
         .triggerAnimation(_ASolutionWasStolen(solution: solution));
   }
 
-  void _showStealerWasPardonned(WordSolution solution) {
+  void _showStealerWasPardonned(WordSolution? solution) {
     _solutionStolenController
         .triggerAnimation(_AStealerWasPardonned(solution: solution));
   }
@@ -102,7 +102,7 @@ class _ASolutionWasStolen extends StatelessWidget {
 class _AStealerWasPardonned extends StatelessWidget {
   const _AStealerWasPardonned({required this.solution});
 
-  final WordSolution solution;
+  final WordSolution? solution;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,9 @@ class _AStealerWasPardonned extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Le joueur ${solution.foundBy.name} a été pardonné de son vol!',
+            solution == null
+                ? 'Il n\'y a aucun vol à pardonner!'
+                : 'Le joueur ${solution!.foundBy.name} a été pardonné de son vol!',
             style: const TextStyle(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),

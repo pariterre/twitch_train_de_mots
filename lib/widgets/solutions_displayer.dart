@@ -77,7 +77,9 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     setState(() {});
   }
 
-  void _onSolutionFound(solution) {
+  void _onSolutionFound(WordSolution? solution) {
+    if (solution == null) return;
+
     _fireworksControllers[solution]?.trigger();
   }
 

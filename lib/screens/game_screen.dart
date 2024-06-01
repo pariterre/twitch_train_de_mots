@@ -3,6 +3,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/success_level.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/letter_displayer.dart';
@@ -119,7 +120,9 @@ class _HeaderState extends State<_Header> {
   }
 
   void _refresh() => setState(() {});
-  void _onSolutionFound(solution) {
+  void _onSolutionFound(WordSolution? solution) {
+    if (solution == null) return;
+
     int currentScore = GameManager.instance.problem!.teamScore;
     if (_previousScore < currentScore) {
       for (int i = _previousScore; i < currentScore; i++) {
@@ -183,11 +186,11 @@ class _HeaderState extends State<_Header> {
         title = 'Le Train de mots!';
         break;
     }
-
     return Column(
       children: [
         Text(
           title,
+          textAlign: TextAlign.center,
           style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: tm.titleSize,
@@ -197,21 +200,74 @@ class _HeaderState extends State<_Header> {
             gm.gameStatus == GameStatus.revealAnswers)
           Padding(
             padding: const EdgeInsets.only(top: 10),
-            child: Card(
-              color: tm.mainColor,
-              elevation: 10,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                child: _HeaderTimer(),
-              ),
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                const SizedBox(width: 1200),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Card(
+                    color: tm.mainColor,
+                    elevation: 10,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Aides du contrôleur :',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: tm.titleSize * 0.6,
+                                color: tm.textColor),
+                          ),
+                          SizedBox(
+                            width: 160,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '!pardon',
+                                  style: TextStyle(
+                                      fontSize: tm.titleSize * 0.6,
+                                      color: tm.textColor),
+                                ),
+                                Text('x ${gm.remainingPardon}',
+                                    style: TextStyle(
+                                        fontStyle: FontStyle.italic,
+                                        fontSize: tm.titleSize * 0.6,
+                                        color: tm.textColor)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Column(
+                  children: [
+                    Card(
+                      color: tm.mainColor,
+                      elevation: 10,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 24.0, vertical: 12.0),
+                        child: _HeaderTimer(),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: TrainPath(
+                          controller: _trainPath, pathLength: 600, height: 75),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-        if (gm.gameStatus == GameStatus.roundStarted ||
-            gm.gameStatus == GameStatus.revealAnswers)
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0),
-            child:
-                TrainPath(controller: _trainPath, pathLength: 600, height: 75),
           ),
       ],
     );
