@@ -5,9 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "train_de_mots",
+            "name": "Train de Mots",
             "request": "launch",
             "type": "dart",
+            "program": "lib/main.dart",
+            "args": ["--web-browser-flag=--disable-web-security"]
+        },
+        {
+            "name": "Debugger",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/debug_main.dart",
             "args": ["--web-browser-flag=--disable-web-security"]
         }
     ]
