@@ -37,6 +37,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundStarted.addListener(_refresh);
     gm.onTimerTicks.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onSolutionFound);
     gm.onRoundIsOver.addListener(_refresh);
     gm.onShowMessage = _showMessageDialog;
 
@@ -56,6 +57,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundStarted.removeListener(_refresh);
     gm.onTimerTicks.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onSolutionFound);
     gm.onRoundIsOver.removeListener(_refresh);
 
     final tm = ThemeManager.instance;

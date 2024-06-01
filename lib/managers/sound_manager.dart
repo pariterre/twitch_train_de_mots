@@ -46,6 +46,7 @@ class SoundManager {
     gm.onGameIsInitializing.addListener(instance._manageGameMusic);
     gm.onRoundStarted.addListener(instance._onRoundStarted);
     gm.onSolutionFound.addListener(instance._onSolutionFound);
+    gm.onStealerPardonned.addListener(instance._onSolutionFound);
     gm.onScrablingLetters.addListener(instance._onLettersScrambled);
     gm.onRevealUselessLetter.addListener(instance._onLettersScrambled);
     gm.onRevealHiddenLetter.addListener(instance._onLettersScrambled);

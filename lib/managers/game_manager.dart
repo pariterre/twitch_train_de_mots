@@ -72,6 +72,8 @@ class GameManager {
       !ConfigurationManager.instance.useCustomAdvancedOptions;
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
+  WordSolution? _lastStolenSolution;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -149,6 +151,7 @@ class GameManager {
   final onRevealHiddenLetter = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
+  final onStealerPardonned = CustomCallback<Function(WordSolution)>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
   Future<void> Function(String)? onShowMessage;
 
@@ -337,6 +340,8 @@ class GameManager {
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
+    _lastStolenSolution = null;
+
     _gameStatus = GameStatus.roundStarted;
   }
 
@@ -354,6 +359,11 @@ class GameManager {
 
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
+
+    if (message == "resteal") {
+      _pardonLastStealer(player);
+      return;
+    }
 
     // If the player is in cooldown, they are not allowed to answer
     if (player.isInCooldownPeriod) return;
@@ -380,6 +390,7 @@ class GameManager {
           solution.foundBy.isInCooldownPeriod) {
         return;
       }
+      _lastStolenSolution = solution;
 
       // Remove the score to original founder and override the cooldown
       solution.foundBy.score -= solution.value;
@@ -388,9 +399,7 @@ class GameManager {
     player.lastSolutionFound = solution;
     if (solution.wasStolen) {
       solution.foundBy.addToStealCount();
-
       solution.stolenFrom.lastSolutionFound = null;
-
       onSolutionWasStolen.notifyListenersWithParameter(solution);
     }
 
@@ -408,6 +417,24 @@ class GameManager {
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
     _playersWasInCooldownLastFrame[player.name] = true;
+  }
+
+  void _pardonLastStealer(Player player) {
+    if (_lastStolenSolution == null || !_lastStolenSolution!.wasStolen) return;
+    final solution = _lastStolenSolution!;
+
+    // Do not allow the stealer to pardon themselves
+    if (solution.foundBy == player) return;
+
+    final timeCanPardon = ConfigurationManager.instance.timeCanPardon;
+    if (solution.stolenAt!.add(timeCanPardon).isBefore(DateTime.now())) return;
+
+    // If we get here, the solution is pardonned (so not stolen anymore)
+    _lastStolenSolution = null;
+    solution.pardonStealer();
+    solution.foundBy.removeFromStealCount();
+
+    onStealerPardonned.notifyListenersWithParameter(solution);
   }
 
   ///

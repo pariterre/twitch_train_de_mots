@@ -11,9 +11,17 @@ class WordSolution {
   Player get foundBy => _foundBy!;
   set foundBy(Player player) {
     // If the word was already found, it is now stolen
-    if (_foundBy != null) _stolenFrom = _foundBy!;
+    if (_foundBy != null) {
+      _stolenFrom = _foundBy!;
+      _stolenAt = DateTime.now();
+    }
     _foundBy = player;
     _foundAt = DateTime.now();
+  }
+
+  void pardonStealer() {
+    _stolenFrom = null;
+    _stolenAt = null;
   }
 
   DateTime? _foundAt;
@@ -22,6 +30,8 @@ class WordSolution {
   bool get wasStolen => _stolenFrom != null;
   Player? _stolenFrom;
   Player get stolenFrom => _stolenFrom!;
+  DateTime? _stolenAt;
+  DateTime? get stolenAt => _stolenAt;
 
   int get value => word
       .split('')

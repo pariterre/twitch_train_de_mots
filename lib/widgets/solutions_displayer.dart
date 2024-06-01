@@ -27,6 +27,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onRoundStarted.addListener(_fetchMvpPlayers);
     gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onSolutionFound);
     gm.onPlayerUpdate.addListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -51,6 +52,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onRoundStarted.removeListener(_fetchMvpPlayers);
     gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onSolutionFound);
     gm.onPlayerUpdate.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -172,12 +174,14 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
 
     final gm = GameManager.instance;
     gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
     gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onSolutionFound);
 
     super.dispose();
   }

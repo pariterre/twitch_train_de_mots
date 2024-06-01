@@ -32,6 +32,7 @@ const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
 const _canStealDefault = true;
+const _timeCanPardonDefault = 45;
 const _oneStationMaxPerRoundDefault = false;
 
 const _musicVolumeDefault = 0.3;
@@ -448,6 +449,13 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  Duration _timeCanPardon = const Duration(seconds: _timeCanPardonDefault);
+  Duration get timeCanPardon => _timeCanPardon;
+  set timeCanPardon(Duration value) {
+    _timeCanPardon = value;
+    _saveConfiguration();
+  }
+
   bool _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
   bool get oneStationMaxPerRound => useCustomAdvancedOptions
       ? _oneStationMaxPerRound
@@ -564,6 +572,8 @@ class ConfigurationManager {
           map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
 
       _canSteal = map['canSteal'] ?? _canStealDefault;
+      _timeCanPardon =
+          Duration(seconds: map['timeCanPardon'] ?? _timeCanPardonDefault);
       _oneStationMaxPerRound =
           map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
 
@@ -608,6 +618,7 @@ class ConfigurationManager {
       _timeBeforeScramblingLetters =
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
       _canSteal = _canStealDefault;
+      _timeCanPardon = const Duration(seconds: _timeCanPardonDefault);
       _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
       _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
       _cooldownPenaltyAfterSteal =

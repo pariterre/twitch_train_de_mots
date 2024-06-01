@@ -20,6 +20,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onSolutionFound);
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.addListener(_refresh);
@@ -35,6 +36,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onSolutionFound);
 
     final cm = ConfigurationManager.instance;
     cm.onChanged.removeListener(_refresh);

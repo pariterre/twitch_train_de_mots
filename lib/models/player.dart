@@ -13,6 +13,11 @@ class Player {
     _gameStealCount++;
   }
 
+  void removeFromStealCount() {
+    _roundStealCount--;
+    _gameStealCount--;
+  }
+
   int _roundStealCount = 0;
   int get roundStealCount => _roundStealCount;
 

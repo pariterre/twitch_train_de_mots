@@ -94,6 +94,7 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onSolutionFound);
     gm.onRoundIsOver.addListener(_refresh);
     gm.onRoundStarted.addListener(_setTrainPath);
     _setTrainPath();
@@ -107,6 +108,7 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onSolutionFound);
     gm.onRoundIsOver.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_setTrainPath);
 
