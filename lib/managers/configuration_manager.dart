@@ -252,6 +252,21 @@ class ConfigurationManager {
         ),
       ],
     ),
+    ReleaseNotes(
+      version: '1.0.1',
+      codeName: 'Pardonnez-nous nos offenses',
+      notes: 'Il est naturel de faire des erreurs et de demander le pardon.'
+          'Jusqu\'à maintenant le Petit Train du Nord était sans pitié... '
+          'Cette époque est révolue! Il est maintenant possible de pardonner '
+          'un vol, mais choississez bien, vous n\'avez pas beaucoup de pardons '
+          'en banque!',
+      features: [
+        FeatureNotes(
+          description:
+              'Il est maintenant possible de pardonner avec la commande: !pardon',
+        ),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
