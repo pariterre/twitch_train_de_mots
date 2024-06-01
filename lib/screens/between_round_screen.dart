@@ -34,7 +34,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     gm.onRoundIsOver.removeListener(_refresh);
   }
 
-  void _refresh() => setState(() {});
+  void _refresh(_) => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                           : const _VictoryHeader(),
                     const _LeaderBoard(),
                     const SizedBox(height: 16.0),
-                    const _ContinueButton(),
+                    const _ContinueSection(),
                     const SizedBox(height: 24.0),
                   ],
                 ),
@@ -89,14 +89,14 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   }
 }
 
-class _ContinueButton extends StatefulWidget {
-  const _ContinueButton();
+class _ContinueSection extends StatefulWidget {
+  const _ContinueSection();
 
   @override
-  State<_ContinueButton> createState() => _ContinueButtonState();
+  State<_ContinueSection> createState() => _ContinueSectionState();
 }
 
-class _ContinueButtonState extends State<_ContinueButton> {
+class _ContinueSectionState extends State<_ContinueSection> {
   @override
   void initState() {
     super.initState();
@@ -165,10 +165,22 @@ class _ContinueButtonState extends State<_ContinueButton> {
                   fontWeight: FontWeight.normal,
                   color: tm.textColor)),
         const SizedBox(height: 12),
-        ThemedElevatedButton(
-            onPressed:
-                gm.isNextProblemReady ? () => gm.requestStartNewRound() : null,
-            buttonText: buttonText),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (gm.hasPlayedAtLeastOnce)
+              ThemedElevatedButton(
+                onPressed: gm.requestShowCaseAnswers,
+                buttonText: 'Revoir les réponses',
+              ),
+            const SizedBox(width: 24),
+            ThemedElevatedButton(
+                onPressed: gm.isNextProblemReady
+                    ? () => gm.requestStartNewRound()
+                    : null,
+                buttonText: buttonText),
+          ],
+        ),
         const SizedBox(height: 12),
         if (gm.nextRoundStartIn != null)
           Padding(

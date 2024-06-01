@@ -28,6 +28,7 @@ class GameManager {
 
   GameStatus _gameStatus = GameStatus.initializing;
   GameStatus get gameStatus => _gameStatus;
+
   int? _roundDuration;
   int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
       ? null
@@ -55,7 +56,8 @@ class GameManager {
     if (_nextProblems.length == 4) return true;
     if (_gameStatus == GameStatus.roundPreparing ||
         _gameStatus == GameStatus.initializing ||
-        _gameStatus == GameStatus.roundReady) {
+        _gameStatus == GameStatus.roundReady ||
+        _gameStatus == GameStatus.revealAnswers) {
       if (_nextProblems.length > _successLevel.toInt()) return true;
     }
     return false;
@@ -146,7 +148,7 @@ class GameManager {
   final onRoundIsPreparing = CustomCallback<VoidCallback>();
   final onNextProblemReady = CustomCallback<VoidCallback>();
   final onRoundStarted = CustomCallback<VoidCallback>();
-  final onRoundIsOver = CustomCallback<VoidCallback>();
+  final onRoundIsOver = CustomCallback<Function(bool)>();
   final onTimerTicks = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
   final onRevealUselessLetter = CustomCallback<VoidCallback>();
@@ -565,11 +567,7 @@ class GameManager {
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
-    _gameStatus = GameStatus.revealAnswers;
-    Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
-      onRoundIsPreparing.notifyListeners();
-      _gameStatus = GameStatus.roundPreparing;
-    });
+    _showCaseAnswers(playSound: true);
 
     // Launch the automatic start of the round time if needed
     if (cm.autoplay) {
@@ -582,7 +580,29 @@ class GameManager {
       DatabaseManager.instance.sendResults(
           stationReached: roundCount, mvpPlayers: players.bestPlayers);
     }
-    onRoundIsOver.notifyListeners();
+  }
+
+  void requestShowCaseAnswers() {
+    if (_gameStatus == GameStatus.initializing ||
+        _gameStatus == GameStatus.roundStarted ||
+        _gameStatus == GameStatus.revealAnswers) {
+      return;
+    }
+    _gameStatus = GameStatus.revealAnswers;
+    _showCaseAnswers(playSound: false);
+  }
+
+  void _showCaseAnswers({required bool playSound}) {
+    final cm = ConfigurationManager.instance;
+
+    _gameStatus = GameStatus.revealAnswers;
+    Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
+      onRoundIsPreparing.notifyListeners();
+      _gameStatus = isNextProblemReady
+          ? GameStatus.roundReady
+          : GameStatus.roundPreparing;
+    });
+    onRoundIsOver.notifyListenersWithParameter(playSound);
   }
 
   SuccessLevel get completedLevel {

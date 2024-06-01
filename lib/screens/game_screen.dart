@@ -96,7 +96,7 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardonned.addListener(_onSolutionFound);
-    gm.onRoundIsOver.addListener(_refresh);
+    gm.onRoundIsOver.addListener(_refreshWithParameter);
     gm.onRoundStarted.addListener(_setTrainPath);
     _setTrainPath();
 
@@ -110,7 +110,7 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardonned.removeListener(_onSolutionFound);
-    gm.onRoundIsOver.removeListener(_refresh);
+    gm.onRoundIsOver.removeListener(_refreshWithParameter);
     gm.onRoundStarted.removeListener(_setTrainPath);
 
     final tm = ThemeManager.instance;
@@ -120,6 +120,7 @@ class _HeaderState extends State<_Header> {
   }
 
   void _refresh() => setState(() {});
+  void _refreshWithParameter(_) => setState(() {});
   void _onSolutionFound(WordSolution? solution) {
     if (solution == null) return;
 
@@ -290,7 +291,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onRoundStarted.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onTimerTicks.addListener(_refresh);
-    gm.onRoundIsOver.addListener(_refresh);
+    gm.onRoundIsOver.addListener(_refreshWithParameter);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -304,13 +305,14 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onRoundStarted.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onTimerTicks.removeListener(_refresh);
-    gm.onRoundIsOver.removeListener(_refresh);
+    gm.onRoundIsOver.removeListener(_refreshWithParameter);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
+  void _refreshWithParameter(_) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

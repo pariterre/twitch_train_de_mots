@@ -502,10 +502,11 @@ class ConfigurationManager {
     gm.onRoundIsPreparing.addListener(_reactToGameManagerEvent);
     gm.onNextProblemReady.addListener(_reactToGameManagerEvent);
     gm.onRoundStarted.addListener(_reactToGameManagerEvent);
-    gm.onRoundIsOver.addListener(_reactToGameManagerEvent);
+    gm.onRoundIsOver.addListener(_reactToGameManagerEventWithParameter);
   }
 
   void _reactToGameManagerEvent() => onChanged.notifyListeners();
+  void _reactToGameManagerEventWithParameter(_) => onChanged.notifyListeners();
 
   //// LOAD AND SAVE ////
 
@@ -657,7 +658,7 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 7,
-        thresholdFactorOneStar: 0.05,
+        thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
         hasUselessLetter: false,
