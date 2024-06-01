@@ -5,6 +5,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
+import 'package:train_de_mots/models/round_success.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/growing_widget.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
@@ -733,6 +734,14 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
               ),
+              if (gm.roundSuccesses.contains(RoundSuccess.foundAll))
+                Text(
+                    'Le contrôleur est impressionné et vous accorde\nun pardon supplémentaire',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.normal,
+                        color: tm.textColor)),
               const SizedBox(height: 16.0),
             ],
           ),

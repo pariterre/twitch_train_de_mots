@@ -11,12 +11,8 @@ class AnimationOverlay extends StatefulWidget {
 }
 
 class _AnimationOverlayState extends State<AnimationOverlay> {
-  final _solutionStolenController = BouncyContainerController(
-    minScale: 0.5,
-    bouncyScale: 1.4,
-    maxScale: 1.5,
-    maxOpacity: 0.9,
-  );
+  final _controller = BouncyContainerController(
+      minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
 
   @override
   void initState() {
@@ -25,27 +21,31 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
     gm.onStealerPardonned.addListener(_showStealerWasPardonned);
+    gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
   }
 
   @override
   void dispose() {
-    _solutionStolenController.dispose();
+    _controller.dispose();
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
     gm.onStealerPardonned.removeListener(_showStealerWasPardonned);
+    gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
 
     super.dispose();
   }
 
   void _showSolutionWasStolen(WordSolution solution) {
-    _solutionStolenController
-        .triggerAnimation(_ASolutionWasStolen(solution: solution));
+    _controller.triggerAnimation(_ASolutionWasStolen(solution: solution));
   }
 
   void _showStealerWasPardonned(WordSolution? solution) {
-    _solutionStolenController
-        .triggerAnimation(_AStealerWasPardonned(solution: solution));
+    _controller.triggerAnimation(_AStealerWasPardonned(solution: solution));
+  }
+
+  void _showAllSolutionsFound() {
+    _controller.triggerAnimation(const _AllSolutionsFound());
   }
 
   @override
@@ -58,7 +58,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
         children: [
           Positioned(
             top: MediaQuery.of(context).size.height * 0.19,
-            child: BouncyContainer(controller: _solutionStolenController),
+            child: BouncyContainer(controller: _controller),
           ),
         ],
       ),
@@ -106,11 +106,11 @@ class _AStealerWasPardonned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textColor = Color.fromARGB(255, 157, 243, 151);
+    const textColor = Color.fromARGB(255, 237, 243, 151);
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 23, 99, 18),
+        color: const Color.fromARGB(255, 99, 91, 18),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(20),
@@ -128,6 +128,37 @@ class _AStealerWasPardonned extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: textColor, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _AllSolutionsFound extends StatelessWidget {
+  const _AllSolutionsFound();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star, color: Colors.amber, size: 32),
+          SizedBox(width: 10),
+          Text(
+            'Toutes les solutions ont été trouvées!',
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 157, 243, 151)),
+          ),
+          SizedBox(width: 10),
+          Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );

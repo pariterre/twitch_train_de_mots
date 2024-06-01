@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/models/round_success.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
@@ -66,6 +67,8 @@ class GameManager {
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
   SuccessLevel _successLevel = SuccessLevel.failed;
+  final List<RoundSuccess> _roundSuccesses = [];
+  List<RoundSuccess> get roundSuccesses => _roundSuccesses;
 
   bool _hasPlayedAtLeastOnce = false;
   bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
@@ -156,6 +159,7 @@ class GameManager {
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onStealerPardonned = CustomCallback<Function(WordSolution)>();
+  final onAllSolutionsFound = CustomCallback<VoidCallback>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
   Future<void> Function(String)? onShowMessage;
 
@@ -344,6 +348,7 @@ class GameManager {
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
+    _roundSuccesses.clear();
     _lastStolenSolution = null;
 
     _gameStatus = GameStatus.roundStarted;
@@ -567,6 +572,13 @@ class GameManager {
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
+
+    if (_currentProblem!.areAllSolutionsFound) {
+      _roundSuccesses.add(RoundSuccess.foundAll);
+      _remainingPardon += 1;
+      onAllSolutionsFound.notifyListeners();
+    }
+
     _showCaseAnswers(playSound: true);
 
     // Launch the automatic start of the round time if needed
