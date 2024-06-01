@@ -265,6 +265,12 @@ class ConfigurationManager {
           description:
               'Il est maintenant possible de pardonner avec la commande: !pardon',
         ),
+        FeatureNotes(
+            description:
+                'Il est maintenant possible de revoir les réponses après qu\'elles'
+                'aient disparues',
+            userWhoRequested: 'AlchimisteDesMots',
+            urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
       ],
     ),
   ];
