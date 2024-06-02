@@ -119,7 +119,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
             visibilityTime: (_animationController.duration!.inMilliseconds -
                     (rand.nextDouble() * 0.5 + 0.5) *
                         (_animationController.duration!.inMilliseconds *
-                            (huge ? 1 : 0.5))) /
+                            (huge ? 0.5 : 0.7))) /
                 _animationController.duration!.inMilliseconds,
             color: widget.controller.color),
       ));
