@@ -117,19 +117,21 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
               curve: Curves.easeInOut,
               left:
                   (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
-              child: Stack(
-                children: [
-                  _Letter(
-                    letter: letters[index],
-                    uselessIsRevealed: index == revealedUselessIndex,
-                    isHidden: index == hiddenIndex,
-                  ),
-                  SizedBox(
-                    width: _letterWidth,
-                    height: _letterHeight,
-                    child: Fireworks(controller: _fireworksControllers[index]),
-                  ),
-                ],
+              child: _Letter(
+                letter: letters[index],
+                uselessIsRevealed: index == revealedUselessIndex,
+                isHidden: index == hiddenIndex,
+              )),
+        for (var index in letters.asMap().keys)
+          AnimatedPositioned(
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              left:
+                  (_letterWidth + 2 * _letterPadding) * scrambleIndices[index],
+              child: SizedBox(
+                width: _letterWidth,
+                height: _letterHeight,
+                child: Fireworks(controller: _fireworksControllers[index]),
               )),
       ]),
     );
