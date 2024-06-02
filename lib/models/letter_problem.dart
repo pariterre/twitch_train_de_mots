@@ -37,10 +37,12 @@ class LetterProblem {
 
   ///
   /// Returns the current score of all the found solutions
-  int get teamScore => _solutions
-      .where((e) => e.isFound)
-      .map((e) => e.wasStolen ? e.value ~/ 3 : e.value)
-      .fold(0, (prev, e) => prev + e);
+  int get teamScore => _solutions.where((e) => e.isFound).map((e) {
+        int value = e.value;
+        if (e.isStolen) value = value ~/ 3;
+        if (e.isBoosted) value = value * 2;
+        return value;
+      }).fold(0, (prev, e) => prev + e);
 
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);

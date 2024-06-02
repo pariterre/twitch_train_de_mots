@@ -31,6 +31,15 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
       bouncyScale: 1.2,
       maxScale: 1.3,
       maxOpacity: 0.9);
+  final _trainGotBoostedController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1500,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
 
   @override
   void initState() {
@@ -40,6 +49,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
     gm.onStealerPardonned.addListener(_showStealerWasPardonned);
     gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
+    gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
   }
 
   @override
@@ -47,11 +57,13 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _stolenController.dispose();
     _pardonnedController.dispose();
     _allSolutionFoundController.dispose();
+    _trainGotBoostedController.dispose();
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
     gm.onStealerPardonned.removeListener(_showStealerWasPardonned);
     gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
+    gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
 
     super.dispose();
   }
@@ -69,6 +81,11 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _allSolutionFoundController.triggerAnimation(const _AllSolutionsFound());
   }
 
+  void _showTrainGotBoosted(int boostRemaining) {
+    _trainGotBoostedController
+        .triggerAnimation(_TrainGotBoosted(boostRemaining: boostRemaining));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -82,12 +99,16 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
             child: BouncyContainer(controller: _stolenController),
           ),
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.15,
+            top: MediaQuery.of(context).size.height * 0.165,
             child: BouncyContainer(controller: _pardonnedController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.4,
             child: BouncyContainer(controller: _allSolutionFoundController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.165,
+            child: BouncyContainer(controller: _trainGotBoostedController),
           ),
         ],
       ),
@@ -188,6 +209,41 @@ class _AllSolutionsFound extends StatelessWidget {
           ),
           SizedBox(width: 10),
           Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrainGotBoosted extends StatelessWidget {
+  const _TrainGotBoosted({required this.boostRemaining});
+
+  final int boostRemaining;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            boostRemaining > 0
+                ? 'Plus que $boostRemaining boost${boostRemaining > 1 ? 's' : ''} avant la prochaine accélération!'
+                : 'Le Petit Train du Nord file à toute vitesse!',
+            style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );

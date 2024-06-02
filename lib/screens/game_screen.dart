@@ -98,6 +98,8 @@ class _HeaderState extends State<_Header> {
     gm.onStealerPardonned.addListener(_onSolutionFound);
     gm.onRoundIsOver.addListener(_refreshWithParameter);
     gm.onRoundStarted.addListener(_setTrainPath);
+    gm.onTrainGotBoosted.addListener(_refreshWithParameter);
+    gm.onTimerTicks.addListener(_refresh);
     _setTrainPath();
 
     final tm = ThemeManager.instance;
@@ -112,6 +114,8 @@ class _HeaderState extends State<_Header> {
     gm.onStealerPardonned.removeListener(_onSolutionFound);
     gm.onRoundIsOver.removeListener(_refreshWithParameter);
     gm.onRoundStarted.removeListener(_setTrainPath);
+    gm.onTrainGotBoosted.removeListener(_refreshWithParameter);
+    gm.onTimerTicks.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
@@ -204,7 +208,7 @@ class _HeaderState extends State<_Header> {
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
-                const SizedBox(width: 1200),
+                const SizedBox(width: 1300),
                 Positioned(
                   right: 0,
                   top: 0,
@@ -225,22 +229,49 @@ class _HeaderState extends State<_Header> {
                                 color: tm.textColor),
                           ),
                           SizedBox(
-                            width: 160,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            width: 180,
+                            child: Column(
                               children: [
-                                Text(
-                                  '!pardon',
-                                  style: TextStyle(
-                                      fontSize: tm.titleSize * 0.6,
-                                      color: tm.textColor),
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '!pardon',
+                                      style: TextStyle(
+                                          fontSize: tm.titleSize * 0.6,
+                                          color: tm.textColor),
+                                    ),
+                                    Text('x ${gm.remainingPardon}',
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: tm.titleSize * 0.6,
+                                            color: tm.textColor)),
+                                  ],
                                 ),
-                                Text('x ${gm.remainingPardon}',
-                                    style: TextStyle(
-                                        fontStyle: FontStyle.italic,
-                                        fontSize: tm.titleSize * 0.6,
-                                        color: tm.textColor)),
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '!boost',
+                                      style: TextStyle(
+                                          fontSize: tm.titleSize * 0.6,
+                                          color: tm.textColor),
+                                    ),
+                                    Text(
+                                        gm.isTrainBoosted
+                                            ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
+                                            : 'x ${gm.remainingBoosts}',
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: tm.titleSize * 0.6,
+                                            color: tm.textColor)),
+                                  ],
+                                ),
                               ],
                             ),
                           ),

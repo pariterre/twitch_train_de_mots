@@ -364,7 +364,7 @@ class _SolutionTileState extends State<_SolutionTile> {
 
   BoxDecoration get _boxDecoration => BoxDecoration(
         gradient: widget.solution.isFound
-            ? (widget.solution.wasStolen ? stolen : solved)
+            ? (widget.solution.isStolen ? stolen : solved)
             : unsolved,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black),

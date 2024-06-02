@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/valuable_letter.dart';
 
@@ -17,6 +18,9 @@ class WordSolution {
     }
     _foundBy = player;
     _foundAt = DateTime.now();
+
+    // If the word was boosted, keep it, otherwise, check if the train is boosted
+    _isBoosted = _isBoosted || GameManager.instance.isTrainBoosted;
   }
 
   void pardonStealer() {
@@ -27,11 +31,14 @@ class WordSolution {
   DateTime? _foundAt;
   DateTime get foundAt => _foundAt!;
 
-  bool get wasStolen => _stolenFrom != null;
+  bool get isStolen => _stolenFrom != null;
   Player? _stolenFrom;
   Player get stolenFrom => _stolenFrom!;
   DateTime? _stolenAt;
   DateTime? get stolenAt => _stolenAt;
+
+  bool _isBoosted = false;
+  bool get isBoosted => _isBoosted;
 
   int get value => word
       .split('')

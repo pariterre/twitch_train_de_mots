@@ -47,6 +47,7 @@ class SoundManager {
     gm.onRoundStarted.addListener(instance._onRoundStarted);
     gm.onSolutionFound.addListener(instance._onSolutionFound);
     gm.onStealerPardonned.addListener(instance._onSolutionFound);
+    gm.onTrainGotBoosted.addListener(instance._onTrainGotBoosted);
     gm.onScrablingLetters.addListener(instance._onLettersScrambled);
     gm.onRevealUselessLetter.addListener(instance._onLettersScrambled);
     gm.onRevealHiddenLetter.addListener(instance._onLettersScrambled);
@@ -92,6 +93,12 @@ class SoundManager {
     } else {
       (await _soundEffect).play(AssetSource('sounds/SolutionFound.mp3'));
     }
+  }
+
+  Future<void> _onTrainGotBoosted(int boostNeeded) async {
+    if (boostNeeded > 0) return;
+
+    (await _soundEffect).play(AssetSource('sounds/GameStarted.mp3'));
   }
 
   Future<void> playTelegramReceived() async {

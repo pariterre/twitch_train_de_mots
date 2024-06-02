@@ -78,8 +78,17 @@ class GameManager {
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   WordSolution? _lastStolenSolution;
-  int _remainingPardon = 0;
-  int get remainingPardon => _remainingPardon;
+  int _remainingPardons = 0;
+  int get remainingPardon => _remainingPardons;
+
+  int _remainingBoosts = 0;
+  int get remainingBoosts => _remainingBoosts;
+  bool get isTrainBoosted => _boostStartedAt != null;
+  Duration? get trainBoostRemainingTime => _boostStartedAt
+      ?.add(ConfigurationManager.instance.boostTime)
+      .difference(DateTime.now());
+  DateTime? _boostStartedAt;
+  final List<Player> _requestedBoost = [];
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -159,6 +168,7 @@ class GameManager {
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onStealerPardonned = CustomCallback<Function(WordSolution)>();
+  final onTrainGotBoosted = CustomCallback<Function(int)>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
   Future<void> Function(String)? onShowMessage;
@@ -351,6 +361,9 @@ class GameManager {
     _roundSuccesses.clear();
     _lastStolenSolution = null;
 
+    _boostStartedAt = null;
+    _requestedBoost.clear();
+
     _gameStatus = GameStatus.roundStarted;
   }
 
@@ -372,6 +385,8 @@ class GameManager {
     if (message == '!pardon') {
       _pardonLastStealer(player);
       return;
+    } else if (message == '!boost') {
+      _boostTrain(player);
     }
 
     // If the player is in cooldown, they are not allowed to answer
@@ -394,7 +409,7 @@ class GameManager {
       // or the player is trying to steal from themselves
       // or was stolen in less than the cooldown of the previous founder
       if (!cm.canSteal ||
-          solution.wasStolen ||
+          solution.isStolen ||
           solution.foundBy == player ||
           solution.foundBy.isInCooldownPeriod) {
         return;
@@ -406,7 +421,7 @@ class GameManager {
     }
     solution.foundBy = player;
     player.lastSolutionFound = solution;
-    if (solution.wasStolen) {
+    if (solution.isStolen) {
       solution.foundBy.addToStealCount();
       solution.stolenFrom.lastSolutionFound = null;
       onSolutionWasStolen.notifyListenersWithParameter(solution);
@@ -428,8 +443,12 @@ class GameManager {
     _playersWasInCooldownLastFrame[player.name] = true;
   }
 
+  ///
+  /// Performs the pardon to a player, that is giving back the points to the team
+  /// and remove the stolen flag for the player. This is only performed if the
+  /// pardonner is not the stealer themselves.
   void _pardonLastStealer(Player playerWhoRequestedPardon) {
-    if (_remainingPardon < 1) return;
+    if (_remainingPardons < 1) return;
 
     if (_lastStolenSolution == null) {
       // Tell the players that there was no stealer to pardon
@@ -442,12 +461,34 @@ class GameManager {
     if (solution.foundBy == playerWhoRequestedPardon) return;
 
     // If we get here, the solution is pardonned (so not stolen anymore)
-    _remainingPardon -= 1;
+    _remainingPardons -= 1;
     _lastStolenSolution = null;
     solution.pardonStealer();
     solution.foundBy.removeFromStealCount();
 
     onStealerPardonned.notifyListenersWithParameter(solution);
+  }
+
+  ///
+  /// Boost the train. This will double the score for the subsequent solutions
+  /// found during the next boostTime
+  void _boostTrain(Player player) {
+    if (_remainingBoosts < 1 || isTrainBoosted) return;
+
+    // All different players must request the boost
+    if (_requestedBoost.contains(player)) return;
+    _requestedBoost.add(player);
+
+    // If we fulfill the number of boost requests needed, we can start the boost
+    final cm = ConfigurationManager.instance;
+    final nbBoostStillNeeded =
+        cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
+    if (nbBoostStillNeeded == 0) {
+      _remainingBoosts -= 1;
+      _boostStartedAt = DateTime.now();
+    }
+
+    onTrainGotBoosted.notifyListenersWithParameter(nbBoostStillNeeded);
   }
 
   ///
@@ -458,7 +499,10 @@ class GameManager {
     _roundCount = 0;
     _successLevel = SuccessLevel.failed;
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
-    _remainingPardon = cm.numberOfPardon;
+
+    _remainingPardons = cm.numberOfPardons;
+    _remainingBoosts = cm.numberOfBoosts;
+
     players.clear();
   }
 
@@ -544,6 +588,11 @@ class GameManager {
       _isHiddenLetterRevealed = true;
       onRevealHiddenLetter.notifyListeners();
     }
+
+    // Manage boost of the train
+    if (isTrainBoosted && (trainBoostRemainingTime?.inSeconds ?? -1) <= 0) {
+      _boostStartedAt = null;
+    }
   }
 
   ///
@@ -575,7 +624,7 @@ class GameManager {
 
     if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
-      _remainingPardon += 1;
+      _remainingPardons += 1;
       onAllSolutionsFound.notifyListeners();
     }
 

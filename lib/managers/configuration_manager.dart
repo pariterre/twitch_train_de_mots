@@ -34,7 +34,10 @@ const _maximumWordsNumberDefault = 40;
 const _canStealDefault = true;
 const _oneStationMaxPerRoundDefault = false;
 
-const _numberOfPardonDefault = 3;
+const _numberOfPardonsDefault = 3;
+const _boostTimeDefault = 30;
+const _numberOfBoostsDefault = 1;
+const _numberOfBoostRequestsNeededDefault = 3;
 
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
@@ -480,10 +483,31 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _numberOfPardon = _numberOfPardonDefault;
-  int get numberOfPardon => _numberOfPardon;
-  set numberOfPardon(int value) {
-    _numberOfPardon = value;
+  int _numberOfPardons = _numberOfPardonsDefault;
+  int get numberOfPardons => _numberOfPardons;
+  set numberOfPardons(int value) {
+    _numberOfPardons = value;
+    _saveConfiguration();
+  }
+
+  Duration _boostTime = const Duration(seconds: _boostTimeDefault);
+  Duration get boostTime => _boostTime;
+  set boostTime(Duration value) {
+    _boostTime = value;
+    _saveConfiguration();
+  }
+
+  int _numberOfBoosts = _numberOfBoostsDefault;
+  int get numberOfBoosts => _numberOfBoosts;
+  set numberOfBoosts(int value) {
+    _numberOfBoosts = value;
+    _saveConfiguration();
+  }
+
+  int _numberOfBoostRequestsNeeded = _numberOfBoostRequestsNeededDefault;
+  int get numberOfBoostRequestsNeeded => _numberOfBoostRequestsNeeded;
+  set numberOfBoostRequestsNeeded(int value) {
+    _numberOfBoostRequestsNeeded = value;
     _saveConfiguration();
   }
 
@@ -525,6 +549,7 @@ class ConfigurationManager {
       'autoplay': autoplay,
       'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
       'autoplayDuration': autoplayDuration.inSeconds,
+      'showAnswersTooltip': showAnswersTooltip,
       'showLeaderBoard': showLeaderBoard,
       'roundDuration': roundDuration.inSeconds,
       'postRoundGracePeriodDuration': postRoundGracePeriodDuration.inSeconds,
@@ -536,6 +561,10 @@ class ConfigurationManager {
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
       'oneStationMaxPerRound': oneStationMaxPerRound,
+      'numberOfPardons': numberOfPardons,
+      'boostTime': boostTime.inSeconds,
+      'numberOfBoosts': numberOfBoosts,
+      'numberOfBoostRequestsNeeded': numberOfBoostRequestsNeeded,
       'musicVolume': musicVolume,
       'soundVolume': soundVolume,
     };
@@ -598,7 +627,11 @@ class ConfigurationManager {
       _oneStationMaxPerRound =
           map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
 
-      _numberOfPardon = map['numberOfPardon'] ?? _numberOfPardonDefault;
+      _numberOfPardons = map['numberOfPardon'] ?? _numberOfPardonsDefault;
+      _boostTime = Duration(seconds: map['boostTime'] ?? _boostTimeDefault);
+      _numberOfBoosts = map['numberOfBoost'] ?? _numberOfBoostsDefault;
+      _numberOfBoostRequestsNeeded = map['numberOfBoostRequestNeeded'] ??
+          _numberOfBoostRequestsNeededDefault;
 
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
       _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
@@ -642,7 +675,10 @@ class ConfigurationManager {
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
       _canSteal = _canStealDefault;
       _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
-      _numberOfPardon = _numberOfPardonDefault;
+      _numberOfPardons = _numberOfPardonsDefault;
+      _boostTime = const Duration(seconds: _boostTimeDefault);
+      _numberOfBoosts = _numberOfBoostsDefault;
+      _numberOfBoostRequestsNeeded = _numberOfBoostRequestsNeededDefault;
       _cooldownPeriod = const Duration(seconds: _cooldownPeriodDefault);
       _cooldownPenaltyAfterSteal =
           const Duration(seconds: _cooldownPenaltyAfterStealDefault);
