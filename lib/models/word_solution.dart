@@ -40,10 +40,14 @@ class WordSolution {
   bool _isBoosted = false;
   bool get isBoosted => _isBoosted;
 
-  int get value => word
-      .split('')
-      .map((e) => ValuableLetter.getValueOfLetter(e))
-      .reduce((a, b) => a + b);
+  int get value {
+    final factor = _isBoosted ? 2 : 1;
+    return factor *
+        word
+            .split('')
+            .map((e) => ValuableLetter.getValueOfLetter(e))
+            .reduce((a, b) => a + b);
+  }
 
   WordSolution({required String word})
       : word = removeDiacritics(word.toUpperCase());
