@@ -84,7 +84,7 @@ class SoundManager {
   }
 
   Future<void> _onSolutionFound(WordSolution? solution) async {
-    if (solution == null) return;
+    if (solution == null || solution.isStolen) return;
 
     final gm = GameManager.instance;
 

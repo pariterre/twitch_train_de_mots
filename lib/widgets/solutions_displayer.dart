@@ -29,7 +29,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onRoundStarted.addListener(_fetchMvpPlayers);
     gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardonned.addListener(_onSolutionFound);
+    gm.onStealerPardonned.addListener(_onPlayerWasPardonned);
     gm.onPlayerUpdate.addListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -54,7 +54,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onRoundStarted.removeListener(_fetchMvpPlayers);
     gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardonned.removeListener(_onSolutionFound);
+    gm.onStealerPardonned.removeListener(_onPlayerWasPardonned);
     gm.onPlayerUpdate.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
@@ -81,6 +81,12 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
   void _onSolutionFound(WordSolution? solution) {
     if (solution == null) return;
+
+    _fireworksControllers[solution]?.trigger();
+  }
+
+  void _onPlayerWasPardonned(WordSolution? solution) {
+    if (solution == null || solution.isStolen) return;
 
     _fireworksControllers[solution]?.trigger();
   }

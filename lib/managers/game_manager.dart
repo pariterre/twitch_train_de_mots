@@ -457,8 +457,11 @@ class GameManager {
     }
     final solution = _lastStolenSolution!;
 
-    // Do not allow the stealer to pardon themselves
-    if (solution.foundBy == playerWhoRequestedPardon) return;
+    // Only the player who was stolen from can pardon the stealer
+    if (solution.stolenFrom != playerWhoRequestedPardon) {
+      onStealerPardonned.notifyListenersWithParameter(solution);
+      return;
+    }
 
     // If we get here, the solution is pardonned (so not stolen anymore)
     _remainingPardons -= 1;

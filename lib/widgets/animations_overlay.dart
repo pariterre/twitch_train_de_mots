@@ -158,6 +158,17 @@ class _AStealerWasPardonned extends StatelessWidget {
   Widget build(BuildContext context) {
     const textColor = Color.fromARGB(255, 237, 243, 151);
 
+    late final String text;
+    if (solution == null) {
+      text = 'Il n\'y a aucun vol à pardonner!';
+    } else {
+      if (solution!.isStolen) {
+        text = 'Seul ${solution!.stolenFrom.name} peut pardonner le vol...';
+      } else {
+        text = 'Le joueur ${solution!.foundBy.name} a été pardonné de son vol!';
+      }
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 99, 91, 18),
@@ -170,9 +181,7 @@ class _AStealerWasPardonned extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            solution == null
-                ? 'Il n\'y a aucun vol à pardonner!'
-                : 'Le joueur ${solution!.foundBy.name} a été pardonné de son vol!',
+            text,
             style: const TextStyle(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
