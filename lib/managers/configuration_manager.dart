@@ -274,6 +274,9 @@ class ConfigurationManager {
                 'aient disparues',
             userWhoRequested: 'AlchimisteDesMots',
             urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
+        FeatureNotes(
+            description:
+                'Il est également possible de booster le train avec la commande !boost'),
       ],
     ),
   ];
