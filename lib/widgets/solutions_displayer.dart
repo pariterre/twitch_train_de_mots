@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
@@ -273,24 +275,30 @@ class _SolutionTileState extends State<_SolutionTile> {
     final cm = ConfigurationManager.instance;
     final tm = ThemeManager.instance;
 
+    final widthFactor = min(MediaQuery.of(context).size.width / 1920, 1.0);
+    final heightFactor = min(MediaQuery.of(context).size.height / 1080, 1.0);
+
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         child: SizedBox(
-          width: tm.textSize * 13,
-          height: 50,
+          width: tm.textSize * 13 * widthFactor,
+          height: tm.textSize * 2.1 * heightFactor,
           child: cm.showAnswersTooltip
               ? Tooltip(
                   message: widget.solution.isFound ? '' : widget.solution.word,
                   verticalOffset: -5,
                   textStyle:
                       TextStyle(fontSize: tm.textSize, color: Colors.white),
-                  child: _buildTile(),
+                  child: _buildTile(
+                      widthFactor: widthFactor, heightFactor: heightFactor),
                 )
-              : _buildTile(),
+              : _buildTile(
+                  widthFactor: widthFactor, heightFactor: heightFactor),
         ));
   }
 
-  Widget _buildTile() {
+  Widget _buildTile(
+      {required double widthFactor, required double heightFactor}) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
@@ -304,7 +312,7 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     return Container(
       decoration: _boxDecoration,
-      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
+      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2 * widthFactor),
       child: widget.solution.isFound ||
               gm.gameStatus == GameStatus.revealAnswers
           ? Row(
@@ -317,7 +325,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                       Text(
                         widget.solution.word,
                         style: TextStyle(
-                            fontSize: tm.textSize,
+                            fontSize: tm.textSize * heightFactor,
                             fontWeight: FontWeight.bold,
                             color: widget.solution.isFound
                                 ? tm.textSolvedColor
@@ -328,7 +336,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                           child: Text(
                             ' (${widget.solution.foundBy.name})',
                             style: TextStyle(
-                                fontSize: tm.textSize,
+                                fontSize: tm.textSize * heightFactor,
                                 color: tm.textSolvedColor),
                             overflow: TextOverflow.ellipsis,
                           ),
