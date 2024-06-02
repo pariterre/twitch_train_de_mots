@@ -11,8 +11,26 @@ class AnimationOverlay extends StatefulWidget {
 }
 
 class _AnimationOverlayState extends State<AnimationOverlay> {
-  final _controller = BouncyContainerController(
+  final _stolenController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
+  final _pardonnedController = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 700,
+      bouncingDuration: 3000,
+      easingOutDuration: 300,
+      minScale: 0.5,
+      bouncyScale: 1.4,
+      maxScale: 1.5,
+      maxOpacity: 0.9);
+  final _allSolutionFoundController = BouncyContainerController(
+      bounceCount: 5,
+      easingInDuration: 300,
+      bouncingDuration: 1000,
+      easingOutDuration: 300,
+      minScale: 0.8,
+      bouncyScale: 1.2,
+      maxScale: 1.3,
+      maxOpacity: 0.9);
 
   @override
   void initState() {
@@ -26,7 +44,9 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _stolenController.dispose();
+    _pardonnedController.dispose();
+    _allSolutionFoundController.dispose();
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
@@ -37,15 +57,16 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   }
 
   void _showSolutionWasStolen(WordSolution solution) {
-    _controller.triggerAnimation(_ASolutionWasStolen(solution: solution));
+    _stolenController.triggerAnimation(_ASolutionWasStolen(solution: solution));
   }
 
   void _showStealerWasPardonned(WordSolution? solution) {
-    _controller.triggerAnimation(_AStealerWasPardonned(solution: solution));
+    _pardonnedController
+        .triggerAnimation(_AStealerWasPardonned(solution: solution));
   }
 
   void _showAllSolutionsFound() {
-    _controller.triggerAnimation(const _AllSolutionsFound());
+    _allSolutionFoundController.triggerAnimation(const _AllSolutionsFound());
   }
 
   @override
@@ -57,8 +78,16 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
         alignment: Alignment.center,
         children: [
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.19,
-            child: BouncyContainer(controller: _controller),
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _stolenController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.15,
+            child: BouncyContainer(controller: _pardonnedController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.4,
+            child: BouncyContainer(controller: _allSolutionFoundController),
           ),
         ],
       ),
