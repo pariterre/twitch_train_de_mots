@@ -53,16 +53,10 @@ class GameManager {
 
   LetterProblem? _currentProblem;
   final List<LetterProblem?> _nextProblems = [];
-  bool get isNextProblemReady {
-    if (_nextProblems.length == 4) return true;
-    if (_gameStatus == GameStatus.roundPreparing ||
-        _gameStatus == GameStatus.initializing ||
-        _gameStatus == GameStatus.roundReady ||
-        _gameStatus == GameStatus.revealAnswers) {
-      if (_nextProblems.length > _successLevel.toInt()) return true;
-    }
-    return false;
-  }
+
+  /// [isNextProblemReady] assumes [_successLevel] to be max while playing, so
+  /// it ensures to search for all possible next problems.
+  bool get isNextProblemReady => _nextProblems.length > _successLevel.toInt();
 
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
@@ -358,6 +352,7 @@ class GameManager {
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
+    _successLevel = SuccessLevel.threeStars;
     _roundSuccesses.clear();
     _lastStolenSolution = null;
 
