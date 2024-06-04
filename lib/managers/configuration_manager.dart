@@ -266,17 +266,38 @@ class ConfigurationManager {
       features: [
         FeatureNotes(
           description:
-              'Il est maintenant possible de pardonner avec la commande: !pardon',
+              'Il est maintenant possible de pardonner avec la commande: !pardon. '
+              'Un pardon redonne les points à l\'équipe mais laisse les points au voleur. '
+              'Seul le ou la cheminot\u00b7e volé\u00b7e peut pardonner (sans récupérer ses points)',
         ),
+        FeatureNotes(
+            description:
+                'Il est également possible de booster le train avec la commande !boost. '
+                'Si trois cheminot·e·s demandent un boost, le train accélère. '
+                'Les points réalisés dans les 30 secondes subséquentes '
+                'sont alors comptés doubles'),
         FeatureNotes(
             description:
                 'Il est maintenant possible de revoir les réponses après qu\'elles'
                 'aient disparues',
             userWhoRequested: 'AlchimisteDesMots',
             urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
+      ],
+    ),
+    ReleaseNotes(
+      version: '1.0.2',
+      codeName: 'Ne t\'arrête plus jamais!',
+      notes:
+          'Un bogue aux stations 15 et plus a été réparés permettant au train '
+          'de continuer la partie sans perdre la progression! '
+          'Désolé aux cheminot·e·s qui ont été laissé·e·s sur le quai depuis deux semaines!',
+      features: [
         FeatureNotes(
             description:
-                'Il est également possible de booster le train avec la commande !boost'),
+                'Réparation du bogue qui empêchait le train de continuer '
+                'la partie après la station 15',
+            userWhoRequested: 'AlchimisteDesMots',
+            urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
       ],
     ),
   ];
