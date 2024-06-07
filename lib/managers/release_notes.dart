@@ -306,6 +306,11 @@ const List<ReleaseNotes> releaseNotes = [
               'Un boost pris dans les dernières secondes de la ronde ne pose '
               'plus de problème'),
       FeatureNotes(
+          description: 'Les aides du contrôleur peuvent être désactivées dans '
+              'le menu d\'options avancées',
+          userWhoRequested: 'NghtmrTV',
+          urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv'),
+      FeatureNotes(
           description: 'Le mot PESTO est maintenant accepté',
           userWhoRequested: 'emmabouquine',
           urlOfUserWhoRequested: 'https://twitch.tv/emmabouquine'),
