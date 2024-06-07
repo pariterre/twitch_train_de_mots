@@ -2,8 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/models/release_notes.dart';
+import 'package:train_de_mots/managers/release_notes.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -66,8 +65,6 @@ class WordTrainAboutDialog extends StatelessWidget {
   }
 
   Widget _buildReleaseNotes() {
-    final releaseNotes = ConfigurationManager.instance.releaseNotes;
-
     return SingleChildScrollView(
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

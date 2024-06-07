@@ -4,6 +4,7 @@ import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
+import 'package:train_de_mots/managers/release_notes.dart';
 import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
@@ -74,12 +75,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (cm.lastReleaseNotesShown == '') {
       // Do not show releases notes if it's the first time the app is launched
-      cm.lastReleaseNotesShown = cm.releaseNotes.last.version;
+      cm.lastReleaseNotesShown = releaseNotes.last.version;
       return;
     }
 
-    if (cm.lastReleaseNotesShown != cm.releaseNotes.last.version) {
-      cm.lastReleaseNotesShown = cm.releaseNotes.last.version;
+    if (cm.lastReleaseNotesShown != releaseNotes.last.version) {
+      cm.lastReleaseNotesShown = releaseNotes.last.version;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showDialog(
           context: context,
