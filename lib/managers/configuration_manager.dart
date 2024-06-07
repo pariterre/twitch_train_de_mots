@@ -300,6 +300,22 @@ class ConfigurationManager {
             urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
       ],
     ),
+    ReleaseNotes(
+      version: '1.0.3',
+      codeName: 'Ne t\'arrête plus jamais (prise 2)!',
+      notes:
+          'Le même bogue réglé dans la version précédente s\'est faufilé dans '
+          'et existait encore... Il a été réglé une fois pour toute (j\'espère..)!',
+      features: [
+        FeatureNotes(
+            description:
+                'Réparation du bogue qui empêchait le train de continuer '
+                'la partie à la station 16, 19 ou 22 si un ensemble de lettres était trouvé '
+                'pendant l\'affichage du télégramme.',
+            userWhoRequested: 'AlchimisteDesMots',
+            urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
+      ],
+    ),
   ];
 
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
