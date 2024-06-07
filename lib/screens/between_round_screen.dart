@@ -433,7 +433,7 @@ class _LeaderBoard extends StatelessWidget {
     final tm = ThemeManager.instance;
     final dm = DatabaseManager.instance;
 
-    const scoreWidth = 80.0;
+    const scoreWidth = 82.0;
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(

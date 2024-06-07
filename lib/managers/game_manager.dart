@@ -377,11 +377,13 @@ class GameManager {
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
 
-    if (message == '!pardon') {
-      _pardonLastStealer(player);
-      return;
-    } else if (message == '!boost') {
-      _boostTrain(player);
+    if (cm.canUseControllerHelper) {
+      if (message == '!pardon') {
+        _pardonLastStealer(player);
+        return;
+      } else if (message == '!boost') {
+        _boostTrain(player);
+      }
     }
 
     // If the player is in cooldown, they are not allowed to answer

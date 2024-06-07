@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
@@ -207,77 +208,78 @@ class _HeaderState extends State<_Header> {
             alignment: Alignment.topCenter,
             children: [
               const SizedBox(width: 1300),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Card(
-                  color: tm.mainColor,
-                  elevation: 10,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0, vertical: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Aides du contrôleur :',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: tm.titleSize * 0.6,
-                              color: tm.textColor),
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '!pardon',
-                                    style: TextStyle(
-                                        fontSize: tm.titleSize * 0.6,
-                                        color: tm.textColor),
-                                  ),
-                                  Text('x ${gm.remainingPardon}',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                          fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor)),
-                                ],
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '!boost',
-                                    style: TextStyle(
-                                        fontSize: tm.titleSize * 0.6,
-                                        color: tm.textColor),
-                                  ),
-                                  Text(
-                                      gm.isTrainBoosted
-                                          ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
-                                          : 'x ${gm.remainingBoosts}',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                          fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor)),
-                                ],
-                              ),
-                            ],
+              if (ConfigurationManager.instance.canUseControllerHelper)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Card(
+                    color: tm.mainColor,
+                    elevation: 10,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Aides du contrôleur :',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: tm.titleSize * 0.6,
+                                color: tm.textColor),
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            width: 180,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '!pardon',
+                                      style: TextStyle(
+                                          fontSize: tm.titleSize * 0.6,
+                                          color: tm.textColor),
+                                    ),
+                                    Text('x ${gm.remainingPardon}',
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: tm.titleSize * 0.6,
+                                            color: tm.textColor)),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '!boost',
+                                      style: TextStyle(
+                                          fontSize: tm.titleSize * 0.6,
+                                          color: tm.textColor),
+                                    ),
+                                    Text(
+                                        gm.isTrainBoosted
+                                            ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
+                                            : 'x ${gm.remainingBoosts}',
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.italic,
+                                            fontSize: tm.titleSize * 0.6,
+                                            color: tm.textColor)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               Column(
                 children: [
                   Card(

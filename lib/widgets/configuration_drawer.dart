@@ -531,6 +531,12 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                     onChanged: (value) => cm.canSteal = value,
                     enabled: cm.useCustomAdvancedOptions),
                 const SizedBox(height: 12),
+                _BooleanInputField(
+                    label: 'Utiliser les aides du contrôleur',
+                    value: cm.canUseControllerHelper,
+                    onChanged: (value) => cm.canUseControllerHelper = value,
+                    enabled: cm.useCustomAdvancedOptions),
+                const SizedBox(height: 12),
                 _DoubleIntegerInputField(
                   label: 'Période de récupération (secondes)',
                   firstLabel: 'Normale',

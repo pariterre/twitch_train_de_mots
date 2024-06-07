@@ -34,6 +34,8 @@ const _maximumWordsNumberDefault = 40;
 const _canStealDefault = true;
 const _oneStationMaxPerRoundDefault = false;
 
+const _canUseControllerHelperDefault = true;
+
 const _numberOfPardonsDefault = 3;
 const _boostTimeDefault = 30;
 const _numberOfBoostsDefault = 1;
@@ -523,6 +525,13 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  bool _canUseControllerHelper = _canUseControllerHelperDefault;
+  bool get canUseControllerHelper => _canUseControllerHelper;
+  set canUseControllerHelper(bool value) {
+    _canUseControllerHelper = value;
+    _saveConfiguration();
+  }
+
   int _numberOfPardons = _numberOfPardonsDefault;
   int get numberOfPardons => _numberOfPardons;
   set numberOfPardons(int value) {
@@ -601,6 +610,7 @@ class ConfigurationManager {
       'maximumWordsNumber': maximumWordsNumber,
       'canSteal': canSteal,
       'oneStationMaxPerRound': oneStationMaxPerRound,
+      'canUseControllerHelper': canUseControllerHelper,
       'numberOfPardons': numberOfPardons,
       'boostTime': boostTime.inSeconds,
       'numberOfBoosts': numberOfBoosts,
@@ -667,6 +677,8 @@ class ConfigurationManager {
       _oneStationMaxPerRound =
           map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
 
+      _canUseControllerHelper =
+          map['canUseControllerHelper'] ?? _canUseControllerHelperDefault;
       _numberOfPardons = map['numberOfPardon'] ?? _numberOfPardonsDefault;
       _boostTime = Duration(seconds: map['boostTime'] ?? _boostTimeDefault);
       _numberOfBoosts = map['numberOfBoost'] ?? _numberOfBoostsDefault;
@@ -715,6 +727,7 @@ class ConfigurationManager {
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
       _canSteal = _canStealDefault;
       _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
+      _canUseControllerHelper = _canUseControllerHelperDefault;
       _numberOfPardons = _numberOfPardonsDefault;
       _boostTime = const Duration(seconds: _boostTimeDefault);
       _numberOfBoosts = _numberOfBoostsDefault;
