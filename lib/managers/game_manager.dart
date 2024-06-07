@@ -295,15 +295,7 @@ class GameManager {
     }
 
     if (_successLevel == SuccessLevel.failed) _restartGame();
-    _currentProblem = _nextProblems[_successLevel.toInt()];
-    if (_roundCount < 1) {
-      _nextProblems.clear();
-    } else {
-      // No need to remove the first element, which is the round to play if they failed
-      while (_nextProblems.length > 1) {
-        _nextProblems.removeAt(1);
-      }
-    }
+    _setValuesAtStartRound();
 
     // Start searching for the next problem as soon as possible to avoid
     // waiting for the next round
@@ -314,9 +306,7 @@ class GameManager {
     // Send a message to players if required, but only once per session
     await _manageMessageToPlayers();
 
-    // Start the round
-    _setValuesAtStartRound();
-
+    _gameStatus = GameStatus.roundStarted;
     onRoundStarted.notifyListeners();
   }
 
@@ -352,14 +342,24 @@ class GameManager {
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
+    // Transfer the next problem to the current problem
+    _currentProblem = _nextProblems[_successLevel.toInt()];
+    if (_roundCount < 1) {
+      _nextProblems.clear();
+    } else {
+      // No need to remove the first element, which is the round to play if they failed
+      while (_nextProblems.length > 1) {
+        _nextProblems.removeAt(1);
+      }
+    }
+
+    // Reset the round successes
     _successLevel = SuccessLevel.threeStars;
     _roundSuccesses.clear();
     _lastStolenSolution = null;
 
     _boostStartedAt = null;
     _requestedBoost.clear();
-
-    _gameStatus = GameStatus.roundStarted;
   }
 
   ///
