@@ -619,6 +619,7 @@ class GameManager {
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
+    _boostStartedAt = null;
 
     if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
