@@ -210,7 +210,9 @@ class _AllSolutionsFound extends StatelessWidget {
           Icon(Icons.star, color: Colors.amber, size: 32),
           SizedBox(width: 10),
           Text(
-            'Toutes les solutions ont été trouvées!',
+            'Toutes les solutions ont été trouvées!\n'
+            'Un pardon supplémentaire a été accordé!',
+            textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
