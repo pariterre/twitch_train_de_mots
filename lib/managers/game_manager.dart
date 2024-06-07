@@ -307,6 +307,8 @@ class GameManager {
     await _manageMessageToPlayers();
 
     _gameStatus = GameStatus.roundStarted;
+    _roundStartedAt = DateTime.now();
+    _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     onRoundStarted.notifyListeners();
   }
 
@@ -337,9 +339,7 @@ class GameManager {
     _hasPlayedAtLeastOnce = true;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
-    _roundStartedAt = DateTime.now();
     _nextRoundStartAt = null;
-    _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
     // Transfer the next problem to the current problem
