@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
-import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
 void main() async {

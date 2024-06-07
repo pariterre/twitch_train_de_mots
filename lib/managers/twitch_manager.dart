@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/mocks_configuration.dart';
+import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:twitch_manager/models/twitch_listener.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
