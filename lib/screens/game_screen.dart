@@ -201,106 +201,104 @@ class _HeaderState extends State<_Header> {
               fontSize: tm.titleSize,
               color: tm.textColor),
         ),
-        if (gm.gameStatus == GameStatus.roundStarted ||
-            gm.gameStatus == GameStatus.revealAnswers)
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: [
-                const SizedBox(width: 1300),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Card(
-                    color: tm.mainColor,
-                    elevation: 10,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Aides du contrôleur :',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: tm.titleSize * 0.6,
-                                color: tm.textColor),
-                          ),
-                          SizedBox(
-                            width: 180,
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '!pardon',
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              const SizedBox(width: 1300),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Card(
+                  color: tm.mainColor,
+                  elevation: 10,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0, vertical: 12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Aides du contrôleur :',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: tm.titleSize * 0.6,
+                              color: tm.textColor),
+                        ),
+                        SizedBox(
+                          width: 180,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '!pardon',
+                                    style: TextStyle(
+                                        fontSize: tm.titleSize * 0.6,
+                                        color: tm.textColor),
+                                  ),
+                                  Text('x ${gm.remainingPardon}',
                                       style: TextStyle(
+                                          fontStyle: FontStyle.italic,
                                           fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor),
-                                    ),
-                                    Text('x ${gm.remainingPardon}',
-                                        style: TextStyle(
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: tm.titleSize * 0.6,
-                                            color: tm.textColor)),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '!boost',
+                                          color: tm.textColor)),
+                                ],
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.max,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '!boost',
+                                    style: TextStyle(
+                                        fontSize: tm.titleSize * 0.6,
+                                        color: tm.textColor),
+                                  ),
+                                  Text(
+                                      gm.isTrainBoosted
+                                          ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
+                                          : 'x ${gm.remainingBoosts}',
                                       style: TextStyle(
+                                          fontStyle: FontStyle.italic,
                                           fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor),
-                                    ),
-                                    Text(
-                                        gm.isTrainBoosted
-                                            ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
-                                            : 'x ${gm.remainingBoosts}',
-                                        style: TextStyle(
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: tm.titleSize * 0.6,
-                                            color: tm.textColor)),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                          color: tm.textColor)),
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Column(
-                  children: [
-                    Card(
-                      color: tm.mainColor,
-                      elevation: 10,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 24.0, vertical: 12.0),
-                        child: _HeaderTimer(),
-                      ),
+              ),
+              Column(
+                children: [
+                  Card(
+                    color: tm.mainColor,
+                    elevation: 10,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 24.0, vertical: 12.0),
+                      child: _HeaderTimer(),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: TrainPath(
-                          controller: _trainPath, pathLength: 600, height: 75),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: TrainPath(
+                        controller: _trainPath, pathLength: 600, height: 75),
+                  ),
+                ],
+              ),
+            ],
           ),
+        ),
       ],
     );
   }
