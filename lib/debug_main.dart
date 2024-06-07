@@ -1,17 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/widgets/train_path.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/widgets/background.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await ConfigurationManager.initialize();
   await GameManager.initialize();
   await ThemeManager.initialize();
   await SoundManager.initialize();
+  TwitchManager.instance.initialize(useMock: true);
 
   runApp(const MyApp());
 }
@@ -26,35 +27,36 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class DebugScreen extends StatelessWidget {
+class DebugScreen extends StatefulWidget {
   const DebugScreen({super.key});
 
   static const route = '/debug-screen';
 
   @override
+  State<DebugScreen> createState() => _DebugScreenState();
+}
+
+class _DebugScreenState extends State<DebugScreen> {
+  Future<void> _setTwitchManager() async {
+    await TwitchManager.instance.showConnectManagerDialog(context);
+    setState(() {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (TwitchManager.instance.hasNotManager) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = TrainPathController(millisecondsPerStep: 50);
-    controller.nbSteps = 50;
-
-    controller.hallMarks = [10, 20, 49];
-
-    Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      controller.moveForward();
-    });
-
     return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        decoration: const BoxDecoration(color: Colors.white),
-        child: Center(
-          child: TrainPath(
-            controller: controller,
-            pathLength: 500,
-            height: 100,
-          ),
-        ),
+        body: Background(
+      child: TwitchManager.instance.debugOverlay(
+        child: const Center(child: Text('Coucou')),
       ),
-    );
+    ));
   }
 }

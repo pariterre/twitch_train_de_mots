@@ -111,8 +111,7 @@ class _MainScreenState extends State<MainScreen> {
     final tm = ThemeManager.instance;
 
     return Scaffold(
-      body: SingleChildScrollView(
-          child: Background(
+      body: Background(
         child: TwitchManager.instance.hasNotManager
             ? Center(child: CircularProgressIndicator(color: tm.mainColor))
             : Stack(
@@ -144,7 +143,7 @@ class _MainScreenState extends State<MainScreen> {
                   })
                 ],
               ),
-      )),
+      ),
       drawer: const ConfigurationDrawer(),
     );
   }
