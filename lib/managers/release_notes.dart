@@ -316,4 +316,21 @@ const List<ReleaseNotes> releaseNotes = [
           urlOfUserWhoRequested: 'https://twitch.tv/emmabouquine'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.0.5',
+    codeName: 'L\'aiguillage est réparé',
+    notes: 'Le train ne déraille plus après l\'arrivée aux stations! Merci à '
+        'tous les cheminot·e·s pour leur patience sur ce bogue!',
+    features: [
+      FeatureNotes(
+          description:
+              'Réparer la dernière occurence d\'un bogue sur le nombre de mots',
+          userWhoRequested: 'AlchimisteDesMots',
+          urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
+      FeatureNotes(
+          description: 'Le mot RUNE est maintenant accepté par le jeu',
+          userWhoRequested: 'AlchimisteDesMots',
+          urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
+    ],
+  ),
 ];

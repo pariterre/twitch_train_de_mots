@@ -236,9 +236,6 @@ class GameManager {
 
     int i = _nextProblems.length - 1; // -1 is the round 0 (the first round)
     while (_nextProblems.length < 4) {
-      //If the API tells us we have enough problems, we can stop searching
-      if (isNextProblemReady) break;
-
       // The first element is always the first level (in case of a restart of the game)
       // The others depend on the current round count
       final difficulty = cm.difficulty(i < 0 ? 0 : round + i);
@@ -247,7 +244,6 @@ class GameManager {
       if (i >= 1 &&
           difficulty.hasSameRulesForPickingLetters(previousDifficulty)) {
         _nextProblems.add(_nextProblems.last);
-        continue;
       } else {
         _nextProblems.add(await cm.problemGenerator(
           nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
@@ -347,7 +343,7 @@ class GameManager {
     if (_roundCount < 1) {
       _nextProblems.clear();
     } else {
-      // No need to remove the first element, which is the round to play if they failed
+      // No need to remove the first element (Round 0)
       while (_nextProblems.length > 1) {
         _nextProblems.removeAt(1);
       }
