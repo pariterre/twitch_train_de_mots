@@ -60,7 +60,7 @@ class GameManager {
 
   bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
-  SuccessLevel _successLevel = SuccessLevel.failed;
+  SuccessLevel _successLevel = SuccessLevel.threeStars;
   final List<RoundSuccess> _roundSuccesses = [];
   List<RoundSuccess> get roundSuccesses => _roundSuccesses;
 
@@ -493,7 +493,6 @@ class GameManager {
     final cm = ConfigurationManager.instance;
 
     _roundCount = 0;
-    _successLevel = SuccessLevel.failed;
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 
     _remainingPardons = cm.numberOfPardons;
