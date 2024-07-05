@@ -333,4 +333,21 @@ const List<ReleaseNotes> releaseNotes = [
           urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.1.0',
+    codeName: 'Des terres inconnues',
+    notes:
+        'Dans les terres du Nord, plusieurs paysages semblaient similaires... '
+        'Le tracé du train a été modifié pour offrir plus de diversité!',
+    features: [
+      FeatureNotes(
+          description:
+              'Deux jeux de lettres ne sont plus possibles dans la même partie',
+          userWhoRequested: 'LaLoutreBurlesques',
+          urlOfUserWhoRequested: 'https://twitch.tv/laloutreburlesques'),
+      FeatureNotes(
+          description: 'Les niveaux 4 à 6 sont légèrement plus faciles '
+              'pour assurer une meilleure progression')
+    ],
+  ),
 ];
