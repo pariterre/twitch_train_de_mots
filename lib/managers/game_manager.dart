@@ -292,7 +292,9 @@ class GameManager {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
-    if (_successLevel == SuccessLevel.failed) _restartGame();
+    if (_successLevel == SuccessLevel.failed || !hasPlayedAtLeastOnce) {
+      _restartGame();
+    }
     _setValuesAtStartRound();
 
     // Start searching for the next problem as soon as possible to avoid
