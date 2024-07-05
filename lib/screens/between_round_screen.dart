@@ -586,8 +586,9 @@ class _LeaderBoard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: _buildGameScore(width: 500)),
             ),
-          if (gm.successLevel == SuccessLevel.failed &&
-              (gm.isAllowedToSendResults || !gm.hasPlayedAtLeastOnce))
+          if ((gm.successLevel == SuccessLevel.failed &&
+                  gm.isAllowedToSendResults) ||
+              !gm.hasPlayedAtLeastOnce)
             Expanded(
               child: Column(
                 children: [
