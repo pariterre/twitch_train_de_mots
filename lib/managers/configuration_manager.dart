@@ -490,7 +490,7 @@ class ConfigurationManager {
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
-        nbLettersMaxToDraw: 10,
+        nbLettersMaxToDraw: 8,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
