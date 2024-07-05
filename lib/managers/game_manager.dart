@@ -53,6 +53,7 @@ class GameManager {
 
   LetterProblem? _currentProblem;
   final List<LetterProblem?> _nextProblems = [];
+  final List<LetterProblem> _previousProblems = [];
 
   /// [isNextProblemReady] assumes [_successLevel] to be max while playing, so
   /// it ensures to search for all possible next problems.
@@ -252,7 +253,8 @@ class GameManager {
           minimumNbOfWords: cm.minimumWordsNumber,
           maximumNbOfWords: cm.maximumWordsNumber,
           addUselessLetter: difficulty.hasUselessLetter,
-          maxSearchingTime: i > 0 ? maxSearchingTime : Duration.zero,
+          maxSearchingTime: maxSearchingTime,
+          previousProblems: _previousProblems,
         ));
       }
       i++;
@@ -340,6 +342,7 @@ class GameManager {
 
     // Transfer the next problem to the current problem
     _currentProblem = _nextProblems[_successLevel.toInt()];
+    _previousProblems.add(_currentProblem!);
     if (_roundCount < 1) {
       _nextProblems.clear();
     } else {
@@ -494,6 +497,7 @@ class GameManager {
 
     _roundCount = 0;
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
+    _previousProblems.clear();
 
     _remainingPardons = cm.numberOfPardons;
     _remainingBoosts = cm.numberOfBoosts;

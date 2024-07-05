@@ -119,6 +119,14 @@ class LetterProblem {
     _scrambleIndices[index1] = _scrambleIndices[index2];
     _scrambleIndices[index2] = temp;
   }
+
+  @override
+  operator ==(Object other) =>
+      other is LetterProblem &&
+      const ListEquality().equals(_letters, other._letters);
+
+  @override
+  int get hashCode => Object.hash(_letters, _solutions, _extraUselessLetter);
 }
 
 class ProblemGenerator {
@@ -152,33 +160,30 @@ class ProblemGenerator {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
+    required List<LetterProblem> previousProblems,
   }) async {
-    List<String> candidateLetters;
-    Set<String> subWords;
-
-    bool isAValidCandidate = false;
+    LetterProblem? finalProblem;
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
     if (addUselessLetter) maxLetters--;
-    String? uselessLetter;
 
     if (maxLetters < minLetters) {
       throw ArgumentError(
           'The maximum number of letters should be greater than the minimum number of letters');
     }
 
-    final startingSearchingTime = DateTime.now();
+    final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
     do {
       if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
-      candidateLetters = _WordGenerator.instance
+      List<String> candidateLetters = _WordGenerator.instance
           ._generateRandomLetters(nbLetters: maxLetters, useFrequency: false);
+      Set<String> subWords;
+      String? uselessLetter;
 
-      if (startingSearchingTime
-          .add(maxSearchingTime)
-          .isBefore(DateTime.now())) {
+      if (DateTime.now().isAfter(maxSearchingTimeThreshold)) {
         // If the time is up, try fetching from the database. If it fails, we
         // continue with the random letters algorithm
         final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -233,7 +238,7 @@ class ProblemGenerator {
       } while (true);
 
       // Make sure the number of words as solution is valid
-      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+      bool isAValidCandidate = subWords.length >= minimumNbOfWords &&
           subWords.length <= maximumNbOfWords &&
           candidateLetters.length >= minLetters;
 
@@ -247,14 +252,19 @@ class ProblemGenerator {
         // If it is not possible to add a new letter, reject the letters candidate
         isAValidCandidate = uselessLetter != null;
       }
-    } while (!isAValidCandidate);
+
+      if (isAValidCandidate) {
+        // This can return null if the problem was already played
+        finalProblem = _letterProblemFromListLetters(
+            candidateLetters: candidateLetters,
+            subWords: subWords,
+            uselessLetter: uselessLetter,
+            previousProblems: previousProblems);
+      }
+    } while (finalProblem == null);
 
     // The candidate is valid, return the problem
-    return LetterProblem._(
-        letters: candidateLetters,
-        solutions:
-            WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
-        uselessLetter: uselessLetter);
+    return finalProblem;
   }
 
   ///
@@ -268,22 +278,21 @@ class ProblemGenerator {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
+    required List<LetterProblem> previousProblems,
   }) async {
     final random = Random();
-    List<String> candidateLetters;
-    Set<String> subWords;
 
-    bool isAValidCandidate = false;
-    String? uselessLetter;
-    final startingSearchingTime = DateTime.now();
+    LetterProblem? finalProblem;
+    final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
 
     do {
       if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
-      candidateLetters = [];
+      List<String> candidateLetters = [];
 
-      subWords = await _WordGenerator.instance
+      Set<String> subWords = await _WordGenerator.instance
           .wordsWithAtLeast(nbLetterInSmallestWord);
+      String? uselessLetter;
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
@@ -294,9 +303,7 @@ class ProblemGenerator {
         candidateLetters
             .add(availableLetters[random.nextInt(availableLetters.length)]);
 
-        if (startingSearchingTime
-            .add(maxSearchingTime)
-            .isBefore(DateTime.now())) {
+        if (DateTime.now().isAfter(maxSearchingTimeThreshold)) {
           // If the time is up, try fetching from the database. If it fails, we
           // continue with the random letters algorithm
           final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -347,7 +354,7 @@ class ProblemGenerator {
         subWords = (await _WordGenerator.instance._findsWordsFromPermutations(
             from: candidateLetters, nbLetters: nbLetterInSmallestWord));
       }
-      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+      bool isAValidCandidate = subWords.length >= minimumNbOfWords &&
           subWords.length <= maximumNbOfWords;
 
       if (isAValidCandidate && addUselessLetter) {
@@ -361,14 +368,17 @@ class ProblemGenerator {
         isAValidCandidate = uselessLetter != null;
       }
 
-      // Make sure the number of words as solution is valid
-    } while (!isAValidCandidate);
+      if (isAValidCandidate) {
+        // This can return null if the problem was already played
+        finalProblem = _letterProblemFromListLetters(
+            candidateLetters: candidateLetters,
+            subWords: subWords,
+            uselessLetter: uselessLetter,
+            previousProblems: previousProblems);
+      }
+    } while (finalProblem == null);
 
-    return LetterProblem._(
-        letters: candidateLetters,
-        solutions:
-            WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
-        uselessLetter: uselessLetter);
+    return finalProblem;
   }
 
   ///
@@ -383,15 +393,11 @@ class ProblemGenerator {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
+    required List<LetterProblem> previousProblems,
   }) async {
-    List<String> candidateLetters;
-    Set<String> subWords;
-
-    bool isAValidCandidate = false;
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
     if (addUselessLetter) maxLetters--;
-    String? uselessLetter;
 
     if (maxLetters < minLetters) {
       throw ArgumentError(
@@ -402,19 +408,22 @@ class ProblemGenerator {
     final wordsToPickFrom =
         (await _WordGenerator.instance.wordsWithAtLeast(minLetters))
             .where((e) => e.length <= maxLetters);
-    final startingSearchingTime = DateTime.now();
+
+    LetterProblem? finalProblem;
+    final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
+
     do {
       if (GameManager.instance.isNextProblemReady) return null;
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
-      candidateLetters = wordsToPickFrom
+      List<String> candidateLetters = wordsToPickFrom
           .elementAt(random.nextInt(wordsToPickFrom.length))
           .split('');
+      Set<String> subWords;
+      String? uselessLetter;
 
-      if (startingSearchingTime
-          .add(maxSearchingTime)
-          .isBefore(DateTime.now())) {
+      if (DateTime.now().isAfter(maxSearchingTimeThreshold)) {
         // If the time is up, try fetching from the database. If it fails, we
         // continue with the random letters algorithm
         final candidateLettersTp = await _fetchProblemFromDatabase(
@@ -469,7 +478,7 @@ class ProblemGenerator {
       } while (true);
 
       // Make sure the number of words as solution is valid
-      isAValidCandidate = subWords.length >= minimumNbOfWords &&
+      bool isAValidCandidate = subWords.length >= minimumNbOfWords &&
           subWords.length <= maximumNbOfWords &&
           candidateLetters.length >= minLetters;
 
@@ -483,14 +492,41 @@ class ProblemGenerator {
         // If it is not possible to add a new letter, reject the letters candidate
         isAValidCandidate = uselessLetter != null;
       }
-    } while (!isAValidCandidate);
+
+      if (isAValidCandidate) {
+        // This can return null if the problem was already played
+        finalProblem = _letterProblemFromListLetters(
+            candidateLetters: candidateLetters,
+            subWords: subWords,
+            uselessLetter: uselessLetter,
+            previousProblems: previousProblems);
+      }
+    } while (finalProblem == null);
 
     // The candidate is valid, return the problem
-    return LetterProblem._(
+    return finalProblem;
+  }
+
+  ///
+  ///
+  static LetterProblem? _letterProblemFromListLetters({
+    required List<String> candidateLetters,
+    required Set<String> subWords,
+    required String? uselessLetter,
+    required List<LetterProblem> previousProblems,
+  }) {
+    final problem = LetterProblem._(
         letters: candidateLetters,
         solutions:
             WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
         uselessLetter: uselessLetter);
+
+    // Check if the problem was already played
+    if (previousProblems.any((element) => element == problem)) {
+      return null;
+    }
+
+    return problem;
   }
 
   ///
