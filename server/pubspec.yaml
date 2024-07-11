@@ -1,0 +1,15 @@
+name: train_de_mots_server
+description: The server for the Train de Mots web site
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: ^3.3.0
+
+# Add regular dependencies here.
+dependencies:
+  diacritic: ^0.1.4
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0
