@@ -33,7 +33,7 @@ void main(List<String> arguments) async {
 
   final port = int.parse(arguments
       .firstWhere((e) => e.startsWith('--port=') || e.startsWith('-p='),
-          orElse: () => '--port=3000')
+          orElse: () => '--port=3010')
       .split('=')[1]);
 
   final ssl = arguments
