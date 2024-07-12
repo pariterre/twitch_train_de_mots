@@ -60,7 +60,8 @@ void main(List<String> arguments) async {
             ..usePrivateKey(sslKey));
 
   await for (HttpRequest request in server) {
-    _logging.info('New request received');
+    final ipAddress = request.connectionInfo?.remoteAddress.address;
+    _logging.info('New request received from $ipAddress');
 
     if (request.method == 'OPTIONS') {
       _handleOptionsRequest(request);
@@ -122,6 +123,7 @@ void _handleGetProblemRequest(HttpRequest request) {
       ..statusCode = HttpStatus.badRequest
       ..write('Invalid algorithm')
       ..close();
+    return;
   }
 
   late final Duration timeout;
@@ -134,6 +136,7 @@ void _handleGetProblemRequest(HttpRequest request) {
       ..statusCode = HttpStatus.badRequest
       ..write('Invalid timeout')
       ..close();
+    return;
   }
 
   late final ProblemConfiguration config;
@@ -163,6 +166,7 @@ void _handleGetProblemRequest(HttpRequest request) {
       ..statusCode = HttpStatus.badRequest
       ..write('Invalid configuration')
       ..close();
+    return;
   }
 
   _logging.info('Algorithm: ${request.uri.queryParameters['algorithm']}\n'
@@ -181,17 +185,20 @@ void _handleGetProblemRequest(HttpRequest request) {
       ..statusCode = HttpStatus.ok
       ..write(json.encode(problem.serialize()))
       ..close();
+    return;
   } on TimeoutException {
     _logging.severe('Timeout');
     request.response
       ..statusCode = HttpStatus.requestTimeout
       ..write('Timeout')
       ..close();
+    return;
   } catch (e) {
     _logging.severe('Internal server error');
     request.response
       ..statusCode = HttpStatus.internalServerError
       ..write('Internal server error')
       ..close();
+    return;
   }
 }
