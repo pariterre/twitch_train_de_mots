@@ -88,7 +88,7 @@ class ConfigurationManager {
     required bool addUselessLetter,
     required Duration maxSearchingTime,
     required List<LetterProblem> previousProblems,
-  }) _problemGenerator = ProblemGenerator.generateFromRandomWord;
+  }) _problemGenerator = ProblemGenerator.generateFromServer;
   Future<LetterProblem?> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,

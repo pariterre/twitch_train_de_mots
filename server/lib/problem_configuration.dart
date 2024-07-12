@@ -2,7 +2,7 @@ import 'package:train_de_mots_server/range.dart';
 
 ///
 /// Placeholder for the definition of a Problem
-class Problem {
+class ProblemConfiguration {
   ///
   /// The number of letters in the shortest solutions
   final Range lengthShortestSolution;
@@ -19,7 +19,7 @@ class Problem {
   /// The number of useless letters that must be added to the list of letters
   final int nbUselessLetters;
 
-  Problem({
+  ProblemConfiguration({
     required this.lengthShortestSolution,
     required this.lengthLongestSolution,
     required this.nbSolutions,

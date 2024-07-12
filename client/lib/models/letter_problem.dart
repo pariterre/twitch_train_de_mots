@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:http/http.dart' as http;
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
@@ -504,6 +506,62 @@ class ProblemGenerator {
     } while (finalProblem == null);
 
     // The candidate is valid, return the problem
+    return finalProblem;
+  }
+
+  ///
+  /// Calls the server using the generateFromRandomWord method.
+  static Future<LetterProblem?> generateFromServer({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+    required bool addUselessLetter,
+    required Duration maxSearchingTime,
+    required List<LetterProblem> previousProblems,
+  }) async {
+// We have to deduce the number of letters to add to the candidate. It is
+    // way too long otherwise
+    if (addUselessLetter) maxLetters--;
+
+    if (maxLetters < minLetters) {
+      throw ArgumentError(
+          'The maximum number of letters should be greater than the minimum number of letters');
+    }
+
+    LetterProblem? finalProblem;
+    do {
+      // Send an http GET request to the server to get a new problem
+      final url = Uri.http('localhost:3010', '/', {
+        'lengthShortestSolutionMin': '$nbLetterInSmallestWord',
+        'lengthShortestSolutionMax': '$nbLetterInSmallestWord',
+        'lengthLongestSolutionMin': '$minLetters',
+        'lengthLongestSolutionMax': '$maxLetters',
+        'nbSolutionsMin': '$minimumNbOfWords',
+        'nbSolutionsMax': '$maximumNbOfWords',
+        'nbUselessLetters': addUselessLetter ? '1' : '0',
+        'algorithm': 'fromRandomWord',
+        'timeout': '30',
+      });
+      final response = await http.get(url);
+      if (response.statusCode != 200) {
+        continue; // Retry if the server did not respond correctly
+      }
+
+      final data = json.decode(response.body);
+
+      final List<String> candidateLetters = data['letters'].split('');
+      final Set<String> subWords = data['solutions'].cast<String>().toSet();
+      final String? uselessLetter = data['uselessLetter'];
+
+      finalProblem = _letterProblemFromListLetters(
+          candidateLetters: candidateLetters,
+          subWords: subWords,
+          uselessLetter: uselessLetter,
+          previousProblems: previousProblems);
+    } while (finalProblem == null);
+
     return finalProblem;
   }
 
