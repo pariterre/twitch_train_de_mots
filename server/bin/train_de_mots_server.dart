@@ -2,12 +2,98 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/letter_problem.dart';
 import 'package:train_de_mots_server/problem_configuration.dart';
 import 'package:train_de_mots_server/range.dart';
 
+final _logging = Logger('authentication_server');
+
+void main(List<String> arguments) async {
+  // log to a log file
+  final logFilename = arguments
+      .firstWhere((e) => e.startsWith('--log=') || e.startsWith('-l='),
+          orElse: () => '--log=train_de_mots.log')
+      .split('=')[1];
+  final logFile = File(logFilename);
+  logFile.writeAsStringSync(
+      '-----------------------------------\n'
+      'Starting new log at ${DateTime.now()}\n',
+      mode: FileMode.append);
+  Logger.root.onRecord.listen((record) {
+    final message = '${record.time}: ${record.message}';
+    logFile.writeAsStringSync('$message\n', mode: FileMode.append);
+    print(message);
+  });
+
+  final host = arguments
+      .firstWhere((e) => e.startsWith('--host=') || e.startsWith('-h='),
+          orElse: () => '--host=localhost')
+      .split('=')[1];
+
+  final port = int.parse(arguments
+      .firstWhere((e) => e.startsWith('--port=') || e.startsWith('-p='),
+          orElse: () => '--port=3000')
+      .split('=')[1]);
+
+  final ssl = arguments
+      .firstWhere((e) => e.startsWith('--ssl=') || e.startsWith('-s='),
+          orElse: () => '--ssl=')
+      .split('=')[1];
+  final sslCert = ssl.isEmpty ? '' : ssl.split(',')[0];
+  final sslKey = ssl.isEmpty ? '' : ssl.split(',')[1];
+  if (ssl.isNotEmpty && (sslCert.isEmpty || sslKey.isEmpty)) {
+    _logging.severe('Invalid SSL certificate and key, the expected format is: '
+        '--ssl=<cert.pem>,<key.pem>');
+    return;
+  }
+
+  // Wait for a GET request on port 3010
+  _logging.info('Server starting on $host:$port, SSL: ${ssl.isNotEmpty}');
+  HttpServer server = sslKey.isEmpty
+      ? await HttpServer.bind(host, port)
+      : await HttpServer.bindSecure(
+          host,
+          port,
+          SecurityContext()
+            ..useCertificateChain(sslCert)
+            ..usePrivateKey(sslKey));
+
+  await for (HttpRequest request in server) {
+    _logging.info('New request received');
+
+    if (request.method == 'OPTIONS') {
+      _handleOptionsRequest(request);
+    } else if (request.method == 'GET' && request.uri.path == '/getproblem') {
+      _handleGetProblemRequest(request);
+    } else {
+      _handleConnexionRefused(request);
+    }
+  }
+}
+
+///
+/// Handle OPTIONS request for CORS preflight
+void _handleOptionsRequest(HttpRequest request) {
+  request.response
+    ..statusCode = HttpStatus.ok
+    ..headers.add('Access-Control-Allow-Origin', '*')
+    ..headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    ..headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    ..close();
+}
+
+/// Handle connexion refused
+void _handleConnexionRefused(HttpRequest request) {
+  _logging.severe('Connexion refused');
+  request.response
+    ..statusCode = HttpStatus.forbidden
+    ..write('Connexion refused')
+    ..close();
+}
+
 LetterProblem Function(ProblemConfiguration, {required Duration timeout})
-    parseAlgorithm(String algorithm) {
+    _parseAlgorithm(String algorithm) {
   switch (algorithm) {
     case 'fromRandom':
       return LetterProblem.generateFromRandom;
@@ -20,92 +106,92 @@ LetterProblem Function(ProblemConfiguration, {required Duration timeout})
   }
 }
 
-void main(List<String> arguments) async {
-  // Wait for a GET request on port 3010
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 3010);
+/// Handle GET request for a new problem
+/// The request must contain the following parameters:
+/// - algorithm: the algorithm to generate the problem
+/// - timeout: the timeout for the problem
+/// - configuration: the configuration of the problem
+void _handleGetProblemRequest(HttpRequest request) {
+  late final LetterProblem Function(ProblemConfiguration,
+      {required Duration timeout}) algorithm;
+  try {
+    algorithm = _parseAlgorithm(request.uri.queryParameters['algorithm']!);
+  } catch (e) {
+    _logging.severe('Invalid algorithm');
+    request.response
+      ..statusCode = HttpStatus.badRequest
+      ..write('Invalid algorithm')
+      ..close();
+  }
 
-  print('Listening on localhost:${server.port}');
+  late final Duration timeout;
+  try {
+    timeout =
+        Duration(seconds: int.parse(request.uri.queryParameters['timeout']!));
+  } catch (e) {
+    _logging.severe('Invalid timeout');
+    request.response
+      ..statusCode = HttpStatus.badRequest
+      ..write('Invalid timeout')
+      ..close();
+  }
 
-  await for (HttpRequest request in server) {
-    print('New request received');
+  late final ProblemConfiguration config;
+  try {
+    // Get the problem configuration from the parameters of the request
+    final lengthShortestSolution = Range(
+        int.parse(request.uri.queryParameters['lengthShortestSolutionMin']!),
+        int.parse(request.uri.queryParameters['lengthShortestSolutionMax']!));
+    final lengthLongestSolution = Range(
+        int.parse(request.uri.queryParameters['lengthLongestSolutionMin']!),
+        int.parse(request.uri.queryParameters['lengthLongestSolutionMax']!));
+    final nbSolutions = Range(
+        int.parse(request.uri.queryParameters['nbSolutionsMin']!),
+        int.parse(request.uri.queryParameters['nbSolutionsMax']!));
+    final nbUselessLetters =
+        int.parse(request.uri.queryParameters['nbUselessLetters']!);
 
-    late final LetterProblem Function(ProblemConfiguration,
-        {required Duration timeout}) algorithm;
-    try {
-      algorithm = parseAlgorithm(request.uri.queryParameters['algorithm']!);
-    } catch (e) {
-      request.response
-        ..statusCode = HttpStatus.badRequest
-        ..write('Invalid algorithm')
-        ..close();
-    }
+    config = ProblemConfiguration(
+      lengthShortestSolution: lengthShortestSolution,
+      lengthLongestSolution: lengthLongestSolution,
+      nbSolutions: nbSolutions,
+      nbUselessLetters: nbUselessLetters,
+    );
+  } catch (e) {
+    _logging.severe('Invalid configuration');
+    request.response
+      ..statusCode = HttpStatus.badRequest
+      ..write('Invalid configuration')
+      ..close();
+  }
 
-    late final Duration timeout;
-    try {
-      timeout =
-          Duration(seconds: int.parse(request.uri.queryParameters['timeout']!));
-    } catch (e) {
-      request.response
-        ..statusCode = HttpStatus.badRequest
-        ..write('Invalid timeout')
-        ..close();
-    }
+  _logging.info('Algorithm: ${request.uri.queryParameters['algorithm']}\n'
+      'Timeout: ${request.uri.queryParameters['timeout']}\n'
+      'Configuration:\n'
+      '\tlengthShortestSolution: ${request.uri.queryParameters['lengthShortestSolutionMin']} - ${request.uri.queryParameters['lengthShortestSolutionMax']}\n'
+      '\tlengthLongestSolution: ${request.uri.queryParameters['lengthLongestSolutionMin']} - ${request.uri.queryParameters['lengthLongestSolutionMax']}\n'
+      '\tnbSolutions: ${request.uri.queryParameters['nbSolutionsMin']} - ${request.uri.queryParameters['nbSolutionsMax']}\n'
+      '\tnbUselessLetters: ${request.uri.queryParameters['nbUselessLetters']}');
 
-    late final ProblemConfiguration config;
-    try {
-      // Get the problem configuration from the parameters of the request
-      final lengthShortestSolution = Range(
-          int.parse(request.uri.queryParameters['lengthShortestSolutionMin']!),
-          int.parse(request.uri.queryParameters['lengthShortestSolutionMax']!));
-      final lengthLongestSolution = Range(
-          int.parse(request.uri.queryParameters['lengthLongestSolutionMin']!),
-          int.parse(request.uri.queryParameters['lengthLongestSolutionMax']!));
-      final nbSolutions = Range(
-          int.parse(request.uri.queryParameters['nbSolutionsMin']!),
-          int.parse(request.uri.queryParameters['nbSolutionsMax']!));
-      final nbUselessLetters =
-          int.parse(request.uri.queryParameters['nbUselessLetters']!);
+  try {
+    final problem = algorithm(config, timeout: timeout);
 
-      config = ProblemConfiguration(
-        lengthShortestSolution: lengthShortestSolution,
-        lengthLongestSolution: lengthLongestSolution,
-        nbSolutions: nbSolutions,
-        nbUselessLetters: nbUselessLetters,
-      );
-    } catch (e) {
-      request.response
-        ..statusCode = HttpStatus.badRequest
-        ..write('Invalid configuration')
-        ..close();
-    }
-
-    print('Algorithm: ${request.uri.queryParameters['algorithm']}');
-    print('Timeout: ${request.uri.queryParameters['timeout']}');
-    print('Configuration:\n'
-        '\tlengthShortestSolution: ${request.uri.queryParameters['lengthShortestSolutionMin']} - ${request.uri.queryParameters['lengthShortestSolutionMax']}\n'
-        '\tlengthLongestSolution: ${request.uri.queryParameters['lengthLongestSolutionMin']} - ${request.uri.queryParameters['lengthLongestSolutionMax']}\n'
-        '\tnbSolutions: ${request.uri.queryParameters['nbSolutionsMin']} - ${request.uri.queryParameters['nbSolutionsMax']}\n'
-        '\tnbUselessLetters: ${request.uri.queryParameters['nbUselessLetters']}');
-
-    try {
-      final problem = algorithm(config, timeout: timeout);
-
-      print('Problem generated (${problem.letters.join()})');
-      print('');
-      request.response
-        ..statusCode = HttpStatus.ok
-        ..write(json.encode(problem.serialize()))
-        ..close();
-    } on TimeoutException {
-      request.response
-        ..statusCode = HttpStatus.requestTimeout
-        ..write('Timeout')
-        ..close();
-    } catch (e) {
-      request.response
-        ..statusCode = HttpStatus.internalServerError
-        ..write('Internal server error')
-        ..close();
-    }
+    _logging.info('Problem generated (${problem.letters.join()})\n');
+    request.response
+      ..statusCode = HttpStatus.ok
+      ..write(json.encode(problem.serialize()))
+      ..close();
+  } on TimeoutException {
+    _logging.severe('Timeout');
+    request.response
+      ..statusCode = HttpStatus.requestTimeout
+      ..write('Timeout')
+      ..close();
+  } catch (e) {
+    _logging.severe('Internal server error');
+    request.response
+      ..statusCode = HttpStatus.internalServerError
+      ..write('Internal server error')
+      ..close();
   }
 }
