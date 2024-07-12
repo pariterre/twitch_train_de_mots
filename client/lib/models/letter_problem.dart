@@ -533,7 +533,8 @@ class ProblemGenerator {
     LetterProblem? finalProblem;
     do {
       // Send an http GET request to the server to get a new problem
-      final url = Uri.http('localhost:3010', '/', {
+      final url = Uri.https(
+          'twitchauthenticationserver.pariterre.net:3010', '/getproblem', {
         'lengthShortestSolutionMin': '$nbLetterInSmallestWord',
         'lengthShortestSolutionMax': '$nbLetterInSmallestWord',
         'lengthLongestSolutionMin': '$minLetters',
@@ -544,22 +545,36 @@ class ProblemGenerator {
         'algorithm': 'fromRandomWord',
         'timeout': '30',
       });
-      final response = await http.get(url);
-      if (response.statusCode != 200) {
-        continue; // Retry if the server did not respond correctly
+
+      try {
+        final response = await http.get(url);
+        if (response.statusCode != 200) {
+          throw Exception('Failed to get problem from server');
+        }
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        final List<String> candidateLetters = data['letters'].split('');
+        final Set<String> subWords = data['solutions'].cast<String>().toSet();
+        final String? uselessLetter = data['uselessLetter'];
+
+        finalProblem = _letterProblemFromListLetters(
+            candidateLetters: candidateLetters,
+            subWords: subWords,
+            uselessLetter: uselessLetter,
+            previousProblems: previousProblems);
+      } catch (e) {
+        // If anything goes wrong with the server, fallback to the local
+        // algorithm
+        finalProblem = await generateFromRandomWord(
+            nbLetterInSmallestWord: nbLetterInSmallestWord,
+            minLetters: minLetters,
+            maxLetters: maxLetters,
+            minimumNbOfWords: minimumNbOfWords,
+            maximumNbOfWords: maximumNbOfWords,
+            addUselessLetter: addUselessLetter,
+            maxSearchingTime: maxSearchingTime,
+            previousProblems: previousProblems);
       }
-
-      final data = json.decode(response.body);
-
-      final List<String> candidateLetters = data['letters'].split('');
-      final Set<String> subWords = data['solutions'].cast<String>().toSet();
-      final String? uselessLetter = data['uselessLetter'];
-
-      finalProblem = _letterProblemFromListLetters(
-          candidateLetters: candidateLetters,
-          subWords: subWords,
-          uselessLetter: uselessLetter,
-          previousProblems: previousProblems);
     } while (finalProblem == null);
 
     return finalProblem;
