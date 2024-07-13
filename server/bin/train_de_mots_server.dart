@@ -6,8 +6,10 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/letter_problem.dart';
 import 'package:train_de_mots_server/problem_configuration.dart';
 import 'package:train_de_mots_server/range.dart';
+import 'package:train_de_mots_server/rate_limiter.dart';
 
 final _logging = Logger('authentication_server');
+final _rateLimiter = RateLimiter(3, Duration(minutes: 10));
 
 void main(List<String> arguments) async {
   // log to a log file
@@ -61,7 +63,25 @@ void main(List<String> arguments) async {
 
   await for (HttpRequest request in server) {
     final ipAddress = request.connectionInfo?.remoteAddress.address;
+    if (ipAddress == null) {
+      _logging.severe('No IP address found');
+      request.response
+        ..statusCode = HttpStatus.forbidden
+        ..write('Connexion refused')
+        ..close();
+      return;
+    }
+
     _logging.info('New request received from $ipAddress');
+
+    if (_rateLimiter.isRateLimited(ipAddress)) {
+      _logging.severe('Rate limited');
+      request.response
+        ..statusCode = HttpStatus.tooManyRequests
+        ..write('Rate limited')
+        ..close();
+      return;
+    }
 
     if (request.method == 'OPTIONS') {
       _handleOptionsRequest(request);
