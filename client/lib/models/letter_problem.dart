@@ -6,6 +6,7 @@ import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -533,18 +534,19 @@ class ProblemGenerator {
     LetterProblem? finalProblem;
     do {
       // Send an http GET request to the server to get a new problem
-      final url = Uri.https(
-          'twitchauthenticationserver.pariterre.net:3010', '/getproblem', {
-        'lengthShortestSolutionMin': '$nbLetterInSmallestWord',
-        'lengthShortestSolutionMax': '$nbLetterInSmallestWord',
-        'lengthLongestSolutionMin': '$minLetters',
-        'lengthLongestSolutionMax': '$maxLetters',
-        'nbSolutionsMin': '$minimumNbOfWords',
-        'nbSolutionsMax': '$maximumNbOfWords',
-        'nbUselessLetters': addUselessLetter ? '1' : '0',
-        'algorithm': 'fromRandomWord',
-        'timeout': '30',
-      });
+      final url = Uri.parse(
+        '${TrainDeMotsServerManager.instance.uri.toString()}'
+        '/getproblem'
+        '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
+        '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
+        '&lengthLongestSolutionMin=$minLetters'
+        '&lengthLongestSolutionMax=$maxLetters'
+        '&nbSolutionsMin=$minimumNbOfWords'
+        '&nbSolutionsMax=$maximumNbOfWords'
+        '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
+        '&algorithm=fromRandomWord'
+        '&timeout=30',
+      );
 
       try {
         final response = await http.get(url);

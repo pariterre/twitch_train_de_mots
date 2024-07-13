@@ -9,14 +9,8 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
-            "args": ["--web-browser-flag=--disable-web-security"]
+            "args": ["--web-browser-flag=--disable-web-security"],
+            "preLaunchTask": "Run Dart Server",
         },
-        {
-            "name": "Debugger",
-            "request": "launch",
-            "type": "dart",
-            "program": "lib/debug_main.dart",
-            "args": ["--web-browser-flag=--disable-web-security"]
-        }
     ]
 }
