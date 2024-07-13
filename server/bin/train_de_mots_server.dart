@@ -69,7 +69,7 @@ void main(List<String> arguments) async {
         ..statusCode = HttpStatus.forbidden
         ..write('Connexion refused')
         ..close();
-      return;
+      continue;
     }
 
     _logging.info('New request received from $ipAddress');
@@ -80,7 +80,7 @@ void main(List<String> arguments) async {
         ..statusCode = HttpStatus.tooManyRequests
         ..write('Rate limited')
         ..close();
-      return;
+      continue;
     }
 
     if (request.method == 'OPTIONS') {
