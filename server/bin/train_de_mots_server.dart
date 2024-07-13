@@ -4,64 +4,39 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/letter_problem.dart';
+import 'package:train_de_mots_server/parameters.dart';
 import 'package:train_de_mots_server/problem_configuration.dart';
 import 'package:train_de_mots_server/range.dart';
 import 'package:train_de_mots_server/rate_limiter.dart';
 
 final _logging = Logger('authentication_server');
-final _rateLimiter = RateLimiter(3, Duration(minutes: 10));
 
 void main(List<String> arguments) async {
-  // log to a log file
-  final logFilename = arguments
-      .firstWhere((e) => e.startsWith('--log=') || e.startsWith('-l='),
-          orElse: () => '--log=train_de_mots.log')
-      .split('=')[1];
-  final logFile = File(logFilename);
-  logFile.writeAsStringSync(
-      '-----------------------------------\n'
-      'Starting new log at ${DateTime.now()}\n',
-      mode: FileMode.append);
-  Logger.root.onRecord.listen((record) {
-    final message = '${record.time}: ${record.message}';
-    logFile.writeAsStringSync('$message\n', mode: FileMode.append);
-    print(message);
-  });
+  final p = Parameters(arguments,
+      hostDefaultValue: 'localhost', portDefaultValue: 3010);
 
-  final host = arguments
-      .firstWhere((e) => e.startsWith('--host=') || e.startsWith('-h='),
-          orElse: () => '--host=localhost')
-      .split('=')[1];
+  final server = await _startingServer(p);
+  final rateLimiter = RateLimiter(20, Duration(minutes: 1));
 
-  final port = int.parse(arguments
-      .firstWhere((e) => e.startsWith('--port=') || e.startsWith('-p='),
-          orElse: () => '--port=3010')
-      .split('=')[1]);
+  _handleRequests(server: server, rateLimiter: rateLimiter);
+}
 
-  final ssl = arguments
-      .firstWhere((e) => e.startsWith('--ssl=') || e.startsWith('-s='),
-          orElse: () => '--ssl=')
-      .split('=')[1];
-  final sslCert = ssl.isEmpty ? '' : ssl.split(',')[0];
-  final sslKey = ssl.isEmpty ? '' : ssl.split(',')[1];
-  if (ssl.isNotEmpty && (sslCert.isEmpty || sslKey.isEmpty)) {
-    _logging.severe('Invalid SSL certificate and key, the expected format is: '
-        '--ssl=<cert.pem>,<key.pem>');
-    return;
-  }
-
-  // Wait for a GET request on port 3010
-  _logging.info('Server starting on $host:$port, SSL: ${ssl.isNotEmpty}');
-  HttpServer server = sslKey.isEmpty
-      ? await HttpServer.bind(host, port)
-      : await HttpServer.bindSecure(
-          host,
-          port,
+Future<HttpServer> _startingServer(Parameters p) async {
+  _logging.info(
+      'Server starting on ${p.host}:${p.port}, ${p.usingSecure ? 'not ' : ''}using SSL');
+  return p.usingSecure
+      ? await HttpServer.bindSecure(
+          p.host,
+          p.port,
           SecurityContext()
-            ..useCertificateChain(sslCert)
-            ..usePrivateKey(sslKey));
+            ..useCertificateChain(p.certificatePath!)
+            ..usePrivateKey(p.privateKeyPath!))
+      : await HttpServer.bind(p.host, p.port);
+}
 
-  await for (HttpRequest request in server) {
+void _handleRequests(
+    {required HttpServer server, required RateLimiter rateLimiter}) async {
+  await for (final request in server) {
     final ipAddress = request.connectionInfo?.remoteAddress.address;
     if (ipAddress == null) {
       _logging.severe('No IP address found');
@@ -74,7 +49,7 @@ void main(List<String> arguments) async {
 
     _logging.info('New request received from $ipAddress');
 
-    if (_rateLimiter.isRateLimited(ipAddress)) {
+    if (rateLimiter.isRateLimited(ipAddress)) {
       _logging.severe('Rate limited');
       request.response
         ..statusCode = HttpStatus.tooManyRequests
