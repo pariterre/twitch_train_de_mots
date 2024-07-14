@@ -10,16 +10,13 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
 void main() async {
-  // If we are in de
-  // Get the --serverAddress argument
-  final serverAddress = MocksConfiguration.useLocalTrainDeMotsServer
-      ? 'http://localhost:3010'
-      : 'https://twitchauthenticationserver.pariterre.net:3010';
-
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
 
-  await TrainDeMotsServerManager().initialize(uri: Uri.parse(serverAddress));
+  await TrainDeMotsServerManager.initialize(
+      uri: Uri.parse(MocksConfiguration.useLocalTrainDeMotsServer
+          ? 'http://localhost:3010'
+          : 'https://twitchauthenticationserver.pariterre.net:3010'));
 
   if (MocksConfiguration.useDatabaseMock) {
     await MocksConfiguration.initializeDatabaseMocks();

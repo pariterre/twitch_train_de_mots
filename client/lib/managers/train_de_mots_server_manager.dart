@@ -1,15 +1,20 @@
 class TrainDeMotsServerManager {
   // Singleton
-  static final TrainDeMotsServerManager instance =
-      TrainDeMotsServerManager._internal();
-  factory TrainDeMotsServerManager() => instance;
-  TrainDeMotsServerManager._internal();
+  static TrainDeMotsServerManager get instance {
+    if (_instance == null) {
+      throw Exception(
+          'TrainDeMotsManager not initialized, call initialize() first');
+    }
+    return _instance!;
+  }
+
+  static TrainDeMotsServerManager? _instance;
+  TrainDeMotsServerManager._internal({required Uri uri}) : _uri = uri;
 
   // Attributes
-  bool _initialized = false;
-  late final Uri _uri;
+  final Uri _uri;
   Uri get uri {
-    if (!_initialized) {
+    if (_instance == null) {
       throw Exception(
           'TrainDeMotsManager not initialized, call initialize() first');
     }
@@ -17,13 +22,9 @@ class TrainDeMotsServerManager {
   }
 
   // Methods
-  Future<void> initialize({required Uri uri}) async {
-    if (_initialized) {
-      return;
-    }
+  static Future<void> initialize({required Uri uri}) async {
+    if (_instance != null) return;
 
-    _uri = uri;
-
-    _initialized = true;
+    _instance = TrainDeMotsServerManager._internal(uri: uri);
   }
 }
