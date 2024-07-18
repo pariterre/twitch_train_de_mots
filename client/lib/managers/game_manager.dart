@@ -378,12 +378,14 @@ class GameManager {
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
 
+    // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
       if (message == '!pardon') {
         _pardonLastStealer(player);
         return;
       } else if (message == '!boost') {
         _boostTrain(player);
+        return;
       }
     }
 

@@ -771,11 +771,11 @@ class _BooleanInputField extends StatelessWidget {
             Checkbox(
               value: value,
               onChanged: enabled ? (_) => onChanged(!value) : null,
-              fillColor: MaterialStateProperty.resolveWith((state) {
-                if (state.contains(MaterialState.disabled)) {
+              fillColor: WidgetStateProperty.resolveWith((state) {
+                if (state.contains(WidgetState.disabled)) {
                   return Colors.grey;
                 }
-                if (state.contains(MaterialState.selected)) {
+                if (state.contains(WidgetState.selected)) {
                   return tm.backgroundColorDark;
                 }
                 return Colors.white;

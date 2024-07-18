@@ -44,7 +44,7 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
     if (widget.reversedStyle) {
       textStyle = tm.buttonTextStyle.copyWith(
           color: tm.elevatedButtonStyle.backgroundColor!
-              .resolve({MaterialState.focused}));
+              .resolve({WidgetState.focused}));
     } else {
       textStyle = tm.buttonTextStyle;
     }
@@ -74,7 +74,7 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
             style: widget.reversedStyle
                 ? tm.elevatedButtonStyle.copyWith(
                     backgroundColor:
-                        MaterialStatePropertyAll(tm.buttonTextStyle.color))
+                        WidgetStatePropertyAll(tm.buttonTextStyle.color))
                 : tm.elevatedButtonStyle,
             child: Text(widget.buttonText, style: textStyle)));
   }
