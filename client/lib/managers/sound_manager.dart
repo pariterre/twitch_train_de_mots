@@ -1,22 +1,26 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
+import 'package:mutex/mutex.dart';
+
 class SoundManager {
   final _gameMusic = AudioPlayer();
 
-  Future<AudioPlayer> get _soundEffect async {
-    final audio = AudioPlayer();
-    audio.onPlayerComplete.listen((event) {
-      audio.dispose();
-    });
+  final _soundEffectMutex = Mutex();
+  late final _soundEffectAudio = AudioPlayer()
+    ..onPlayerComplete.listen((event) => _soundEffectMutex.release());
+  Future<void> _playSoundEffect(Source source,
+      {required bool allowSkip}) async {
+    if (kIsWeb && _soundEffectMutex.isLocked && allowSkip) return;
+    await _soundEffectMutex.acquire();
 
     final cm = ConfigurationManager.instance;
-    await audio.setVolume(cm.soundVolume);
-
-    return audio;
+    await _soundEffectAudio.setVolume(cm.soundVolume);
+    await _soundEffectAudio.play(source);
   }
 
   /// Declare the singleton
@@ -71,16 +75,17 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    (await _soundEffect).play(AssetSource('sounds/GameStarted.mp3'));
+    _playSoundEffect(AssetSource('sounds/GameStarted.mp3'), allowSkip: false);
   }
 
   Future<void> _onLettersScrambled() async {
-    (await _soundEffect).play(AssetSource('sounds/LettersScrambling.mp3'));
+    _playSoundEffect(AssetSource('sounds/LettersScrambling.mp3'),
+        allowSkip: false);
   }
 
   Future<void> _onRoundIsOver(bool playSound) async {
     if (!playSound) return;
-    (await _soundEffect).play(AssetSource('sounds/RoundIsOver.mp3'));
+    _playSoundEffect(AssetSource('sounds/RoundIsOver.mp3'), allowSkip: false);
   }
 
   Future<void> _onSolutionFound(WordSolution? solution) async {
@@ -89,27 +94,32 @@ class SoundManager {
     final gm = GameManager.instance;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      (await _soundEffect).play(AssetSource('sounds/BestSolutionFound.mp3'));
+      _playSoundEffect(AssetSource('sounds/BestSolutionFound.mp3'),
+          allowSkip: false);
     } else {
-      (await _soundEffect).play(AssetSource('sounds/SolutionFound.mp3'));
+      _playSoundEffect(AssetSource('sounds/SolutionFound.mp3'),
+          allowSkip: true);
     }
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
     if (boostNeeded > 0) return;
 
-    (await _soundEffect).play(AssetSource('sounds/GameStarted.mp3'));
+    _playSoundEffect(AssetSource('sounds/GameStarted.mp3'), allowSkip: false);
   }
 
   Future<void> playTelegramReceived() async {
-    (await _soundEffect).play(AssetSource('sounds/TelegramReceived.mp3'));
+    _playSoundEffect(AssetSource('sounds/TelegramReceived.mp3'),
+        allowSkip: false);
   }
 
   Future<void> playTrainReachedStation() async {
-    (await _soundEffect).play(AssetSource('sounds/TrainReachedStation.mp3'));
+    _playSoundEffect(AssetSource('sounds/TrainReachedStation.mp3'),
+        allowSkip: false);
   }
 
   Future<void> playTrainLostStation() async {
-    (await _soundEffect).play(AssetSource('sounds/TrainLostStation.mp3'));
+    _playSoundEffect(AssetSource('sounds/TrainLostStation.mp3'),
+        allowSkip: false);
   }
 }
