@@ -5,6 +5,11 @@ class RateLimiter {
 
   RateLimiter(this.maxRequests, this.duration);
 
+  int requestCount(String clientIP) {
+    final requests = _clientRequests[clientIP];
+    return requests?.length ?? 0;
+  }
+
   bool isRateLimited(String clientIP) {
     final now = DateTime.now();
     final requests = _clientRequests.putIfAbsent(clientIP, () => []);

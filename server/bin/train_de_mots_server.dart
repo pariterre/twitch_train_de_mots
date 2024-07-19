@@ -23,7 +23,7 @@ void main(List<String> arguments) async {
 
 Future<HttpServer> _startingServer(Parameters p) async {
   _logging.info(
-      'Server starting on ${p.host}:${p.port}, ${p.usingSecure ? 'not ' : ''}using SSL');
+      'Server starting on ${p.host}:${p.port}, ${p.usingSecure ? '' : 'not '}using SSL');
   return p.usingSecure
       ? await HttpServer.bindSecure(
           p.host,
@@ -47,7 +47,8 @@ void _handleRequests(
       continue;
     }
 
-    _logging.info('New request received from $ipAddress');
+    _logging.info(
+        'New request received from $ipAddress (${rateLimiter.requestCount(ipAddress) + 1} / ${rateLimiter.maxRequests})');
 
     if (rateLimiter.isRateLimited(ipAddress)) {
       _logging.severe('Rate limited');
