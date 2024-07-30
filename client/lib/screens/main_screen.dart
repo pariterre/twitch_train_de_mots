@@ -35,11 +35,8 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundIsPreparing.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
-    gm.onTimerTicks.addListener(_refresh);
-    gm.onSolutionFound.addListener(_refreshWithParameter);
-    gm.onStealerPardonned.addListener(_refreshWithParameter);
-    gm.onRoundIsOver.addListener(_refreshWithParameter);
     gm.onShowMessage = _showMessageDialog;
+    gm.onShowcaseSolutionsRequest.addListener(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -55,10 +52,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundIsPreparing.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
-    gm.onTimerTicks.removeListener(_refresh);
-    gm.onSolutionFound.removeListener(_refreshWithParameter);
-    gm.onStealerPardonned.removeListener(_refreshWithParameter);
-    gm.onRoundIsOver.removeListener(_refreshWithParameter);
+    gm.onShowcaseSolutionsRequest.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
@@ -100,7 +94,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _refresh() => setState(() {});
-  void _refreshWithParameter(_) => setState(() {});
 
   void _onClickedBegin() => GameManager.instance.requestStartNewRound();
 

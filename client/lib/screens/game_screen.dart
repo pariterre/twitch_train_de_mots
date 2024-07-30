@@ -94,13 +94,10 @@ class _HeaderState extends State<_Header> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardonned.addListener(_onSolutionFound);
-    gm.onRoundIsOver.addListener(_refreshWithParameter);
+    gm.onRoundStarted.addListener(_refresh);
     gm.onRoundStarted.addListener(_setTrainPath);
-    gm.onTrainGotBoosted.addListener(_refreshWithParameter);
-    gm.onTimerTicks.addListener(_refresh);
     _setTrainPath();
 
     final tm = ThemeManager.instance;
@@ -110,13 +107,10 @@ class _HeaderState extends State<_Header> {
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardonned.removeListener(_onSolutionFound);
-    gm.onRoundIsOver.removeListener(_refreshWithParameter);
+    gm.onRoundStarted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_setTrainPath);
-    gm.onTrainGotBoosted.removeListener(_refreshWithParameter);
-    gm.onTimerTicks.removeListener(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
@@ -125,7 +119,6 @@ class _HeaderState extends State<_Header> {
   }
 
   void _refresh() => setState(() {});
-  void _refreshWithParameter(_) => setState(() {});
   void _onSolutionFound(WordSolution? solution) {
     if (solution == null) return;
 

@@ -29,8 +29,10 @@ class _BackgroundState extends State<Background>
       duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
 
+    setupAnimation();
+
     final tm = ThemeManager.instance;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.addListener(_resetAnimation);
   }
 
   @override
@@ -38,12 +40,15 @@ class _BackgroundState extends State<Background>
     _controller.dispose();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.removeListener(_resetAnimation);
 
     super.dispose();
   }
 
-  void _refresh() => setState(() {});
+  void _resetAnimation() {
+    setupAnimation();
+    setState(() {});
+  }
 
   void setupAnimation() {
     _logger.info('Setting up animation...');
@@ -76,8 +81,6 @@ class _BackgroundState extends State<Background>
 
   @override
   Widget build(BuildContext context) {
-    setupAnimation();
-
     return Stack(
       children: [
         AnimatedBuilder(

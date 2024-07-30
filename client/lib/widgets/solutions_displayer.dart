@@ -69,11 +69,13 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     final gm = GameManager.instance;
     if (gm.problem == null) return;
 
+    _fireworksControllers.forEach((key, value) => value.dispose());
     _fireworksControllers.clear();
+
     final solutions = gm.problem!.solutions;
     for (final solution in solutions) {
       _fireworksControllers[solution] = FireworksController(
-          huge: solution.word.length == solutions.nbLettersInLongest);
+          isHuge: solution.word.length == solutions.nbLettersInLongest);
     }
 
     setState(() {});

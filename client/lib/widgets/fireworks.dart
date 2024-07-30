@@ -7,20 +7,20 @@ class FireworksController {
 
   Color minColor;
   Color maxColor;
-  bool huge;
+  bool isHuge;
 
   FireworksController({
-    this.huge = false,
+    this.isHuge = false,
     this.minColor = const Color.fromARGB(185, 0, 155, 0),
     this.maxColor = const Color.fromARGB(185, 255, 255, 50),
   });
 
   void trigger() {
-    if (_explode != null) _explode!(huge);
+    if (_explode != null) _explode!(isHuge);
   }
 
   void triggerReversed() {
-    if (_explode != null) _explode!(huge, reversed: true);
+    if (_explode != null) _explode!(isHuge, isReversed: true);
   }
 
   void dispose() {
@@ -40,7 +40,7 @@ class FireworksController {
     return Color.fromARGB(alpha, red, green, blue);
   }
 
-  Function? _explode;
+  Function(bool isHuge, {bool isReversed})? _explode;
 }
 
 class Fireworks extends StatefulWidget {
@@ -105,27 +105,27 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
 
   late BoxConstraints _constraints;
 
-  void _explode(bool huge, {bool reversed = false}) {
+  void _explode(bool huge, {bool isReversed = false}) {
     final rand = Random();
 
-    setState(() {
-      particles.addAll(List.generate(
-        numParticles,
-        (_) => _Particle(
-            x: _constraints.maxWidth / 2,
-            y: _constraints.maxHeight / 2,
-            radius: 10 + rand.nextDouble() * 100,
-            angle: rand.nextDouble() * 2 * pi,
-            speed: rand.nextDouble() * (huge ? 0.650 : 0.350),
-            visibilityTime: (_animationController.duration!.inMilliseconds -
-                    (rand.nextDouble() * 0.5 + 0.5) *
-                        (_animationController.duration!.inMilliseconds *
-                            (huge ? 0.5 : 0.7))) /
-                _animationController.duration!.inMilliseconds,
-            color: widget.controller.color),
-      ));
-    });
-    if (reversed) {
+    particles.clear();
+    particles.addAll(List.generate(
+      numParticles,
+      (_) => _Particle(
+          x: _constraints.maxWidth / 2,
+          y: _constraints.maxHeight / 2,
+          radius: 10 + rand.nextDouble() * 100,
+          angle: rand.nextDouble() * 2 * pi,
+          speed: rand.nextDouble() * (huge ? 0.650 : 0.350),
+          visibilityTime: (_animationController.duration!.inMilliseconds -
+                  (rand.nextDouble() * 0.5 + 0.5) *
+                      (_animationController.duration!.inMilliseconds *
+                          (huge ? 0.5 : 0.7))) /
+              _animationController.duration!.inMilliseconds,
+          color: widget.controller.color),
+    ));
+
+    if (isReversed) {
       _isReversed = true;
       _animationController.reverse(from: 1);
     } else {
@@ -142,7 +142,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
     widget.controller._explode = _explode;
 
     return GestureDetector(
-      onTap: () => _explode(widget.controller.huge, reversed: false),
+      onTap: () => _explode(widget.controller.isHuge, isReversed: false),
       child: LayoutBuilder(
         builder: (context, constraints) {
           _constraints = constraints;

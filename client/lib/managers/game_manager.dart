@@ -183,6 +183,7 @@ class GameManager {
   final onStealerPardonned = CustomCallback<Function(WordSolution)>();
   final onTrainGotBoosted = CustomCallback<Function(int)>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
+  final onShowcaseSolutionsRequest = CustomCallback<VoidCallback>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
   Future<void> Function(String)? onShowMessage;
 
@@ -816,6 +817,8 @@ class GameManager {
           : GameStatus.roundPreparing;
     });
     onRoundIsOver.notifyListenersWithParameter(playSound);
+    onShowcaseSolutionsRequest.notifyListeners();
+
     _logger.info('Answers are shown');
   }
 

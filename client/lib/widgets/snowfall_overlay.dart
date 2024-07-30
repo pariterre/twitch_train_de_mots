@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -24,8 +23,8 @@ class SnowfallOverlay extends StatelessWidget {
             final yOffset =
                 Random().nextDouble() * MediaQuery.of(context).size.height;
 
-            final xSpeed = (Random().nextDouble() - 0.5) * 2;
-            final ySpeed = Random().nextDouble() * 0.2 + 1;
+            final xSpeed = (Random().nextDouble() - 0.5) / 1.4;
+            final ySpeed = Random().nextDouble() * 0.15 + 0.2;
 
             return _Snowflake(
               size: size,
@@ -63,44 +62,55 @@ class _Snowflake extends StatefulWidget {
   State<_Snowflake> createState() => _SnowflakeState();
 }
 
-class _SnowflakeState extends State<_Snowflake> {
+class _SnowflakeState extends State<_Snowflake>
+    with SingleTickerProviderStateMixin {
   late double xOffset = widget.initialXOffset;
   late double yOffset = widget.initialYOffset;
-  Timer? _timer;
+
+  late final _controller =
+      AnimationController(vsync: this, duration: const Duration(hours: 1));
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(
-        const Duration(milliseconds: 50),
-        (timer) => setState(() {
-              xOffset += widget.xSpeed;
-              yOffset += widget.ySpeed;
 
-              // Wrap around the screen
-              if (xOffset > MediaQuery.of(context).size.width + widget.size) {
-                xOffset = 0;
-              }
-              if (xOffset < -widget.size) {
-                xOffset = MediaQuery.of(context).size.width;
-              }
-              if (yOffset > MediaQuery.of(context).size.height) {
-                yOffset = -widget.size;
-              }
-            }));
+    _controller.repeat();
+  }
+
+  void _nextPosition() {
+    xOffset += widget.xSpeed;
+    yOffset += widget.ySpeed;
+
+    // Wrap around the screen
+    if (xOffset > MediaQuery.of(context).size.width + widget.size) {
+      xOffset = 0;
+    }
+    if (xOffset < -widget.size) {
+      xOffset = MediaQuery.of(context).size.width;
+    }
+    if (yOffset > MediaQuery.of(context).size.height) {
+      yOffset = -widget.size;
+    }
   }
 
   @override
   void dispose() {
+    _controller.dispose();
     super.dispose();
-    _timer?.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: xOffset,
-      top: yOffset,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (ctx, child) {
+        _nextPosition();
+        return Positioned(
+          left: xOffset,
+          top: yOffset,
+          child: child!,
+        );
+      },
       child: Opacity(
         opacity: widget.opacity,
         child: Container(
