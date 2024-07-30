@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
+import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -55,6 +56,8 @@ class GameManager {
   DateTime? _nextTickAt;
   int _roundCount = 0;
   int get roundCount => _roundCount;
+  late Difficulty _currentDifficulty =
+      ConfigurationManager.instance.difficulty(0);
 
   int _scramblingLetterTimer = 0;
 
@@ -149,15 +152,13 @@ class GameManager {
   final List<String> _messagesToPlayers = [];
   SuccessLevel get successLevel => _successLevel;
 
-  bool get hasUselessLetter =>
-      ConfigurationManager.instance.difficulty(_roundCount).hasUselessLetter;
+  bool get hasUselessLetter => _currentDifficulty.hasUselessLetter;
   bool _isUselessLetterRevealed = false;
   bool get isUselessLetterRevealed => _isUselessLetterRevealed;
   int get uselessLetterIndex => _currentProblem?.uselessLetterIndex ?? -1;
 
   bool get hasHiddenLetter =>
-      ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
-      !_isHiddenLetterRevealed;
+      _currentDifficulty.hasHiddenLetter && !_isHiddenLetterRevealed;
   bool _isHiddenLetterRevealed = false;
   int get hiddenLetterIndex => _currentProblem?.hiddenLettersIndex ?? -1;
 
@@ -359,13 +360,23 @@ class GameManager {
   /// sends a telegram to the players if required. The message is skipped if it
   /// was previously sent.
   Future<void> _manageMessageToPlayers() async {
-    final message =
-        ConfigurationManager.instance.difficulty(_roundCount).message;
+    _logger.info('Preparing to send telegram to players...');
 
-    if (message == null || _messagesToPlayers.contains(message)) return;
+    final message = _currentDifficulty.message;
+
+    if (message == null) {
+      _logger.info('No telegram to send to players');
+      return;
+    }
+    if (_messagesToPlayers.contains(message)) {
+      _logger.info('telegram already sent to players');
+      return;
+    }
 
     _messagesToPlayers.add(message);
+    _logger.info('Sending telegram to players...');
     await onShowMessage!(message);
+    _logger.info('Telegram sent to players');
   }
 
   void _setValuesAtStartRound() {
@@ -687,23 +698,23 @@ class GameManager {
     // Manage useless letter
     _logger.fine('Managing useless letter...');
     if (!_isUselessLetterRevealed &&
-        ConfigurationManager.instance
-            .difficulty(_roundCount)
-            .hasUselessLetter &&
-        timeRemaining! <=
-            cm.difficulty(_roundCount).revealUselessLetterAtTimeLeft) {
+        _currentDifficulty.hasUselessLetter &&
+        timeRemaining! <= _currentDifficulty.revealUselessLetterAtTimeLeft) {
+      _logger.fine('Revealing useless letter...');
       _isUselessLetterRevealed = true;
       onRevealUselessLetter.notifyListeners();
+      _logger.fine('Useless letter revealed');
     }
 
     // Manage hidden letter
     _logger.fine('Managing hidden letter...');
     if (!_isHiddenLetterRevealed &&
-        ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
-        timeRemaining! <=
-            cm.difficulty(_roundCount).revealHiddenLetterAtTimeLeft) {
+        _currentDifficulty.hasHiddenLetter &&
+        timeRemaining! <= _currentDifficulty.revealHiddenLetterAtTimeLeft) {
+      _logger.fine('Revealing hidden letter...');
       _isHiddenLetterRevealed = true;
       onRevealHiddenLetter.notifyListeners();
+      _logger.fine('Hidden letter revealed');
     }
 
     // Manage boost of the train
@@ -830,16 +841,15 @@ class GameManager {
   }
 
   int pointsToObtain(SuccessLevel level) {
-    final difficulty = ConfigurationManager.instance.difficulty(_roundCount);
-
     final maxScore = problem?.maximumScore ?? 0;
     switch (level) {
       case SuccessLevel.oneStar:
-        return (maxScore * difficulty.thresholdFactorOneStar).toInt();
+        return (maxScore * _currentDifficulty.thresholdFactorOneStar).toInt();
       case SuccessLevel.twoStars:
-        return (maxScore * difficulty.thresholdFactorTwoStars).toInt();
+        return (maxScore * _currentDifficulty.thresholdFactorTwoStars).toInt();
       case SuccessLevel.threeStars:
-        return (maxScore * difficulty.thresholdFactorThreeStars).toInt();
+        return (maxScore * _currentDifficulty.thresholdFactorThreeStars)
+            .toInt();
       case SuccessLevel.failed:
         throw Exception('Failed is not a valid level');
     }
