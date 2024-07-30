@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
@@ -19,6 +20,8 @@ enum GameStatus {
   roundStarted,
   revealAnswers,
 }
+
+final _logger = Logger('GameManager');
 
 class GameManager {
   /// ---------- ///
@@ -44,7 +47,11 @@ class GameManager {
   DateTime? _nextRoundStartAt;
   Duration? get nextRoundStartIn =>
       _nextRoundStartAt?.difference(DateTime.now());
-  void cancelAutomaticStart() => _nextRoundStartAt = null;
+  void cancelAutomaticStart() {
+    _logger.info('Automatic start of the round has been canceled');
+    _nextRoundStartAt = null;
+  }
+
   DateTime? _nextTickAt;
   int _roundCount = 0;
   int get roundCount => _roundCount;
@@ -93,6 +100,8 @@ class GameManager {
   /// Initialize the game logic. This should be called at the start of the
   /// application.
   static Future<void> initialize() async {
+    _logger.info('GameManager is initializing...');
+
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
           'GameManager should not be initialized twice');
@@ -100,6 +109,8 @@ class GameManager {
     GameManager._instance = GameManager._internal();
 
     Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
+
+    _logger.info('GameManager is initialized');
   }
 
   /// ----------- ///
@@ -109,18 +120,24 @@ class GameManager {
   ///
   /// Provide a way to request the start of a new round, if the game is not
   /// already started or if the game is not already over.
-  Future<void> requestStartNewRound() async => await _startNewRound();
+  Future<void> requestStartNewRound() async {
+    _logger.info('Requesting to start a new round');
+    _startNewRound();
+  }
 
   ///
   /// Provide a way to request the search for the next problem, if the game is
   /// not already searching for a problem.
-  Future<void> requestSearchForNextProblem() async =>
-      await _searchProblemForRound(
-          round: _roundCount, maxSearchingTime: Duration.zero);
+  Future<void> requestSearchForNextProblem() async {
+    _logger.info('Requesting to search for the next problem');
+    _searchProblemForRound(round: _roundCount, maxSearchingTime: Duration.zero);
+  }
 
   ///
   /// Provide a way to request the premature end of the round
   Future<void> requestTerminateRound() async {
+    _logger.info('Requesting to terminate the round');
+
     if (gameStatus == GameStatus.initializing) {
       _initializeCallbacks();
       _gameStatus = GameStatus.roundPreparing;
@@ -199,13 +216,19 @@ class GameManager {
     bool shouldRepickProblem = false,
     bool repickNow = false,
   }) {
+    _logger.info('Checking for changes in the rules...');
+
     if (shouldRepickProblem) _forceRepickProblem = true;
     if (repickNow && _forceRepickProblem) {
+      _logger.info('Rules have changed, repicking a problem...');
+
       _isSearchingNextProblem = false;
       _nextProblems.clear();
       _searchProblemForRound(
           round: _roundCount, maxSearchingTime: Duration.zero);
     }
+
+    _logger.info('Rules have been updated');
   }
 
   ///
@@ -215,6 +238,7 @@ class GameManager {
   /// for the results to be sent to the leaderboard either (even if the rules
   /// are valid now).
   void _checkForInvalidRules() {
+    _logger.info('Checking for invalid rules...');
     _isAllowedToSendResults = _isAllowedToSendResults &&
         !ConfigurationManager.instance.useCustomAdvancedOptions;
   }
@@ -229,7 +253,12 @@ class GameManager {
 
   Future<void> _searchProblemForRound(
       {required int round, required Duration maxSearchingTime}) async {
-    if (_isSearchingNextProblem) return;
+    _logger.info('Searching for a problem for round $round...');
+
+    if (_isSearchingNextProblem) {
+      _logger.warning('A problem is already being searched for');
+      return;
+    }
     final cm = ConfigurationManager.instance;
 
     _forceRepickProblem = false;
@@ -237,6 +266,8 @@ class GameManager {
 
     int i = _nextProblems.length - 1; // -1 is the round 0 (the first round)
     while (_nextProblems.length < 4) {
+      _logger.info('Searching for problem $i for round $round...');
+
       // The first element is always the first level (in case of a restart of the game)
       // The others depend on the current round count
       final difficulty = cm.difficulty(i < 0 ? 0 : round + i);
@@ -261,25 +292,33 @@ class GameManager {
     }
 
     _isSearchingNextProblem = false;
+    _logger.info('Problems for round $round found');
   }
 
   void _initializeCallbacks() {
+    _logger.info('Initializing callbacks...');
+
     onGameIsInitializing.notifyListeners();
     _initializeTrySolutionCallback();
     if (onShowMessage == null) {
       throw Exception('onShowMessage must be set before starting the game');
     }
     _gameStatus = GameStatus.roundPreparing;
+
+    _logger.info('Callbacks initialized');
   }
 
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
   /// Then, it finds a new word problem and start the timer.
   Future<void> _startNewRound() async {
+    _logger.info('Starting a new round...');
+
     if (_gameStatus == GameStatus.initializing) _initializeCallbacks();
 
     if (_gameStatus != GameStatus.roundPreparing &&
         _gameStatus != GameStatus.roundReady) {
+      _logger.warning('Cannot start a new round at this time');
       return;
     }
 
@@ -289,6 +328,7 @@ class GameManager {
 
     // Wait until a problem is found
     while (_isSearchingNextProblem) {
+      _logger.info('Waiting for the next problem to be found...');
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
@@ -310,6 +350,8 @@ class GameManager {
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     onRoundStarted.notifyListeners();
+
+    _logger.info('New round started');
   }
 
   ///
@@ -327,6 +369,8 @@ class GameManager {
   }
 
   void _setValuesAtStartRound() {
+    _logger.info('Setting values at the start of the round...');
+
     final cm = ConfigurationManager.instance;
 
     // Reinitialize the round timer and players
@@ -361,6 +405,8 @@ class GameManager {
 
     _boostStartedAt = null;
     _requestedBoost.clear();
+
+    _logger.info('Values set at the start of the round');
   }
 
   ///
@@ -372,7 +418,12 @@ class GameManager {
   /// Try to solve the problem from a [message] sent by a [sender], that is a
   /// Twitch chatter.
   Future<void> _trySolution(String sender, String message) async {
-    if (problem == null || timeRemaining == null) return;
+    _logger.info('Trying solution from $sender: $message');
+
+    if (problem == null || timeRemaining == null) {
+      _logger.warning('Cannot try solution at this time');
+      return;
+    }
     final cm = ConfigurationManager.instance;
 
     // Get the player from the players list
@@ -381,25 +432,34 @@ class GameManager {
     // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
       if (message == '!pardon') {
+        _logger.info('Trying to pardon the last stealer');
         _pardonLastStealer(player);
         return;
       } else if (message == '!boost') {
+        _logger.info('Trying to boost the train');
         _boostTrain(player);
         return;
       }
     }
 
     // If the player is in cooldown, they are not allowed to answer
-    if (player.isInCooldownPeriod) return;
+    if (player.isInCooldownPeriod) {
+      _logger.warning('Solution is invalid because player is in cooldown');
+      return;
+    }
 
     // Find if the proposed word is valid
     final solution = problem!.trySolution(message,
-        nbLetterInSmallestWord:
-            cm.difficulty(_roundCount).nbLettersOfShortestWord);
-    if (solution == null) return;
+        nbLetterInSmallestWord: _currentDifficulty.nbLettersOfShortestWord);
+    if (solution == null) {
+      _logger.warning('Solution is invalid because it is not a valid word');
+      return;
+    }
 
     // Add to player score
+    _logger.info('Solution is valid');
     if (solution.isFound) {
+      _logger.info('Solution is valid, but was already found');
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
 
@@ -412,6 +472,7 @@ class GameManager {
           solution.isStolen ||
           solution.foundBy == player ||
           solution.foundBy.isInCooldownPeriod) {
+        _logger.warning('Solution is invalid because it cannot be stolen');
         return;
       }
       _lastStolenSolution = solution;
@@ -441,6 +502,8 @@ class GameManager {
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
     _playersWasInCooldownLastFrame[player.name] = true;
+
+    _logger.info('Solution found');
   }
 
   ///
@@ -448,11 +511,18 @@ class GameManager {
   /// and remove the stolen flag for the player. This is only performed if the
   /// pardonner is not the stealer themselves.
   void _pardonLastStealer(Player playerWhoRequestedPardon) {
-    if (_remainingPardons < 1) return;
+    _logger.info('Pardoning the last stealer...');
+
+    if (_remainingPardons < 1) {
+      // Player cannot pardon anymore
+      _logger.warning('No more pardons available');
+      return;
+    }
 
     if (_lastStolenSolution == null) {
       // Tell the players that there was no stealer to pardon
       onStealerPardonned.notifyListenersWithParameter(null);
+      _logger.warning('No stealer to pardon');
       return;
     }
     final solution = _lastStolenSolution!;
@@ -460,6 +530,7 @@ class GameManager {
     // Only the player who was stolen from can pardon the stealer
     if (solution.stolenFrom != playerWhoRequestedPardon) {
       onStealerPardonned.notifyListenersWithParameter(solution);
+      _logger.warning('Player cannot pardon the stealer');
       return;
     }
 
@@ -470,16 +541,31 @@ class GameManager {
     solution.foundBy.removeFromStealCount();
 
     onStealerPardonned.notifyListenersWithParameter(solution);
+
+    _logger.info('Stealer (${solution.foundBy.name}) has been pardonned by '
+        '${playerWhoRequestedPardon.name}');
   }
 
   ///
   /// Boost the train. This will double the score for the subsequent solutions
   /// found during the next boostTime
   void _boostTrain(Player player) {
-    if (_remainingBoosts < 1 || isTrainBoosted) return;
+    _logger.info('Boosting the train...');
+    if (isTrainBoosted) {
+      _logger.warning('Train is already boosted');
+      return;
+    }
+
+    if (_remainingBoosts < 1) {
+      _logger.warning('No more boosts available');
+      return;
+    }
 
     // All different players must request the boost
-    if (_requestedBoost.contains(player)) return;
+    if (_requestedBoost.contains(player)) {
+      _logger.warning('Player already requested the boost');
+      return;
+    }
     _requestedBoost.add(player);
 
     // If we fulfill the number of boost requests needed, we can start the boost
@@ -492,14 +578,19 @@ class GameManager {
     }
 
     onTrainGotBoosted.notifyListenersWithParameter(nbBoostStillNeeded);
+
+    _logger.info('Train has been boosted');
   }
 
   ///
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
+    _logger.info('Restarting the game...');
+
     final cm = ConfigurationManager.instance;
 
     _roundCount = 0;
+    _currentDifficulty = cm.difficulty(0);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
     _previousProblems.clear();
 
@@ -507,11 +598,15 @@ class GameManager {
     _remainingBoosts = cm.numberOfBoosts;
 
     players.clear();
+
+    _logger.info('Game restarted');
   }
 
   ///
   /// Tick the game timer. If the timer is over, [_endOfRound] is called.
-  void _gameLoop(Timer timer) {
+  void _gameLoop(Timer timer) async {
+    _logger.fine('Game looping...');
+
     onTimerTicks.notifyListeners();
 
     if ((_gameStatus == GameStatus.initializing ||
@@ -522,11 +617,13 @@ class GameManager {
       }
       onNextProblemReady.notifyListeners();
 
+      _logger.info('Next problem is ready');
       return;
     }
     if (_gameStatus == GameStatus.roundReady) {
       if (_nextRoundStartAt != null &&
           DateTime.now().isAfter(_nextRoundStartAt!)) {
+        _logger.info('Automatic start of the round');
         _nextRoundStartAt = null;
         _startNewRound();
       }
@@ -536,21 +633,33 @@ class GameManager {
 
     _gameTick();
     _endOfRound();
+
+    _logger.fine('Game looped');
   }
 
   ///
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   void _gameTick() {
-    if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) return;
+    _logger.fine('Game ticking...');
+
+    if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
+      _logger.fine('Cannot tick at this time');
+      return;
+    }
 
     // Wait for a full second to pass before ticking
-    if (DateTime.now().isBefore(_nextTickAt!)) return;
+    if (DateTime.now().isBefore(_nextTickAt!)) {
+      _logger.fine('Ticked too early');
+      return;
+    }
+    _logger.info('Tic...');
     _nextTickAt = _nextTickAt!.add(const Duration(seconds: 1));
 
     final cm = ConfigurationManager.instance;
 
     // Manager players cooling down
+    _logger.fine('Managing players cooling down...');
     for (final player in players) {
       if (player.isInCooldownPeriod) {
         _hasAPlayerBeenUpdate = true;
@@ -565,14 +674,18 @@ class GameManager {
     }
 
     // Manager letter swapping in the problem
+    _logger.fine('Managing letter swapping...');
     _scramblingLetterTimer -= 1;
     if (_scramblingLetterTimer <= 0) {
+      _logger.fine('Scrambling letters...');
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners();
+      _logger.fine('Letters scrambled');
     }
 
     // Manage useless letter
+    _logger.fine('Managing useless letter...');
     if (!_isUselessLetterRevealed &&
         ConfigurationManager.instance
             .difficulty(_roundCount)
@@ -584,6 +697,7 @@ class GameManager {
     }
 
     // Manage hidden letter
+    _logger.fine('Managing hidden letter...');
     if (!_isHiddenLetterRevealed &&
         ConfigurationManager.instance.difficulty(_roundCount).hasHiddenLetter &&
         timeRemaining! <=
@@ -593,16 +707,25 @@ class GameManager {
     }
 
     // Manage boost of the train
+    _logger.fine('Managing train boost...');
     if (isTrainBoosted && (trainBoostRemainingTime?.inSeconds ?? -1) <= 0) {
+      _logger.fine('Train boost ended');
       _boostStartedAt = null;
     }
+
+    _logger.info('Toc');
   }
 
   ///
   /// Clear the current round
   Future<void> _endOfRound() async {
+    _logger.fine('End of round...');
+
     // Do not end the round if we are not playing
-    if (_gameStatus != GameStatus.roundStarted) return;
+    if (_gameStatus != GameStatus.roundStarted) {
+      _logger.fine('Cannot end the round at this time');
+      return;
+    }
 
     final cm = ConfigurationManager.instance;
 
@@ -615,10 +738,15 @@ class GameManager {
             -ConfigurationManager
                 .instance.postRoundGracePeriodDuration.inSeconds ||
         _currentProblem!.areAllSolutionsFound;
-    if (!shouldEndTheRound) return;
+    if (!shouldEndTheRound) {
+      _logger.fine('Round is not over yet');
+      return;
+    }
+    _logger.info('Round is over, ending the round...');
 
     _successLevel = completedLevel;
     _roundCount += _successLevel.toInt();
+    _currentDifficulty = cm.difficulty(_roundCount);
     DatabaseManager.instance.sendLetterProblem(problem: _currentProblem!);
 
     _forceEndTheRound = false;
@@ -645,19 +773,28 @@ class GameManager {
       DatabaseManager.instance.sendResults(
           stationReached: roundCount, mvpPlayers: players.bestPlayers);
     }
+
+    _logger.info('Round ended');
   }
 
   void requestShowCaseAnswers() {
+    _logger.info('Requesting to show case answers...');
+
     if (_gameStatus == GameStatus.initializing ||
         _gameStatus == GameStatus.roundStarted ||
         _gameStatus == GameStatus.revealAnswers) {
+      _logger.warning('Cannot show case answers at this time');
       return;
     }
     _gameStatus = GameStatus.revealAnswers;
     _showCaseAnswers(playSound: false);
+
+    _logger.info('Answers are being shown');
   }
 
   void _showCaseAnswers({required bool playSound}) {
+    _logger.info('Show casing answers...');
+
     final cm = ConfigurationManager.instance;
 
     _gameStatus = GameStatus.revealAnswers;
@@ -668,6 +805,7 @@ class GameManager {
           : GameStatus.roundPreparing;
     });
     onRoundIsOver.notifyListenersWithParameter(playSound);
+    _logger.info('Answers are shown');
   }
 
   SuccessLevel get completedLevel {

@@ -7,14 +7,18 @@ import 'package:train_de_mots/models/word_solution.dart';
 import 'package:twitch_manager/twitch_manager.dart';
 
 class MocksConfiguration {
-  static bool showDebugOptions = false;
-
+  // Must have for developpers
   static bool useLocalTrainDeMotsServer = false;
+
+  // Useful for developpers
+  static bool showDebugOptions = false;
   static bool useDatabaseMock = false;
+  static bool useTwitchManagerMock = false;
+
+  // Nice to have for developpers
   static bool useDatabaseEmulators = false;
   static bool useGameManagerMock = false;
   static bool useProblemMock = false;
-  static bool useTwitchManagerMock = false;
 
   static LetterProblemMock get letterProblemMock => LetterProblemMock(
       letters: 'BJOONUR',

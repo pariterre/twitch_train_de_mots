@@ -4,12 +4,15 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
+
+final _logger = Logger('LetterProblem');
 
 class LetterProblem {
   final List<String> _letters;
@@ -72,6 +75,8 @@ class LetterProblem {
   ///
   /// This method should be called whenever [_letters] is changed
   void _initialize() {
+    _logger.info('Initializing the letter problem...');
+
     // Sort the solutions in alphabetical order
     _solutions = _solutions.sort();
 
@@ -89,27 +94,40 @@ class LetterProblem {
     // instead of [letters] because we do not want to hide the useless letter
     // if it exists
     _hiddenLetterIndex = Random().nextInt(_letters.length);
+
+    _logger.info('Letter problem initialized');
   }
 
   ///
   /// Returns the solution if the word is a solution, null otherwise
   WordSolution? trySolution(String word,
       {required int nbLetterInSmallestWord}) {
+    _logger.info('Trying solution: $word...');
+
     // Do some rapid validation
     if (word.length < nbLetterInSmallestWord) {
       // If the word is shorted than the permitted shortest word, it is invalid
+      _logger.info('Word is too short');
       return null;
     }
     // If the word contains any non letters, it is invalid
     word = removeDiacritics(word.toUpperCase());
-    if (word.contains(RegExp(r'[^A-Z]'))) return null;
+    if (word.contains(RegExp(r'[^A-Z]'))) {
+      _logger.info('Word contains non letters');
+      return null;
+    }
 
-    return solutions.firstWhereOrNull((WordSolution e) => e.word == word);
+    final out = solutions.firstWhereOrNull((WordSolution e) => e.word == word);
+
+    _logger.info('Solution found: ${out != null}');
+    return out;
   }
 
   ///
   /// Scamble the letters of the word by swapping two letters at random
   void scrambleLetters() {
+    _logger.info('Scrambling letters...');
+
     final random = Random();
 
     final index1 = random.nextInt(_scrambleIndices.length);
@@ -121,6 +139,8 @@ class LetterProblem {
     final temp = _scrambleIndices[index1];
     _scrambleIndices[index1] = _scrambleIndices[index2];
     _scrambleIndices[index2] = temp;
+
+    _logger.info('Letters scrambled');
   }
 
   @override
@@ -138,10 +158,14 @@ class ProblemGenerator {
     required int minNbLetters,
     required int maxNbLetters,
   }) async {
-    return await DatabaseManager.instance.fetchLetterProblem(
+    _logger.info('Fetching problem from database...');
+    final out = await DatabaseManager.instance.fetchLetterProblem(
         withUselessLetter: withUselessLetter,
         minNbLetters: minNbLetters,
         maxNbLetters: maxNbLetters);
+
+    _logger.info('Problem fetched: ${out != null}');
+    return out;
   }
 
   static DateTime _lastScreenUpdate = DateTime.now();
@@ -149,6 +173,8 @@ class ProblemGenerator {
     if (DateTime.now().difference(_lastScreenUpdate).inMilliseconds >
         dt * 1000) {
       _lastScreenUpdate = DateTime.now();
+
+      _logger.info('Updating screen...');
       await Future.delayed(Duration.zero);
     }
   }
@@ -165,6 +191,8 @@ class ProblemGenerator {
     required Duration maxSearchingTime,
     required List<LetterProblem> previousProblems,
   }) async {
+    _logger.info('Generating problem from random letters...');
+
     LetterProblem? finalProblem;
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
@@ -177,7 +205,10 @@ class ProblemGenerator {
 
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
     do {
-      if (GameManager.instance.isNextProblemReady) return null;
+      if (GameManager.instance.isNextProblemReady) {
+        _logger.info('Problem not needed anymore, stop generating');
+        return null;
+      }
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
@@ -199,7 +230,10 @@ class ProblemGenerator {
       }
 
       do {
-        if (GameManager.instance.isNextProblemReady) return null;
+        if (GameManager.instance.isNextProblemReady) {
+          _logger.info('Problem not needed anymore, stop generating');
+          return null;
+        }
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -267,6 +301,7 @@ class ProblemGenerator {
     } while (finalProblem == null);
 
     // The candidate is valid, return the problem
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -283,13 +318,18 @@ class ProblemGenerator {
     required Duration maxSearchingTime,
     required List<LetterProblem> previousProblems,
   }) async {
+    _logger.info('Generating problem from building up...');
+
     final random = Random();
 
     LetterProblem? finalProblem;
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
 
     do {
-      if (GameManager.instance.isNextProblemReady) return null;
+      if (GameManager.instance.isNextProblemReady) {
+        _logger.info('Problem not needed anymore, stop generating');
+        return null;
+      }
       await _updateScreenIfNeeded();
       List<String> candidateLetters = [];
 
@@ -299,7 +339,10 @@ class ProblemGenerator {
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
-        if (GameManager.instance.isNextProblemReady) return null;
+        if (GameManager.instance.isNextProblemReady) {
+          _logger.info('Problem not needed anymore, stop generating');
+          return null;
+        }
         await _updateScreenIfNeeded();
 
         // From the list of all the remaining letters in the alphabet, pick a random one
@@ -381,6 +424,7 @@ class ProblemGenerator {
       }
     } while (finalProblem == null);
 
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -398,6 +442,8 @@ class ProblemGenerator {
     required Duration maxSearchingTime,
     required List<LetterProblem> previousProblems,
   }) async {
+    _logger.info('Generating problem from random word...');
+
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
     if (addUselessLetter) maxLetters--;
@@ -416,7 +462,10 @@ class ProblemGenerator {
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
 
     do {
-      if (GameManager.instance.isNextProblemReady) return null;
+      if (GameManager.instance.isNextProblemReady) {
+        _logger.info('Problem not needed anymore, stop generating');
+        return null;
+      }
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
@@ -439,7 +488,10 @@ class ProblemGenerator {
       }
 
       do {
-        if (GameManager.instance.isNextProblemReady) return null;
+        if (GameManager.instance.isNextProblemReady) {
+          _logger.info('Problem not needed anymore, stop generating');
+          return null;
+        }
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -507,6 +559,7 @@ class ProblemGenerator {
     } while (finalProblem == null);
 
     // The candidate is valid, return the problem
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -522,7 +575,9 @@ class ProblemGenerator {
     required Duration maxSearchingTime,
     required List<LetterProblem> previousProblems,
   }) async {
-// We have to deduce the number of letters to add to the candidate. It is
+    _logger.info('Generating problem from server...');
+
+    // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
     if (addUselessLetter) maxLetters--;
 
@@ -565,6 +620,8 @@ class ProblemGenerator {
             uselessLetter: uselessLetter,
             previousProblems: previousProblems);
       } catch (e) {
+        _logger.warning(
+            'Failed to get problem from server, falling back to local algorithm');
         // If anything goes wrong with the server, fallback to the local
         // algorithm
         finalProblem = await generateFromRandomWord(
@@ -579,6 +636,7 @@ class ProblemGenerator {
       }
     } while (finalProblem == null);
 
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -590,6 +648,8 @@ class ProblemGenerator {
     required String? uselessLetter,
     required List<LetterProblem> previousProblems,
   }) {
+    _logger.info('Creating problem from list of letters...');
+
     final problem = LetterProblem._(
         letters: candidateLetters,
         solutions:
@@ -598,9 +658,11 @@ class ProblemGenerator {
 
     // Check if the problem was already played
     if (previousProblems.any((element) => element == problem)) {
+      _logger.info('Problem already played');
       return null;
     }
 
+    _logger.info('Problem created');
     return problem;
   }
 
@@ -611,6 +673,8 @@ class ProblemGenerator {
   /// letter to the problem without changing the number of solutions.
   static Future<String?> _findUselessLetter(
       {required List<String> letters, required WordSolutions solutions}) async {
+    _logger.info('Finding a useless letter...');
+
     // Create a list of all possible letters to add
     final possibleLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         .split('')
@@ -631,11 +695,13 @@ class ProblemGenerator {
 
       if (newSolutions.length == solutions.length) {
         // The new letter is useless if the number of solutions did not change
+        _logger.info('Useless letter found');
         return newLetter;
       }
     } while (possibleLetters.isNotEmpty);
 
     // If we get here, it means no useless letter could be found
+    _logger.info('No useless letter found');
     return null;
   }
 }
@@ -655,14 +721,21 @@ class _WordGenerator {
   static _WordGenerator get instance => _instance;
 
   Future<Set<String>> wordsWithAtLeast(int nbLetters) async {
+    _logger.info('Getting words with at least $nbLetters letters...');
+
     if (!_WordGenerator.instance.wordsList.keys.contains(nbLetters)) {
+      _logger.info('Words dictionary not found, creating it...');
+
       // Create the cache if it does not exist
       _WordGenerator.instance.wordsList[nbLetters] = _WordGenerator
           .instance.wordsList[-1]!
           .where((e) => e.length >= nbLetters)
           .toSet();
+
+      _logger.info('Words dictionary updated');
     }
 
+    _logger.info('Words ready');
     return _WordGenerator.instance.wordsList[nbLetters]!;
   }
 
@@ -673,6 +746,8 @@ class _WordGenerator {
     required List<String> from,
     int nbLetters = 0,
   }) async {
+    _logger.info('Finding words from permutations...');
+
     // First, we remove all the words from the database that contains any letter
     // which is not in the letters set as the words
     final Set<String> words = {};
@@ -690,7 +765,8 @@ class _WordGenerator {
 
     // Then, count each duplicate letters in each word to make sure at least the
     // same amount of duplicate exists in the letters set
-    return words.where((word) {
+    _logger.info('Permutations found, managing duplicates...');
+    final out = words.where((word) {
       final wordAsList = word.split('');
       return wordAsList.every((letter) {
         final countInWord =
@@ -700,11 +776,16 @@ class _WordGenerator {
         return countInWord <= countInLetters;
       });
     }).toSet();
+
+    _logger.info('Duplicates managed, all permutations found');
+    return out;
   }
 
   /// Generates a random sequence of letters with the specified number of letters
   List<String> _generateRandomLetters(
       {required int nbLetters, bool useFrequency = true}) {
+    _logger.info('Generating random letters...');
+
     if (nbLetters <= 0) {
       throw ArgumentError(
           'Number of letters should be greater than zero and maxLetters should be higher than minLetters');
@@ -716,6 +797,8 @@ class _WordGenerator {
           : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Random().nextInt(26)];
       result.add(removeDiacritics(letter));
     }
+
+    _logger.info('Random letters generated');
     return result;
   }
 }

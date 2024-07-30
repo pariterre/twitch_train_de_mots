@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/widgets/snowfall_overlay.dart';
+
+final _logger = Logger('Background');
 
 class Background extends StatefulWidget {
   const Background({super.key, this.child, this.withSnowfall = true});
@@ -43,6 +46,8 @@ class _BackgroundState extends State<Background>
   void _refresh() => setState(() {});
 
   void setupAnimation() {
+    _logger.info('Setting up animation...');
+
     final tm = ThemeManager.instance;
 
     _animation = DecorationTween(
@@ -65,6 +70,8 @@ class _BackgroundState extends State<Background>
             ]),
       ),
     ).animate(_controller);
+
+    _logger.info('Animation set up.');
   }
 
   @override

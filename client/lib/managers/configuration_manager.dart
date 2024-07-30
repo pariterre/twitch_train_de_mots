@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
@@ -43,6 +44,8 @@ const _numberOfBoostRequestsNeededDefault = 3;
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
+final _logger = Logger('ConfigurationManager');
+
 class ConfigurationManager {
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
 
@@ -60,6 +63,8 @@ class ConfigurationManager {
   ConfigurationManager._internal();
 
   static Future<void> initialize() async {
+    _logger.info('Initializing ConfigurationManager...');
+
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
           'ConfigurationManager should not be initialized twice');
@@ -69,6 +74,8 @@ class ConfigurationManager {
     instance._loadConfiguration();
     // We must wait for the GameManager to be initialized before listening to
     Future.delayed(Duration.zero, () => instance._listenToGameManagerEvents());
+
+    _logger.info('ConfigurationManager initialized');
   }
 
   ///
@@ -317,46 +324,50 @@ class ConfigurationManager {
 
   ///
   /// Serialize the configuration to a map
-  Map<String, dynamic> serialize() {
-    return {
-      'lastReleaseNotesShown': lastReleaseNotesShown,
-      'useDefaultAdvancedOptions': _useCustomAdvancedOptions,
-      'autoplay': autoplay,
-      'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
-      'autoplayDuration': autoplayDuration.inSeconds,
-      'showAnswersTooltip': showAnswersTooltip,
-      'showLeaderBoard': showLeaderBoard,
-      'roundDuration': roundDuration.inSeconds,
-      'postRoundGracePeriodDuration': postRoundGracePeriodDuration.inSeconds,
-      'postRoundShowCaseDuration': postRoundShowCaseDuration.inSeconds,
-      'cooldownPeriod': cooldownPeriod.inSeconds,
-      'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
-      'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
-      'minimumWordsNumber': minimumWordsNumber,
-      'maximumWordsNumber': maximumWordsNumber,
-      'canSteal': canSteal,
-      'oneStationMaxPerRound': oneStationMaxPerRound,
-      'canUseControllerHelper': canUseControllerHelper,
-      'numberOfPardons': numberOfPardons,
-      'boostTime': boostTime.inSeconds,
-      'numberOfBoosts': numberOfBoosts,
-      'numberOfBoostRequestsNeeded': numberOfBoostRequestsNeeded,
-      'musicVolume': musicVolume,
-      'soundVolume': soundVolume,
-    };
-  }
+  Map<String, dynamic> serialize() => {
+        'lastReleaseNotesShown': lastReleaseNotesShown,
+        'useDefaultAdvancedOptions': _useCustomAdvancedOptions,
+        'autoplay': autoplay,
+        'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
+        'autoplayDuration': autoplayDuration.inSeconds,
+        'showAnswersTooltip': showAnswersTooltip,
+        'showLeaderBoard': showLeaderBoard,
+        'roundDuration': roundDuration.inSeconds,
+        'postRoundGracePeriodDuration': postRoundGracePeriodDuration.inSeconds,
+        'postRoundShowCaseDuration': postRoundShowCaseDuration.inSeconds,
+        'cooldownPeriod': cooldownPeriod.inSeconds,
+        'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
+        'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
+        'minimumWordsNumber': minimumWordsNumber,
+        'maximumWordsNumber': maximumWordsNumber,
+        'canSteal': canSteal,
+        'oneStationMaxPerRound': oneStationMaxPerRound,
+        'canUseControllerHelper': canUseControllerHelper,
+        'numberOfPardons': numberOfPardons,
+        'boostTime': boostTime.inSeconds,
+        'numberOfBoosts': numberOfBoosts,
+        'numberOfBoostRequestsNeeded': numberOfBoostRequestsNeeded,
+        'musicVolume': musicVolume,
+        'soundVolume': soundVolume,
+      };
 
   ///
   /// Save the configuration to the device
   void _saveConfiguration() async {
+    _logger.info('Saving configuration to device...');
+
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('gameConfiguration', jsonEncode(serialize()));
     onChanged.notifyListeners();
+
+    _logger.info('Configuration saved');
   }
 
   ///
   /// Load the configuration from the device
   void _loadConfiguration() async {
+    _logger.info('Loading configuration from device...');
+
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('gameConfiguration');
     if (data != null) {
@@ -416,12 +427,16 @@ class ConfigurationManager {
 
       _tellGameManagerToRepickProblem();
     }
+
+    _logger.info('Configuration loaded');
   }
 
   ///
   /// Reset the configuration to the default values
   void resetConfiguration(
       {required bool advancedOptions, required bool userOptions}) {
+    _logger.info(
+        'Resetting configuration (userOptions: $userOptions, advancedOptions: $advancedOptions)...');
     if (userOptions) {
       _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
 
@@ -467,14 +482,18 @@ class ConfigurationManager {
     }
 
     _saveConfiguration();
+    _logger.info('Configuration reset');
   }
 
   ///
   /// Get the difficulty for a given level
   final int lastLevelWithRules = 30;
   Difficulty difficulty(int level) {
+    _logger.info('Getting difficulty for level $level...');
+
     if (level < 3) {
       // Levels 1, 2 and 3
+      _logger.info('Got difficulty for level $level (level < 3)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -487,6 +506,7 @@ class ConfigurationManager {
       );
     } else if (level < 6) {
       // Levels 4, 5 and 6
+      _logger.info('Got difficulty for level $level (level < 6)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -503,6 +523,7 @@ class ConfigurationManager {
       );
     } else if (level < 9) {
       // Levels 7, 8 and 9
+      _logger.info('Got difficulty for level $level (level < 9)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -520,6 +541,7 @@ class ConfigurationManager {
       );
     } else if (level < 12) {
       // Levels 10, 11 and 12
+      _logger.info('Got difficulty for level $level (level < 12)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -539,6 +561,7 @@ class ConfigurationManager {
       );
     } else if (level < 15) {
       // Levels 13, 14 and 15
+      _logger.info('Got difficulty for level $level (level < 15)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 7,
@@ -558,6 +581,7 @@ class ConfigurationManager {
       );
     } else if (level < 18) {
       // Levels 16, 17 and 18
+      _logger.info('Got difficulty for level $level (level < 18)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -578,6 +602,7 @@ class ConfigurationManager {
       );
     } else if (level < 21) {
       // Levels 19, 20 and 21
+      _logger.info('Got difficulty for level $level (level < 21)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -595,6 +620,7 @@ class ConfigurationManager {
       );
     } else if (level < 24) {
       // Levels 22, 23 and 24
+      _logger.info('Got difficulty for level $level (level < 24)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -613,6 +639,7 @@ class ConfigurationManager {
       );
     } else if (level < 27) {
       // Levels 25, 26 and 27
+      _logger.info('Got difficulty for level $level (level < 27)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -627,6 +654,7 @@ class ConfigurationManager {
       );
     } else {
       // Levels 28 and above
+      _logger.info('Got difficulty for level $level (level >= 27)');
       return const Difficulty(
         nbLettersOfShortestWord: 6,
         nbLettersMinToDraw: 7,

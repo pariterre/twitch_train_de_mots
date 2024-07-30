@@ -1,11 +1,14 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 import 'package:mutex/mutex.dart';
+
+final _logger = Logger('SoundManager');
 
 class SoundManager {
   final _gameMusic = AudioPlayer();
@@ -15,12 +18,19 @@ class SoundManager {
     ..onPlayerComplete.listen((event) => _soundEffectMutex.release());
   Future<void> _playSoundEffect(Source source,
       {required bool allowSkip}) async {
-    if (kIsWeb && _soundEffectMutex.isLocked && allowSkip) return;
+    _logger.info('Playing sound effect: $source...');
+
+    if (kIsWeb && _soundEffectMutex.isLocked && allowSkip) {
+      _logger.info('Sound effect: $source skipped');
+      return;
+    }
     await _soundEffectMutex.acquire();
 
     final cm = ConfigurationManager.instance;
     await _soundEffectAudio.setVolume(cm.soundVolume);
     await _soundEffectAudio.play(source);
+
+    _logger.info('Sound effect: $source played');
   }
 
   /// Declare the singleton
@@ -63,6 +73,8 @@ class SoundManager {
   }
 
   Future<void> _manageGameMusic() async {
+    _logger.info('Managing game music...');
+
     // If we never prepared the game music, we do it now
     if (_gameMusic.state == PlayerState.stopped) {
       await _gameMusic.setReleaseMode(ReleaseMode.loop);
@@ -72,6 +84,8 @@ class SoundManager {
     //  Set the volume
     final cm = ConfigurationManager.instance;
     await _gameMusic.setVolume(cm.musicVolume);
+
+    _logger.info('Game music managed');
   }
 
   Future<void> _onRoundStarted() async {

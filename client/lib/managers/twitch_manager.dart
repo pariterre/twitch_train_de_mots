@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:twitch_manager/models/twitch_listener.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
+
+final _logger = Logger('TwitchManager');
 
 class TwitchManager {
   final onTwitchManagerReady = CustomCallback();
@@ -18,8 +21,10 @@ class TwitchManager {
 
   ///
   /// Call all the listeners when a message is received
-  void addChatListener(Function(String sender, String message) callback) =>
-      _chatListeners.startListening(callback);
+  void addChatListener(Function(String sender, String message) callback) {
+    _logger.info('Adding chat listener');
+    _chatListeners.startListening(callback);
+  }
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
@@ -29,7 +34,13 @@ class TwitchManager {
   ///
   /// Provide an easy access to the TwitchManager connect dialog
   Future<bool> showConnectManagerDialog(BuildContext context) async {
-    if (_manager != null) return true; // Already connected
+    _logger.info('Showing connect manager dialog...');
+
+    if (_manager != null) {
+      // Already connected
+      _logger.info('Manager already connected');
+      return true;
+    }
 
     final manager = await showDialog<tm.TwitchManager>(
         context: context,
@@ -46,6 +57,8 @@ class TwitchManager {
     _manager = manager;
     _manager!.chat.onMessageReceived.startListening(_onMessageReceived);
     onTwitchManagerReady.notifyListeners();
+
+    _logger.info('Manager connected');
     return true;
   }
 

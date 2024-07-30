@@ -166,7 +166,7 @@ class _BouncyContainerState extends State<BouncyContainer>
     await controllers._performAnimation(
         onControllerChanged: () => setState(() {}));
 
-    // Delete the congratulation message
+    // Delete the controller
     _animationControllers.remove(controllers);
     setState(() {});
     controllers.dispose();

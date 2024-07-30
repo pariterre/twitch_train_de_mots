@@ -12,6 +12,10 @@ import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 
+import 'package:logging/logging.dart';
+
+final _logger = Logger('DatabaseManager');
+
 class DatabaseManager {
   /// Declare the singleton
   static DatabaseManager get instance {
@@ -26,6 +30,7 @@ class DatabaseManager {
   DatabaseManager._internal();
 
   static Future<void> initialize() async {
+    _logger.info('Initializing DatabaseManager...');
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
           'DatabaseManager should not be initialized twice');
@@ -39,6 +44,7 @@ class DatabaseManager {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
+    _logger.info('DatabaseManager initialized');
   }
 
   ////////////////////////////////
@@ -54,6 +60,7 @@ class DatabaseManager {
   ///
   /// Create a new user with the given email and password
   Future<void> signIn({required String email, required String password}) async {
+    _logger.info('Creating a new user with email $email...');
     try {
       await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -62,11 +69,13 @@ class DatabaseManager {
         throw AuthenticationException(
             message: 'Ce courriel est déjà enregistré');
       } else {
+        _logger.severe('Error while creating a new user: $e');
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
 
     _finalizeLoggingIn();
+    _logger.info('User created');
   }
 
   ///
@@ -82,10 +91,13 @@ class DatabaseManager {
   ///
   /// Set the team name for the current user
   Future<void> setTeamName(String name) async {
+    _logger.info('Setting team name to $name...');
+
     // Make sure it is not already taken
     final teamNames = await _teamNamesCollection.get();
     if (teamNames.docs.any((element) =>
         element.data()[teamNameKey].toLowerCase() == name.toLowerCase())) {
+      _logger.warning('Team name $name already exists');
       throw AuthenticationException(message: 'Ce nom d\'équipe existe déjà...');
     }
 
@@ -98,11 +110,13 @@ class DatabaseManager {
     // Notify the listeners
     onTeamNameSet.notifyListeners();
     _notifyIfFullyLoggedIn();
+    _logger.info('Team name set');
   }
 
   ///
   /// Log in with the given email and password
   Future<void> logIn({required String email, required String password}) async {
+    _logger.info('Logging in with email $email...');
     try {
       await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
@@ -111,23 +125,27 @@ class DatabaseManager {
         throw AuthenticationException(
             message: 'Adresse courriel ou mot de passe incorrect');
       } else {
+        _logger.severe('Error while logging in: $e');
         throw AuthenticationException(message: 'Erreur inconnue');
       }
     }
 
     _finalizeLoggingIn();
+    _logger.info('Logged in');
   }
 
   ///
   /// Log out the current user
   Future<void> logOut() async {
+    _logger.info('Logging out...');
     await FirebaseAuth.instance.signOut();
     onLoggedOut.notifyListeners();
+    _logger.info('Logged out');
   }
 
   void _finalizeLoggingIn() {
     // Launch the waiting for email verification, do not wait for it to finish
-    // because the UI need to update
+    // because the UI needs to update
     _checkForEmailVerification();
 
     onLoggedIn.notifyListeners();
@@ -149,6 +167,7 @@ class DatabaseManager {
   ///
   /// Wait for the email to be verified by the user
   Future<void> _checkForEmailVerification() async {
+    _logger.info('Checking for email verification...');
     if (!isEmailVerified) {
       FirebaseAuth.instance.currentUser!.sendEmailVerification();
 
@@ -162,6 +181,8 @@ class DatabaseManager {
       }
 
       if (FirebaseAuth.instance.currentUser == null) {
+        _logger
+            .warning('User disconnected while waiting for email verification');
         throw AuthenticationException(
             message: 'L\'utilisateur s\'est déconnecté');
       }
@@ -169,6 +190,7 @@ class DatabaseManager {
 
     onEmailVerified.notifyListeners();
     _notifyIfFullyLoggedIn();
+    _logger.info('Email verified');
   }
 
   /////////////////////////////////////////
@@ -206,36 +228,45 @@ class DatabaseManager {
   /// Returns all the stations for all the teams
   List<TeamResult>? _teamResultsCache;
   Future<List<TeamResult>> _getTeamsResults() async {
+    _logger.info('Fetching all the teams results...');
     _teamResultsCache ??= (await _teamResultsCollection
             .orderBy(bestStationKey, descending: true)
             .get())
         .docs
         .map((e) => TeamResult.fromFirebaseQuery(e))
         .toList();
+    _logger.info('Fetched all the teams results');
     return [..._teamResultsCache!];
   }
 
   ///
   /// Returns all the scores for all the mvp players
   Future<List<PlayerResult>> _getAllMvpPlayersResult() async {
+    _logger.info('Fetching all the mvp players results...');
     final mvpPlayers = (await _getTeamsResults())
         .map((e) => e.mvpPlayers)
         .expand((e) => e)
         .toList();
     mvpPlayers.sort((a, b) => b.value.compareTo(a.value));
 
+    _logger.info('Fetched all the mvp players results');
     return mvpPlayers;
   }
 
   ///
   /// Returns the best result for a given team
-  Future<TeamResult?> _getResultsOf({required String teamName}) async =>
-      (await _getTeamsResults())
-          .firstWhereOrNull((team) => team.name == teamName);
+  Future<TeamResult?> _getResultsOf({required String teamName}) async {
+    _logger.info('Fetching the results of team $teamName...');
+    final results = (await _getTeamsResults())
+        .firstWhereOrNull((team) => team.name == teamName);
+    _logger.info('Fetched the results of team $teamName');
+    return results;
+  }
 
   ///
   /// Send a new train reached score to the database
   Future<void> _putTeamResults({required TeamResult team}) async {
+    _logger.info('Sending the results of team ${team.name}...');
     await _teamResultsCollection
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
@@ -250,12 +281,14 @@ class DatabaseManager {
     });
 
     // Update the cache results
+    // TODO: Do we need to sort the cache after updating it?
     final index = _teamResultsCache!.indexWhere((e) => e.name == team.name);
     if (index >= 0) {
       _teamResultsCache![index] = team;
     } else {
       _teamResultsCache!.add(team);
     }
+    _logger.info('Sent the results of team ${team.name}');
   }
 
   ////////////////////////////////
@@ -270,6 +303,7 @@ class DatabaseManager {
   /// Send a new score to the database
   Future<void> sendResults(
       {required int stationReached, required List<Player> mvpPlayers}) async {
+    _logger.info('Sending results to the database...');
     _isSendingData = true;
 
     // Get the previous result for this team to see if we need to update it
@@ -303,11 +337,15 @@ class DatabaseManager {
     await _putTeamResults(team: teamResults);
 
     _isSendingData = false;
+    _logger.info('Sent results to the database');
   }
 
   Future<TeamResult> getCurrentTeamResults() async {
-    return await _getResultsOf(teamName: teamName) ??
+    _logger.info('Fetching the results of team $teamName...');
+    final results = await _getResultsOf(teamName: teamName) ??
         TeamResult(name: teamName, bestStation: -1);
+    _logger.info('Fetched the results of team $teamName');
+    return results;
   }
 
   ///
@@ -319,6 +357,8 @@ class DatabaseManager {
     required int top,
     required int? stationReached,
   }) async {
+    _logger.info('Fetching the best train stations reached...');
+
     while (_isSendingData) {
       await Future.delayed(const Duration(milliseconds: 50));
     }
@@ -340,6 +380,7 @@ class DatabaseManager {
       _limitNumberOfResults(top, currentResult, out);
     }
 
+    _logger.info('Fetched the best train stations reached');
     return out;
   }
 
@@ -349,6 +390,8 @@ class DatabaseManager {
   /// the bottom. If they are in the top, they are added at their rank.
   Future<List<PlayerResult>> getBestPlayers(
       {required int top, required List<Player>? mvpPlayers}) async {
+    _logger.info('Fetching the best players...');
+
     while (_isSendingData) {
       await Future.delayed(const Duration(milliseconds: 50));
     }
@@ -380,6 +423,7 @@ class DatabaseManager {
       }
     }
 
+    _logger.info('Fetched the best players');
     return out;
   }
 
@@ -394,6 +438,8 @@ class DatabaseManager {
     required int minNbLetters,
     required int maxNbLetters,
   }) async {
+    _logger.info('Fetching a letter problem...');
+
     // find a random number of letters to pick from
     final databaseKeys = List.generate(
             maxNbLetters - minNbLetters + 1, (index) => index + minNbLetters)
@@ -404,7 +450,10 @@ class DatabaseManager {
 
     Map<String, dynamic>? words;
     while (true) {
-      if (databaseKeys.isEmpty) return null;
+      if (databaseKeys.isEmpty) {
+        _logger.info('No letter problem found');
+        return null;
+      }
 
       final key = databaseKeys.removeAt(random.nextInt(databaseKeys.length));
       words = (await _wordProblemCollection.doc(key).get()).data();
@@ -414,12 +463,18 @@ class DatabaseManager {
     if (withUselessLetter) {
       words.removeWhere((key, value) => !value['hasUseless']);
     }
-    if (words.isEmpty) return null;
+    if (words.isEmpty) {
+      _logger.info('No letter problem found');
+      return null;
+    }
 
+    _logger.info('Fetched a letter problem');
     return words.keys.toList()[random.nextInt(words.length)];
   }
 
   Future<void> sendLetterProblem({required LetterProblem problem}) async {
+    _logger.info('Sending a letter problem to the database...');
+
     final letters = problem.letters;
     if (problem.hasUselessLetter) letters.removeAt(problem.uselessLetterIndex);
 
@@ -431,7 +486,10 @@ class DatabaseManager {
           (await _wordProblemCollection.doc('${letters.length}letters').get())
               .data();
 
-      if (existing?.containsKey(letters.join()) ?? false) return;
+      if (existing?.containsKey(letters.join()) ?? false) {
+        _logger.info('Letter problem already exists');
+        return;
+      }
     }
 
     await _wordProblemCollection.doc('${letters.length}letters').set({
@@ -440,6 +498,8 @@ class DatabaseManager {
         'hasUseless': problem.hasUselessLetter
       }
     }, SetOptions(merge: true));
+
+    _logger.info('Sent a letter problem to the database');
   }
 }
 

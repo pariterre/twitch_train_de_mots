@@ -6,13 +6,13 @@ class CustomCallback<T extends Function> {
   void removeListener(T callback) =>
       _listeners.removeWhere((e) => e == callback);
 
-  void notifyListeners() {
+  Future<void> notifyListeners() async {
     for (final callback in _listeners) {
       callback();
     }
   }
 
-  void notifyListenersWithParameter(parameter) {
+  Future<void> notifyListenersWithParameter(parameter) async {
     for (final callback in _listeners) {
       callback(parameter);
     }
