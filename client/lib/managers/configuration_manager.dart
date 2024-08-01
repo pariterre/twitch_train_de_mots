@@ -63,7 +63,7 @@ class ConfigurationManager {
   ConfigurationManager._internal();
 
   static Future<void> initialize() async {
-    _logger.info('Initializing ConfigurationManager...');
+    _logger.config('Initializing ConfigurationManager...');
 
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -75,7 +75,7 @@ class ConfigurationManager {
     // We must wait for the GameManager to be initialized before listening to
     Future.delayed(Duration.zero, () => instance._listenToGameManagerEvents());
 
-    _logger.info('ConfigurationManager initialized');
+    _logger.config('ConfigurationManager initialized');
   }
 
   ///
@@ -354,19 +354,19 @@ class ConfigurationManager {
   ///
   /// Save the configuration to the device
   void _saveConfiguration() async {
-    _logger.info('Saving configuration to device...');
+    _logger.config('Saving configuration to device...');
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('gameConfiguration', jsonEncode(serialize()));
     onChanged.notifyListeners();
 
-    _logger.info('Configuration saved');
+    _logger.config('Configuration saved');
   }
 
   ///
   /// Load the configuration from the device
   void _loadConfiguration() async {
-    _logger.info('Loading configuration from device...');
+    _logger.config('Loading configuration from device...');
 
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('gameConfiguration');
@@ -428,14 +428,14 @@ class ConfigurationManager {
       _tellGameManagerToRepickProblem();
     }
 
-    _logger.info('Configuration loaded');
+    _logger.config('Configuration loaded');
   }
 
   ///
   /// Reset the configuration to the default values
   void resetConfiguration(
       {required bool advancedOptions, required bool userOptions}) {
-    _logger.info(
+    _logger.config(
         'Resetting configuration (userOptions: $userOptions, advancedOptions: $advancedOptions)...');
     if (userOptions) {
       _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
@@ -482,7 +482,7 @@ class ConfigurationManager {
     }
 
     _saveConfiguration();
-    _logger.info('Configuration reset');
+    _logger.config('Configuration reset');
   }
 
   ///

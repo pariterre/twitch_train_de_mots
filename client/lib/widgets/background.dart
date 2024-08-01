@@ -51,7 +51,7 @@ class _BackgroundState extends State<Background>
   }
 
   void setupAnimation() {
-    _logger.info('Setting up animation...');
+    _logger.config('Setting up animation...');
 
     final tm = ThemeManager.instance;
 
@@ -76,7 +76,7 @@ class _BackgroundState extends State<Background>
       ),
     ).animate(_controller);
 
-    _logger.info('Animation set up.');
+    _logger.config('Animation set up.');
   }
 
   @override

@@ -75,7 +75,7 @@ class LetterProblem {
   ///
   /// This method should be called whenever [_letters] is changed
   void _initialize() {
-    _logger.info('Initializing the letter problem...');
+    _logger.config('Initializing the letter problem...');
 
     // Sort the solutions in alphabetical order
     _solutions = _solutions.sort();
@@ -95,7 +95,7 @@ class LetterProblem {
     // if it exists
     _hiddenLetterIndex = Random().nextInt(_letters.length);
 
-    _logger.info('Letter problem initialized');
+    _logger.config('Letter problem initialized');
   }
 
   ///
@@ -107,13 +107,13 @@ class LetterProblem {
     // Do some rapid validation
     if (word.length < nbLetterInSmallestWord) {
       // If the word is shorted than the permitted shortest word, it is invalid
-      _logger.info('Word is too short');
+      _logger.warning('Word is too short');
       return null;
     }
     // If the word contains any non letters, it is invalid
     word = removeDiacritics(word.toUpperCase());
     if (word.contains(RegExp(r'[^A-Z]'))) {
-      _logger.info('Word contains non letters');
+      _logger.warning('Word contains non letters');
       return null;
     }
 
@@ -206,7 +206,7 @@ class ProblemGenerator {
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
     do {
       if (GameManager.instance.isNextProblemReady) {
-        _logger.info('Problem not needed anymore, stop generating');
+        _logger.warning('Problem not needed anymore, stop generating');
         return null;
       }
       await _updateScreenIfNeeded();
@@ -231,7 +231,7 @@ class ProblemGenerator {
 
       do {
         if (GameManager.instance.isNextProblemReady) {
-          _logger.info('Problem not needed anymore, stop generating');
+          _logger.warning('Problem not needed anymore, stop generating');
           return null;
         }
         await _updateScreenIfNeeded();
@@ -327,7 +327,7 @@ class ProblemGenerator {
 
     do {
       if (GameManager.instance.isNextProblemReady) {
-        _logger.info('Problem not needed anymore, stop generating');
+        _logger.warning('Problem not needed anymore, stop generating');
         return null;
       }
       await _updateScreenIfNeeded();
@@ -340,7 +340,7 @@ class ProblemGenerator {
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
         if (GameManager.instance.isNextProblemReady) {
-          _logger.info('Problem not needed anymore, stop generating');
+          _logger.warning('Problem not needed anymore, stop generating');
           return null;
         }
         await _updateScreenIfNeeded();
@@ -463,7 +463,7 @@ class ProblemGenerator {
 
     do {
       if (GameManager.instance.isNextProblemReady) {
-        _logger.info('Problem not needed anymore, stop generating');
+        _logger.warning('Problem not needed anymore, stop generating');
         return null;
       }
       await _updateScreenIfNeeded();
@@ -489,7 +489,7 @@ class ProblemGenerator {
 
       do {
         if (GameManager.instance.isNextProblemReady) {
-          _logger.info('Problem not needed anymore, stop generating');
+          _logger.warning('Problem not needed anymore, stop generating');
           return null;
         }
         await _updateScreenIfNeeded();
@@ -658,7 +658,7 @@ class ProblemGenerator {
 
     // Check if the problem was already played
     if (previousProblems.any((element) => element == problem)) {
-      _logger.info('Problem already played');
+      _logger.warning('Problem already played');
       return null;
     }
 
@@ -701,7 +701,7 @@ class ProblemGenerator {
     } while (possibleLetters.isNotEmpty);
 
     // If we get here, it means no useless letter could be found
-    _logger.info('No useless letter found');
+    _logger.warning('No useless letter found');
     return null;
   }
 }

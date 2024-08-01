@@ -103,7 +103,7 @@ class GameManager {
   /// Initialize the game logic. This should be called at the start of the
   /// application.
   static Future<void> initialize() async {
-    _logger.info('GameManager is initializing...');
+    _logger.config('GameManager is initializing...');
 
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -113,7 +113,7 @@ class GameManager {
 
     Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
 
-    _logger.info('GameManager is initialized');
+    _logger.config('GameManager is initialized');
   }
 
   /// ----------- ///

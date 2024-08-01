@@ -30,7 +30,7 @@ class DatabaseManager {
   DatabaseManager._internal();
 
   static Future<void> initialize() async {
-    _logger.info('Initializing DatabaseManager...');
+    _logger.config('Initializing DatabaseManager...');
     if (_instance != null) {
       throw ManagerAlreadyInitializedException(
           'DatabaseManager should not be initialized twice');
@@ -44,7 +44,7 @@ class DatabaseManager {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
-    _logger.info('DatabaseManager initialized');
+    _logger.config('DatabaseManager initialized');
   }
 
   ////////////////////////////////
@@ -110,7 +110,7 @@ class DatabaseManager {
     // Notify the listeners
     onTeamNameSet.notifyListeners();
     _notifyIfFullyLoggedIn();
-    _logger.info('Team name set');
+    _logger.config('Team name set');
   }
 
   ///

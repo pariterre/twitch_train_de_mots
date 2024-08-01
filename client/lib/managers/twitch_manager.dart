@@ -38,7 +38,7 @@ class TwitchManager {
 
     if (_manager != null) {
       // Already connected
-      _logger.info('Manager already connected');
+      _logger.warning('Manager already connected');
       return true;
     }
 
