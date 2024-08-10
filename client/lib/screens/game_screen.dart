@@ -318,7 +318,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
-    gm.onTimerTicks.addListener(_refresh);
+    gm.onClockTicked.addListener(_refresh);
     gm.onRoundIsOver.addListener(_refreshWithParameter);
 
     final tm = ThemeManager.instance;
@@ -332,7 +332,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
-    gm.onTimerTicks.removeListener(_refresh);
+    gm.onClockTicked.removeListener(_refresh);
     gm.onRoundIsOver.removeListener(_refreshWithParameter);
 
     final tm = ThemeManager.instance;

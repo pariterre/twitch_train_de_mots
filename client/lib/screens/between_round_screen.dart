@@ -103,7 +103,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onTimerTicks.addListener(_refresh);
+    gm.onClockTicked.addListener(_refresh);
   }
 
   @override
@@ -111,7 +111,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.dispose();
 
     final gm = GameManager.instance;
-    gm.onTimerTicks.removeListener(_refresh);
+    gm.onClockTicked.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -194,6 +194,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     await _showAutoplayDialog();
                   }
                   gm.cancelAutomaticStart();
+                  setState(() {});
                 },
                 child: Text(
                   'Désactiver le démarrage automatique',

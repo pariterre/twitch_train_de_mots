@@ -28,13 +28,4 @@ class Difficulty {
     required this.hasHiddenLetter,
     this.revealHiddenLetterAtTimeLeft = -1,
   });
-
-  bool hasSameRulesForPickingLetters(covariant Difficulty other) {
-    if (identical(this, other)) return true;
-
-    return hasUselessLetter == other.hasUselessLetter &&
-        nbLettersOfShortestWord == other.nbLettersOfShortestWord &&
-        nbLettersMinToDraw == other.nbLettersMinToDraw &&
-        nbLettersMaxToDraw == other.nbLettersMaxToDraw;
-  }
 }

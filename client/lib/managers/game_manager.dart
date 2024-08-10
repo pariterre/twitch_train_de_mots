@@ -53,7 +53,7 @@ class GameManager {
     _nextRoundStartAt = null;
   }
 
-  DateTime? _nextTickAt;
+  DateTime _nextTickAt = DateTime.now();
   int _roundCount = 0;
   int get roundCount => _roundCount;
   late Difficulty _currentDifficulty =
@@ -141,6 +141,7 @@ class GameManager {
     if (gameStatus == GameStatus.initializing) {
       _initializeCallbacks();
       _gameStatus = GameStatus.roundPreparing;
+      onRoundIsPreparing.notifyListeners();
     }
     if (_gameStatus != GameStatus.roundStarted) return;
     _forceEndTheRound = true;
@@ -171,7 +172,7 @@ class GameManager {
   final onNextProblemReady = CustomCallback<VoidCallback>();
   final onRoundStarted = CustomCallback<VoidCallback>();
   final onRoundIsOver = CustomCallback<Function(bool)>();
-  final onTimerTicks = CustomCallback<VoidCallback>();
+  final onClockTicked = CustomCallback<VoidCallback>();
   final onScrablingLetters = CustomCallback<VoidCallback>();
   final onRevealUselessLetter = CustomCallback<VoidCallback>();
   final onRevealHiddenLetter = CustomCallback<VoidCallback>();
@@ -334,7 +335,6 @@ class GameManager {
     await _sendTelegramToPlayers();
     _gameStatus = GameStatus.roundStarted;
     _roundStartedAt = DateTime.now();
-    _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
     onRoundStarted.notifyListeners();
 
     _logger.info('New round started');
@@ -591,58 +591,75 @@ class GameManager {
   }
 
   ///
-  /// Tick the game timer. If the timer is over, [_endOfRound] is called.
+  /// Tick the game timer. If the timer is over, [_endingRound] is called.
   void _gameLoop(Timer timer) async {
     _logger.fine('Game looping...');
 
-    onTimerTicks.notifyListeners();
-
-    if ((_gameStatus == GameStatus.initializing ||
-            _gameStatus == GameStatus.roundPreparing) &&
-        isNextProblemReady) {
-      if (_gameStatus == GameStatus.roundPreparing) {
-        _gameStatus = GameStatus.roundReady;
-      }
-      onNextProblemReady.notifyListeners();
-
-      _logger.info('Next problem is ready');
-      return;
-    }
-    if (_gameStatus == GameStatus.roundReady) {
-      if (_nextRoundStartAt != null &&
-          DateTime.now().isAfter(_nextRoundStartAt!)) {
-        _logger.info('Automatic start of the round');
-        _nextRoundStartAt = null;
-        _startNewRound();
-      }
-
+    if (_checkIfShouldAutomaticallyStartRound()) {
+      _autoStartingRound();
       return;
     }
 
-    _gameTick();
-    _endOfRound();
+    if (_checkIfClockShouldTick()) _tickingClock();
+    if (_checkForEndOfRound()) _endingRound();
 
     _logger.fine('Game looped');
+  }
+
+  bool _checkIfShouldAutomaticallyStartRound() {
+    _logger.fine('Checking if the round should start automatically...');
+
+    if (_nextRoundStartAt == null) {
+      _logger.fine('No automatic start of the round planned');
+      return false;
+    }
+
+    if (_gameStatus != GameStatus.roundReady) {
+      _logger.fine('Round is not ready, so cannot start automatically');
+      return false;
+    }
+
+    if (DateTime.now().isAfter(_nextRoundStartAt!)) {
+      _logger.fine('Automatic start of the round');
+      return true;
+    }
+
+    _logger.fine('Automatic start of the round not yet');
+    return false;
+  }
+
+  void _autoStartingRound() {
+    _logger.info('Automatic start of the round');
+    _nextRoundStartAt = null;
+    _startNewRound();
+  }
+
+  bool _checkIfClockShouldTick() {
+    _logger.fine('Checking if the clock should tick...');
+
+    // Wait for a full second to pass before ticking
+    if (DateTime.now().isBefore(_nextTickAt)) {
+      _logger.fine('Not enough time has passed since the last tick');
+      return false;
+    }
+
+    _logger.fine('The clock should tick');
+    return true;
   }
 
   ///
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
-  void _gameTick() {
-    _logger.fine('Game ticking...');
+  Future<void> _tickingClock() async {
+    _logger.info('Tic...');
+    onClockTicked.notifyListeners();
+    _nextTickAt = _nextTickAt.add(const Duration(seconds: 1));
 
     if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
-      _logger.fine('Cannot tick at this time');
+      _logger.fine('The game is not running, so nothing more to do');
+      _logger.info('Toc');
       return;
     }
-
-    // Wait for a full second to pass before ticking
-    if (DateTime.now().isBefore(_nextTickAt!)) {
-      _logger.fine('Ticked too early');
-      return;
-    }
-    _logger.info('Tic...');
-    _nextTickAt = _nextTickAt!.add(const Duration(seconds: 1));
 
     final cm = ConfigurationManager.instance;
 
@@ -662,7 +679,7 @@ class GameManager {
     }
 
     // Manager letter swapping in the problem
-    _logger.fine('Managing letter swapping...');
+    _logger.info('Managing letter swapping...');
     _scramblingLetterTimer -= 1;
     if (_scramblingLetterTimer <= 0) {
       _logger.fine('Scrambling letters...');
@@ -673,7 +690,7 @@ class GameManager {
     }
 
     // Manage useless letter
-    _logger.fine('Managing useless letter...');
+    _logger.info('Managing useless letter...');
     if (!_isUselessLetterRevealed &&
         _currentDifficulty.hasUselessLetter &&
         timeRemaining! <= _currentDifficulty.revealUselessLetterAtTimeLeft) {
@@ -684,7 +701,7 @@ class GameManager {
     }
 
     // Manage hidden letter
-    _logger.fine('Managing hidden letter...');
+    _logger.info('Managing hidden letter...');
     if (!_isHiddenLetterRevealed &&
         _currentDifficulty.hasHiddenLetter &&
         timeRemaining! <= _currentDifficulty.revealHiddenLetterAtTimeLeft) {
@@ -704,33 +721,38 @@ class GameManager {
     _logger.info('Toc');
   }
 
-  ///
-  /// Clear the current round
-  Future<void> _endOfRound() async {
-    _logger.fine('End of round...');
+  bool _checkForEndOfRound() {
+    _logger.fine('Checking for end of round...');
 
     // Do not end the round if we are not playing
     if (_gameStatus != GameStatus.roundStarted) {
-      _logger.fine('Cannot end the round at this time');
-      return;
+      _logger.fine(
+          'Round is not running, so cannot check for end of round at this time');
+      return false;
     }
-
-    final cm = ConfigurationManager.instance;
 
     // End round
     // if the request was made
-    // if the timer is over
     // if all the words have been found
-    bool shouldEndTheRound = _forceEndTheRound ||
-        timeRemaining! <=
-            -ConfigurationManager
-                .instance.postRoundGracePeriodDuration.inSeconds ||
-        _currentProblem!.areAllSolutionsFound;
-    if (!shouldEndTheRound) {
+    // if the timer has past the timer + the grace period
+    final cm = ConfigurationManager.instance;
+    if (_forceEndTheRound ||
+        _currentProblem!.areAllSolutionsFound ||
+        (timeRemaining! + cm.postRoundGracePeriodDuration.inSeconds <= 0)) {
+      _logger.fine('Round is over');
+      return true;
+    } else {
       _logger.fine('Round is not over yet');
-      return;
+      return false;
     }
+  }
+
+  ///
+  /// Clear the current round
+  Future<void> _endingRound() async {
     _logger.info('Round is over, ending the round...');
+
+    final cm = ConfigurationManager.instance;
 
     _successLevel = completedLevel;
     _roundCount += _successLevel.toInt();
