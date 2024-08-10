@@ -826,7 +826,7 @@ class GameManager {
   }
 
   int pointsToObtain(SuccessLevel level) {
-    final maxScore = problem?.maximumScore ?? 0;
+    final maxScore = problem?.maximumPossibleScore ?? 0;
     switch (level) {
       case SuccessLevel.oneStar:
         return (maxScore * _currentDifficulty.thresholdFactorOneStar).toInt();

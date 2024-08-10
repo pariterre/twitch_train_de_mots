@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
@@ -122,7 +124,9 @@ class _HeaderState extends State<_Header> {
   void _onSolutionFound(WordSolution? solution) {
     if (solution == null) return;
 
-    int currentScore = GameManager.instance.problem!.teamScore;
+    final gm = GameManager.instance;
+    int currentScore = min(GameManager.instance.problem!.teamScore,
+        gm.problem?.maximumPossibleScore ?? 1);
     if (_previousScore < currentScore) {
       for (int i = _previousScore; i < currentScore; i++) {
         _trainPath.moveForward();
@@ -141,7 +145,7 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
 
     _previousScore = 0;
-    _trainPath.nbSteps = gm.problem?.maximumScore ?? 1;
+    _trainPath.nbSteps = gm.problem?.maximumPossibleScore ?? 1;
     _trainPath.hallMarks = [
       gm.pointsToObtain(SuccessLevel.oneStar),
       gm.pointsToObtain(SuccessLevel.twoStars),

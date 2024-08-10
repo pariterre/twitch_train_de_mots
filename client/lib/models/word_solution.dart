@@ -42,12 +42,13 @@ class WordSolution {
 
   int get value {
     final factor = _isBoosted ? 2 : 1;
-    return factor *
-        word
-            .split('')
-            .map((e) => ValuableLetter.getValueOfLetter(e))
-            .reduce((a, b) => a + b);
+    return factor * wordValue;
   }
+
+  int get wordValue => word
+      .split('')
+      .map((e) => ValuableLetter.getValueOfLetter(e))
+      .reduce((a, b) => a + b);
 
   WordSolution({required String word})
       : word = removeDiacritics(word.toUpperCase());
@@ -102,5 +103,5 @@ class WordSolutions extends DelegatingList<WordSolution> {
   ///
   /// Get the maximum possible score for this solution
   int get maximumPossibleScore =>
-      _solutions.fold(0, (prev, e) => prev + e.value);
+      _solutions.fold(0, (prev, e) => prev + e.wordValue);
 }

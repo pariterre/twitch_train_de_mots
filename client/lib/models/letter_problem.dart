@@ -39,7 +39,7 @@ class LetterProblem {
 
   ///
   /// Returns the maximum score that can be obtained by finding all the solutions
-  int get maximumScore => _solutions.maximumPossibleScore;
+  int get maximumPossibleScore => _solutions.maximumPossibleScore;
 
   ///
   /// Returns the current score of all the found solutions
