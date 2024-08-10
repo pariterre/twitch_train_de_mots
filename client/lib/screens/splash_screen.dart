@@ -5,7 +5,6 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/release_notes.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/exceptions.dart';
-import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 
@@ -95,63 +94,59 @@ class _SplashScreenState extends State<SplashScreen> {
     final tm = ThemeManager.instance;
     final dm = DatabaseManager.instance;
 
-    return Background(
-      withSnowfall: false,
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height,
-        child: Center(
-          child: dm.isLoggedIn
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Train de mots',
-                      style: TextStyle(
-                        fontSize: 48.0,
-                        color: tm.textColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: Center(
+        child: dm.isLoggedIn
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Train de mots',
+                    style: TextStyle(
+                      fontSize: 48.0,
+                      color: tm.textColor,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 30.0),
-                    SizedBox(
-                      width: 700,
-                      child: Text(
-                          'Chères cheminots et cheminotes de ${dm.teamName}, bienvenue à bord!\n'
-                          '\n'
-                          'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
-                          'Trouvez le plus de mots possibles pour emmener le train à destination. '
-                          'Le ou la meilleure cheminot\u00b7e sera couronné\u00b7e de gloire!\n'
-                          '\n'
-                          'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
-                          'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
-                          'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
-                          style: TextStyle(
-                            fontSize: 24.0,
-                            color: tm.textColor,
-                          ),
-                          textAlign: TextAlign.justify),
+                  ),
+                  const SizedBox(height: 30.0),
+                  SizedBox(
+                    width: 700,
+                    child: Text(
+                        'Chères cheminots et cheminotes de ${dm.teamName}, bienvenue à bord!\n'
+                        '\n'
+                        'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
+                        'Trouvez le plus de mots possibles pour emmener le train à destination. '
+                        'Le ou la meilleure cheminot\u00b7e sera couronné\u00b7e de gloire!\n'
+                        '\n'
+                        'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
+                        'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
+                        'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          color: tm.textColor,
+                        ),
+                        textAlign: TextAlign.justify),
+                  ),
+                  const SizedBox(height: 30.0),
+                  Text(
+                    'C\'est un départ! Tchou Tchou!!',
+                    style: TextStyle(
+                      fontSize: 24.0,
+                      color: tm.textColor,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 30.0),
-                    Text(
-                      'C\'est un départ! Tchou Tchou!!',
-                      style: TextStyle(
-                        fontSize: 24.0,
-                        color: tm.textColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 30.0),
-                    ThemedElevatedButton(
-                      onPressed:
-                          _isGameReadyToPlay ? widget.onClickStart : null,
-                      buttonText: _isGameReadyToPlay
-                          ? 'Direction première station!'
-                          : 'Préparation du train...',
-                    ),
-                  ],
-                )
-              : const _ConnexionTile(),
-        ),
+                  ),
+                  const SizedBox(height: 30.0),
+                  ThemedElevatedButton(
+                    onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
+                    buttonText: _isGameReadyToPlay
+                        ? 'Direction première station!'
+                        : 'Préparation du train...',
+                  ),
+                ],
+              )
+            : const _ConnexionTile(),
       ),
     );
   }
