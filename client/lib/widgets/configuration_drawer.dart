@@ -233,7 +233,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                         value: cm.soundVolume,
                         onChanged: (value) => cm.soundVolume = value,
                         onChangedEnd: (value) =>
-                            cm.onSoundChanged.notifyListeners(),
+                            cm.onSoundVolumeChanged.notifyListeners(),
                         thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
                       ),
                       const SizedBox(height: 12),

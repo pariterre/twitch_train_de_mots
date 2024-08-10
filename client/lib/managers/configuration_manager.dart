@@ -81,8 +81,8 @@ class ConfigurationManager {
   ///
   /// Connect to callbacks to get notified when the configuration changes
   final onChanged = CustomCallback();
-  final onMusicChanged = CustomCallback();
-  final onSoundChanged = CustomCallback();
+  final onGameMusicVolumeChanged = CustomCallback();
+  final onSoundVolumeChanged = CustomCallback();
 
   ///
   /// The current algorithm used to generate the problems
@@ -297,7 +297,7 @@ class ConfigurationManager {
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
     _musicVolume = value;
-    onMusicChanged.notifyListeners();
+    onGameMusicVolumeChanged.notifyListeners();
     _saveConfiguration();
   }
 

@@ -65,8 +65,8 @@ class SoundManager {
     gm.onRoundIsOver.addListener(instance._onRoundIsOver);
 
     final cm = ConfigurationManager.instance;
-    cm.onMusicChanged.addListener(instance._manageGameMusic);
-    cm.onSoundChanged.addListener(instance._onLettersScrambled);
+    cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
+    cm.onSoundVolumeChanged.addListener(instance._onLettersScrambled);
   }
 
   Future<void> _manageGameMusic() async {
