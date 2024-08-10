@@ -6,7 +6,6 @@ import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -181,7 +180,7 @@ class ProblemGenerator {
 
   ///
   /// Generates a new word problem from a random string of letters.
-  static Future<LetterProblem?> generateFromRandom({
+  static Future<LetterProblem> generateFromRandom({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -189,7 +188,6 @@ class ProblemGenerator {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
   }) async {
     _logger.info('Generating problem from random letters...');
 
@@ -205,10 +203,6 @@ class ProblemGenerator {
 
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
     do {
-      if (GameManager.instance.isNextProblemReady) {
-        _logger.warning('Problem not needed anymore, stop generating');
-        return null;
-      }
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
@@ -230,10 +224,6 @@ class ProblemGenerator {
       }
 
       do {
-        if (GameManager.instance.isNextProblemReady) {
-          _logger.warning('Problem not needed anymore, stop generating');
-          return null;
-        }
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -295,8 +285,7 @@ class ProblemGenerator {
         finalProblem = _letterProblemFromListLetters(
             candidateLetters: candidateLetters,
             subWords: subWords,
-            uselessLetter: uselessLetter,
-            previousProblems: previousProblems);
+            uselessLetter: uselessLetter);
       }
     } while (finalProblem == null);
 
@@ -308,7 +297,7 @@ class ProblemGenerator {
   ///
   /// Generates a new word problem from picking a letter, then subsetting the
   /// words and picking a new letter available in the remainning words.
-  static Future<LetterProblem?> generateFromBuildingUp({
+  static Future<LetterProblem> generateFromBuildingUp({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -316,7 +305,6 @@ class ProblemGenerator {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
   }) async {
     _logger.info('Generating problem from building up...');
 
@@ -326,10 +314,6 @@ class ProblemGenerator {
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
 
     do {
-      if (GameManager.instance.isNextProblemReady) {
-        _logger.warning('Problem not needed anymore, stop generating');
-        return null;
-      }
       await _updateScreenIfNeeded();
       List<String> candidateLetters = [];
 
@@ -339,10 +323,6 @@ class ProblemGenerator {
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       do {
-        if (GameManager.instance.isNextProblemReady) {
-          _logger.warning('Problem not needed anymore, stop generating');
-          return null;
-        }
         await _updateScreenIfNeeded();
 
         // From the list of all the remaining letters in the alphabet, pick a random one
@@ -419,8 +399,7 @@ class ProblemGenerator {
         finalProblem = _letterProblemFromListLetters(
             candidateLetters: candidateLetters,
             subWords: subWords,
-            uselessLetter: uselessLetter,
-            previousProblems: previousProblems);
+            uselessLetter: uselessLetter);
       }
     } while (finalProblem == null);
 
@@ -432,16 +411,14 @@ class ProblemGenerator {
   /// Generates a new word problem from a random longest word. Apart from the
   /// randomization of the candidate letters, the algorithm is the same as the
   /// [generateFromRandom] method.
-  static Future<LetterProblem?> generateFromRandomWord({
-    required int nbLetterInSmallestWord,
-    required int minLetters,
-    required int maxLetters,
-    required int minimumNbOfWords,
-    required int maximumNbOfWords,
-    required bool addUselessLetter,
-    required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
-  }) async {
+  static Future<LetterProblem> generateFromRandomWord(
+      {required int nbLetterInSmallestWord,
+      required int minLetters,
+      required int maxLetters,
+      required int minimumNbOfWords,
+      required int maximumNbOfWords,
+      required bool addUselessLetter,
+      required Duration maxSearchingTime}) async {
     _logger.info('Generating problem from random word...');
 
     // We have to deduce the number of letters to add to the candidate. It is
@@ -462,10 +439,6 @@ class ProblemGenerator {
     final maxSearchingTimeThreshold = DateTime.now().add(maxSearchingTime);
 
     do {
-      if (GameManager.instance.isNextProblemReady) {
-        _logger.warning('Problem not needed anymore, stop generating');
-        return null;
-      }
       await _updateScreenIfNeeded();
 
       // Generate a first candidate set of letters
@@ -488,10 +461,6 @@ class ProblemGenerator {
       }
 
       do {
-        if (GameManager.instance.isNextProblemReady) {
-          _logger.warning('Problem not needed anymore, stop generating');
-          return null;
-        }
         await _updateScreenIfNeeded();
 
         // Find all the words that can be made from the candidate letters
@@ -553,8 +522,7 @@ class ProblemGenerator {
         finalProblem = _letterProblemFromListLetters(
             candidateLetters: candidateLetters,
             subWords: subWords,
-            uselessLetter: uselessLetter,
-            previousProblems: previousProblems);
+            uselessLetter: uselessLetter);
       }
     } while (finalProblem == null);
 
@@ -565,16 +533,14 @@ class ProblemGenerator {
 
   ///
   /// Calls the server using the generateFromRandomWord method.
-  static Future<LetterProblem?> generateFromServer({
-    required int nbLetterInSmallestWord,
-    required int minLetters,
-    required int maxLetters,
-    required int minimumNbOfWords,
-    required int maximumNbOfWords,
-    required bool addUselessLetter,
-    required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
-  }) async {
+  static Future<LetterProblem> generateFromServer(
+      {required int nbLetterInSmallestWord,
+      required int minLetters,
+      required int maxLetters,
+      required int minimumNbOfWords,
+      required int maximumNbOfWords,
+      required bool addUselessLetter,
+      required Duration maxSearchingTime}) async {
     _logger.info('Generating problem from server...');
 
     // We have to deduce the number of letters to add to the candidate. It is
@@ -617,8 +583,7 @@ class ProblemGenerator {
         finalProblem = _letterProblemFromListLetters(
             candidateLetters: candidateLetters,
             subWords: subWords,
-            uselessLetter: uselessLetter,
-            previousProblems: previousProblems);
+            uselessLetter: uselessLetter);
       } catch (e) {
         _logger.warning(
             'Failed to get problem from server, falling back to local algorithm');
@@ -631,8 +596,7 @@ class ProblemGenerator {
             minimumNbOfWords: minimumNbOfWords,
             maximumNbOfWords: maximumNbOfWords,
             addUselessLetter: addUselessLetter,
-            maxSearchingTime: maxSearchingTime,
-            previousProblems: previousProblems);
+            maxSearchingTime: maxSearchingTime);
       }
     } while (finalProblem == null);
 
@@ -642,12 +606,10 @@ class ProblemGenerator {
 
   ///
   ///
-  static LetterProblem? _letterProblemFromListLetters({
-    required List<String> candidateLetters,
-    required Set<String> subWords,
-    required String? uselessLetter,
-    required List<LetterProblem> previousProblems,
-  }) {
+  static LetterProblem? _letterProblemFromListLetters(
+      {required List<String> candidateLetters,
+      required Set<String> subWords,
+      required String? uselessLetter}) {
     _logger.info('Creating problem from list of letters...');
 
     final problem = LetterProblem._(
@@ -655,12 +617,6 @@ class ProblemGenerator {
         solutions:
             WordSolutions(subWords.map((e) => WordSolution(word: e)).toList()),
         uselessLetter: uselessLetter);
-
-    // Check if the problem was already played
-    if (previousProblems.any((element) => element == problem)) {
-      _logger.warning('Problem already played');
-      return null;
-    }
 
     _logger.info('Problem created');
     return problem;

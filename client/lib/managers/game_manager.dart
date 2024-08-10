@@ -324,20 +324,14 @@ class GameManager {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
+    // Prepare next round
     if (_successLevel == SuccessLevel.failed || !hasPlayedAtLeastOnce) {
       _restartGame();
     }
-    _setValuesAtStartRound();
+    await _setValuesAtStartRound();
 
-    // Start searching for the next problem as soon as possible to avoid
-    // waiting for the next round
-    _searchProblemForRound(
-        round: _roundCount + 1,
-        maxSearchingTime: Duration(seconds: cm.roundDuration.inSeconds ~/ 2));
-
-    // Send a message to players if required, but only once per session
-    await _manageMessageToPlayers();
-
+    // Start the round
+    await _sendTelegramToPlayers();
     _gameStatus = GameStatus.roundStarted;
     _roundStartedAt = DateTime.now();
     _nextTickAt = _roundStartedAt!.add(const Duration(seconds: 1));
@@ -350,7 +344,7 @@ class GameManager {
   /// Manage the message to players. This is called at the start of a round and
   /// sends a telegram to the players if required. The message is skipped if it
   /// was previously sent.
-  Future<void> _manageMessageToPlayers() async {
+  Future<void> _sendTelegramToPlayers() async {
     _logger.info('Preparing to send telegram to players...');
 
     final message = _currentDifficulty.message;
@@ -370,7 +364,7 @@ class GameManager {
     _logger.info('Telegram sent to players');
   }
 
-  void _setValuesAtStartRound() {
+  Future<void> _setValuesAtStartRound() async {
     _logger.info('Setting values at the start of the round...');
 
     final cm = ConfigurationManager.instance;
