@@ -86,7 +86,7 @@ class ConfigurationManager {
 
   ///
   /// The current algorithm used to generate the problems
-  final Future<LetterProblem?> Function({
+  final Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -94,9 +94,8 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
   }) _problemGenerator = ProblemGenerator.generateFromServer;
-  Future<LetterProblem?> Function({
+  Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -104,7 +103,6 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-    required List<LetterProblem> previousProblems,
   }) get problemGenerator => _problemGenerator;
 
   String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;

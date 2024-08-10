@@ -62,14 +62,11 @@ class GameManager {
   int _scramblingLetterTimer = 0;
 
   LetterProblem? _currentProblem;
-  final List<LetterProblem?> _nextProblems = [];
-  final List<LetterProblem> _previousProblems = [];
+  final List<LetterProblem> _playedProblems = [];
+  LetterProblem? _nextProblem;
+  bool _isGeneratingProblem = false;
+  bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
 
-  /// [isNextProblemReady] assumes [_successLevel] to be max while playing, so
-  /// it ensures to search for all possible next problems.
-  bool get isNextProblemReady => _nextProblems.length > _successLevel.toInt();
-
-  bool _isSearchingNextProblem = false;
   LetterProblem? get problem => _currentProblem;
   SuccessLevel _successLevel = SuccessLevel.threeStars;
   final List<RoundSuccess> _roundSuccesses = [];
@@ -133,7 +130,7 @@ class GameManager {
   /// not already searching for a problem.
   Future<void> requestSearchForNextProblem() async {
     _logger.info('Requesting to search for the next problem');
-    _searchProblemForRound(round: _roundCount, maxSearchingTime: Duration.zero);
+    _generateNextProblem(maxSearchingTime: Duration.zero);
   }
 
   ///
@@ -224,10 +221,10 @@ class GameManager {
     if (repickNow && _forceRepickProblem) {
       _logger.info('Rules have changed, repicking a problem...');
 
-      _isSearchingNextProblem = false;
-      _nextProblems.clear();
-      _searchProblemForRound(
-          round: _roundCount, maxSearchingTime: Duration.zero);
+      final cm = ConfigurationManager.instance;
+      _generateNextProblem(
+          maxSearchingTime: Duration(
+              seconds: timeRemaining ?? cm.autoplayDuration.inSeconds ~/ 2));
     }
 
     _logger.info('Rules have been updated');
@@ -253,48 +250,45 @@ class GameManager {
   // This helps calling [_hasAPlayerBeenUpdate] a single frame after a player is out of cooldown
   final Map<String, bool> _playersWasInCooldownLastFrame = {};
 
-  Future<void> _searchProblemForRound(
-      {required int round, required Duration maxSearchingTime}) async {
-    _logger.info('Searching for a problem for round $round...');
+  Future<void> _generateNextProblem(
+      {required Duration maxSearchingTime}) async {
+    final round = gameStatus == GameStatus.initializing ? 0 : roundCount + 1;
+    _logger.info('Generating for next problem (round $round...)');
 
-    if (_isSearchingNextProblem) {
-      _logger.warning('A problem is already being searched for');
+    if (_isGeneratingProblem) {
+      _logger.warning('Already searching for a problem');
       return;
     }
+
+    _nextProblem = null;
+    _isGeneratingProblem = true;
+
     final cm = ConfigurationManager.instance;
-
     _forceRepickProblem = false;
-    _isSearchingNextProblem = true;
 
-    int i = _nextProblems.length - 1; // -1 is the round 0 (the first round)
-    while (_nextProblems.length < 4) {
-      _logger.info('Searching for problem $i for round $round...');
-
-      // The first element is always the first level (in case of a restart of the game)
-      // The others depend on the current round count
-      final difficulty = cm.difficulty(i < 0 ? 0 : round + i);
-      final previousDifficulty = cm.difficulty(i <= 0 ? 0 : round + i - 1);
-
-      if (i >= 1 &&
-          difficulty.hasSameRulesForPickingLetters(previousDifficulty)) {
-        _nextProblems.add(_nextProblems.last);
-      } else {
-        _nextProblems.add(await cm.problemGenerator(
+    LetterProblem? problem;
+    final difficulty = cm.difficulty(round);
+    while (problem == null) {
+      problem = await cm.problemGenerator(
           nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
           minLetters: difficulty.nbLettersMinToDraw,
           maxLetters: difficulty.nbLettersMaxToDraw,
           minimumNbOfWords: cm.minimumWordsNumber,
           maximumNbOfWords: cm.maximumWordsNumber,
           addUselessLetter: difficulty.hasUselessLetter,
-          maxSearchingTime: maxSearchingTime,
-          previousProblems: _previousProblems,
-        ));
+          maxSearchingTime: maxSearchingTime);
+
+      if (_playedProblems.contains(problem)) {
+        _logger
+            .fine('Problem was already played, searching for another one...');
+        problem = null;
       }
-      i++;
     }
 
-    _isSearchingNextProblem = false;
-    _logger.info('Problems for round $round found');
+    onNextProblemReady.notifyListeners();
+    _nextProblem = problem;
+    _isGeneratingProblem = false;
+    _logger.info('Problem found for round $round');
   }
 
   void _initializeCallbacks() {
@@ -323,14 +317,10 @@ class GameManager {
       _logger.warning('Cannot start a new round at this time');
       return;
     }
-
-    final cm = ConfigurationManager.instance;
-
     onRoundIsPreparing.notifyListeners();
 
-    // Wait until a problem is found
-    while (_isSearchingNextProblem) {
-      _logger.info('Waiting for the next problem to be found...');
+    // Wait for the problem to be generated
+    while (_isGeneratingProblem) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
@@ -399,16 +389,9 @@ class GameManager {
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
 
     // Transfer the next problem to the current problem
-    _currentProblem = _nextProblems[_successLevel.toInt()];
-    _previousProblems.add(_currentProblem!);
-    if (_roundCount < 1) {
-      _nextProblems.clear();
-    } else {
-      // No need to remove the first element (Round 0)
-      while (_nextProblems.length > 1) {
-        _nextProblems.removeAt(1);
-      }
-    }
+    if (_currentProblem != null) _playedProblems.add(_currentProblem!);
+    _currentProblem = _nextProblem;
+    _generateNextProblem(maxSearchingTime: cm.roundDuration ~/ 2);
 
     // Reset the round successes
     _successLevel = SuccessLevel.threeStars;
@@ -573,7 +556,7 @@ class GameManager {
       return;
     }
 
-    // All different players must request the boost
+    // All players requesting a boost must be unique
     if (_requestedBoost.contains(player)) {
       _logger.warning('Player already requested the boost');
       return;
@@ -604,7 +587,6 @@ class GameManager {
     _roundCount = 0;
     _currentDifficulty = cm.difficulty(0);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
-    _previousProblems.clear();
 
     _remainingPardons = cm.numberOfPardons;
     _remainingBoosts = cm.numberOfBoosts;
@@ -893,13 +875,12 @@ class GameManagerMock extends GameManager {
 
     GameManager._instance!._initializeTrySolutionCallback();
     if (problem == null) {
-      GameManager._instance!._searchProblemForRound(
-          round: GameManager.instance._roundCount,
-          maxSearchingTime: Duration.zero);
+      GameManager._instance!
+          ._generateNextProblem(maxSearchingTime: Duration.zero);
     } else {
       (GameManager._instance! as GameManagerMock)._problemMocker = problem;
       GameManager._instance!._currentProblem = problem;
-      GameManager._instance!._nextProblems.add(problem);
+      GameManager._instance!._nextProblem = null;
 
       Future.delayed(const Duration(seconds: 1)).then((value) =>
           GameManager._instance!.onNextProblemReady.notifyListeners());
@@ -907,7 +888,7 @@ class GameManagerMock extends GameManager {
 
     if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
     if (gameStatus == GameStatus.roundStarted) {
-      GameManager._instance!._setValuesAtStartRound();
+      await GameManager._instance!._setValuesAtStartRound();
     }
 
     Timer.periodic(
@@ -918,13 +899,13 @@ class GameManagerMock extends GameManager {
   bool get hasPlayedAtLeastOnce => true;
 
   @override
-  Future<void> _searchProblemForRound(
-      {required int round, required Duration maxSearchingTime}) async {
+  Future<void> _generateNextProblem(
+      {required Duration maxSearchingTime}) async {
     if (_problemMocker == null) {
-      await super._searchProblemForRound(
-          round: round, maxSearchingTime: maxSearchingTime);
+      await super._generateNextProblem(maxSearchingTime: maxSearchingTime);
     } else {
-      _nextProblems.add(_problemMocker);
+      _nextProblem = _problemMocker;
+      _isGeneratingProblem = false;
 
       // Make sure the game don't run if the player is not logged in
       final dm = DatabaseManager.instance;
@@ -932,8 +913,6 @@ class GameManagerMock extends GameManager {
       dm.onFullyLoggedIn.addListener(() {
         if (gameStatus != GameStatus.initializing) _startNewRound();
       });
-
-      _isSearchingNextProblem = false;
     }
     GameManager._instance!.onGameIsInitializing.notifyListeners();
   }
