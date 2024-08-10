@@ -1,6 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('TwitchAuthenticator');
 
 class FireworksController {
   final key = UniqueKey();
@@ -61,6 +64,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _logger.info('New fireworks initialized');
 
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1500));
@@ -73,6 +77,8 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _logger.info('Fireworks disposed');
+
     _animationController.dispose();
     super.dispose();
 
@@ -80,6 +86,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   }
 
   void updateParticles() {
+    _logger.finer('Fireworks updating...');
     final explosion = 1 - pow(1 - _animationController.value, 4);
 
     for (var particle in particles) {
@@ -106,6 +113,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   late BoxConstraints _constraints;
 
   void _explode(bool huge, {bool isReversed = false}) {
+    _logger.info('Fireworks exploding');
     final rand = Random();
 
     particles.clear();

@@ -126,7 +126,7 @@ class LetterProblem {
   ///
   /// Scamble the letters of the word by swapping two letters at random
   void scrambleLetters() {
-    _logger.info('Scrambling letters...');
+    _logger.fine('Scrambling letters...');
 
     final random = Random();
 
@@ -140,7 +140,7 @@ class LetterProblem {
     _scrambleIndices[index1] = _scrambleIndices[index2];
     _scrambleIndices[index2] = temp;
 
-    _logger.info('Letters scrambled');
+    _logger.fine('Letters scrambled');
   }
 
   @override
