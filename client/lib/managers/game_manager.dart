@@ -53,7 +53,6 @@ class GameManager {
     _nextRoundStartAt = null;
   }
 
-  DateTime _nextTickAt = DateTime.now();
   int _roundCount = 0;
   int get roundCount => _roundCount;
   late Difficulty _currentDifficulty =
@@ -108,7 +107,7 @@ class GameManager {
     }
     GameManager._instance = GameManager._internal();
 
-    Timer.periodic(const Duration(milliseconds: 100), instance._gameLoop);
+    Timer.periodic(const Duration(milliseconds: 1000), instance._gameLoop);
 
     _logger.config('GameManager is initialized');
   }
@@ -595,12 +594,8 @@ class GameManager {
   void _gameLoop(Timer timer) async {
     _logger.fine('Game looping...');
 
-    if (_checkIfShouldAutomaticallyStartRound()) {
-      _autoStartingRound();
-      return;
-    }
-
-    if (_checkIfClockShouldTick()) _tickingClock();
+    _tickingClock();
+    if (_checkIfShouldAutomaticallyStartRound()) _autoStartingRound();
     if (_checkForEndOfRound()) _endingRound();
 
     _logger.fine('Game looped');
@@ -634,26 +629,12 @@ class GameManager {
     _startNewRound();
   }
 
-  bool _checkIfClockShouldTick() {
-    _logger.fine('Checking if the clock should tick...');
-
-    // Wait for a full second to pass before ticking
-    if (DateTime.now().isBefore(_nextTickAt)) {
-      _logger.fine('Not enough time has passed since the last tick');
-      return false;
-    }
-
-    _logger.fine('The clock should tick');
-    return true;
-  }
-
   ///
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   Future<void> _tickingClock() async {
     _logger.info('Tic...');
     onClockTicked.notifyListeners();
-    _nextTickAt = _nextTickAt.add(const Duration(seconds: 1));
 
     if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
       _logger.fine('The game is not running, so nothing more to do');
@@ -679,42 +660,39 @@ class GameManager {
     }
 
     // Manager letter swapping in the problem
-    _logger.info('Managing letter swapping...');
+    _logger.fine('Managing letter swapping...');
     _scramblingLetterTimer -= 1;
     if (_scramblingLetterTimer <= 0) {
-      _logger.fine('Scrambling letters...');
+      _logger.info('Scrambling letters...');
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners();
-      _logger.fine('Letters scrambled');
     }
 
     // Manage useless letter
-    _logger.info('Managing useless letter...');
+    _logger.fine('Managing useless letter...');
     if (!_isUselessLetterRevealed &&
         _currentDifficulty.hasUselessLetter &&
         timeRemaining! <= _currentDifficulty.revealUselessLetterAtTimeLeft) {
-      _logger.fine('Revealing useless letter...');
+      _logger.info('Revealing useless letter...');
       _isUselessLetterRevealed = true;
       onRevealUselessLetter.notifyListeners();
-      _logger.fine('Useless letter revealed');
     }
 
     // Manage hidden letter
-    _logger.info('Managing hidden letter...');
+    _logger.fine('Managing hidden letter...');
     if (!_isHiddenLetterRevealed &&
         _currentDifficulty.hasHiddenLetter &&
         timeRemaining! <= _currentDifficulty.revealHiddenLetterAtTimeLeft) {
-      _logger.fine('Revealing hidden letter...');
+      _logger.info('Revealing hidden letter...');
       _isHiddenLetterRevealed = true;
       onRevealHiddenLetter.notifyListeners();
-      _logger.fine('Hidden letter revealed');
     }
 
     // Manage boost of the train
     _logger.fine('Managing train boost...');
     if (isTrainBoosted && (trainBoostRemainingTime?.inSeconds ?? -1) <= 0) {
-      _logger.fine('Train boost ended');
+      _logger.info('Train boost ended');
       _boostStartedAt = null;
     }
 

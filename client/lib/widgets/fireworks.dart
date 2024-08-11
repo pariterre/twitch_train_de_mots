@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-final _logger = Logger('TwitchAuthenticator');
+final _logger = Logger('Fireworks');
 
 class FireworksController {
   final key = UniqueKey();
