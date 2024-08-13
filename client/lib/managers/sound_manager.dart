@@ -1,4 +1,4 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
@@ -12,7 +12,7 @@ class SoundManager {
 
   final Map<AudioPlayer, bool> soundEffectAudio = {};
 
-  Future<void> _playSoundEffect(Source source) async {
+  Future<void> _playSoundEffect(String source) async {
     _logger.info('Playing sound effect: $source...');
 
     final cm = ConfigurationManager.instance;
@@ -21,11 +21,10 @@ class SoundManager {
         orElse: () => AudioPlayer());
 
     soundEffectAudio[soundAudio] = true;
-    soundAudio.onPlayerComplete
-        .listen((event) => soundEffectAudio[soundAudio] = false);
-
     await soundAudio.setVolume(cm.soundVolume);
-    await soundAudio.play(source);
+    await soundAudio.setAsset(source);
+    await soundAudio.play();
+    soundEffectAudio[soundAudio] = false;
 
     _logger.info('Sound effect: $source played');
   }
@@ -67,15 +66,17 @@ class SoundManager {
     final cm = ConfigurationManager.instance;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
     cm.onSoundVolumeChanged.addListener(instance._onLettersScrambled);
+
+    await instance._gameMusic.setLoopMode(LoopMode.all);
+    await instance._gameMusic.setAsset('sounds/TheSwindler.mp3');
   }
 
   Future<void> _manageGameMusic() async {
     _logger.info('Managing game music...');
 
     // If we never prepared the game music, we do it now
-    if (_gameMusic.state == PlayerState.stopped) {
-      await _gameMusic.setReleaseMode(ReleaseMode.loop);
-      await _gameMusic.play(AssetSource('sounds/TheSwindler.mp3'));
+    if (!_gameMusic.playing) {
+      _gameMusic.play();
     }
 
     //  Set the volume
@@ -86,16 +87,16 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    _playSoundEffect(AssetSource('sounds/GameStarted.mp3'));
+    _playSoundEffect('sounds/GameStarted.mp3');
   }
 
   Future<void> _onLettersScrambled() async {
-    _playSoundEffect(AssetSource('sounds/LettersScrambling.mp3'));
+    _playSoundEffect('sounds/LettersScrambling.mp3');
   }
 
   Future<void> _onRoundIsOver(bool playSound) async {
     if (!playSound) return;
-    _playSoundEffect(AssetSource('sounds/RoundIsOver.mp3'));
+    _playSoundEffect('sounds/RoundIsOver.mp3');
   }
 
   Future<void> _onSolutionFound(WordSolution? solution) async {
@@ -104,27 +105,27 @@ class SoundManager {
     final gm = GameManager.instance;
 
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      _playSoundEffect(AssetSource('sounds/BestSolutionFound.mp3'));
+      _playSoundEffect('sounds/BestSolutionFound.mp3');
     } else {
-      _playSoundEffect(AssetSource('sounds/SolutionFound.mp3'));
+      _playSoundEffect('sounds/SolutionFound.mp3');
     }
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
     if (boostNeeded > 0) return;
 
-    _playSoundEffect(AssetSource('sounds/GameStarted.mp3'));
+    _playSoundEffect('sounds/GameStarted.mp3');
   }
 
   Future<void> playTelegramReceived() async {
-    _playSoundEffect(AssetSource('sounds/TelegramReceived.mp3'));
+    _playSoundEffect('sounds/TelegramReceived.mp3');
   }
 
   Future<void> playTrainReachedStation() async {
-    _playSoundEffect(AssetSource('sounds/TrainReachedStation.mp3'));
+    _playSoundEffect('sounds/TrainReachedStation.mp3');
   }
 
   Future<void> playTrainLostStation() async {
-    _playSoundEffect(AssetSource('sounds/TrainLostStation.mp3'));
+    _playSoundEffect('sounds/TrainLostStation.mp3');
   }
 }
