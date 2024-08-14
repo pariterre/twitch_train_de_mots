@@ -785,7 +785,7 @@ class GameManager {
 
     if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
-      _remainingPardons += 1;
+      _remainingBoosts += 1;
       onAllSolutionsFound.notifyListeners();
     }
 
