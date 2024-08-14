@@ -455,11 +455,15 @@ class GameManager {
       // or if the word was already stolen once
       // or the player is trying to steal from themselves
       // or was stolen in less than the cooldown of the previous founder
+      // WARNING: there is actually a bug here where the cooldown is not the one
+      // of the solution, but the cooldown of the player. This means that any
+      // solution can't be stolen if the player is in cooldown. I decided to
+      // keep it this way as there is already a lot of steals.
       if (!cm.canSteal ||
           solution.isStolen ||
           solution.foundBy == player ||
           solution.foundBy.isInCooldownPeriod) {
-        _logger.warning('Solution is invalid because it cannot be stolen');
+        _logger.warning('Solution cannot be stolen');
         return;
       }
       _lastStolenSolution = solution;
