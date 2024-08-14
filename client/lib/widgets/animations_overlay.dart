@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/bouncy_container.dart';
 
@@ -21,6 +22,15 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
       minScale: 0.5,
       bouncyScale: 1.4,
       maxScale: 1.5,
+      maxOpacity: 0.9);
+  final _newGoldenController = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 1000,
+      bouncingDuration: 3000,
+      easingOutDuration: 1000,
+      minScale: 0.5,
+      bouncyScale: 1.0,
+      maxScale: 1.1,
       maxOpacity: 0.9);
   final _allSolutionFoundController = BouncyContainerController(
       bounceCount: 5,
@@ -47,6 +57,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
+    gm.onGoldenSolutionAppeared.addListener(_showNewGoldenSolutionAppeared);
     gm.onStealerPardonned.addListener(_showStealerWasPardonned);
     gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
@@ -56,11 +67,13 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   void dispose() {
     _stolenController.dispose();
     _pardonnedController.dispose();
+    _newGoldenController.dispose();
     _allSolutionFoundController.dispose();
     _trainGotBoostedController.dispose();
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
+    gm.onGoldenSolutionAppeared.removeListener(_showNewGoldenSolutionAppeared);
     gm.onStealerPardonned.removeListener(_showStealerWasPardonned);
     gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
@@ -70,6 +83,10 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 
   void _showSolutionWasStolen(WordSolution solution) {
     _stolenController.triggerAnimation(_ASolutionWasStolen(solution: solution));
+  }
+
+  void _showNewGoldenSolutionAppeared(WordSolution solution) {
+    _newGoldenController.triggerAnimation(const _ANewGoldenSolutionAppeared());
   }
 
   void _showStealerWasPardonned(WordSolution? solution) {
@@ -101,6 +118,10 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
             child: BouncyContainer(controller: _pardonnedController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.13,
+            child: BouncyContainer(controller: _newGoldenController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.4,
@@ -143,6 +164,41 @@ class _ASolutionWasStolen extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: textColor, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _ANewGoldenSolutionAppeared extends StatelessWidget {
+  const _ANewGoldenSolutionAppeared();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: tm.solutionIsGoldenDark,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Une étoile au Nord apparaît\n'
+            'Attrapez-la pour multiplier vos points!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: tm.solutionIsGoldenLight),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );

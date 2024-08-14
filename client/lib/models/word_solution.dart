@@ -37,11 +37,20 @@ class WordSolution {
   DateTime? _stolenAt;
   DateTime? get stolenAt => _stolenAt;
 
+  bool _isGolden = false;
+  bool get isGolden => _isGolden;
+  set isGolden(bool value) {
+    if (isFound) return;
+
+    _isGolden = value;
+  }
+
   bool _isBoosted = false;
   bool get isBoosted => _isBoosted;
 
   int get value {
-    final factor = _isBoosted ? 2 : 1;
+    int factor = _isBoosted ? 2 : 1;
+    if (_isGolden) factor *= 5;
     return factor * wordValue;
   }
 

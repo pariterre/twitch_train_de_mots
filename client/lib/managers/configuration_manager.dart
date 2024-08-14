@@ -28,6 +28,9 @@ const _cooldownPeriodDefault = 12;
 const _cooldownPenaltyAfterStealDefault = 5;
 const _timeBeforeScramblingLettersDefault = 15;
 
+const _goldenSolutionProbabilityDefault = 0.005;
+const _goldenSolutionMinimumDurationDefault = 20;
+
 const _minimumWordsNumberDefault = 20;
 const _maximumWordsNumberDefault = 40;
 
@@ -214,6 +217,21 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  double _goldenSolutionProbability = _goldenSolutionProbabilityDefault;
+  double get goldenSolutionProbability => _goldenSolutionProbability;
+  set goldenSolutionProbability(double value) {
+    _goldenSolutionProbability = value;
+    _saveConfiguration();
+  }
+
+  Duration _goldenSolutionMinimumDuration =
+      const Duration(seconds: _goldenSolutionMinimumDurationDefault);
+  Duration get goldenSolutionMinimumDuration => _goldenSolutionMinimumDuration;
+  set goldenSolutionMinimumDuration(Duration value) {
+    _goldenSolutionMinimumDuration = value;
+    _saveConfiguration();
+  }
+
   int _minimumWordsNumber = _minimumWordsNumberDefault;
   int get minimumWordsNumber => useCustomAdvancedOptions
       ? _minimumWordsNumber
@@ -336,6 +354,9 @@ class ConfigurationManager {
         'cooldownPeriod': cooldownPeriod.inSeconds,
         'cooldownPenaltyAfterSteal': cooldownPenaltyAfterSteal.inSeconds,
         'timeBeforeScramblingLetters': timeBeforeScramblingLetters.inSeconds,
+        'goldenSolutionProbability': goldenSolutionProbability,
+        'goldenSolutionMinimumDuration':
+            goldenSolutionMinimumDuration.inSeconds,
         'minimumWordsNumber': minimumWordsNumber,
         'maximumWordsNumber': maximumWordsNumber,
         'canSteal': canSteal,
@@ -403,6 +424,12 @@ class ConfigurationManager {
           seconds: map['timeBeforeScramblingLetters'] ??
               _timeBeforeScramblingLettersDefault);
 
+      _goldenSolutionProbability =
+          map['goldenSolutionProbability'] ?? _goldenSolutionProbabilityDefault;
+      _goldenSolutionMinimumDuration = Duration(
+          seconds: map['goldenSolutionMinimumDuration'] ??
+              _goldenSolutionMinimumDurationDefault);
+
       _minimumWordsNumber =
           map['minimumWordsNumber'] ?? _minimumWordsNumberDefault;
       _maximumWordsNumber =
@@ -464,6 +491,9 @@ class ConfigurationManager {
           const Duration(seconds: _postRoundShowCaseDurationDefault);
       _timeBeforeScramblingLetters =
           const Duration(seconds: _timeBeforeScramblingLettersDefault);
+      _goldenSolutionProbability = _goldenSolutionProbabilityDefault;
+      _goldenSolutionMinimumDuration =
+          const Duration(seconds: _goldenSolutionMinimumDurationDefault);
       _canSteal = _canStealDefault;
       _oneStationMaxPerRound = _oneStationMaxPerRoundDefault;
       _canUseControllerHelper = _canUseControllerHelperDefault;

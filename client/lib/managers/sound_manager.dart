@@ -70,6 +70,7 @@ class SoundManager {
     gm.onRevealHiddenLetter.addListener(instance._onLettersScrambled);
     gm.onRoundIsOver.addListener(instance._onRoundIsOver);
     gm.onSolutionWasStolen.addListener(instance._onSolutionStolen);
+    gm.onGoldenSolutionAppeared.addListener(instance._onGoldenSolutionAppeared);
 
     final cm = ConfigurationManager.instance;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
@@ -121,6 +122,10 @@ class SoundManager {
     } else {
       _playSoundEffect('sounds/SolutionFound.mp3');
     }
+  }
+
+  Future<void> _onGoldenSolutionAppeared(WordSolution solution) async {
+    _playSoundEffect('sounds/GoldenSolutionAppeared.mp3');
   }
 
   Future<void> _onSolutionStolen(WordSolution solution) async {

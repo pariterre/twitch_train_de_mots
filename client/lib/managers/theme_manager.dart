@@ -81,6 +81,9 @@ class ThemeManager {
   final solutionSolvedColorLight = Colors.yellow[100];
   final solutionSolvedColorDark = Colors.yellow[800];
 
+  final solutionIsGoldenLight = const Color.fromARGB(255, 255, 241, 117);
+  final solutionIsGoldenDark = const Color.fromARGB(255, 114, 90, 39);
+
   final solutionSolvedByMvpColorLight =
       const Color.fromARGB(255, 255, 231, 196);
   final solutionSolvedByMvpColorDark = const Color.fromARGB(255, 131, 74, 1);

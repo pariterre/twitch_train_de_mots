@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -33,6 +34,8 @@ class GameManager {
 
   GameStatus _gameStatus = GameStatus.initializing;
   GameStatus get gameStatus => _gameStatus;
+
+  final _random = Random();
 
   int? _roundDuration;
   int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
@@ -77,6 +80,8 @@ class GameManager {
   late bool _isAllowedToSendResults =
       !ConfigurationManager.instance.useCustomAdvancedOptions;
   bool get isAllowedToSendResults => _isAllowedToSendResults;
+
+  bool _roundHasGoldenSolution = false;
 
   WordSolution? _lastStolenSolution;
   int _remainingPardons = 0;
@@ -177,6 +182,7 @@ class GameManager {
   final onRevealHiddenLetter = CustomCallback<VoidCallback>();
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
+  final onGoldenSolutionAppeared = CustomCallback<Function(WordSolution)>();
   final onStealerPardonned = CustomCallback<Function(WordSolution)>();
   final onTrainGotBoosted = CustomCallback<Function(int)>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
@@ -375,6 +381,7 @@ class GameManager {
       player.resetForNextRound();
     }
 
+    _roundHasGoldenSolution = false;
     _hasPlayedAtLeastOnce = true;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
@@ -453,6 +460,7 @@ class GameManager {
       // The player cannot steal
       // if the game is not configured to allow it
       // or if the word was already stolen once
+      // or if the word is golden
       // or the player is trying to steal from themselves
       // or was stolen in less than the cooldown of the previous founder
       // WARNING: there is actually a bug here where the cooldown is not the one
@@ -461,6 +469,7 @@ class GameManager {
       // keep it this way as there is already a lot of steals.
       if (!cm.canSteal ||
           solution.isStolen ||
+          solution.isGolden ||
           solution.foundBy == player ||
           solution.foundBy.isInCooldownPeriod) {
         _logger.warning('Solution cannot be stolen');
@@ -659,6 +668,33 @@ class GameManager {
     if (_hasAPlayerBeenUpdate) {
       onPlayerUpdate.notifyListeners();
       _hasAPlayerBeenUpdate = false;
+    }
+
+    // Manage golden solution
+    _logger.fine('Managing golden solution...');
+    if (!_roundHasGoldenSolution &&
+        timeRemaining! > cm.goldenSolutionMinimumDuration.inSeconds &&
+        _random.nextDouble() < cm.goldenSolutionProbability) {
+      _logger.info('A new golden solution appears');
+
+      // Find one solution that is not found yet and make it golden solution
+      int index = -1;
+      do {
+        if (_currentProblem!.areAllSolutionsFound) {
+          // If all solutions are found, we cannot make a golden solution
+          // as the round is over
+          index = -1;
+          break;
+        }
+        index = _random.nextInt(_currentProblem!.solutions.length);
+      } while (_currentProblem!.solutions[index].isFound);
+
+      if (index != -1) {
+        _currentProblem!.solutions[index].isGolden = true;
+        _roundHasGoldenSolution = true;
+        onGoldenSolutionAppeared
+            .notifyListenersWithParameter(_currentProblem!.solutions[index]);
+      }
     }
 
     // Manager letter swapping in the problem

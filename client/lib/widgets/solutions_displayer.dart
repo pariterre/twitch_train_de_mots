@@ -8,6 +8,7 @@ import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
+import 'package:train_de_mots/widgets/growing_widget.dart';
 
 class SolutionsDisplayer extends StatefulWidget {
   const SolutionsDisplayer({super.key});
@@ -31,6 +32,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardonned.addListener(_onPlayerWasPardonned);
     gm.onPlayerUpdate.addListener(_refresh);
+    gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
 
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
@@ -56,6 +58,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardonned.removeListener(_onPlayerWasPardonned);
     gm.onPlayerUpdate.removeListener(_refresh);
+    gm.onGoldenSolutionAppeared.removeListener(_onGoldenSolutionAppeared);
 
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
@@ -94,6 +97,12 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   }
 
   void _refresh() => setState(() {});
+
+  void _onGoldenSolutionAppeared(WordSolution solution) {
+    _fireworksControllers[solution]?.dispose();
+    _fireworksControllers[solution] = FireworksController(isHuge: true);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -318,7 +327,7 @@ class _SolutionTileState extends State<_SolutionTile> {
         (widget.solution.foundBy.lastSolutionFound == widget.solution &&
             widget.solution.foundBy.isInCooldownPeriod);
 
-    return Container(
+    final tile = Container(
       decoration: _boxDecoration,
       padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2 * widthFactor),
       child: widget.solution.isFound ||
@@ -366,14 +375,27 @@ class _SolutionTileState extends State<_SolutionTile> {
                   ),
               ],
             )
-          : null,
+          : widget.solution.isGolden
+              ? const Icon(Icons.star, color: Colors.amber)
+              : Container(),
     );
+
+    if (widget.solution.isGolden && !widget.solution.isFound) {
+      return GrowingWidget(
+          growingFactor: 1.05,
+          duration: const Duration(seconds: 1),
+          child: tile);
+    } else {
+      return tile;
+    }
   }
 
   BoxDecoration get _boxDecoration => BoxDecoration(
-        gradient: widget.solution.isFound
-            ? (widget.solution.isStolen ? stolen : solved)
-            : unsolved,
+        gradient: widget.solution.isGolden
+            ? isGolden
+            : (widget.solution.isFound
+                ? (widget.solution.isStolen ? stolen : solved)
+                : unsolved),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: Colors.black),
         boxShadow: [
@@ -385,6 +407,20 @@ class _SolutionTileState extends State<_SolutionTile> {
           )
         ],
       );
+
+  LinearGradient get isGolden {
+    final tm = ThemeManager.instance;
+
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        tm.solutionIsGoldenLight,
+        tm.solutionIsGoldenDark,
+      ],
+      stops: const [0, 0.6],
+    );
+  }
 
   LinearGradient get unsolved {
     final tm = ThemeManager.instance;
