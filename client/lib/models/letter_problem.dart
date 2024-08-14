@@ -47,6 +47,11 @@ class LetterProblem {
       .map((e) => e.isStolen ? e.value ~/ 3 : e.value)
       .fold(0, (prev, e) => prev + e);
 
+  ///
+  /// Returns if at least one solution was stolen
+  bool get noSolutionWasStolenOrPardoned =>
+      !_solutions.any((e) => e.isStolen || e.isPardoned);
+
   static initialize({required int nbLetterInSmallestWord}) async {
     await _WordGenerator.instance.wordsWithAtLeast(nbLetterInSmallestWord);
   }

@@ -39,7 +39,7 @@ const _oneStationMaxPerRoundDefault = false;
 
 const _canUseControllerHelperDefault = true;
 
-const _numberOfPardonsDefault = 3;
+const _numberOfPardonsDefault = 1;
 const _boostTimeDefault = 30;
 const _numberOfBoostsDefault = 1;
 const _numberOfBoostRequestsNeededDefault = 3;

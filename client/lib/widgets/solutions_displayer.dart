@@ -30,7 +30,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onRoundStarted.addListener(_fetchMvpPlayers);
     gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardonned.addListener(_onPlayerWasPardonned);
+    gm.onStealerPardoned.addListener(_onPlayerWasPardoned);
     gm.onPlayerUpdate.addListener(_refresh);
     gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
 
@@ -56,7 +56,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onRoundStarted.removeListener(_fetchMvpPlayers);
     gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardonned.removeListener(_onPlayerWasPardonned);
+    gm.onStealerPardoned.removeListener(_onPlayerWasPardoned);
     gm.onPlayerUpdate.removeListener(_refresh);
     gm.onGoldenSolutionAppeared.removeListener(_onGoldenSolutionAppeared);
 
@@ -90,7 +90,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     _fireworksControllers[solution]?.trigger();
   }
 
-  void _onPlayerWasPardonned(WordSolution? solution) {
+  void _onPlayerWasPardoned(WordSolution? solution) {
     if (solution == null || solution.isStolen) return;
 
     _fireworksControllers[solution]?.trigger();
@@ -195,14 +195,14 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
 
     final gm = GameManager.instance;
     gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardonned.addListener(_onSolutionFound);
+    gm.onStealerPardoned.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
     gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardonned.removeListener(_onSolutionFound);
+    gm.onStealerPardoned.removeListener(_onSolutionFound);
 
     super.dispose();
   }

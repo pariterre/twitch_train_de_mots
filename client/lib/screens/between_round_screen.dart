@@ -736,9 +736,10 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
               ),
-              if (gm.roundSuccesses.contains(RoundSuccess.foundAll))
+              if (gm.roundSuccesses.contains(RoundSuccess.noSteal))
                 Text(
-                    'Le contrôleur est impressionné et vous accorde\nun pardon supplémentaire',
+                    'Le contrôleur est impressionné par votre honnêteté.\n'
+                    'Il vous accorde un pardon supplémentaire!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,

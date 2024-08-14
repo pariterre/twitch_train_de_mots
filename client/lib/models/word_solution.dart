@@ -23,9 +23,12 @@ class WordSolution {
     _isBoosted = _isBoosted || GameManager.instance.isTrainBoosted;
   }
 
+  bool _isPardoned = false;
+  bool get isPardoned => _isPardoned;
   void pardonStealer() {
     _stolenFrom = null;
     _stolenAt = null;
+    _isPardoned = true;
   }
 
   DateTime? _foundAt;

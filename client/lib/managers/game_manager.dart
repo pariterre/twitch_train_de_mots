@@ -183,7 +183,8 @@ class GameManager {
   final onSolutionFound = CustomCallback<Function(WordSolution)>();
   final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
   final onGoldenSolutionAppeared = CustomCallback<Function(WordSolution)>();
-  final onStealerPardonned = CustomCallback<Function(WordSolution)>();
+  final onStealerPardoned = CustomCallback<Function(WordSolution)>();
+  final onNewPardonGranted = CustomCallback<VoidCallback>();
   final onTrainGotBoosted = CustomCallback<Function(int)>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
   final onShowcaseSolutionsRequest = CustomCallback<VoidCallback>();
@@ -520,7 +521,7 @@ class GameManager {
 
     if (_lastStolenSolution == null) {
       // Tell the players that there was no stealer to pardon
-      onStealerPardonned.notifyListenersWithParameter(null);
+      onStealerPardoned.notifyListenersWithParameter(null);
       _logger.warning('No stealer to pardon');
       return;
     }
@@ -528,20 +529,20 @@ class GameManager {
 
     // Only the player who was stolen from can pardon the stealer
     if (solution.stolenFrom != playerWhoRequestedPardon) {
-      onStealerPardonned.notifyListenersWithParameter(solution);
+      onStealerPardoned.notifyListenersWithParameter(solution);
       _logger.warning('Player cannot pardon the stealer');
       return;
     }
 
-    // If we get here, the solution is pardonned (so not stolen anymore)
+    // If we get here, the solution is pardoned (so not stolen anymore)
     _remainingPardons -= 1;
     _lastStolenSolution = null;
     solution.pardonStealer();
     solution.foundBy.removeFromStealCount();
 
-    onStealerPardonned.notifyListenersWithParameter(solution);
+    onStealerPardoned.notifyListenersWithParameter(solution);
 
-    _logger.info('Stealer (${solution.foundBy.name}) has been pardonned by '
+    _logger.info('Stealer (${solution.foundBy.name}) has been pardoned by '
         '${playerWhoRequestedPardon.name}');
   }
 
@@ -786,6 +787,13 @@ class GameManager {
       _roundSuccesses.add(RoundSuccess.foundAll);
       _remainingPardons += 1;
       onAllSolutionsFound.notifyListeners();
+    }
+
+    if (_currentProblem!.noSolutionWasStolenOrPardoned &&
+        _successLevel != SuccessLevel.failed) {
+      _roundSuccesses.add(RoundSuccess.noSteal);
+      _remainingPardons += 1;
+      onNewPardonGranted.notifyListeners();
     }
 
     _showCaseAnswers(playSound: true);

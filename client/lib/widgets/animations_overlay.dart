@@ -14,7 +14,7 @@ class AnimationOverlay extends StatefulWidget {
 class _AnimationOverlayState extends State<AnimationOverlay> {
   final _stolenController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
-  final _pardonnedController = BouncyContainerController(
+  final _pardonedController = BouncyContainerController(
       bounceCount: 1,
       easingInDuration: 700,
       bouncingDuration: 3000,
@@ -58,7 +58,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.addListener(_showNewGoldenSolutionAppeared);
-    gm.onStealerPardonned.addListener(_showStealerWasPardonned);
+    gm.onStealerPardoned.addListener(_showStealerWasPardoned);
     gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
   }
@@ -66,7 +66,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   @override
   void dispose() {
     _stolenController.dispose();
-    _pardonnedController.dispose();
+    _pardonedController.dispose();
     _newGoldenController.dispose();
     _allSolutionFoundController.dispose();
     _trainGotBoostedController.dispose();
@@ -74,7 +74,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.removeListener(_showNewGoldenSolutionAppeared);
-    gm.onStealerPardonned.removeListener(_showStealerWasPardonned);
+    gm.onStealerPardoned.removeListener(_showStealerWasPardoned);
     gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
 
@@ -89,9 +89,9 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _newGoldenController.triggerAnimation(const _ANewGoldenSolutionAppeared());
   }
 
-  void _showStealerWasPardonned(WordSolution? solution) {
-    _pardonnedController
-        .triggerAnimation(_AStealerWasPardonned(solution: solution));
+  void _showStealerWasPardoned(WordSolution? solution) {
+    _pardonedController
+        .triggerAnimation(_AStealerWasPardoned(solution: solution));
   }
 
   void _showAllSolutionsFound() {
@@ -117,7 +117,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
-            child: BouncyContainer(controller: _pardonnedController),
+            child: BouncyContainer(controller: _pardonedController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.13,
@@ -205,8 +205,8 @@ class _ANewGoldenSolutionAppeared extends StatelessWidget {
   }
 }
 
-class _AStealerWasPardonned extends StatelessWidget {
-  const _AStealerWasPardonned({required this.solution});
+class _AStealerWasPardoned extends StatelessWidget {
+  const _AStealerWasPardoned({required this.solution});
 
   final WordSolution? solution;
 
