@@ -384,7 +384,6 @@ class GameManager {
     // Transfer the next problem to the current problem
     if (_currentProblem != null) _playedProblems.add(_currentProblem!);
     _currentProblem = _nextProblem;
-    _generateNextProblem(maxSearchingTime: cm.roundDuration ~/ 2);
 
     // Reset the round successes
     _successLevel = SuccessLevel.threeStars;
@@ -734,7 +733,9 @@ class GameManager {
     _successLevel = completedLevel;
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
+
     DatabaseManager.instance.sendLetterProblem(problem: _currentProblem!);
+    _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
 
     _forceEndTheRound = false;
     _roundDuration = null;
