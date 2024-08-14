@@ -10,21 +10,28 @@ final _logger = Logger('SoundManager');
 class SoundManager {
   final _gameMusic = AudioPlayer();
 
-  final Map<AudioPlayer, bool> soundEffectAudio = {};
+  // Play up to 5 sound effects at the same time
+  final soundEffectAudio = [
+    AudioPlayer(),
+    AudioPlayer(),
+    AudioPlayer(),
+    AudioPlayer(),
+    AudioPlayer(),
+  ];
+  int _lastSoundEffectAudioIndex = -1;
 
   Future<void> _playSoundEffect(String source) async {
     _logger.info('Playing sound effect: $source...');
-
     final cm = ConfigurationManager.instance;
-    final soundAudio = soundEffectAudio.keys.firstWhere(
-        (e) => soundEffectAudio[e] == false,
-        orElse: () => AudioPlayer());
 
-    soundEffectAudio[soundAudio] = true;
+    if (cm.soundVolume == 0) return;
+
+    _lastSoundEffectAudioIndex =
+        (_lastSoundEffectAudioIndex + 1) % soundEffectAudio.length;
+    final soundAudio = soundEffectAudio[_lastSoundEffectAudioIndex];
     await soundAudio.setVolume(cm.soundVolume);
     await soundAudio.setAsset(source);
     await soundAudio.play();
-    soundEffectAudio[soundAudio] = false;
 
     _logger.info('Sound effect: $source played');
   }
@@ -62,6 +69,7 @@ class SoundManager {
     gm.onRevealUselessLetter.addListener(instance._onLettersScrambled);
     gm.onRevealHiddenLetter.addListener(instance._onLettersScrambled);
     gm.onRoundIsOver.addListener(instance._onRoundIsOver);
+    gm.onSolutionWasStolen.addListener(instance._onSolutionStolen);
 
     final cm = ConfigurationManager.instance;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
@@ -82,6 +90,10 @@ class SoundManager {
     //  Set the volume
     final cm = ConfigurationManager.instance;
     await _gameMusic.setVolume(cm.musicVolume);
+
+    if (cm.musicVolume == 0) {
+      _gameMusic.pause();
+    }
 
     _logger.info('Game music managed');
   }
@@ -109,6 +121,10 @@ class SoundManager {
     } else {
       _playSoundEffect('sounds/SolutionFound.mp3');
     }
+  }
+
+  Future<void> _onSolutionStolen(WordSolution solution) async {
+    _playSoundEffect('sounds/SolutionStolen.mp3');
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
