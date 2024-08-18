@@ -70,7 +70,7 @@ class GameManager {
   bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
 
   LetterProblem? get problem => _currentProblem;
-  SuccessLevel _successLevel = SuccessLevel.threeStars;
+  SuccessLevel _successLevel = SuccessLevel.failed;
   final List<RoundSuccess> _roundSuccesses = [];
   List<RoundSuccess> get roundSuccesses => _roundSuccesses;
 
@@ -259,7 +259,7 @@ class GameManager {
 
   Future<void> _generateNextProblem(
       {required Duration maxSearchingTime}) async {
-    final round = gameStatus == GameStatus.initializing ? 0 : roundCount + 1;
+    final round = _successLevel == SuccessLevel.failed ? 0 : roundCount + 1;
     _logger.info('Generating for next problem (round $round...)');
 
     if (_isGeneratingProblem) {
@@ -332,9 +332,7 @@ class GameManager {
     }
 
     // Prepare next round
-    if (_successLevel == SuccessLevel.failed || !hasPlayedAtLeastOnce) {
-      _restartGame();
-    }
+    if (_successLevel == SuccessLevel.failed) _restartGame();
     await _setValuesAtStartRound();
 
     // Start the round
@@ -590,7 +588,7 @@ class GameManager {
     final cm = ConfigurationManager.instance;
 
     _roundCount = 0;
-    _currentDifficulty = cm.difficulty(0);
+    _currentDifficulty = cm.difficulty(_roundCount);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 
     _remainingPardons = cm.numberOfPardons;
