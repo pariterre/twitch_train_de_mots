@@ -98,7 +98,6 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardoned.addListener(_onSolutionFound);
-    gm.onNewPardonGranted.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
     gm.onRoundStarted.addListener(_setTrainPath);
     _setTrainPath();
@@ -112,7 +111,6 @@ class _HeaderState extends State<_Header> {
     final gm = GameManager.instance;
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardoned.removeListener(_onSolutionFound);
-    gm.onNewPardonGranted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_setTrainPath);
 
@@ -208,77 +206,8 @@ class _HeaderState extends State<_Header> {
             children: [
               const SizedBox(width: 1300),
               if (ConfigurationManager.instance.canUseControllerHelper)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Card(
-                    color: tm.mainColor,
-                    elevation: 10,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Aides du contrôleur :',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: tm.titleSize * 0.6,
-                                color: tm.textColor),
-                          ),
-                          SizedBox(
-                            width: 180,
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '!pardon',
-                                      style: TextStyle(
-                                          fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor),
-                                    ),
-                                    Text('x ${gm.remainingPardon}',
-                                        style: TextStyle(
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: tm.titleSize * 0.6,
-                                            color: tm.textColor)),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '!boost',
-                                      style: TextStyle(
-                                          fontSize: tm.titleSize * 0.6,
-                                          color: tm.textColor),
-                                    ),
-                                    Text(
-                                        gm.isTrainBoosted
-                                            ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
-                                            : 'x ${gm.remainingBoosts}',
-                                        style: TextStyle(
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: tm.titleSize * 0.6,
-                                            color: tm.textColor)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                const Positioned(
+                    right: 0, top: 0, child: _ControllerHelperCard()),
               Column(
                 children: [
                   Card(
@@ -301,6 +230,109 @@ class _HeaderState extends State<_Header> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ControllerHelperCard extends StatefulWidget {
+  const _ControllerHelperCard();
+
+  @override
+  State<_ControllerHelperCard> createState() => _ControllerHelperCardState();
+}
+
+class _ControllerHelperCardState extends State<_ControllerHelperCard> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onNewPardonGranted.addListener(_refresh);
+    gm.onAllSolutionsFound.addListener(_refresh);
+    gm.onStealerPardoned.addListener(_refreshWithParameter);
+    gm.onRoundStarted.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onNewPardonGranted.removeListener(_refresh);
+    gm.onAllSolutionsFound.removeListener(_refresh);
+    gm.onStealerPardoned.removeListener(_refreshWithParameter);
+    gm.onRoundStarted.removeListener(_refresh);
+
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+  void _refreshWithParameter(_) => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
+
+    return Card(
+      color: tm.mainColor,
+      elevation: 10,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Aides du contrôleur :',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: tm.titleSize * 0.6,
+                  color: tm.textColor),
+            ),
+            SizedBox(
+              width: 180,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '!pardon',
+                        style: TextStyle(
+                            fontSize: tm.titleSize * 0.6, color: tm.textColor),
+                      ),
+                      Text('x ${gm.remainingPardon}',
+                          style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              fontSize: tm.titleSize * 0.6,
+                              color: tm.textColor)),
+                    ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '!boost',
+                        style: TextStyle(
+                            fontSize: tm.titleSize * 0.6, color: tm.textColor),
+                      ),
+                      Text(
+                          gm.isTrainBoosted
+                              ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
+                              : 'x ${gm.remainingBoosts}',
+                          style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              fontSize: tm.titleSize * 0.6,
+                              color: tm.textColor)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
