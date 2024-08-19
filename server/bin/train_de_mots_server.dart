@@ -165,18 +165,21 @@ void _handleGetProblemRequest(HttpRequest request) {
     return;
   }
 
-  _logging.info('Algorithm: ${request.uri.queryParameters['algorithm']}\n'
-      'Timeout: ${request.uri.queryParameters['timeout']}\n'
-      'Configuration:\n'
-      '\tlengthShortestSolution: ${request.uri.queryParameters['lengthShortestSolutionMin']} - ${request.uri.queryParameters['lengthShortestSolutionMax']}\n'
-      '\tlengthLongestSolution: ${request.uri.queryParameters['lengthLongestSolutionMin']} - ${request.uri.queryParameters['lengthLongestSolutionMax']}\n'
-      '\tnbSolutions: ${request.uri.queryParameters['nbSolutionsMin']} - ${request.uri.queryParameters['nbSolutionsMax']}\n'
-      '\tnbUselessLetters: ${request.uri.queryParameters['nbUselessLetters']}');
+  _logging.info(
+    'Generating new word\n'
+    'Configuration:\n'
+    '\talgorithm: ${request.uri.queryParameters['algorithm']}\n'
+    '\tlengthShortestSolution: ${request.uri.queryParameters['lengthShortestSolutionMin']} - ${request.uri.queryParameters['lengthShortestSolutionMax']}\n'
+    '\tlengthLongestSolution: ${request.uri.queryParameters['lengthLongestSolutionMin']} - ${request.uri.queryParameters['lengthLongestSolutionMax']}\n'
+    '\tnbSolutions: ${request.uri.queryParameters['nbSolutionsMin']} - ${request.uri.queryParameters['nbSolutionsMax']}\n'
+    '\tnbUselessLetters: ${request.uri.queryParameters['nbUselessLetters']}\n'
+    '\tTimeout: ${request.uri.queryParameters['timeout']}',
+  );
 
   try {
     final problem = algorithm(config, timeout: timeout);
 
-    _logging.info('Problem generated (${problem.letters.join()})\n');
+    _logging.info('Problem generated (${problem.letters.join()})');
     request.response
       ..statusCode = HttpStatus.ok
       ..write(json.encode(problem.serialize()))
