@@ -77,7 +77,7 @@ class SoundManager {
     cm.onSoundVolumeChanged.addListener(instance._onLettersScrambled);
 
     await instance._gameMusic.setLoopMode(LoopMode.all);
-    await instance._gameMusic.setAsset('sounds/TheSwindler.mp3');
+    await instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
   }
 
   Future<void> _manageGameMusic() async {
@@ -100,16 +100,16 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    _playSoundEffect('sounds/GameStarted.mp3');
+    _playSoundEffect('assets/sounds/GameStarted.mp3');
   }
 
   Future<void> _onLettersScrambled() async {
-    _playSoundEffect('sounds/LettersScrambling.mp3');
+    _playSoundEffect('assets/sounds/LettersScrambling.mp3');
   }
 
   Future<void> _onRoundIsOver(bool playSound) async {
     if (!playSound) return;
-    _playSoundEffect('sounds/RoundIsOver.mp3');
+    _playSoundEffect('assets/sounds/RoundIsOver.mp3');
   }
 
   Future<void> _onSolutionFound(WordSolution? solution) async {
@@ -118,38 +118,38 @@ class SoundManager {
     final gm = GameManager.instance;
 
     if (solution.isGolden) {
-      _playSoundEffect('sounds/GoldenSolutionAppeared.mp3');
+      _playSoundEffect('assets/sounds/GoldenSolutionAppeared.mp3');
     }
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      _playSoundEffect('sounds/BestSolutionFound.mp3');
+      _playSoundEffect('assets/sounds/BestSolutionFound.mp3');
     } else {
-      _playSoundEffect('sounds/SolutionFound.mp3');
+      _playSoundEffect('assets/sounds/SolutionFound.mp3');
     }
   }
 
   Future<void> _onGoldenSolutionAppeared(WordSolution solution) async {
-    _playSoundEffect('sounds/GoldenSolutionAppeared.mp3');
+    _playSoundEffect('assets/sounds/GoldenSolutionAppeared.mp3');
   }
 
   Future<void> _onSolutionStolen(WordSolution solution) async {
-    _playSoundEffect('sounds/SolutionStolen.mp3');
+    _playSoundEffect('assets/sounds/SolutionStolen.mp3');
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
     if (boostNeeded > 0) return;
 
-    _playSoundEffect('sounds/GameStarted.mp3');
+    _playSoundEffect('assets/sounds/GameStarted.mp3');
   }
 
   Future<void> playTelegramReceived() async {
-    _playSoundEffect('sounds/TelegramReceived.mp3');
+    _playSoundEffect('assets/sounds/TelegramReceived.mp3');
   }
 
   Future<void> playTrainReachedStation() async {
-    _playSoundEffect('sounds/TrainReachedStation.mp3');
+    _playSoundEffect('assets/sounds/TrainReachedStation.mp3');
   }
 
   Future<void> playTrainLostStation() async {
-    _playSoundEffect('sounds/TrainLostStation.mp3');
+    _playSoundEffect('assets/sounds/TrainLostStation.mp3');
   }
 }

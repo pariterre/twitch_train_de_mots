@@ -350,4 +350,37 @@ const List<ReleaseNotes> releaseNotes = [
               'pour assurer une meilleure progression')
     ],
   ),
+  ReleaseNotes(
+    version: '1.2.0',
+    codeName: 'Mon étoile du Nord',
+    notes: 'Le Petit Train du Nord a maintenant une étoile pour le guider '
+        'mais cette étoile capricieuse ne se montre que parfois le bout du nez '
+        'et de façon aléatoire... Mais l\'attraper vous fera filer à toute allure!',
+    features: [
+      FeatureNotes(
+          description: 'Une étoile apparaît de façon aléatoire '
+              'pendant la ronde sur une solution. Trouver cette solution octroi cinq '
+              'fois les points au joueur ou à la joueuse l\'ayant trouvée'),
+      FeatureNotes(
+          description:
+              'Le jeu octroi maintenant un boost si tous les mots sont trouvés '
+              'avant la fin de la manche'),
+      FeatureNotes(
+          description:
+              'Le jeu octroi maintenant un pardon si aucun vol n\'a été commis '
+              'durant la manche'),
+      FeatureNotes(
+          description: 'Si peu de joueurs sont présents, le jeu réduit '
+              'le temps de repos entre les mots'),
+      FeatureNotes(
+          description:
+              'Améliorer la vitesse pour trouver de nouveaux ensemble de lettres '
+              'par l\'utilisation d\'un serveur dédié'),
+      FeatureNotes(
+          description:
+              'Grandement amélioré l\'utilisation de la RAM, ce qui a réparé un '
+              'bogue qui faisait que le jeu plantait si trop de mots étaient '
+              'trouvés simultanément'),
+    ],
+  ),
 ];
