@@ -8,6 +8,7 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
+import 'package:train_de_mots/widgets/help_from_the_controller_card.dart';
 import 'package:train_de_mots/widgets/leader_board.dart';
 import 'package:train_de_mots/widgets/letter_displayer.dart';
 import 'package:train_de_mots/widgets/solutions_displayer.dart';
@@ -97,7 +98,6 @@ class _HeaderState extends State<_Header> {
 
     final gm = GameManager.instance;
     gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardoned.addListener(_onSolutionFound);
     gm.onRoundStarted.addListener(_refresh);
     gm.onRoundStarted.addListener(_setTrainPath);
     _setTrainPath();
@@ -110,7 +110,6 @@ class _HeaderState extends State<_Header> {
   void dispose() {
     final gm = GameManager.instance;
     gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardoned.removeListener(_onSolutionFound);
     gm.onRoundStarted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_setTrainPath);
 
@@ -161,24 +160,9 @@ class _HeaderState extends State<_Header> {
     if (gm.problem == null) return Container();
 
     late String title;
-
     switch (gm.gameStatus) {
       case GameStatus.roundStarted:
-        final pointsToGo =
-            GameManager.instance.completedLevel == SuccessLevel.failed
-                ? GameManager.instance.remainingPointsToNextLevel()
-                : 0;
-
-        late String toGoText;
-        if (pointsToGo > 0) {
-          toGoText = ' ($pointsToGo points avant destination)';
-        } else {
-          toGoText = ' (Destination atteinte!)';
-        }
-        toGoText = '';
-
-        title =
-            ' En direction de la Station N\u00b0${gm.roundCount + 1}! $toGoText';
+        title = ' En direction de la Station N\u00b0${gm.roundCount + 1}!';
         break;
       case GameStatus.revealAnswers:
         title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
@@ -189,6 +173,7 @@ class _HeaderState extends State<_Header> {
         title = 'Le Train de mots!';
         break;
     }
+
     return Column(
       children: [
         Text(
@@ -207,7 +192,7 @@ class _HeaderState extends State<_Header> {
               const SizedBox(width: 1300),
               if (ConfigurationManager.instance.canUseControllerHelper)
                 const Positioned(
-                    right: 0, top: 0, child: _ControllerHelperCard()),
+                    right: 0, top: 0, child: HelpFromTheControllerCard()),
               Column(
                 children: [
                   Card(
@@ -230,109 +215,6 @@ class _HeaderState extends State<_Header> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ControllerHelperCard extends StatefulWidget {
-  const _ControllerHelperCard();
-
-  @override
-  State<_ControllerHelperCard> createState() => _ControllerHelperCardState();
-}
-
-class _ControllerHelperCardState extends State<_ControllerHelperCard> {
-  @override
-  void initState() {
-    super.initState();
-
-    final gm = GameManager.instance;
-    gm.onNewPardonGranted.addListener(_refresh);
-    gm.onAllSolutionsFound.addListener(_refresh);
-    gm.onStealerPardoned.addListener(_refreshWithParameter);
-    gm.onRoundStarted.addListener(_refresh);
-  }
-
-  @override
-  void dispose() {
-    final gm = GameManager.instance;
-    gm.onNewPardonGranted.removeListener(_refresh);
-    gm.onAllSolutionsFound.removeListener(_refresh);
-    gm.onStealerPardoned.removeListener(_refreshWithParameter);
-    gm.onRoundStarted.removeListener(_refresh);
-
-    super.dispose();
-  }
-
-  void _refresh() => setState(() {});
-  void _refreshWithParameter(_) => setState(() {});
-
-  @override
-  Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
-
-    return Card(
-      color: tm.mainColor,
-      elevation: 10,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Aides du contrôleur :',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: tm.titleSize * 0.6,
-                  color: tm.textColor),
-            ),
-            SizedBox(
-              width: 180,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '!pardon',
-                        style: TextStyle(
-                            fontSize: tm.titleSize * 0.6, color: tm.textColor),
-                      ),
-                      Text('x ${gm.remainingPardon}',
-                          style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                              fontSize: tm.titleSize * 0.6,
-                              color: tm.textColor)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '!boost',
-                        style: TextStyle(
-                            fontSize: tm.titleSize * 0.6, color: tm.textColor),
-                      ),
-                      Text(
-                          gm.isTrainBoosted
-                              ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
-                              : 'x ${gm.remainingBoosts}',
-                          style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                              fontSize: tm.titleSize * 0.6,
-                              color: tm.textColor)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
