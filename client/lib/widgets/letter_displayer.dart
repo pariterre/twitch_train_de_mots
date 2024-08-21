@@ -105,7 +105,6 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     final revealedUselessIndex =
         gm.isUselessLetterRevealed ? gm.uselessLetterIndex : -1;
-    final hiddenIndex = gm.hasHiddenLetter ? gm.hiddenLetterIndex : -1;
 
     return SizedBox(
       width: displayerWidth,
@@ -120,7 +119,8 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
               child: _Letter(
                 letter: letters[index],
                 uselessIsRevealed: index == revealedUselessIndex,
-                isHidden: index == hiddenIndex,
+                isAHiddenLetter: index == gm.hiddenLetterIndex,
+                isHidden: index == gm.hiddenLetterIndex && gm.hasHiddenLetter,
               )),
         for (var index in letters.asMap().keys)
           AnimatedPositioned(
@@ -142,11 +142,13 @@ class _Letter extends StatefulWidget {
   const _Letter({
     required this.letter,
     required this.uselessIsRevealed,
+    required this.isAHiddenLetter,
     required this.isHidden,
   });
 
   final String letter;
   final bool uselessIsRevealed;
+  final bool isAHiddenLetter;
   final bool isHidden;
 
   @override
@@ -189,7 +191,7 @@ class _LetterState extends State<_Letter> {
             end: Alignment.bottomRight,
             colors: widget.uselessIsRevealed
                 ? [tm.uselessLetterColorLight, tm.uselessLetterColorDark]
-                : widget.isHidden
+                : widget.isAHiddenLetter
                     ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
                     : [tm.letterColorLight, tm.letterColorDark],
             stops: const [0, 0.4],

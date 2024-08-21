@@ -162,7 +162,9 @@ class GameManager {
   bool get hasHiddenLetter =>
       _currentDifficulty.hasHiddenLetter && !_isHiddenLetterRevealed;
   bool _isHiddenLetterRevealed = false;
-  int get hiddenLetterIndex => _currentProblem?.hiddenLettersIndex ?? -1;
+  int get hiddenLetterIndex => _currentDifficulty.hasHiddenLetter
+      ? _currentProblem!.hiddenLettersIndex
+      : -1;
 
   /// --------- ///
   /// CALLBACKS ///
