@@ -42,6 +42,7 @@ void _handleRequests(
       _logging.severe('No IP address found');
       request.response
         ..statusCode = HttpStatus.forbidden
+        ..headers.add('Access-Control-Allow-Origin', '*')
         ..write('Connexion refused')
         ..close();
       continue;
@@ -54,6 +55,7 @@ void _handleRequests(
       _logging.severe('Rate limited');
       request.response
         ..statusCode = HttpStatus.tooManyRequests
+        ..headers.add('Access-Control-Allow-Origin', '*')
         ..write('Rate limited')
         ..close();
       continue;
@@ -85,6 +87,7 @@ void _handleConnexionRefused(HttpRequest request) {
   _logging.severe('Connexion refused');
   request.response
     ..statusCode = HttpStatus.forbidden
+    ..headers.add('Access-Control-Allow-Origin', '*')
     ..write('Connexion refused')
     ..close();
 }
@@ -117,6 +120,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.severe('Invalid algorithm');
     request.response
       ..statusCode = HttpStatus.badRequest
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write('Invalid algorithm')
       ..close();
     return;
@@ -130,6 +134,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.severe('Invalid timeout');
     request.response
       ..statusCode = HttpStatus.badRequest
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write('Invalid timeout')
       ..close();
     return;
@@ -160,6 +165,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.severe('Invalid configuration');
     request.response
       ..statusCode = HttpStatus.badRequest
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write('Invalid configuration')
       ..close();
     return;
@@ -182,6 +188,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.info('Problem generated (${problem.letters.join()})');
     request.response
       ..statusCode = HttpStatus.ok
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write(json.encode(problem.serialize()))
       ..close();
     return;
@@ -189,6 +196,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.severe('Timeout');
     request.response
       ..statusCode = HttpStatus.requestTimeout
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write('Timeout')
       ..close();
     return;
@@ -196,6 +204,7 @@ void _handleGetProblemRequest(HttpRequest request) {
     _logging.severe('Internal server error');
     request.response
       ..statusCode = HttpStatus.internalServerError
+      ..headers.add('Access-Control-Allow-Origin', '*')
       ..write('Internal server error')
       ..close();
     return;
