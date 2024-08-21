@@ -117,6 +117,9 @@ class SoundManager {
 
     final gm = GameManager.instance;
 
+    if (solution.isGolden) {
+      _playSoundEffect('sounds/GoldenSolutionAppeared.mp3');
+    }
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
       _playSoundEffect('sounds/BestSolutionFound.mp3');
     } else {
