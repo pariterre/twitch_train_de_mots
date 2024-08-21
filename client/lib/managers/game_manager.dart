@@ -259,7 +259,7 @@ class GameManager {
 
   Future<void> _generateNextProblem(
       {required Duration maxSearchingTime}) async {
-    final round = _successLevel == SuccessLevel.failed ? 0 : roundCount + 1;
+    final round = _successLevel == SuccessLevel.failed ? 0 : roundCount;
     _logger.info('Generating for next problem (round $round...)');
 
     if (_isGeneratingProblem) {
