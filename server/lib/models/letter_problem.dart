@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:diacritic/diacritic.dart';
-import 'package:train_de_mots_server/exceptions.dart';
-import 'package:train_de_mots_server/problem_configuration.dart';
-import 'package:train_de_mots_server/words_manager.dart';
+import 'package:logging/logging.dart';
+import 'package:train_de_mots_server/managers/words_manager.dart';
+import 'package:train_de_mots_server/models/exceptions.dart';
+import 'package:train_de_mots_server/models/problem_configuration.dart';
 
 final _random = Random();
+final _logger = Logger('LetterProblem');
 
 class LetterProblem {
   final List<String> letters;
@@ -51,6 +53,8 @@ class LetterProblem {
   /// The [timeout] is the maximum time to generate the problem.
   factory LetterProblem.generateFromRandom(ProblemConfiguration config,
       {required Duration timeout}) {
+    _logger.info('Generating problem from random letters...');
+
     final now = DateTime.now();
     LetterProblem? finalProblem;
     do {
@@ -131,6 +135,7 @@ class LetterProblem {
     } while (finalProblem == null);
 
     // The candidate is valid, return the problem
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -141,7 +146,7 @@ class LetterProblem {
   /// The [timeout] is the maximum time to generate the problem.
   factory LetterProblem.generateFromBuildingUp(ProblemConfiguration config,
       {required Duration timeout}) {
-    final random = Random();
+    _logger.info('Generating problem from building up...');
 
     final now = DateTime.now();
     LetterProblem? finalProblem;
@@ -159,7 +164,7 @@ class LetterProblem {
       do {
         // From the list of all the remaining letters in the alphabet, pick a random one
         candidateLetters
-            .add(availableLetters[random.nextInt(availableLetters.length)]);
+            .add(availableLetters[_random.nextInt(availableLetters.length)]);
 
         // Reduce the solutions to only those containing the letters in candidate
         solutions = solutions
@@ -186,7 +191,7 @@ class LetterProblem {
 
       // Take one of the remainning solutions and use it as the word
       candidateLetters =
-          solutions.elementAt(random.nextInt(solutions.length)).split('');
+          solutions.elementAt(_random.nextInt(solutions.length)).split('');
 
       // Get all the possible words from candidate in solutions
       solutions = {};
@@ -223,6 +228,8 @@ class LetterProblem {
       );
     } while (finalProblem == null);
 
+    // The candidate is valid, return the problem
+    _logger.info('Problem generated');
     return finalProblem;
   }
 
@@ -234,7 +241,8 @@ class LetterProblem {
   /// The [timeout] is the maximum time to generate the problem.
   factory LetterProblem.generateFromRandomWord(ProblemConfiguration config,
       {required Duration timeout}) {
-    final random = Random();
+    _logger.info('Generating problem from random word...');
+
     final wordsToPickFrom =
         WordsManager.wordsWithAtLeast(config.lengthLongestSolution.min)
             .where((e) => e.length <= config.lengthLongestSolution.max);
@@ -248,7 +256,7 @@ class LetterProblem {
 
       // Generate a first candidate set of letters
       List<String> candidateLetters = wordsToPickFrom
-          .elementAt(random.nextInt(wordsToPickFrom.length))
+          .elementAt(_random.nextInt(wordsToPickFrom.length))
           .split('');
       Set<String> solutions;
       String? uselessLetter;
@@ -321,6 +329,7 @@ class LetterProblem {
     } while (finalProblem == null);
 
     // The candidate is valid, return the problem
+    _logger.info('Problem generated');
     return finalProblem;
   }
 }

@@ -1,9 +1,9 @@
-class RateLimiter {
+class NetworkRateLimiter {
   final int maxRequests;
   final Duration duration;
   final Map<String, List<DateTime>> _clientRequests = {};
 
-  RateLimiter(this.maxRequests, this.duration);
+  NetworkRateLimiter(this.maxRequests, this.duration);
 
   int requestCount(String clientIP) {
     final requests = _clientRequests[clientIP];
