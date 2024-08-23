@@ -25,7 +25,10 @@ void main() async {
   await TrainDeMotsServerManager.initialize(
       uri: Uri.parse(MocksConfiguration.useLocalTrainDeMotsServer
           ? 'http://localhost:3010'
-          : 'https://twitchserver.pariterre.net:3010'));
+          : 'https://twitchserver.pariterre.net:3010'),
+      gameServerUri: MocksConfiguration.useGameServer
+          ? Uri.parse('ws://localhost:3010/wss')
+          : null);
 
   if (MocksConfiguration.useDatabaseMock) {
     await MocksConfiguration.initializeDatabaseMocks();

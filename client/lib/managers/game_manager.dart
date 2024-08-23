@@ -134,7 +134,11 @@ class GameManager {
   /// not already searching for a problem.
   Future<void> requestSearchForNextProblem() async {
     _logger.info('Requesting to search for the next problem');
-    _generateNextProblem(maxSearchingTime: Duration.zero);
+
+    final cm = ConfigurationManager.instance;
+    _generateNextProblem(
+        maxSearchingTime:
+            Duration(seconds: cm.autoplayDuration.inSeconds ~/ 2));
   }
 
   ///
@@ -771,7 +775,7 @@ class GameManager {
 
     final cm = ConfigurationManager.instance;
 
-    _successLevel = completedLevel;
+    _successLevel = _numberOfStarObtained(problem!.teamScore);
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
 
@@ -798,7 +802,7 @@ class GameManager {
 
     _showCaseAnswers(playSound: true);
 
-    // Launch the automatic start of the round time if needed
+    // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
       _nextRoundStartAt = DateTime.now()
           .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
@@ -846,25 +850,18 @@ class GameManager {
     _logger.info('Answers are shown');
   }
 
-  SuccessLevel get completedLevel {
-    if (problem == null ||
-        problem!.teamScore < pointsToObtain(SuccessLevel.oneStar)) {
+  SuccessLevel _numberOfStarObtained(int score) {
+    if (problem == null) return SuccessLevel.failed;
+
+    if (score < pointsToObtain(SuccessLevel.oneStar)) {
       return SuccessLevel.failed;
-    } else if (problem!.teamScore < pointsToObtain(SuccessLevel.twoStars)) {
+    } else if (score < pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.oneStar;
-    } else if (problem!.teamScore < pointsToObtain(SuccessLevel.threeStars)) {
+    } else if (score < pointsToObtain(SuccessLevel.threeStars)) {
       return SuccessLevel.twoStars;
     } else {
       return SuccessLevel.threeStars;
     }
-  }
-
-  int remainingPointsToNextLevel() {
-    final currentLevel = completedLevel;
-    if (currentLevel == SuccessLevel.threeStars) return 0;
-
-    final nextLevel = SuccessLevel.values[currentLevel.index + 1];
-    return pointsToObtain(nextLevel) - problem!.teamScore;
   }
 
   int pointsToObtain(SuccessLevel level) {

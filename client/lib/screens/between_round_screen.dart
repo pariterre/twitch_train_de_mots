@@ -59,7 +59,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: gm.completedLevel == SuccessLevel.failed ? 1200 : 850,
+            width: gm.successLevel == SuccessLevel.failed ? 1200 : 850,
             height: MediaQuery.of(context).size.height * 0.8,
             child: Stack(
               alignment: Alignment.center,

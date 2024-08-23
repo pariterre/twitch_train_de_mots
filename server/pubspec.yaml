@@ -1,7 +1,7 @@
 name: train_de_mots_server
 description: The server for the Train de Mots web site
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+publish_to: none
 
 environment:
   sdk: ^3.3.0
@@ -11,6 +11,8 @@ dependencies:
   diacritic: ^0.1.4
   http: ^1.2.1
   logging: ^1.2.0
+  common: 
+    path: ../common
 
 dev_dependencies:
   lints: ^4.0.0

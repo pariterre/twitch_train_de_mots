@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:common/common.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/models/letter_problem.dart';
 import 'package:train_de_mots_server/models/problem_configuration.dart';
@@ -40,8 +41,8 @@ void startHttpServer({required NetworkParameters parameters}) async {
 
     if (request.method == 'OPTIONS') {
       _handleOptionsRequest(request);
-    } else if (request.method == 'GET' && request.uri.path == '/getproblem') {
-      _handleGetProblemRequest(request);
+    } else if (request.method == 'GET') {
+      _handleGetHttpRequest(request);
     } else {
       _handleConnexionRefused(request);
     }
@@ -69,110 +70,113 @@ void _handleConnexionRefused(HttpRequest request) {
     ..close();
 }
 
+Future<void> _handleWebSocketRequest(HttpRequest request) async {
+  _logging.info('Websocket connexion requested');
+  final socket = await WebSocketTransformer.upgrade(request);
+
+  _logging.info('Client connected');
+
+  socket.listen(
+    (message) {
+      try {
+        _onMessageFromClientReceived(socket, message: message);
+      } on InvalidMessageException catch (e) {
+        _sendMessageToClient(socket, type: e.message);
+      } catch (e) {
+        _sendMessageToClient(socket,
+            type: GameServerToClientMessages.UnkownMessageException);
+      }
+    },
+    onDone: () => _logging.info('WebSocket connection closed'),
+    onError: (error) => _logging.severe('WebSocket error: $error'),
+  );
+}
+
+void _onMessageFromClientReceived(WebSocket socket, {required message}) {
+  _logging.info('Message received from client');
+
+  final data = json.decode(message);
+  // TODO Validate bearer token
+
+  final type = GameClientToServerMessages.values[data['type'] as int];
+  switch (type) {
+    case GameClientToServerMessages.newLetterProblemRequest:
+      _handleGetNewLetterProblemWebSocket(socket, request: data['data']);
+      break;
+    default:
+      _logging.severe('Unknown message type');
+  }
+}
+
+void _handleGetNewLetterProblemWebSocket(WebSocket socket, {required request}) {
+  final problem = _generateProblemFromRequest(request);
+  _sendMessageToClient(socket,
+      type: GameServerToClientMessages.newLetterProblemGenerated,
+      data: problem.serialize());
+}
+
+void _handleGetHttpRequest(HttpRequest request) {
+  if (request.uri.path == '/getproblem') {
+    try {
+      _handleGetNewLetterProblemHttpRequest(request);
+    } catch (e) {
+      _logging.severe(e);
+      request.response
+        ..statusCode = HttpStatus.badRequest
+        ..headers.add('Access-Control-Allow-Origin', '*')
+        ..write(e)
+        ..close();
+    }
+  } else if (request.uri.path == '/wss') {
+    _handleWebSocketRequest(request);
+  } else {
+    _handleConnexionRefused(request);
+  }
+}
+
 /// Handle GET request for a new problem
 /// The request must contain the following parameters:
 /// - algorithm: the algorithm to generate the problem
 /// - timeout: the timeout for the problem
 /// - configuration: the configuration of the problem
-void _handleGetProblemRequest(HttpRequest request) {
-  late final LetterProblem Function(ProblemConfiguration,
-      {required Duration timeout}) algorithm;
+void _handleGetNewLetterProblemHttpRequest(HttpRequest request) {
+  // TODO Remove all this http stuff when actual server is implemented
+  final problem = _generateProblemFromRequest(request.uri.queryParameters);
 
-  try {
-    algorithm = _parseAlgorithm(request.uri.queryParameters['algorithm']!);
-  } catch (e) {
-    _logging.severe('Invalid algorithm');
-    request.response
-      ..statusCode = HttpStatus.badRequest
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write('Invalid algorithm')
-      ..close();
-    return;
-  }
+  request.response
+    ..statusCode = HttpStatus.ok
+    ..headers.add('Access-Control-Allow-Origin', '*')
+    ..write(json.encode(problem.serialize()))
+    ..close();
+}
 
-  late final Duration timeout;
-  try {
-    timeout =
-        Duration(seconds: int.parse(request.uri.queryParameters['timeout']!));
-  } catch (e) {
-    _logging.severe('Invalid timeout');
-    request.response
-      ..statusCode = HttpStatus.badRequest
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write('Invalid timeout')
-      ..close();
-    return;
-  }
-
-  late final ProblemConfiguration config;
-  try {
-    // Get the problem configuration from the parameters of the request
-    final lengthShortestSolution = Range(
-        int.parse(request.uri.queryParameters['lengthShortestSolutionMin']!),
-        int.parse(request.uri.queryParameters['lengthShortestSolutionMax']!));
-    final lengthLongestSolution = Range(
-        int.parse(request.uri.queryParameters['lengthLongestSolutionMin']!),
-        int.parse(request.uri.queryParameters['lengthLongestSolutionMax']!));
-    final nbSolutions = Range(
-        int.parse(request.uri.queryParameters['nbSolutionsMin']!),
-        int.parse(request.uri.queryParameters['nbSolutionsMax']!));
-    final nbUselessLetters =
-        int.parse(request.uri.queryParameters['nbUselessLetters']!);
-
-    config = ProblemConfiguration(
-      lengthShortestSolution: lengthShortestSolution,
-      lengthLongestSolution: lengthLongestSolution,
-      nbSolutions: nbSolutions,
-      nbUselessLetters: nbUselessLetters,
-    );
-  } catch (e) {
-    _logging.severe('Invalid configuration');
-    request.response
-      ..statusCode = HttpStatus.badRequest
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write('Invalid configuration')
-      ..close();
-    return;
-  }
+LetterProblem _generateProblemFromRequest(request) {
+  final algorithm = _parseAlgorithm(request['algorithm']!);
+  final timeout = _parseTimeout(request['timeout']);
+  final config = _parseProblemConfiguration(
+    lengthShortestSolutionMin: request['lengthShortestSolutionMin'],
+    lengthShortestSolutionMax: request['lengthShortestSolutionMax'],
+    lengthLongestSolutionMin: request['lengthLongestSolutionMin'],
+    lengthLongestSolutionMax: request['lengthLongestSolutionMax'],
+    nbSolutionsMin: request['nbSolutionsMin'],
+    nbSolutionsMax: request['nbSolutionsMax'],
+    nbUselessLetters: request['nbUselessLetters'],
+  );
 
   _logging.info(
     'Generating new word\n'
     'Configuration:\n'
-    '\talgorithm: ${request.uri.queryParameters['algorithm']}\n'
-    '\tlengthShortestSolution: ${request.uri.queryParameters['lengthShortestSolutionMin']} - ${request.uri.queryParameters['lengthShortestSolutionMax']}\n'
-    '\tlengthLongestSolution: ${request.uri.queryParameters['lengthLongestSolutionMin']} - ${request.uri.queryParameters['lengthLongestSolutionMax']}\n'
-    '\tnbSolutions: ${request.uri.queryParameters['nbSolutionsMin']} - ${request.uri.queryParameters['nbSolutionsMax']}\n'
-    '\tnbUselessLetters: ${request.uri.queryParameters['nbUselessLetters']}\n'
-    '\tTimeout: ${request.uri.queryParameters['timeout']}',
+    '\talgorithm: ${request['algorithm']}\n'
+    '\tlengthShortestSolution: ${config.lengthShortestSolution.min} - ${config.lengthShortestSolution.max}\n'
+    '\tlengthLongestSolution: ${config.lengthLongestSolution.min} - ${config.lengthLongestSolution.max}\n'
+    '\tnbSolutions: ${config.nbSolutions.min} - ${config.nbSolutions.max}\n'
+    '\tnbUselessLetters: ${config.nbUselessLetters}\n'
+    '\tTimeout: ${timeout.inSeconds} seconds',
   );
 
-  try {
-    final problem = algorithm(config, timeout: timeout);
-
-    _logging.info('Problem generated (${problem.letters.join()})');
-    request.response
-      ..statusCode = HttpStatus.ok
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write(json.encode(problem.serialize()))
-      ..close();
-    return;
-  } on TimeoutException {
-    _logging.severe('Timeout');
-    request.response
-      ..statusCode = HttpStatus.requestTimeout
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write('Timeout')
-      ..close();
-    return;
-  } catch (e) {
-    _logging.severe('Internal server error');
-    request.response
-      ..statusCode = HttpStatus.internalServerError
-      ..headers.add('Access-Control-Allow-Origin', '*')
-      ..write('Internal server error')
-      ..close();
-    return;
-  }
+  final problem = algorithm(config, timeout: timeout);
+  _logging.info('Problem generated (${problem.letters.join()})');
+  return problem;
 }
 
 Future<HttpServer> _startServer(NetworkParameters parameters) async {
@@ -190,7 +194,7 @@ Future<HttpServer> _startServer(NetworkParameters parameters) async {
 }
 
 LetterProblem Function(ProblemConfiguration, {required Duration timeout})
-    _parseAlgorithm(String algorithm) {
+    _parseAlgorithm(algorithm) {
   switch (algorithm) {
     case 'fromRandom':
       return LetterProblem.generateFromRandom;
@@ -199,6 +203,50 @@ LetterProblem Function(ProblemConfiguration, {required Duration timeout})
     case 'fromRandomWord':
       return LetterProblem.generateFromRandomWord;
     default:
-      throw ArgumentError('Unknown algorithm');
+      throw InvalidAlgorithmException();
   }
 }
+
+Duration _parseTimeout(timeout) {
+  try {
+    return Duration(seconds: forceIntParse(timeout));
+  } catch (e) {
+    throw InvalidTimeoutException();
+  }
+}
+
+ProblemConfiguration _parseProblemConfiguration({
+  lengthShortestSolutionMin,
+  lengthShortestSolutionMax,
+  lengthLongestSolutionMin,
+  lengthLongestSolutionMax,
+  nbSolutionsMin,
+  nbSolutionsMax,
+  nbUselessLetters,
+}) {
+  try {
+    return ProblemConfiguration(
+      lengthShortestSolution:
+          forceRangeParse(lengthShortestSolutionMin, lengthShortestSolutionMax),
+      lengthLongestSolution:
+          forceRangeParse(lengthLongestSolutionMin, lengthLongestSolutionMax),
+      nbSolutions: forceRangeParse(nbSolutionsMin, nbSolutionsMax),
+      nbUselessLetters: forceIntParse(nbUselessLetters),
+    );
+  } catch (e) {
+    throw InvalidConfigurationException();
+  }
+}
+
+void _sendMessageToClient(WebSocket socket,
+    {required GameServerToClientMessages type, dynamic data}) {
+  final message = {
+    'type': type.index,
+    'data': data,
+  };
+  socket.add(json.encode(message));
+}
+
+int forceIntParse(value) => value is int ? value : int.parse(value);
+Range forceRangeParse(valueMin, valueMax) =>
+    Range(forceIntParse(valueMin), forceIntParse(valueMax));

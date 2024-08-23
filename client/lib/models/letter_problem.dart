@@ -6,6 +6,7 @@ import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
+import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -538,14 +539,15 @@ class ProblemGenerator {
 
   ///
   /// Calls the server using the generateFromRandomWord method.
-  static Future<LetterProblem> generateFromServer(
-      {required int nbLetterInSmallestWord,
-      required int minLetters,
-      required int maxLetters,
-      required int minimumNbOfWords,
-      required int maximumNbOfWords,
-      required bool addUselessLetter,
-      required Duration maxSearchingTime}) async {
+  static Future<LetterProblem> generateFromServer({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+    required bool addUselessLetter,
+    required Duration maxSearchingTime,
+  }) async {
     _logger.info('Generating problem from server...');
 
     // We have to deduce the number of letters to add to the candidate. It is
@@ -559,28 +561,44 @@ class ProblemGenerator {
 
     LetterProblem? finalProblem;
     do {
-      // Send an http GET request to the server to get a new problem
-      final url = Uri.parse(
-        '${TrainDeMotsServerManager.instance.uri.toString()}'
-        '/getproblem'
-        '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
-        '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
-        '&lengthLongestSolutionMin=$minLetters'
-        '&lengthLongestSolutionMax=$maxLetters'
-        '&nbSolutionsMin=$minimumNbOfWords'
-        '&nbSolutionsMax=$maximumNbOfWords'
-        '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
-        '&algorithm=fromRandomWord'
-        '&timeout=30',
-      );
-
-      try {
+      Map<String, dynamic> data;
+      if (MocksConfiguration.useGameServer) {
+        data = await TrainDeMotsServerManager.instance.requestNewLetterProblem(
+          nbLetterInSmallestWord: nbLetterInSmallestWord,
+          minLetters: minLetters,
+          maxLetters: maxLetters,
+          minimumNbOfWords: minimumNbOfWords,
+          maximumNbOfWords: maximumNbOfWords,
+          addUselessLetter: addUselessLetter,
+          maxSearchingTime: maxSearchingTime,
+        );
+      } else {
+        // Send an http GET request to the server to get a new problem
+        final url = Uri.parse(
+          '${TrainDeMotsServerManager.instance.uri.toString()}'
+          '/getproblem'
+          '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
+          '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
+          '&lengthLongestSolutionMin=$minLetters'
+          '&lengthLongestSolutionMax=$maxLetters'
+          '&nbSolutionsMin=$minimumNbOfWords'
+          '&nbSolutionsMax=$maximumNbOfWords'
+          '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
+          '&algorithm=fromRandomWord'
+          '&timeout=30',
+        );
         final response = await http.get(url);
         if (response.statusCode != 200) {
           throw Exception('Failed to get problem from server');
         }
-        final Map<String, dynamic> data = json.decode(response.body);
+        try {
+          data = json.decode(response.body);
+        } catch (e) {
+          throw Exception('Failed to get problem from server');
+        }
+      }
 
+      try {
         final List<String> candidateLetters = data['letters'].split('');
         final Set<String> subWords = data['solutions'].cast<String>().toSet();
         final String? uselessLetter = data['uselessLetter'];

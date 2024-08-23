@@ -9,6 +9,7 @@ import 'package:twitch_manager/twitch_manager.dart';
 class MocksConfiguration {
   // Must have for developpers
   static bool useLocalTrainDeMotsServer = false;
+  static bool useGameServer = false;
 
   // Useful for developpers
   static bool showDebugOptions = false;
