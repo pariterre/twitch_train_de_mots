@@ -22,14 +22,6 @@ void main() async {
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
 
-  await TrainDeMotsServerManager.initialize(
-      uri: Uri.parse(MocksConfiguration.useLocalTrainDeMotsServer
-          ? 'http://localhost:3010'
-          : 'https://twitchserver.pariterre.net:3010'),
-      gameServerUri: MocksConfiguration.useGameServer
-          ? Uri.parse('ws://localhost:3010/wss')
-          : null);
-
   if (MocksConfiguration.useDatabaseMock) {
     await MocksConfiguration.initializeDatabaseMocks();
   } else {
@@ -52,11 +44,17 @@ void main() async {
     ThemeManager.initialize(),
   ]);
 
-  if (MocksConfiguration.useTwitchManagerMock) {
-    TwitchManager.instance.initialize(useMock: true);
-  } else {
-    TwitchManager.instance.initialize();
-  }
+  MocksConfiguration.useTwitchManagerMock
+      ? TwitchManager.instance.initialize(useMock: true)
+      : TwitchManager.instance.initialize();
+
+  await TrainDeMotsServerManager.initialize(
+      uri: Uri.parse(MocksConfiguration.useLocalTrainDeMotsServer
+          ? 'http://localhost:3010'
+          : 'https://twitchserver.pariterre.net:3010'),
+      gameServerUri: MocksConfiguration.useGameServer
+          ? Uri.parse('ws://localhost:3010')
+          : null);
 
   runApp(const MyApp());
 }

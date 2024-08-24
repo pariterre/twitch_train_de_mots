@@ -4,21 +4,28 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/network/http_server.dart';
 import 'package:train_de_mots_server/network/network_parameters.dart';
 
-final _logging = Logger('authentication_server');
+final _logger = Logger('authentication_server');
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit
   if (arguments.contains('--help') || arguments.contains('-h')) {
     print('Usage: train_de_mots_server [options]\n'
         'Options:\n'
-        '  --host=<host> or -h=<host>     The host name to listen on\n'
-        '  --port=<port> or -p=<port>     The port number to listen on\n'
+        '  --host=<host> or -h=<host>      The host name to listen on\n'
+        '  --port=<port> or -p=<port>      The port number to listen on\n'
         '  --ssl=<cert.pem>,<key.pem> or -s=<cert.pem>,<key.pem>\n'
         '                                  The SSL certificate and key\n'
         '  --log=<filename> or -l=<filename>\n'
         '                                  The log file name\n'
         '  --help or -h                    Print this help message\n');
     exit(0);
+  }
+
+  final twitchSecret = Platform.environment['TRAIN_DE_MOTS_TWITCH_SECRET_KEY'];
+  if (twitchSecret == null) {
+    throw ArgumentError(
+        'No Twitch secret key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_TWITCH_SECRET_KEY environment variable');
   }
 
   _setupLoggerFromArguments(arguments);
@@ -31,7 +38,7 @@ void main(List<String> arguments) async {
 
 NetworkParameters _processNetworkArguments(List<String> arguments,
     {required String defaultHost, required int defaultPort}) {
-  _logging.info('Getting host and port connexion information');
+  _logger.info('Getting host and port connexion information');
   final host = arguments
       .firstWhere((e) => e.startsWith('--host=') || e.startsWith('-h='),
           orElse: () => '--host=$defaultHost')
@@ -45,9 +52,9 @@ NetworkParameters _processNetworkArguments(List<String> arguments,
   if (port < 0 || port > 65535) {
     throw ArgumentError('Port number must be between 0 and 65535');
   }
-  _logging.info('Connexion information received: $host:$port');
+  _logger.info('Connexion information received: $host:$port');
 
-  _logging.info('Getting SSL certificate and key information');
+  _logger.info('Getting SSL certificate and key information');
   final ssl = arguments
       .firstWhere((e) => e.startsWith('--ssl=') || e.startsWith('-s='),
           orElse: () => '--ssl=')
@@ -56,7 +63,7 @@ NetworkParameters _processNetworkArguments(List<String> arguments,
   String? certificatePath;
   String? privateKeyPath;
   if (ssl.isEmpty) {
-    _logging.info('No SSL certificate and key provided, using HTTP');
+    _logger.info('No SSL certificate and key provided, using HTTP');
   } else {
     try {
       certificatePath = ssl.split(',')[0];
@@ -72,7 +79,7 @@ NetworkParameters _processNetworkArguments(List<String> arguments,
           'Invalid SSL certificate and key, the expected format is: '
           '--ssl=<cert.pem>,<key.pem>');
     }
-    _logging.info('SSL certificate and key received, using HTTPS');
+    _logger.info('SSL certificate and key received, using HTTPS');
   }
 
   return NetworkParameters(

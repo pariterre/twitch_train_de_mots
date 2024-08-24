@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "server",
+            "request": "launch",
+            "type": "dart",
+            "program": "bin/train_de_mots_server.dart",
+            "env": {"TRAIN_DE_MOTS_TWITCH_SECRET_KEY": "<YOUR_TWITCH_SECRET_KEY>"}
+        }
+    ]
+}

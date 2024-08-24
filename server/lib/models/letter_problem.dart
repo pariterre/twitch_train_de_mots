@@ -1,10 +1,12 @@
 import 'dart:math';
 
+import 'package:common/common.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/managers/words_manager.dart';
 import 'package:train_de_mots_server/models/exceptions.dart';
 import 'package:train_de_mots_server/models/problem_configuration.dart';
+import 'package:train_de_mots_server/models/range.dart';
 
 final _random = Random();
 final _logger = Logger('LetterProblem');
@@ -331,6 +333,84 @@ class LetterProblem {
     // The candidate is valid, return the problem
     _logger.info('Problem generated');
     return finalProblem;
+  }
+
+  factory LetterProblem.generateProblemFromRequest(request) {
+    int forceIntParse(value) => value is int ? value : int.parse(value);
+    Range forceRangeParse(valueMin, valueMax) =>
+        Range(forceIntParse(valueMin), forceIntParse(valueMax));
+
+    LetterProblem Function(ProblemConfiguration, {required Duration timeout})
+        parseAlgorithm(algorithm) {
+      switch (algorithm) {
+        case 'fromRandom':
+          return LetterProblem.generateFromRandom;
+        case 'fromBuildingUp':
+          return LetterProblem.generateFromBuildingUp;
+        case 'fromRandomWord':
+          return LetterProblem.generateFromRandomWord;
+        default:
+          throw InvalidAlgorithmException();
+      }
+    }
+
+    Duration parseTimeout(timeout) {
+      try {
+        return Duration(seconds: forceIntParse(timeout));
+      } catch (e) {
+        throw InvalidTimeoutException();
+      }
+    }
+
+    ProblemConfiguration parseProblemConfiguration({
+      lengthShortestSolutionMin,
+      lengthShortestSolutionMax,
+      lengthLongestSolutionMin,
+      lengthLongestSolutionMax,
+      nbSolutionsMin,
+      nbSolutionsMax,
+      nbUselessLetters,
+    }) {
+      try {
+        return ProblemConfiguration(
+          lengthShortestSolution: forceRangeParse(
+              lengthShortestSolutionMin, lengthShortestSolutionMax),
+          lengthLongestSolution: forceRangeParse(
+              lengthLongestSolutionMin, lengthLongestSolutionMax),
+          nbSolutions: forceRangeParse(nbSolutionsMin, nbSolutionsMax),
+          nbUselessLetters: forceIntParse(nbUselessLetters),
+        );
+      } catch (e) {
+        throw InvalidConfigurationException();
+      }
+    }
+
+    final algorithm = parseAlgorithm(request['algorithm']!);
+    final timeout = parseTimeout(request['timeout']);
+    final config = parseProblemConfiguration(
+      lengthShortestSolutionMin: request['lengthShortestSolutionMin'],
+      lengthShortestSolutionMax: request['lengthShortestSolutionMax'],
+      lengthLongestSolutionMin: request['lengthLongestSolutionMin'],
+      lengthLongestSolutionMax: request['lengthLongestSolutionMax'],
+      nbSolutionsMin: request['nbSolutionsMin'],
+      nbSolutionsMax: request['nbSolutionsMax'],
+      nbUselessLetters: request['nbUselessLetters'],
+    );
+
+    _logger.info(
+      'Generating new word\n'
+      'Configuration:\n'
+      '\talgorithm: ${request['algorithm']}\n'
+      '\tlengthShortestSolution: ${config.lengthShortestSolution.min} - ${config.lengthShortestSolution.max}\n'
+      '\tlengthLongestSolution: ${config.lengthLongestSolution.min} - ${config.lengthLongestSolution.max}\n'
+      '\tnbSolutions: ${config.nbSolutions.min} - ${config.nbSolutions.max}\n'
+      '\tnbUselessLetters: ${config.nbUselessLetters}\n'
+      '\tTimeout: ${timeout.inSeconds} seconds',
+    );
+
+    final problem = algorithm(config, timeout: timeout);
+    _logger.info('Problem generated (${problem.letters.join()})');
+    return problem;
   }
 }
 

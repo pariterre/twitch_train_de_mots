@@ -106,7 +106,9 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-  }) get problemGenerator => _problemGenerator;
+  }) get problemGenerator => MocksConfiguration.useLocalTrainDeMotsServer
+      ? ProblemGenerator.generateFromTrainDeMotsServer
+      : _problemGenerator;
 
   String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
   String get lastReleaseNotesShown => _lastReleaseNotesShown;

@@ -6,7 +6,6 @@ import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -561,44 +560,28 @@ class ProblemGenerator {
 
     LetterProblem? finalProblem;
     do {
-      Map<String, dynamic> data;
-      if (MocksConfiguration.useGameServer) {
-        data = await TrainDeMotsServerManager.instance.requestNewLetterProblem(
-          nbLetterInSmallestWord: nbLetterInSmallestWord,
-          minLetters: minLetters,
-          maxLetters: maxLetters,
-          minimumNbOfWords: minimumNbOfWords,
-          maximumNbOfWords: maximumNbOfWords,
-          addUselessLetter: addUselessLetter,
-          maxSearchingTime: maxSearchingTime,
-        );
-      } else {
-        // Send an http GET request to the server to get a new problem
-        final url = Uri.parse(
-          '${TrainDeMotsServerManager.instance.uri.toString()}'
-          '/getproblem'
-          '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
-          '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
-          '&lengthLongestSolutionMin=$minLetters'
-          '&lengthLongestSolutionMax=$maxLetters'
-          '&nbSolutionsMin=$minimumNbOfWords'
-          '&nbSolutionsMax=$maximumNbOfWords'
-          '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
-          '&algorithm=fromRandomWord'
-          '&timeout=30',
-        );
+      // Send an http GET request to the server to get a new problem
+      final url = Uri.parse(
+        '${TrainDeMotsServerManager.instance.uri.toString()}'
+        '/getproblem'
+        '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
+        '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
+        '&lengthLongestSolutionMin=$minLetters'
+        '&lengthLongestSolutionMax=$maxLetters'
+        '&nbSolutionsMin=$minimumNbOfWords'
+        '&nbSolutionsMax=$maximumNbOfWords'
+        '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
+        '&algorithm=fromRandomWord'
+        '&timeout=30',
+      );
+
+      try {
         final response = await http.get(url);
         if (response.statusCode != 200) {
           throw Exception('Failed to get problem from server');
         }
-        try {
-          data = json.decode(response.body);
-        } catch (e) {
-          throw Exception('Failed to get problem from server');
-        }
-      }
+        Map<String, dynamic> data = json.decode(response.body);
 
-      try {
         final List<String> candidateLetters = data['letters'].split('');
         final Set<String> subWords = data['solutions'].cast<String>().toSet();
         final String? uselessLetter = data['uselessLetter'];
@@ -625,6 +608,70 @@ class ProblemGenerator {
 
     _logger.info('Problem generated');
     return finalProblem;
+  }
+
+  ///
+  /// Calls the Train de mots server using the generateFromRandomWord method.
+  static Future<LetterProblem> generateFromTrainDeMotsServer({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+    required bool addUselessLetter,
+    required Duration maxSearchingTime,
+  }) async {
+    _logger.info('Generating problem from server...');
+
+    // We have to deduce the number of letters to add to the candidate. It is
+    // way too long otherwise
+    if (addUselessLetter) maxLetters--;
+
+    if (maxLetters < minLetters) {
+      throw ArgumentError(
+          'The maximum number of letters should be greater than the minimum number of letters');
+    }
+
+    if (!TrainDeMotsServerManager.instance.isConnectedToGameServer) {
+      await TrainDeMotsServerManager.instance.connectToGameServer();
+    }
+
+    final completer = TrainDeMotsServerManager.instance.requestNewLetterProblem(
+      nbLetterInSmallestWord: nbLetterInSmallestWord,
+      minLetters: minLetters,
+      maxLetters: maxLetters,
+      minimumNbOfWords: minimumNbOfWords,
+      maximumNbOfWords: maximumNbOfWords,
+      addUselessLetter: addUselessLetter,
+      maxSearchingTime: maxSearchingTime,
+    );
+
+    try {
+      final Map<String, dynamic> data = await completer.future;
+      final finalProblem = _letterProblemFromListLetters(
+          candidateLetters: data['letters'].split(''),
+          subWords: data['solutions'].cast<String>().toSet(),
+          uselessLetter: data['uselessLetter']);
+      if (finalProblem == null) {
+        throw Exception('Failed to get problem from server');
+      }
+
+      _logger.info('Problem generated');
+      return finalProblem;
+    } catch (e) {
+      _logger.warning(
+          'Failed to get problem from server, falling back to local algorithm');
+      // If anything goes wrong with the server, fallback to the local
+      // algorithm
+      return await generateFromRandomWord(
+          nbLetterInSmallestWord: nbLetterInSmallestWord,
+          minLetters: minLetters,
+          maxLetters: maxLetters,
+          minimumNbOfWords: minimumNbOfWords,
+          maximumNbOfWords: maximumNbOfWords,
+          addUselessLetter: addUselessLetter,
+          maxSearchingTime: maxSearchingTime);
+    }
   }
 
   ///

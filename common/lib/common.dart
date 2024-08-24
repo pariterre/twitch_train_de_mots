@@ -1,9 +1,12 @@
 enum GameClientToServerMessages {
-  newLetterProblemRequest;
+  newLetterProblemRequest,
+  disconnect;
 }
 
 enum GameServerToClientMessages {
+  isConnected,
   newLetterProblemGenerated,
+  NoBroadcasterIdException,
   InvalidAlgorithmException,
   InvalidTimeoutException,
   InvalidConfigurationException,
@@ -15,6 +18,15 @@ abstract class InvalidMessageException implements Exception {
   String toString() => 'Invalid message';
 
   GameServerToClientMessages get message;
+}
+
+class NoBroadcasterIdException implements InvalidMessageException {
+  @override
+  String toString() => 'No broadcasterId found';
+
+  @override
+  GameServerToClientMessages get message =>
+      GameServerToClientMessages.NoBroadcasterIdException;
 }
 
 class InvalidAlgorithmException implements InvalidMessageException {
