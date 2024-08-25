@@ -77,14 +77,16 @@ class TwitchManager {
   /// Twitch options
   bool _isMockActive = false;
   final _appInfo = tm.TwitchAppInfo(
-    appName: 'Train de mots',
-    twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
-    scope: const [
-      tm.TwitchScope.chatRead,
-      tm.TwitchScope.readFollowers,
-    ],
-    redirectUri: 'twitchauthentication.pariterre.net',
-  );
+      appName: 'Train de mots',
+      twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+      scope: const [
+        tm.TwitchScope.chatRead,
+        tm.TwitchScope.readFollowers,
+      ],
+      twitchRedirectUri: Uri.https(
+          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+      authenticationServerUri:
+          Uri.https('twitchserver.pariterre.net:3000', 'token'));
 
   ///
   /// Get the broadcaster id

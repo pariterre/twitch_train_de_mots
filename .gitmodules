@@ -1,3 +1,6 @@
 [submodule "client/plugins/twitch_manager"]
 	path = client/plugins/twitch_manager
 	url = https://github.com/pariterre/twitch_manager.git
+[submodule "server/plugins/twitch_manager"]
+	path = server/plugins/twitch_manager
+	url = https://github.com/pariterre/twitch_manager.git
