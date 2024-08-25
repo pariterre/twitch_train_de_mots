@@ -21,13 +21,6 @@ void main(List<String> arguments) async {
     exit(0);
   }
 
-  final twitchSecret = Platform.environment['TRAIN_DE_MOTS_TWITCH_SECRET_KEY'];
-  if (twitchSecret == null) {
-    throw ArgumentError(
-        'No Twitch secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_TWITCH_SECRET_KEY environment variable');
-  }
-
   _setupLoggerFromArguments(arguments);
 
   final networkParameters = _processNetworkArguments(arguments,
