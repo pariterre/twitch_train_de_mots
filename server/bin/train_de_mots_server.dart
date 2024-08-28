@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:train_de_mots_server/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_server/network/http_server.dart';
 import 'package:train_de_mots_server/network/network_parameters.dart';
 
@@ -26,7 +27,11 @@ void main(List<String> arguments) async {
   final networkParameters = _processNetworkArguments(arguments,
       defaultHost: 'localhost', defaultPort: 3010);
 
+  initializeTwitchManagerExtension();
   startHttpServer(parameters: networkParameters);
+
+  // TO REMOVE
+  TwitchManagerExtension.instance.messageToChat('Bienvenue au Train de mots!');
 }
 
 NetworkParameters _processNetworkArguments(List<String> arguments,
@@ -102,4 +107,29 @@ void _setupLoggerFromArguments(List<String> arguments) {
   } catch (e) {
     throw ArgumentError('Starting the logger failed: $e');
   }
+}
+
+void initializeTwitchManagerExtension() {
+  final sharedSecret = Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
+  if (sharedSecret == null) {
+    throw ArgumentError(
+        'No Twitch secret key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_CLIENT_SECRET_KEY environment variable');
+  }
+
+  final extensionSecret =
+      Platform.environment['TRAIN_DE_MOTS_EXTENSION_SECRET'];
+  if (extensionSecret == null) {
+    throw ArgumentError(
+        'No Twitch secret key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_EXTENSION_SECRET environment variable');
+  }
+
+  TwitchManagerExtension.initialize(
+    broadcasterId: '595803413',
+    extensionId: '539pzk7h6vavyzmklwy6msq6k3068x',
+    extensionVersion: '0.0.1',
+    extensionSecret: extensionSecret,
+    sharedSecret: sharedSecret,
+  );
 }

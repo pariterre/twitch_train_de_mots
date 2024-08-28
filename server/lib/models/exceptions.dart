@@ -10,3 +10,12 @@ class TimeoutException implements Exception {
     return 'TimeoutException: $message';
   }
 }
+
+class UnauthorizedException implements Exception {
+  UnauthorizedException();
+
+  @override
+  String toString() {
+    return 'Token verification failed';
+  }
+}

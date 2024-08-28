@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:common/common.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/managers/isolated_games_manager.dart';
+import 'package:train_de_mots_server/managers/twitch_manager_extension.dart';
+import 'package:train_de_mots_server/models/exceptions.dart';
 import 'package:train_de_mots_server/models/letter_problem.dart';
 import 'package:train_de_mots_server/network/network_parameters.dart';
 
@@ -39,7 +41,11 @@ void startHttpServer({required NetworkParameters parameters}) async {
     }
 
     if (request.method == 'OPTIONS') {
-      _handleOptionsRequest(request);
+      try {
+        _handleOptionsRequest(request);
+      } catch (e) {
+        // Do nothing
+      }
     } else if (request.method == 'GET') {
       _handleGetHttpRequest(request);
     } else {
@@ -55,11 +61,11 @@ void _handleOptionsRequest(HttpRequest request) {
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
     ..headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    ..headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    ..headers.add('Access-Control-Allow-Headers', 'Authorization, Content-Type')
     ..close();
 }
 
-void _handleGetHttpRequest(HttpRequest request) {
+Future<void> _handleGetHttpRequest(HttpRequest request) async {
   if (request.uri.path == '/getProblem') {
     try {
       _handleGetNewLetterProblemHttpRequest(request);
@@ -73,6 +79,18 @@ void _handleGetHttpRequest(HttpRequest request) {
     }
   } else if (request.uri.path == '/startGame') {
     _handleWebSocketRequest(request);
+  } else if (request.uri.path.contains('/frontend/')) {
+    try {
+      _handleFrontend(request);
+    } catch (e) {
+      _logger.severe('Token verification failed');
+      request.response
+        ..statusCode = HttpStatus.unauthorized
+        ..headers.add('Access-Control-Allow-Origin', '*')
+        ..write(json.encode({'Error': 'Unauthorized'}))
+        ..close();
+      return;
+    }
   } else {
     _handleConnexionRefused(request);
   }
@@ -124,6 +142,38 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
 
   IsolatedGamesManager.instance
       .handleNewClientConnexion(broadcasterId, socket: socket);
+}
+
+void _handleFrontend(HttpRequest request) {
+  _logger.info('Received data request');
+
+  // Extract the payload from the JWT, if it succeeds, the user is authorized,
+  // otherwise an exception is thrown
+  final payload = _extractJwtPayload(request);
+
+  if (request.uri.path.contains('/initialize')) {
+    // Do nothing more
+  }
+
+  // Send that the user is authorized
+  request.response
+    ..statusCode = HttpStatus.ok
+    ..headers.add('Access-Control-Allow-Origin', '*')
+    ..close();
+}
+
+Map<String, dynamic>? _extractJwtPayload(HttpRequest request) {
+  // Extract the Authorization header
+  final authHeader = request.headers['Authorization']?.first;
+  if (authHeader == null || !authHeader.startsWith('Bearer ')) {
+    throw UnauthorizedException();
+  }
+// Extract the Bearer token by removing 'Bearer ' from the start
+  final bearer = authHeader.substring(7);
+  // If the token is invalid, an exception is thrown
+  final decodedJwt = TwitchManagerExtension.instance.verifyAndDecode(bearer);
+
+  return decodedJwt.payload;
 }
 
 /// Handle connexion refused

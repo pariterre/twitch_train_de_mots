@@ -3,12 +3,9 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:common/common.dart';
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_server/managers/game_manager.dart';
 import 'package:train_de_mots_server/models/letter_problem.dart';
-
-import 'package:http/http.dart' as http;
 
 final _logger = Logger('IsolateGameManagers');
 
@@ -172,98 +169,4 @@ class _GameManagerIsolate {
     };
     manager.sendPort.send(json.encode(message));
   }
-}
-
-Future<void> exampleAuth() async {
-  final broadcasterId = '595803413';
-  final extensionId = '539pzk7h6vavyzmklwy6msq6k3068x';
-  final extensionVersion = '0.0.1';
-
-  final clientSecret = Platform.environment['TRAIN_DE_MOTS_CLIENT_SECRET_KEY'];
-  if (clientSecret == null) {
-    throw ArgumentError(
-        'No Twitch secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_CLIENT_SECRET_KEY environment variable');
-  }
-
-  final extensionSecret =
-      Platform.environment['TRAIN_DE_MOTS_EXTENSION_SECRET'];
-  if (extensionSecret == null) {
-    throw ArgumentError(
-        'No Twitch secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_EXTENSION_SECRET environment variable');
-  }
-
-  final jwt = JWT({
-    'user_id': broadcasterId,
-    'role': 'external',
-    'exp': (DateTime.now().add(Duration(days: 1))).millisecondsSinceEpoch,
-    'channel_id': 'all',
-    "pubsub_perms": {
-      "send": ["global"]
-    }
-  });
-
-  final token = jwt.sign(SecretKey(clientSecret, isBase64Encoded: true),
-      expiresIn: Duration(days: 1));
-
-  final response = await http.post(
-    Uri.https('api.twitch.tv', 'helix/extensions/chat',
-        {'broadcaster_id': broadcasterId}),
-    headers: <String, String>{
-      HttpHeaders.authorizationHeader: 'Bearer $token',
-      'Client-Id': extensionId,
-      HttpHeaders.contentTypeHeader: 'application/json',
-    },
-    body: '{'
-        '"text": "Hello world!", '
-        '"extension_id": "$extensionId",'
-        '"extension_version": "$extensionVersion"'
-        '}',
-  );
-  print('Response from sending message to chat');
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
-  print('');
-
-  final bearerResponse =
-      await http.post(Uri.https('id.twitch.tv', 'oauth2/token'), body: {
-    'client_id': extensionId,
-    'client_secret': extensionSecret,
-    'grant_type': 'client_credentials',
-  });
-  print('Response from getting bearer token');
-  print('Response status: ${bearerResponse.statusCode}');
-  print('Response body: ${bearerResponse.body}');
-  print('');
-  final bearerToken = json.decode(bearerResponse.body)['access_token'];
-
-  final authorizationUrl = Uri.https('id.twitch.tv', 'oauth2/authorize', {
-    'response_type': 'code',
-    'client_id': extensionId,
-    'redirect_uri': 'https://localhost',
-    'scope': 'user:write:chat user:bot',
-    'state': 'c3ab8aa609ea11e793ae92361f002671',
-  });
-  print('Navigate to the following URL to authorize the extension:');
-  print(authorizationUrl);
-
-  final responseChat = await http.post(
-    Uri.https('api.twitch.tv', 'helix/chat/messages',
-        {'broadcaster_id': broadcasterId}),
-    headers: <String, String>{
-      HttpHeaders.authorizationHeader: 'Bearer $bearerToken',
-      'Client-Id': extensionId,
-      HttpHeaders.contentTypeHeader: 'application/json',
-    },
-    body: '{'
-        '"broadcaster_id": "$broadcasterId", '
-        '"sender_id": "$broadcasterId",'
-        '"message": "Yoooo!"'
-        '}',
-  );
-  print('Response from sending message to chat');
-  print('Response status: ${responseChat.statusCode}');
-  print('Response body: ${responseChat.body}');
-  print('');
 }
