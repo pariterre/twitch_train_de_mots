@@ -159,6 +159,7 @@ void _handleFrontend(HttpRequest request) {
   request.response
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
+    ..write(json.encode({'authorized': true}))
     ..close();
 }
 

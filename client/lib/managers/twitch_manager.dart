@@ -42,7 +42,7 @@ class TwitchManager {
       return true;
     }
 
-    final manager = await showDialog<tm.TwitchManager>(
+    final manager = await showDialog<tm.TwitchAppManager>(
         context: context,
         builder: (context) => tm.TwitchAuthenticationDialog(
               isMockActive: _isMockActive,
@@ -65,7 +65,7 @@ class TwitchManager {
   /// -------- ///
   /// INTERNAL ///
   /// -------- ///
-  tm.TwitchManager? _manager;
+  tm.TwitchAppManager? _manager;
 
   ///
   /// Declare the singleton
@@ -97,5 +97,5 @@ class TwitchManager {
   final _chatListeners =
       TwitchGenericListener<Function(String sender, String message)>();
   void _onMessageReceived(String sender, String message) =>
-      _chatListeners.notifyListerners((callback) => callback(sender, message));
+      _chatListeners.notifyListeners((callback) => callback(sender, message));
 }
