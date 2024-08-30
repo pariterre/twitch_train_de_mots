@@ -83,7 +83,7 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
     try {
       _handleFrontend(request);
     } catch (e) {
-      _logger.severe('Token verification failed');
+      _logger.severe('Unauthorized');
       request.response
         ..statusCode = HttpStatus.unauthorized
         ..headers.add('Access-Control-Allow-Origin', '*')
@@ -151,15 +151,20 @@ void _handleFrontend(HttpRequest request) {
   // otherwise an exception is thrown
   final payload = _extractJwtPayload(request);
 
+  late final Map<String, dynamic> answer;
   if (request.uri.path.contains('/initialize')) {
-    // Do nothing more
+    answer = {'authorized': true};
+  } else if (request.uri.path.contains('/coucou')) {
+    answer = {'message': 'Coucou'};
+  } else {
+    throw 'Invalid endpoint';
   }
 
   // Send that the user is authorized
   request.response
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write(json.encode({'authorized': true}))
+    ..write(json.encode(answer))
     ..close();
 }
 
