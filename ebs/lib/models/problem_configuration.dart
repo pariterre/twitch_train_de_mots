@@ -1,4 +1,4 @@
-import 'package:train_de_mots_server/models/range.dart';
+import 'package:train_de_mots_ebs/models/range.dart';
 
 ///
 /// Placeholder for the definition of a Problem

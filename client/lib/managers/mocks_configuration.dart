@@ -7,14 +7,11 @@ import 'package:train_de_mots/models/word_solution.dart';
 import 'package:twitch_manager/twitch_manager.dart';
 
 class MocksConfiguration {
-  // Must have for developpers
-  static bool useLocalTrainDeMotsServer = false;
-  static bool useGameServer = false;
-
   // Useful for developpers
   static bool showDebugOptions = false;
-  static bool useDatabaseMock = false;
-  static bool useTwitchManagerMock = false;
+  static bool useLocalEbs = false;
+  static bool useDatabaseMock = true;
+  static bool useTwitchManagerMock = true;
 
   // Nice to have for developpers
   static bool useDatabaseEmulators = false;

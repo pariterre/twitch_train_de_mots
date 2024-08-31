@@ -1,5 +1,5 @@
-name: train_de_mots_server
-description: The server for the Train de Mots web site
+name: train_de_mots_ebs
+description: The EBS for the Train de Mots web site
 version: 1.0.0
 publish_to: none
 

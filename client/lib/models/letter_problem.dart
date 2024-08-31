@@ -6,7 +6,7 @@ import 'package:diacritic/diacritic.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
+import 'package:train_de_mots/managers/train_de_mots_ebs_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -537,8 +537,8 @@ class ProblemGenerator {
   }
 
   ///
-  /// Calls the server using the generateFromRandomWord method.
-  static Future<LetterProblem> generateFromServer({
+  /// Calls a GET request using the generateFromRandomWord method.
+  static Future<LetterProblem> generateFromHttp({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -547,7 +547,7 @@ class ProblemGenerator {
     required bool addUselessLetter,
     required Duration maxSearchingTime,
   }) async {
-    _logger.info('Generating problem from server...');
+    _logger.info('Generating problem from HTTP request...');
 
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
@@ -560,9 +560,9 @@ class ProblemGenerator {
 
     LetterProblem? finalProblem;
     do {
-      // Send an http GET request to the server to get a new problem
+      // Send an http GET request to the backend to get a new problem
       final url = Uri.parse(
-        '${TrainDeMotsServerManager.instance.uri.toString()}'
+        '${TrainDeMotsEbsManager.instance.httpUri.toString()}'
         '/getproblem'
         '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
         '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
@@ -611,8 +611,8 @@ class ProblemGenerator {
   }
 
   ///
-  /// Calls the Train de mots server using the generateFromRandomWord method.
-  static Future<LetterProblem> generateFromTrainDeMotsServer({
+  /// Calls the Train de mots EBS server using the generateFromRandomWord method.
+  static Future<LetterProblem> generateFromEbs({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -621,7 +621,7 @@ class ProblemGenerator {
     required bool addUselessLetter,
     required Duration maxSearchingTime,
   }) async {
-    _logger.info('Generating problem from server...');
+    _logger.info('Generating problem from EBS...');
 
     // We have to deduce the number of letters to add to the candidate. It is
     // way too long otherwise
@@ -632,11 +632,11 @@ class ProblemGenerator {
           'The maximum number of letters should be greater than the minimum number of letters');
     }
 
-    if (!TrainDeMotsServerManager.instance.isConnectedToGameServer) {
-      await TrainDeMotsServerManager.instance.connectToGameServer();
+    if (!TrainDeMotsEbsManager.instance.isConnectedToEbs) {
+      await TrainDeMotsEbsManager.instance.connectToEbs();
     }
 
-    final completer = TrainDeMotsServerManager.instance.requestNewLetterProblem(
+    final completer = TrainDeMotsEbsManager.instance.requestNewLetterProblem(
       nbLetterInSmallestWord: nbLetterInSmallestWord,
       minLetters: minLetters,
       maxLetters: maxLetters,
@@ -653,15 +653,15 @@ class ProblemGenerator {
           subWords: data['solutions'].cast<String>().toSet(),
           uselessLetter: data['uselessLetter']);
       if (finalProblem == null) {
-        throw Exception('Failed to get problem from server');
+        throw Exception('Failed to get problem from EBS server');
       }
 
       _logger.info('Problem generated');
       return finalProblem;
     } catch (e) {
       _logger.warning(
-          'Failed to get problem from server, falling back to local algorithm');
-      // If anything goes wrong with the server, fallback to the local
+          'Failed to get problem from EBS server, falling back to local algorithm');
+      // If anything goes wrong with the EBS, fallback to the local
       // algorithm
       return await generateFromRandomWord(
           nbLetterInSmallestWord: nbLetterInSmallestWord,

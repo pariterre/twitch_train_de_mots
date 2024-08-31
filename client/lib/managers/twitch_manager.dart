@@ -28,8 +28,8 @@ class TwitchManager {
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
-  tm.TwitchDebugOverlay debugOverlay({required child}) =>
-      tm.TwitchDebugOverlay(manager: _manager!, child: child);
+  tm.TwitchAppDebugOverlay debugOverlay({required child}) =>
+      tm.TwitchAppDebugOverlay(manager: _manager!, child: child);
 
   ///
   /// Provide an easy access to the TwitchManager connect dialog
@@ -44,7 +44,7 @@ class TwitchManager {
 
     final manager = await showDialog<tm.TwitchAppManager>(
         context: context,
-        builder: (context) => tm.TwitchAuthenticationDialog(
+        builder: (context) => tm.TwitchAppAuthenticationDialog(
               isMockActive: _isMockActive,
               debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
               onConnexionEstablished: (manager) =>

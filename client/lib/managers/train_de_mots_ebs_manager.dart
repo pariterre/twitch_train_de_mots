@@ -7,11 +7,11 @@ import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-final _logger = Logger('TrainDeMotsServerManager');
+final _logger = Logger('TrainDeMotEbsManager');
 
-class TrainDeMotsServerManager {
+class TrainDeMotsEbsManager {
   // Singleton
-  static TrainDeMotsServerManager get instance {
+  static TrainDeMotsEbsManager get instance {
     if (_instance == null) {
       throw Exception(
           'TrainDeMotsManager not initialized, call initialize() first');
@@ -19,77 +19,77 @@ class TrainDeMotsServerManager {
     return _instance!;
   }
 
-  static TrainDeMotsServerManager? _instance;
-  TrainDeMotsServerManager._internal(
-      {required Uri uri, required Uri? gameServerUri})
-      : _uri = uri,
-        _gameServerUri = gameServerUri;
+  static TrainDeMotsEbsManager? _instance;
+  TrainDeMotsEbsManager._internal({required Uri httpUri, required Uri? ebsUri})
+      : _httpUri = httpUri,
+        _ebsUri = ebsUri;
 
   WebSocketChannel? _socket;
 
   // Attributes
-  final Uri _uri;
-  Uri get uri {
+  final Uri _httpUri;
+  Uri get httpUri {
     if (_instance == null) {
       throw Exception(
           'TrainDeMotsManager not initialized, call initialize() first');
     }
-    return _uri;
+    return _httpUri;
   }
 
-  final Uri? _gameServerUri;
-  bool _isConnectedToGameServer = false;
-  bool get isConnectedToGameServer => _isConnectedToGameServer;
+  final Uri? _ebsUri;
+  bool _isConnectedToEbs = false;
+  bool get isConnectedToEbs => _isConnectedToEbs;
 
   ///
-  /// Initialize the TrainDeMotsServerManager establishing a connection with the
-  /// game server if [gameServerUri] is provided.
+  /// Initialize the TrainDeMotsEbsManager establishing a connection with the
+  /// EBS server if [ebsUri] is provided.
   static Future<void> initialize(
-      {required Uri uri, required Uri? gameServerUri}) async {
+      {required Uri httpUri, required Uri? ebsUri}) async {
     if (_instance != null) return;
 
-    _instance = TrainDeMotsServerManager._internal(
-        uri: uri, gameServerUri: gameServerUri);
+    _instance =
+        TrainDeMotsEbsManager._internal(httpUri: httpUri, ebsUri: ebsUri);
   }
 
   ///
-  /// Connect to the game server
-  Future<void> connectToGameServer() async {
+  /// Connect to the ebs
+  Future<void> connectToEbs() async {
+    // TODO Fail gracefully if the server is not available
     final twitchBroadcasterId = TwitchManager.instance.broadcasterId;
-    if (_gameServerUri == null) return;
+    if (_ebsUri == null) return;
 
-    _instance!._socket = WebSocketChannel.connect(Uri.parse(
-        '$_gameServerUri/startGame?broadcasterId=$twitchBroadcasterId'));
+    _instance!._socket = WebSocketChannel.connect(
+        Uri.parse('$_ebsUri/startGame?broadcasterId=$twitchBroadcasterId'));
     await _instance!._socket!.ready;
-    _logger.info('Connected to the server');
+    _logger.info('Connected to the EBS server');
 
     _instance!._socket!.stream.listen(
-      _instance!._onMessageFromServerReceived,
-      onDone: () => _logger.info('Connection closed by the server'),
+      _instance!._onMessageFromEbsReceived,
+      onDone: () => _logger.info('Connection closed by the EBS server'),
       onError: (error) => _logger.severe('Error: $error'),
     );
 
-    while (!_isConnectedToGameServer) {
+    while (!_isConnectedToEbs) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    _logger.info('Connected to the game server');
+    _logger.info('Connected to the EBS server');
   }
 
   ///
-  /// Dispose the TrainDeMotsServerManager by closing the connection with the
-  /// game server.
+  /// Dispose the TrainDeMotsEbsManager by closing the connection with the
+  /// EBS server.
   void dispose() {
     _socket?.sink.close();
   }
 
   ///
-  /// API section under the the for of requests to the server
+  /// API section under the the for of requests to the EBS server
   ///
   final Map<dynamic, Completer> _completers = {};
 
   ///
   /// Request a new letter problem, it will return a completer that will complete
-  /// when the server sends the new letter problem. Note requesting twice will
+  /// when the EBS server sends the new letter problem. Note requesting twice will
   /// result in undefined behavior.
   Completer requestNewLetterProblem({
     required int nbLetterInSmallestWord,
@@ -110,8 +110,8 @@ class TrainDeMotsServerManager {
     });
 
     _logger.info('Requesting a new letter problem with config');
-    _sendMessageToServer(
-      type: GameClientToServerMessages.newLetterProblemRequest,
+    _sendMessageToEbs(
+      type: ToEbsMessages.newLetterProblemRequest,
       data: {
         'algorithm': 'fromRandomWord',
         'lengthShortestSolutionMin': nbLetterInSmallestWord,
@@ -133,30 +133,30 @@ class TrainDeMotsServerManager {
   ///
 
   ///
-  /// Handle the messages received from the server
-  void _onMessageFromServerReceived(message) {
+  /// Handle the messages received from the EBS server
+  void _onMessageFromEbsReceived(message) {
     final data = json.decode(message);
-    final type = GameServerToClientMessages.values[data['type'] as int];
+    final type = FromEbsMessages.values[data['type'] as int];
 
     switch (type) {
-      case GameServerToClientMessages.isConnected:
-        _logger.info('Connected to the game server');
-        _isConnectedToGameServer = true;
+      case FromEbsMessages.isConnected:
+        _logger.info('Connected to the EBS server');
+        _isConnectedToEbs = true;
         break;
-      case GameServerToClientMessages.newLetterProblemGenerated:
+      case FromEbsMessages.newLetterProblemGenerated:
         _receivedNewLetterProblem(data['data'] as Map<String, dynamic>);
         break;
-      case GameServerToClientMessages.UnkownMessageException:
-      case GameServerToClientMessages.NoBroadcasterIdException:
-      case GameServerToClientMessages.InvalidAlgorithmException:
-      case GameServerToClientMessages.InvalidTimeoutException:
-      case GameServerToClientMessages.InvalidConfigurationException:
+      case FromEbsMessages.UnkownMessageException:
+      case FromEbsMessages.NoBroadcasterIdException:
+      case FromEbsMessages.InvalidAlgorithmException:
+      case FromEbsMessages.InvalidTimeoutException:
+      case FromEbsMessages.InvalidConfigurationException:
         _logger.severe('Error: $type');
     }
   }
 
   ///
-  /// Handle the new letter problem received from the server and complete the
+  /// Handle the new letter problem received from the EBS server and complete the
   /// completer.
   void _receivedNewLetterProblem(Map<String, dynamic> message) {
     _logger.info('Received new letter problem: $message');
@@ -164,10 +164,9 @@ class TrainDeMotsServerManager {
   }
 
   ///
-  /// Send a message to the server
-  void _sendMessageToServer(
-      {required GameClientToServerMessages type,
-      required Map<String, dynamic> data}) {
+  /// Send a message to the EBS server
+  void _sendMessageToEbs(
+      {required ToEbsMessages type, required Map<String, dynamic> data}) {
     final message = {
       'broadcasterId': TwitchManager.instance.broadcasterId,
       'type': type.index,

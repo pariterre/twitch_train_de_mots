@@ -1,16 +1,16 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_server/managers/twitch_manager_extension.dart';
-import 'package:train_de_mots_server/network/http_server.dart';
-import 'package:train_de_mots_server/network/network_parameters.dart';
+import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
+import 'package:train_de_mots_ebs/network/http_server.dart';
+import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
-final _logger = Logger('authentication_server');
+final _logger = Logger('TrainDeMotsEbs');
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit
   if (arguments.contains('--help') || arguments.contains('-h')) {
-    print('Usage: train_de_mots_server [options]\n'
+    print('Usage: train_de_mots_ebs [options]\n'
         'Options:\n'
         '  --host=<host> or -h=<host>      The host name to listen on\n'
         '  --port=<port> or -p=<port>      The port number to listen on\n'
@@ -113,15 +113,15 @@ void initializeTwitchManagerExtension() {
   final sharedSecret = Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
   if (sharedSecret == null) {
     throw ArgumentError(
-        'No Twitch secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_CLIENT_SECRET_KEY environment variable');
+        'No Twitch shared secret key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_SHARED_SECRET_KEY environment variable');
   }
 
   final extensionSecret =
       Platform.environment['TRAIN_DE_MOTS_EXTENSION_SECRET'];
   if (extensionSecret == null) {
     throw ArgumentError(
-        'No Twitch secret key provided, please provide one by setting '
+        'No Twitch extension secret key provided, please provide one by setting '
         'TRAIN_DE_MOTS_EXTENSION_SECRET environment variable');
   }
 

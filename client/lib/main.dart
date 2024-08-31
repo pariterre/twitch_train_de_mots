@@ -6,7 +6,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/managers/train_de_mots_server_manager.dart';
+import 'package:train_de_mots/managers/train_de_mots_ebs_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
 
@@ -48,11 +48,11 @@ void main() async {
       ? TwitchManager.instance.initialize(useMock: true)
       : TwitchManager.instance.initialize();
 
-  await TrainDeMotsServerManager.initialize(
-      uri: Uri.parse(MocksConfiguration.useLocalTrainDeMotsServer
+  await TrainDeMotsEbsManager.initialize(
+      httpUri: Uri.parse(MocksConfiguration.useLocalEbs
           ? 'http://localhost:3010'
           : 'https://twitchserver.pariterre.net:3010'),
-      gameServerUri: MocksConfiguration.useGameServer
+      ebsUri: MocksConfiguration.useLocalEbs
           ? Uri.parse('ws://localhost:3010')
           : null);
 

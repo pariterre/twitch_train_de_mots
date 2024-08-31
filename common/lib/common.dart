@@ -1,9 +1,9 @@
-enum GameClientToServerMessages {
+enum ToEbsMessages {
   newLetterProblemRequest,
   disconnect;
 }
 
-enum GameServerToClientMessages {
+enum FromEbsMessages {
   isConnected,
   newLetterProblemGenerated,
   NoBroadcasterIdException,
@@ -17,7 +17,7 @@ abstract class InvalidMessageException implements Exception {
   @override
   String toString() => 'Invalid message';
 
-  GameServerToClientMessages get message;
+  FromEbsMessages get message;
 }
 
 class NoBroadcasterIdException implements InvalidMessageException {
@@ -25,8 +25,7 @@ class NoBroadcasterIdException implements InvalidMessageException {
   String toString() => 'No broadcasterId found';
 
   @override
-  GameServerToClientMessages get message =>
-      GameServerToClientMessages.NoBroadcasterIdException;
+  FromEbsMessages get message => FromEbsMessages.NoBroadcasterIdException;
 }
 
 class InvalidAlgorithmException implements InvalidMessageException {
@@ -34,8 +33,7 @@ class InvalidAlgorithmException implements InvalidMessageException {
   String toString() => 'Invalid algorithm';
 
   @override
-  GameServerToClientMessages get message =>
-      GameServerToClientMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
 }
 
 class InvalidTimeoutException implements InvalidMessageException {
@@ -43,8 +41,7 @@ class InvalidTimeoutException implements InvalidMessageException {
   String toString() => 'Invalid timeout';
 
   @override
-  GameServerToClientMessages get message =>
-      GameServerToClientMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
 }
 
 class InvalidConfigurationException implements InvalidMessageException {
@@ -52,6 +49,5 @@ class InvalidConfigurationException implements InvalidMessageException {
   String toString() => 'Invalid configuration';
 
   @override
-  GameServerToClientMessages get message =>
-      GameServerToClientMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
 }

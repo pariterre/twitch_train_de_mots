@@ -4,8 +4,8 @@ import 'dart:isolate';
 
 import 'package:common/common.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_server/managers/game_manager.dart';
-import 'package:train_de_mots_server/models/letter_problem.dart';
+import 'package:train_de_mots_ebs/managers/game_manager.dart';
+import 'package:train_de_mots_ebs/models/letter_problem.dart';
 
 final _logger = Logger('IsolateGameManagers');
 
@@ -59,8 +59,7 @@ class IsolatedGamesManager {
     mainReceivePort
         .listen((message) => _handleMessageFromIsolated(message, socket, data));
 
-    socket.add(
-        json.encode({'type': GameServerToClientMessages.isConnected.index}));
+    socket.add(json.encode({'type': FromEbsMessages.isConnected.index}));
   }
 
   ///
@@ -135,13 +134,13 @@ class _GameManagerIsolate {
     // Parse and handle the message from the client. If the message is invalid,
     // send an error message back to the client
     try {
-      final type = GameClientToServerMessages.values[data['type'] as int];
+      final type = ToEbsMessages.values[data['type'] as int];
 
       switch (type) {
-        case GameClientToServerMessages.newLetterProblemRequest:
+        case ToEbsMessages.newLetterProblemRequest:
           _handleGetNewLetterProblem(manager, request: data['data']);
           break;
-        case GameClientToServerMessages.disconnect:
+        case ToEbsMessages.disconnect:
           manager.requestEndOfGame();
           break;
       }
@@ -149,7 +148,7 @@ class _GameManagerIsolate {
       _sendMessageToClient(manager, type: e.message);
     } catch (e) {
       _sendMessageToClient(manager,
-          type: GameServerToClientMessages.UnkownMessageException);
+          type: FromEbsMessages.UnkownMessageException);
     }
   }
 
@@ -157,12 +156,12 @@ class _GameManagerIsolate {
       {required request}) {
     final problem = LetterProblem.generateProblemFromRequest(request);
     _sendMessageToClient(manager,
-        type: GameServerToClientMessages.newLetterProblemGenerated,
+        type: FromEbsMessages.newLetterProblemGenerated,
         data: problem.serialize());
   }
 
   static void _sendMessageToClient(GameManager manager,
-      {required GameServerToClientMessages type, dynamic data}) {
+      {required FromEbsMessages type, dynamic data}) {
     final message = {
       'type': type.index,
       'data': data,

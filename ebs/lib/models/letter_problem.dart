@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:common/common.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_server/managers/words_manager.dart';
-import 'package:train_de_mots_server/models/exceptions.dart';
-import 'package:train_de_mots_server/models/problem_configuration.dart';
-import 'package:train_de_mots_server/models/range.dart';
+import 'package:train_de_mots_ebs/managers/words_manager.dart';
+import 'package:train_de_mots_ebs/models/exceptions.dart';
+import 'package:train_de_mots_ebs/models/problem_configuration.dart';
+import 'package:train_de_mots_ebs/models/range.dart';
 
 final _random = Random();
 final _logger = Logger('LetterProblem');

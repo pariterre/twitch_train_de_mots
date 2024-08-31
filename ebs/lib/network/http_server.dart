@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:common/common.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_server/managers/isolated_games_manager.dart';
-import 'package:train_de_mots_server/managers/twitch_manager_extension.dart';
-import 'package:train_de_mots_server/models/exceptions.dart';
-import 'package:train_de_mots_server/models/letter_problem.dart';
-import 'package:train_de_mots_server/network/network_parameters.dart';
+import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
+import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
+import 'package:train_de_mots_ebs/models/exceptions.dart';
+import 'package:train_de_mots_ebs/models/letter_problem.dart';
+import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
 final _logger = Logger('http_server');
 
@@ -122,7 +122,7 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
   if (broadcasterIdString == null) {
     _logger.severe('No broadcasterId found');
     socket.add(json.encode({
-      'type': GameServerToClientMessages.NoBroadcasterIdException.index,
+      'type': FromEbsMessages.NoBroadcasterIdException.index,
       'message': NoBroadcasterIdException().message,
     }));
     socket.close();
@@ -133,7 +133,7 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
   if (broadcasterId == null) {
     _logger.severe('Invalid broadcasterId');
     socket.add(json.encode({
-      'type': GameServerToClientMessages.NoBroadcasterIdException.index,
+      'type': FromEbsMessages.NoBroadcasterIdException.index,
       'message': NoBroadcasterIdException().message,
     }));
     socket.close();

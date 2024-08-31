@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:diacritic/diacritic.dart';
-import 'package:train_de_mots_server/models/french_words.dart';
+import 'package:train_de_mots_ebs/models/french_words.dart';
 
 final _random = Random();
 
