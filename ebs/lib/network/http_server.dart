@@ -32,11 +32,11 @@ void startHttpServer({required NetworkParameters parameters}) async {
 
     try {
       if (request.method == 'OPTIONS') {
-        _handleOptionsRequest(request);
+        await _handleOptionsRequest(request);
       } else if (request.method == 'GET') {
-        _handleGetHttpRequest(request);
+        await _handleGetHttpRequest(request);
       } else if (request.method == 'POST') {
-        _handlPostHttpRequest(request);
+        await _handlPostHttpRequest(request);
       } else {
         _sendErrorResponse(request, HttpStatus.methodNotAllowed,
             'Invalid request method: ${request.method}');
@@ -57,7 +57,7 @@ void startHttpServer({required NetworkParameters parameters}) async {
 
 ///
 /// Handle OPTIONS request for CORS preflight
-void _handleOptionsRequest(HttpRequest request) {
+Future<void> _handleOptionsRequest(HttpRequest request) async {
   request.response
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
