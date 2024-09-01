@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_ebs/models/exceptions.dart';
-import 'package:train_de_mots_ebs/models/letter_problem.dart';
 import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
 final _logger = Logger('http_server');
@@ -68,27 +67,6 @@ Future<void> _handleOptionsRequest(HttpRequest request) async {
 }
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
-  if (request.uri.path == '/getproblem') {
-    // TODO As soon as EBS is communicating with client, remove this
-    try {
-      final problem =
-          LetterProblem.generateProblemFromRequest(request.uri.queryParameters);
-
-      request.response
-        ..statusCode = HttpStatus.ok
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write(json.encode(problem.serialize()))
-        ..close();
-    } catch (e) {
-      _logger.severe(e);
-      request.response
-        ..statusCode = HttpStatus.badRequest
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write(e)
-        ..close();
-    }
-  }
-
   if (request.uri.path.contains('/client/')) {
     if (request.uri.path.contains('/connect')) {
       _handleConnectToWebSocketRequest(request);

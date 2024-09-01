@@ -49,9 +49,6 @@ void main() async {
       : TwitchManager.instance.initialize();
 
   await TrainDeMotsEbsManager.initialize(
-      httpUri: Uri.parse(MocksConfiguration.useLocalEbs
-          ? 'http://localhost:3010'
-          : 'https://twitchserver.pariterre.net:3010'),
       ebsUri: MocksConfiguration.useLocalEbs
           ? Uri.parse('ws://localhost:3010')
           : Uri.parse('wss://twitchserver.pariterre.net:3010'));

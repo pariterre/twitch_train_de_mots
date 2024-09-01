@@ -20,21 +20,9 @@ class TrainDeMotsEbsManager {
   }
 
   static TrainDeMotsEbsManager? _instance;
-  TrainDeMotsEbsManager._internal({required Uri httpUri, required Uri? ebsUri})
-      : _httpUri = httpUri,
-        _ebsUri = ebsUri;
+  TrainDeMotsEbsManager._internal({required Uri? ebsUri}) : _ebsUri = ebsUri;
 
   WebSocketChannel? _socket;
-
-  // Attributes
-  final Uri _httpUri;
-  Uri get httpUri {
-    if (_instance == null) {
-      throw Exception(
-          'TrainDeMotsManager not initialized, call initialize() first');
-    }
-    return _httpUri;
-  }
 
   final Uri? _ebsUri;
   bool _isConnectedToEbs = false;
@@ -43,12 +31,10 @@ class TrainDeMotsEbsManager {
   ///
   /// Initialize the TrainDeMotsEbsManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
-  static Future<void> initialize(
-      {required Uri httpUri, required Uri? ebsUri}) async {
+  static Future<void> initialize({required Uri? ebsUri}) async {
     if (_instance != null) return;
 
-    _instance =
-        TrainDeMotsEbsManager._internal(httpUri: httpUri, ebsUri: ebsUri);
+    _instance = TrainDeMotsEbsManager._internal(ebsUri: ebsUri);
   }
 
   ///
