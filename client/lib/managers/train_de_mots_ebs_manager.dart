@@ -59,7 +59,7 @@ class TrainDeMotsEbsManager {
     if (_ebsUri == null) return;
 
     _instance!._socket = WebSocketChannel.connect(
-        Uri.parse('$_ebsUri/startGame?broadcasterId=$twitchBroadcasterId'));
+        Uri.parse('$_ebsUri/connect?broadcasterId=$twitchBroadcasterId'));
     await _instance!._socket!.ready;
     _logger.info('Connected to the EBS server');
 

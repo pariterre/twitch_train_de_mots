@@ -8,7 +8,6 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_ebs/models/exceptions.dart';
-import 'package:train_de_mots_ebs/models/letter_problem.dart';
 import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
 final _logger = Logger('http_server');
@@ -19,12 +18,7 @@ void startHttpServer({required NetworkParameters parameters}) async {
   await for (final request in httpServer) {
     final ipAddress = request.connectionInfo?.remoteAddress.address;
     if (ipAddress == null) {
-      _logger.severe('No IP address found');
-      request.response
-        ..statusCode = HttpStatus.forbidden
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write('Connexion refused')
-        ..close();
+      _sendErrorResponse(request, HttpStatus.forbidden, 'Connexion refused');
       continue;
     }
 
@@ -32,27 +26,31 @@ void startHttpServer({required NetworkParameters parameters}) async {
         'New request received from $ipAddress (${parameters.rateLimiter.requestCount(ipAddress) + 1} / ${parameters.rateLimiter.maxRequests})');
 
     if (parameters.rateLimiter.isRateLimited(ipAddress)) {
-      _logger.severe('Rate limited');
-      request.response
-        ..statusCode = HttpStatus.tooManyRequests
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write('Rate limited')
-        ..close();
+      _sendErrorResponse(request, HttpStatus.tooManyRequests, 'Rate limited');
       continue;
     }
 
-    if (request.method == 'OPTIONS') {
-      try {
+    try {
+      if (request.method == 'OPTIONS') {
         _handleOptionsRequest(request);
-      } catch (e) {
-        // Do nothing
+      } else if (request.method == 'GET') {
+        _handleGetHttpRequest(request);
+      } else if (request.method == 'POST') {
+        _handlPostHttpRequest(request);
+      } else {
+        _sendErrorResponse(request, HttpStatus.methodNotAllowed,
+            'Invalid request method: ${request.method}');
       }
-    } else if (request.method == 'GET') {
-      _handleGetHttpRequest(request);
-    } else if (request.method == 'POST') {
-      _handlPostHttpRequest(request);
-    } else {
-      _handleConnexionRefused(request);
+    } on InvalidEndpointException {
+      _sendErrorResponse(request, HttpStatus.notFound, 'Invalid endpoint');
+    } on UnauthorizedException {
+      _sendErrorResponse(request, HttpStatus.unauthorized, 'Unauthorized');
+    } on ConnexionToWebSocketdRefusedException {
+      _sendErrorResponse(request, HttpStatus.serviceUnavailable,
+          'Connexion to WebSocketd refused');
+    } catch (e) {
+      _sendErrorResponse(request, HttpStatus.internalServerError,
+          'An error occurred: ${e.toString()}');
     }
   }
 }
@@ -69,102 +67,59 @@ void _handleOptionsRequest(HttpRequest request) {
 }
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
-  if (request.uri.path == '/getProblem') {
-    // TODO Move this to a CLIENT Get request
-    try {
-      _handleGetNewLetterProblemHttpRequest(request);
-    } catch (e) {
-      _logger.severe(e);
-      request.response
-        ..statusCode = HttpStatus.badRequest
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write(e)
-        ..close();
+  if (request.uri.path.contains('/client/')) {
+    if (request.uri.path.contains('/connect')) {
+      _handleConnectToWebSocketRequest(request);
+    } else {
+      throw InvalidEndpointException();
     }
-  } else if (request.uri.path == '/startGame') {
-    // TODO Move this to a CLIENT POST request
-    _handleWebSocketRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
-    try {
-      _handleFrontend(request);
-    } catch (e) {
-      _logger.severe('Unauthorized');
-      request.response
-        ..statusCode = HttpStatus.unauthorized
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write(json.encode({'Error': 'Unauthorized'}))
-        ..close();
-      return;
-    }
+    _handleFrontend(request);
   } else {
-    _handleConnexionRefused(request);
+    throw InvalidEndpointException();
   }
 }
 
 Future<void> _handlPostHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/frontend/')) {
-    try {
-      _handleFrontend(request);
-    } catch (e) {
-      _logger.severe('Invalid POST request');
-      request.response
-        ..statusCode = HttpStatus.unauthorized
-        ..headers.add('Access-Control-Allow-Origin', '*')
-        ..write(json.encode({'Error': 'Invalid'}))
-        ..close();
+    _handleFrontend(request);
+  } else {
+    throw InvalidEndpointException();
+  }
+}
+
+Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
+  try {
+    _logger.info('New client connexion');
+    final socket = await WebSocketTransformer.upgrade(request);
+
+    final broadcasterIdString = request.uri.queryParameters['broadcasterId'];
+    if (broadcasterIdString == null) {
+      _logger.severe('No broadcasterId found');
+      socket.add(json.encode({
+        'type': FromEbsMessages.noBroadcasterIdException.index,
+        'message': NoBroadcasterIdException().message,
+      }));
+      socket.close();
       return;
     }
-  } else {
-    _handleConnexionRefused(request);
+
+    final broadcasterId = int.tryParse(broadcasterIdString);
+    if (broadcasterId == null) {
+      _logger.severe('Invalid broadcasterId');
+      socket.add(json.encode({
+        'type': FromEbsMessages.noBroadcasterIdException.index,
+        'message': NoBroadcasterIdException().message,
+      }));
+      socket.close();
+      return;
+    }
+
+    IsolatedGamesManager.instance
+        .handleNewClientConnexion(broadcasterId, socket: socket);
+  } catch (e) {
+    throw ConnexionToWebSocketdRefusedException();
   }
-}
-
-/// Handle GET request for a new problem
-/// The request must contain the following parameters:
-/// - algorithm: the algorithm to generate the problem
-/// - timeout: the timeout for the problem
-/// - configuration: the configuration of the problem
-void _handleGetNewLetterProblemHttpRequest(HttpRequest request) {
-  // TODO Remove all this http stuff when actual server is implemented
-  final problem =
-      LetterProblem.generateProblemFromRequest(request.uri.queryParameters);
-
-  request.response
-    ..statusCode = HttpStatus.ok
-    ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write(json.encode(problem.serialize()))
-    ..close();
-}
-
-Future<void> _handleWebSocketRequest(HttpRequest request) async {
-  _logger.info('Websocket connexion requested');
-  final socket = await WebSocketTransformer.upgrade(request);
-
-  _logger.info('Client connected');
-  final broadcasterIdString = request.uri.queryParameters['broadcasterId'];
-  if (broadcasterIdString == null) {
-    _logger.severe('No broadcasterId found');
-    socket.add(json.encode({
-      'type': FromEbsMessages.noBroadcasterIdException.index,
-      'message': NoBroadcasterIdException().message,
-    }));
-    socket.close();
-    return;
-  }
-
-  final broadcasterId = int.tryParse(broadcasterIdString);
-  if (broadcasterId == null) {
-    _logger.severe('Invalid broadcasterId');
-    socket.add(json.encode({
-      'type': FromEbsMessages.noBroadcasterIdException.index,
-      'message': NoBroadcasterIdException().message,
-    }));
-    socket.close();
-    return;
-  }
-
-  IsolatedGamesManager.instance
-      .handleNewClientConnexion(broadcasterId, socket: socket);
 }
 
 Future<void> _handleFrontend(HttpRequest request) async {
@@ -180,23 +135,39 @@ Future<void> _handleFrontend(HttpRequest request) async {
   } else if (request.uri.path.contains('/pong')) {
     answer = {'message': 'OK'};
   } else if (request.uri.path.contains('/pardon')) {
-    final userId = payload!['user_id'];
+    payload!['user_id']; // Check that user_id is present in the payload
     // Get the message of the POST request
     final message = jsonDecode(await utf8.decoder.bind(request).join());
+    // TODO Relay the pardon to GameManager and send back the response from it
 
     if (message['message'] != 'Pardon my stealer') {
-      throw 'Invalid request';
+      // TODO Remove this, as it is for testing purposes only
+      throw Exception('Invalid message');
     }
     answer = {'response': 'OK'};
   } else {
-    throw 'Invalid endpoint';
+    throw InvalidEndpointException();
   }
 
   // Send that the user is authorized
+  _sendSuccessResponse(request, answer);
+}
+
+_sendSuccessResponse(HttpRequest request, Map<String, dynamic> data) {
+  _logger.info('Sending success response: $data');
   request.response
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write(json.encode(answer))
+    ..write(json.encode(data))
+    ..close();
+}
+
+_sendErrorResponse(HttpRequest request, int statusCode, String message) {
+  _logger.severe('Sending error response: $message');
+  request.response
+    ..statusCode = statusCode
+    ..headers.add('Access-Control-Allow-Origin', '*')
+    ..write(message)
     ..close();
 }
 
@@ -212,16 +183,6 @@ Map<String, dynamic>? _extractJwtPayload(HttpRequest request) {
   final decodedJwt = TwitchManagerExtension.instance.verifyAndDecode(bearer);
 
   return decodedJwt.payload;
-}
-
-/// Handle connexion refused
-void _handleConnexionRefused(HttpRequest request) {
-  _logger.severe('Connexion refused');
-  request.response
-    ..statusCode = HttpStatus.forbidden
-    ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write('Connexion refused')
-    ..close();
 }
 
 Future<HttpServer> _startServer(NetworkParameters parameters) async {

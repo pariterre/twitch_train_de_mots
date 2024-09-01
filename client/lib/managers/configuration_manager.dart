@@ -97,8 +97,7 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-  }) _problemGenerator = ProblemGenerator
-      .generateFromHttp; // TODO: This method should be removed soon
+  }) _problemGenerator = ProblemGenerator.generateFromEbs;
   Future<LetterProblem> Function({
     required int nbLetterInSmallestWord,
     required int minLetters,
@@ -107,9 +106,7 @@ class ConfigurationManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-  }) get problemGenerator => MocksConfiguration.useLocalEbs
-      ? ProblemGenerator.generateFromEbs
-      : _problemGenerator;
+  }) get problemGenerator => _problemGenerator;
 
   String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
   String get lastReleaseNotesShown => _lastReleaseNotesShown;
