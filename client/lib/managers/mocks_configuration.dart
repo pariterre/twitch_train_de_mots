@@ -10,8 +10,8 @@ class MocksConfiguration {
   // Useful for developpers
   static bool showDebugOptions = false;
   static bool useLocalEbs = false;
-  static bool useDatabaseMock = true;
-  static bool useTwitchManagerMock = true;
+  static bool useDatabaseMock = false;
+  static bool useTwitchManagerMock = false;
 
   // Nice to have for developpers
   static bool useDatabaseEmulators = false;

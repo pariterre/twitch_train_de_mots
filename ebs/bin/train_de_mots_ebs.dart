@@ -31,7 +31,8 @@ void main(List<String> arguments) async {
   startHttpServer(parameters: networkParameters);
 
   // TO REMOVE
-  TwitchManagerExtension.instance.messageToChat('Bienvenue au Train de mots!');
+  TwitchManagerExtension.instance
+      .sendChatMessage('Bienvenue au Train de mots!');
 }
 
 NetworkParameters _processNetworkArguments(List<String> arguments,

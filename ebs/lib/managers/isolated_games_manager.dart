@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:common/common.dart';
+import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/game_manager.dart';
+import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 
 final _logger = Logger('IsolateGameManagers');
@@ -14,6 +16,12 @@ class _IsolateData {
   final SendPort mainSendPort;
 
   _IsolateData({required this.twitchBroadcasterId, required this.mainSendPort});
+}
+
+enum MessageTarget {
+  internal,
+  client,
+  frontend;
 }
 
 class IsolatedGamesManager {
@@ -53,13 +61,14 @@ class IsolatedGamesManager {
 
     // Keep track of the isolate game to kill it if required
     _isolates[twitchBroadcasterId] =
-        await Isolate.spawn(_GameManagerIsolate.startNewGameManager, data);
+        await Isolate.spawn(_IsolatedGame.startNewGameManager, data);
 
     // Establish communication with the worker isolate
     mainReceivePort
         .listen((message) => _handleMessageFromIsolated(message, socket, data));
 
-    socket.add(json.encode({'type': FromEbsMessages.isConnected.index}));
+    _handleMessageFromInternalToClient(
+        {'type': FromEbsMessages.isConnected.index}, socket);
   }
 
   ///
@@ -74,15 +83,38 @@ class IsolatedGamesManager {
 
   void _handleMessageFromIsolated(
       message, WebSocket socket, _IsolateData data) {
+    final target = MessageTarget.values[message['target']];
+    switch (target) {
+      case MessageTarget.internal:
+        _handleMessageFromIsolatedToInternal(message['message'], data, socket);
+        break;
+      case MessageTarget.client:
+        _handleMessageFromInternalToClient(message['message'], socket);
+        break;
+      case MessageTarget.frontend:
+        _handleMessageFromIsolatedToFrontend(message['message'], socket);
+        break;
+    }
+  }
+
+  void _handleMessageFromIsolatedToInternal(
+      message, _IsolateData data, WebSocket socket) {
     if (message is SendPort) {
       // Store the SendPort to communicate with the worker isolate
       _workerSendPorts[data.twitchBroadcasterId] = message;
-    } else if (message is String) {
-      // Send messages back to the client via WebSocket
-      socket.add(message);
     } else {
       throw Exception('Unknown message type, this should not happen');
     }
+  }
+
+  void _handleMessageFromInternalToClient(
+      Map<String, dynamic> message, WebSocket socket) {
+    socket.add(json.encode(message));
+  }
+
+  void _handleMessageFromIsolatedToFrontend(
+      Map<String, dynamic> message, WebSocket socket) {
+    TwitchManagerExtension.instance.sendExtentionMessage(message['data']);
   }
 
   void _handleMessageFromClient(
@@ -108,15 +140,17 @@ class IsolatedGamesManager {
   // TODO ADD WAY TO INFORM THE ISOLATED THAT THE CONNEXION WAS LOST
 }
 
-class _GameManagerIsolate {
+class _IsolatedGame {
   ///
   /// Start a new game manager, this is the entry point for the worker isolate
   static void startNewGameManager(_IsolateData data) async {
     final sendPort = data.mainSendPort;
 
     final receivePort = ReceivePort();
-    sendPort
-        .send(receivePort.sendPort); // Send the SendPort to the main isolate
+    sendPort.send({
+      'target': MessageTarget.internal.index,
+      'message': receivePort.sendPort
+    }); // Send the SendPort to the main isolate
 
     // await exampleAuth();
 
@@ -148,7 +182,7 @@ class _GameManagerIsolate {
       _sendMessageToClient(manager, type: e.message);
     } catch (e) {
       _sendMessageToClient(manager,
-          type: FromEbsMessages.UnkownMessageException);
+          type: FromEbsMessages.unkownMessageException);
     }
   }
 
@@ -163,9 +197,12 @@ class _GameManagerIsolate {
   static void _sendMessageToClient(GameManager manager,
       {required FromEbsMessages type, dynamic data}) {
     final message = {
-      'type': type.index,
-      'data': data,
+      'target': MessageTarget.client.index,
+      'message': {
+        'type': type.index,
+        'data': data,
+      }
     };
-    manager.sendPort.send(json.encode(message));
+    manager.sendPort.send(message);
   }
 }

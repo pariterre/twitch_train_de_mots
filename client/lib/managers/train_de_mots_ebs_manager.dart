@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:common/common.dart';
+import 'package:common/models/ebs_messages.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
@@ -143,14 +143,17 @@ class TrainDeMotsEbsManager {
         _logger.info('Connected to the EBS server');
         _isConnectedToEbs = true;
         break;
+      case FromEbsMessages.genericMessage:
+        _logger.info('Received generic message: ${data['data']}');
+        break;
       case FromEbsMessages.newLetterProblemGenerated:
         _receivedNewLetterProblem(data['data'] as Map<String, dynamic>);
         break;
-      case FromEbsMessages.UnkownMessageException:
-      case FromEbsMessages.NoBroadcasterIdException:
-      case FromEbsMessages.InvalidAlgorithmException:
-      case FromEbsMessages.InvalidTimeoutException:
-      case FromEbsMessages.InvalidConfigurationException:
+      case FromEbsMessages.unkownMessageException:
+      case FromEbsMessages.noBroadcasterIdException:
+      case FromEbsMessages.invalidAlgorithmException:
+      case FromEbsMessages.invalidTimeoutException:
+      case FromEbsMessages.invalidConfigurationException:
         _logger.severe('Error: $type');
     }
   }

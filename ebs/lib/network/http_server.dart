@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:common/common.dart';
+import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
@@ -48,6 +49,8 @@ void startHttpServer({required NetworkParameters parameters}) async {
       }
     } else if (request.method == 'GET') {
       _handleGetHttpRequest(request);
+    } else if (request.method == 'POST') {
+      _handlPostHttpRequest(request);
     } else {
       _handleConnexionRefused(request);
     }
@@ -67,6 +70,7 @@ void _handleOptionsRequest(HttpRequest request) {
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
   if (request.uri.path == '/getProblem') {
+    // TODO Move this to a CLIENT Get request
     try {
       _handleGetNewLetterProblemHttpRequest(request);
     } catch (e) {
@@ -78,6 +82,7 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
         ..close();
     }
   } else if (request.uri.path == '/startGame') {
+    // TODO Move this to a CLIENT POST request
     _handleWebSocketRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
     try {
@@ -88,6 +93,24 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
         ..statusCode = HttpStatus.unauthorized
         ..headers.add('Access-Control-Allow-Origin', '*')
         ..write(json.encode({'Error': 'Unauthorized'}))
+        ..close();
+      return;
+    }
+  } else {
+    _handleConnexionRefused(request);
+  }
+}
+
+Future<void> _handlPostHttpRequest(HttpRequest request) async {
+  if (request.uri.path.contains('/frontend/')) {
+    try {
+      _handleFrontend(request);
+    } catch (e) {
+      _logger.severe('Invalid POST request');
+      request.response
+        ..statusCode = HttpStatus.unauthorized
+        ..headers.add('Access-Control-Allow-Origin', '*')
+        ..write(json.encode({'Error': 'Invalid'}))
         ..close();
       return;
     }
@@ -122,7 +145,7 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
   if (broadcasterIdString == null) {
     _logger.severe('No broadcasterId found');
     socket.add(json.encode({
-      'type': FromEbsMessages.NoBroadcasterIdException.index,
+      'type': FromEbsMessages.noBroadcasterIdException.index,
       'message': NoBroadcasterIdException().message,
     }));
     socket.close();
@@ -133,7 +156,7 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
   if (broadcasterId == null) {
     _logger.severe('Invalid broadcasterId');
     socket.add(json.encode({
-      'type': FromEbsMessages.NoBroadcasterIdException.index,
+      'type': FromEbsMessages.noBroadcasterIdException.index,
       'message': NoBroadcasterIdException().message,
     }));
     socket.close();
@@ -144,7 +167,7 @@ Future<void> _handleWebSocketRequest(HttpRequest request) async {
       .handleNewClientConnexion(broadcasterId, socket: socket);
 }
 
-void _handleFrontend(HttpRequest request) {
+Future<void> _handleFrontend(HttpRequest request) async {
   _logger.info('Received data request');
 
   // Extract the payload from the JWT, if it succeeds, the user is authorized,
@@ -154,8 +177,17 @@ void _handleFrontend(HttpRequest request) {
   late final Map<String, dynamic> answer;
   if (request.uri.path.contains('/initialize')) {
     answer = {'authorized': true};
-  } else if (request.uri.path.contains('/coucou')) {
-    answer = {'message': 'Coucou'};
+  } else if (request.uri.path.contains('/pong')) {
+    answer = {'message': 'OK'};
+  } else if (request.uri.path.contains('/pardon')) {
+    final userId = payload!['user_id'];
+    // Get the message of the POST request
+    final message = jsonDecode(await utf8.decoder.bind(request).join());
+
+    if (message['message'] != 'Pardon my stealer') {
+      throw 'Invalid request';
+    }
+    answer = {'response': 'OK'};
   } else {
     throw 'Invalid endpoint';
   }

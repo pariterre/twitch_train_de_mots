@@ -1,17 +1,4 @@
-enum ToEbsMessages {
-  newLetterProblemRequest,
-  disconnect;
-}
-
-enum FromEbsMessages {
-  isConnected,
-  newLetterProblemGenerated,
-  NoBroadcasterIdException,
-  InvalidAlgorithmException,
-  InvalidTimeoutException,
-  InvalidConfigurationException,
-  UnkownMessageException;
-}
+import 'package:common/models/ebs_messages.dart';
 
 abstract class InvalidMessageException implements Exception {
   @override
@@ -25,7 +12,7 @@ class NoBroadcasterIdException implements InvalidMessageException {
   String toString() => 'No broadcasterId found';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.NoBroadcasterIdException;
+  FromEbsMessages get message => FromEbsMessages.noBroadcasterIdException;
 }
 
 class InvalidAlgorithmException implements InvalidMessageException {
@@ -33,7 +20,7 @@ class InvalidAlgorithmException implements InvalidMessageException {
   String toString() => 'Invalid algorithm';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
 }
 
 class InvalidTimeoutException implements InvalidMessageException {
@@ -41,7 +28,7 @@ class InvalidTimeoutException implements InvalidMessageException {
   String toString() => 'Invalid timeout';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
 }
 
 class InvalidConfigurationException implements InvalidMessageException {
@@ -49,5 +36,5 @@ class InvalidConfigurationException implements InvalidMessageException {
   String toString() => 'Invalid configuration';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.InvalidAlgorithmException;
+  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
 }

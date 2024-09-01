@@ -127,9 +127,9 @@ class TwitchManagerExtension {
         'user_id': broadcasterId,
         'role': 'external',
         'exp': (DateTime.now().add(Duration(days: 1))).millisecondsSinceEpoch,
-        'channel_id': 'all',
+        'channel_id': broadcasterId,
         'pubsub_perms': {
-          'send': ['global']
+          'send': ['broadcast']
         }
       });
       _sharedBearerToken = _Bearer(
@@ -140,7 +140,7 @@ class TwitchManagerExtension {
     return _sharedBearerToken!.token;
   }
 
-  Future<void> messageToChat(String message,
+  Future<void> sendChatMessage(String message,
       {bool sendUnderExtensionName = true}) async {
     if (sendUnderExtensionName) {
       await _postApiRequest(
@@ -165,6 +165,17 @@ class TwitchManagerExtension {
     }
   }
 
+  Future<void> sendExtentionMessage(String message) async {
+    await _postApiRequest(
+      endPoint: 'helix/extensions/pubsub',
+      body: {
+        'message': message,
+        'broadcaster_id': broadcasterId,
+        'target': ['broadcast']
+      },
+    );
+  }
+
   JWT verifyAndDecode(String jwt) {
     return JWT.verify(jwt, SecretKey(sharedSecret, isBase64Encoded: true));
   }
@@ -174,11 +185,12 @@ class TwitchManagerExtension {
     Map<String, dynamic>? queryParameters,
     Map<String, dynamic>? body,
   }) async {
+    final bearer = await _getSharedBearerToken();
+
     final response =
         await http.post(Uri.https('api.twitch.tv', endPoint, queryParameters),
             headers: <String, String>{
-              HttpHeaders.authorizationHeader:
-                  'Bearer ${await _getSharedBearerToken()}',
+              HttpHeaders.authorizationHeader: 'Bearer $bearer',
               'Client-Id': extensionId,
               HttpHeaders.contentTypeHeader: 'application/json',
             },

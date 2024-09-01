@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/screens/game_screen.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -17,15 +18,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Twitch Extension Example'),
-        ),
-        body: const Center(
-          child: Text('Check the console for output.'),
-        ),
-      ),
+    return const MaterialApp(
+      home: GameScreen(),
     );
   }
 }
