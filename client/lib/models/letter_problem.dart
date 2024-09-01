@@ -556,8 +556,23 @@ class ProblemGenerator {
           'The maximum number of letters should be greater than the minimum number of letters');
     }
 
-    if (!TrainDeMotsEbsManager.instance.isConnectedToEbs) {
-      await TrainDeMotsEbsManager.instance.connectToEbs();
+    try {
+      if (!TrainDeMotsEbsManager.instance.isConnectedToEbs) {
+        await TrainDeMotsEbsManager.instance.connectToEbs();
+      }
+    } catch (e) {
+      _logger.warning(
+          'Failed to get problem from EBS server, falling back to local algorithm');
+      // If anything goes wrong with the EBS, fallback to the local
+      // algorithm
+      return await generateFromRandomWord(
+          nbLetterInSmallestWord: nbLetterInSmallestWord,
+          minLetters: minLetters,
+          maxLetters: maxLetters,
+          minimumNbOfWords: minimumNbOfWords,
+          maximumNbOfWords: maximumNbOfWords,
+          addUselessLetter: addUselessLetter,
+          maxSearchingTime: maxSearchingTime);
     }
 
     final completer = TrainDeMotsEbsManager.instance.requestNewLetterProblem(
