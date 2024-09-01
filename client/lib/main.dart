@@ -54,7 +54,7 @@ void main() async {
           : 'https://twitchserver.pariterre.net:3010'),
       ebsUri: MocksConfiguration.useLocalEbs
           ? Uri.parse('ws://localhost:3010')
-          : null);
+          : Uri.parse('wss://twitchserver.pariterre.net:3010'));
 
   runApp(const MyApp());
 }

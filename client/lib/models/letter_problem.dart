@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/train_de_mots_ebs_manager.dart';
@@ -561,11 +563,7 @@ class ProblemGenerator {
         await TrainDeMotsEbsManager.instance.connectToEbs();
       }
     } catch (e) {
-      _logger.warning(
-          'Failed to get problem from EBS server, falling back to local algorithm');
-      // If anything goes wrong with the EBS, fallback to the local
-      // algorithm
-      return await generateFromRandomWord(
+      return await generateFromHttp(
           nbLetterInSmallestWord: nbLetterInSmallestWord,
           minLetters: minLetters,
           maxLetters: maxLetters,
@@ -611,6 +609,80 @@ class ProblemGenerator {
           addUselessLetter: addUselessLetter,
           maxSearchingTime: maxSearchingTime);
     }
+  }
+
+  ///
+  /// Calls a GET request using the generateFromRandomWord method.
+  static Future<LetterProblem> generateFromHttp({
+    required int nbLetterInSmallestWord,
+    required int minLetters,
+    required int maxLetters,
+    required int minimumNbOfWords,
+    required int maximumNbOfWords,
+    required bool addUselessLetter,
+    required Duration maxSearchingTime,
+  }) async {
+    _logger.info('Generating problem from HTTP request...');
+
+    // We have to deduce the number of letters to add to the candidate. It is
+    // way too long otherwise
+    if (addUselessLetter) maxLetters--;
+
+    if (maxLetters < minLetters) {
+      throw ArgumentError(
+          'The maximum number of letters should be greater than the minimum number of letters');
+    }
+
+    LetterProblem? finalProblem;
+    do {
+      // Send an http GET request to the backend to get a new problem
+      final url = Uri.parse(
+        '${TrainDeMotsEbsManager.instance.httpUri.toString()}'
+        '/getproblem'
+        '?lengthShortestSolutionMin=$nbLetterInSmallestWord'
+        '&lengthShortestSolutionMax=$nbLetterInSmallestWord'
+        '&lengthLongestSolutionMin=$minLetters'
+        '&lengthLongestSolutionMax=$maxLetters'
+        '&nbSolutionsMin=$minimumNbOfWords'
+        '&nbSolutionsMax=$maximumNbOfWords'
+        '&nbUselessLetters=${addUselessLetter ? '1' : '0'}'
+        '&algorithm=fromRandomWord'
+        '&timeout=30',
+      );
+
+      try {
+        final response = await http.get(url);
+        if (response.statusCode != 200) {
+          throw Exception('Failed to get problem from server');
+        }
+        Map<String, dynamic> data = json.decode(response.body);
+
+        final List<String> candidateLetters = data['letters'].split('');
+        final Set<String> subWords = data['solutions'].cast<String>().toSet();
+        final String? uselessLetter = data['uselessLetter'];
+
+        finalProblem = _letterProblemFromListLetters(
+            candidateLetters: candidateLetters,
+            subWords: subWords,
+            uselessLetter: uselessLetter);
+      } catch (e) {
+        _logger.warning(
+            'Failed to get problem from server, falling back to local algorithm');
+        // If anything goes wrong with the server, fallback to the local
+        // algorithm
+        finalProblem = await generateFromRandomWord(
+            nbLetterInSmallestWord: nbLetterInSmallestWord,
+            minLetters: minLetters,
+            maxLetters: maxLetters,
+            minimumNbOfWords: minimumNbOfWords,
+            maximumNbOfWords: maximumNbOfWords,
+            addUselessLetter: addUselessLetter,
+            maxSearchingTime: maxSearchingTime);
+      }
+    } while (finalProblem == null);
+
+    _logger.info('Problem generated');
+    return finalProblem;
   }
 
   ///
