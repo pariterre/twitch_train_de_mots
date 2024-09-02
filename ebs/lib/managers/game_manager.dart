@@ -1,6 +1,6 @@
 import 'dart:isolate';
 
-import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 

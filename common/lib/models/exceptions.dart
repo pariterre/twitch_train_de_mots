@@ -1,4 +1,4 @@
-import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/ebs_communication.dart';
 
 abstract class InvalidMessageException implements Exception {
   @override

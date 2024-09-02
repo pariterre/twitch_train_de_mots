@@ -2,13 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_ebs/models/exceptions.dart';
 import 'package:train_de_mots_ebs/network/network_parameters.dart';
+
+part 'package:train_de_mots_ebs/network/handle_client_endpoints.dart';
+part 'package:train_de_mots_ebs/network/handle_frontend_endpoints.dart';
 
 final _logger = Logger('http_server');
 
@@ -68,13 +71,9 @@ Future<void> _handleOptionsRequest(HttpRequest request) async {
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/client/')) {
-    if (request.uri.path.contains('/connect')) {
-      _handleConnectToWebSocketRequest(request);
-    } else {
-      throw InvalidEndpointException();
-    }
+    _handleClientHttpGetRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
-    _handleFrontend(request);
+    _handleFrontendGetHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }
@@ -82,75 +81,10 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
 
 Future<void> _handlPostHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/frontend/')) {
-    _handleFrontend(request);
+    _handleFrontendPostHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }
-}
-
-Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
-  try {
-    _logger.info('New client connexion');
-    final socket = await WebSocketTransformer.upgrade(request);
-
-    final broadcasterIdString = request.uri.queryParameters['broadcasterId'];
-    if (broadcasterIdString == null) {
-      _logger.severe('No broadcasterId found');
-      socket.add(json.encode({
-        'type': FromEbsMessages.noBroadcasterIdException.index,
-        'message': NoBroadcasterIdException().message,
-      }));
-      socket.close();
-      return;
-    }
-
-    final broadcasterId = int.tryParse(broadcasterIdString);
-    if (broadcasterId == null) {
-      _logger.severe('Invalid broadcasterId');
-      socket.add(json.encode({
-        'type': FromEbsMessages.noBroadcasterIdException.index,
-        'message': NoBroadcasterIdException().message,
-      }));
-      socket.close();
-      return;
-    }
-
-    IsolatedGamesManager.instance
-        .handleNewClientConnexion(broadcasterId, socket: socket);
-  } catch (e) {
-    throw ConnexionToWebSocketdRefusedException();
-  }
-}
-
-Future<void> _handleFrontend(HttpRequest request) async {
-  _logger.info('Received data request');
-
-  // Extract the payload from the JWT, if it succeeds, the user is authorized,
-  // otherwise an exception is thrown
-  final payload = _extractJwtPayload(request);
-
-  late final Map<String, dynamic> answer;
-  if (request.uri.path.contains('/initialize')) {
-    answer = {'authorized': true};
-  } else if (request.uri.path.contains('/pong')) {
-    answer = {'message': 'OK'};
-  } else if (request.uri.path.contains('/pardon')) {
-    payload!['user_id']; // Check that user_id is present in the payload
-    // Get the message of the POST request
-    final message = jsonDecode(await utf8.decoder.bind(request).join());
-    // TODO Relay the pardon to GameManager and send back the response from it
-
-    if (message['message'] != 'Pardon my stealer') {
-      // TODO Remove this, as it is for testing purposes only
-      throw Exception('Invalid message');
-    }
-    answer = {'response': 'OK'};
-  } else {
-    throw InvalidEndpointException();
-  }
-
-  // Send that the user is authorized
-  _sendSuccessResponse(request, answer);
 }
 
 _sendSuccessResponse(HttpRequest request, Map<String, dynamic> data) {
@@ -169,20 +103,6 @@ _sendErrorResponse(HttpRequest request, int statusCode, String message) {
     ..headers.add('Access-Control-Allow-Origin', '*')
     ..write(message)
     ..close();
-}
-
-Map<String, dynamic>? _extractJwtPayload(HttpRequest request) {
-  // Extract the Authorization header
-  final authHeader = request.headers['Authorization']?.first;
-  if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-    throw UnauthorizedException();
-  }
-// Extract the Bearer token by removing 'Bearer ' from the start
-  final bearer = authHeader.substring(7);
-  // If the token is invalid, an exception is thrown
-  final decodedJwt = TwitchManagerExtension.instance.verifyAndDecode(bearer);
-
-  return decodedJwt.payload;
 }
 
 Future<HttpServer> _startServer(NetworkParameters parameters) async {

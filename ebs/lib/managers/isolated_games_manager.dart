@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:common/models/ebs_messages.dart';
+import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/game_manager.dart';

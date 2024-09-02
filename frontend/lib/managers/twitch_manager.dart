@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:common/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
 
@@ -53,8 +54,9 @@ class TwitchManager {
       throw Exception('TwitchManager is not initialized');
     }
 
-    final response = await _frontendManager!.api
-        .post('pardon', {'message': 'Pardon my stealer'});
+    final response = await _frontendManager!.apiToEbs.post(
+        FrontendHttpPostEndpoints.pardon.toString(),
+        {'message': 'Pardon my stealer'});
     return response['response'] == 'OK';
   }
 
