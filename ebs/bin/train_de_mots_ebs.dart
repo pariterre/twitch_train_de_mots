@@ -127,7 +127,7 @@ void initializeTwitchManagerExtension() {
   }
 
   TwitchManagerExtension.initialize(
-    broadcasterId: '595803413',
+    broadcasterId: 595803413,
     extensionId: '539pzk7h6vavyzmklwy6msq6k3068x',
     extensionVersion: '0.0.1',
     extensionSecret: extensionSecret,

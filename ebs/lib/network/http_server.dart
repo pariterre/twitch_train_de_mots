@@ -7,7 +7,6 @@ import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
-import 'package:train_de_mots_ebs/models/exceptions.dart';
 import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
 part 'package:train_de_mots_ebs/network/handle_client_endpoints.dart';
@@ -71,9 +70,9 @@ Future<void> _handleOptionsRequest(HttpRequest request) async {
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/client/')) {
-    _handleClientHttpGetRequest(request);
+    await _handleClientHttpGetRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
-    _handleFrontendGetHttpRequest(request);
+    await _handleFrontendGetHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }
@@ -81,7 +80,7 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
 
 Future<void> _handlPostHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/frontend/')) {
-    _handleFrontendPostHttpRequest(request);
+    await _handleFrontendPostHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }

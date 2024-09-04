@@ -13,30 +13,23 @@ Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
     _logger.info('New client connexion');
     final socket = await WebSocketTransformer.upgrade(request);
 
-    final broadcasterIdString = request.uri.queryParameters['broadcasterId'];
-    if (broadcasterIdString == null) {
+    final broadcasterId =
+        int.tryParse(request.uri.queryParameters['broadcasterId'] ?? '');
+    if (broadcasterId == null) {
       _logger.severe('No broadcasterId found');
       socket.add(json.encode({
-        'type': FromEbsMessages.noBroadcasterIdException.index,
+        'type': FromEbsToClientMessages.noBroadcasterIdException.index,
         'message': NoBroadcasterIdException().message,
       }));
       socket.close();
       return;
     }
 
-    final broadcasterId = int.tryParse(broadcasterIdString);
-    if (broadcasterId == null) {
-      _logger.severe('Invalid broadcasterId');
-      socket.add(json.encode({
-        'type': FromEbsMessages.noBroadcasterIdException.index,
-        'message': NoBroadcasterIdException().message,
-      }));
-      socket.close();
-      return;
-    }
+    IsolatedGamesManager.instance.newClient(broadcasterId, socket: socket);
 
-    IsolatedGamesManager.instance
-        .handleNewClientConnexion(broadcasterId, socket: socket);
+    // Establish a persistent communication with the client
+    socket.listen((message) => IsolatedGamesManager.instance
+        .messageFromClientToIsolated(message, socket));
   } catch (e) {
     throw ConnexionToWebSocketdRefusedException();
   }

@@ -5,12 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Train de Mots",
+            "name": "Train de Mots (with local server)",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "args": ["--web-browser-flag=--disable-web-security"],
             "preLaunchTask": "Run Dart Server",
+        },
+        {
+            "name": "Train de Mots",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": ["--web-browser-flag=--disable-web-security"],
         },
     ]
 }

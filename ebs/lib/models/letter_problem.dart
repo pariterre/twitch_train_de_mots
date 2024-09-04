@@ -4,7 +4,6 @@ import 'package:common/models/exceptions.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/words_manager.dart';
-import 'package:train_de_mots_ebs/models/exceptions.dart';
 import 'package:train_de_mots_ebs/models/problem_configuration.dart';
 import 'package:train_de_mots_ebs/models/range.dart';
 

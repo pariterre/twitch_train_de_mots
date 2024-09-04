@@ -432,7 +432,7 @@ class GameManager {
     if (cm.canUseControllerHelper) {
       if (message == '!pardon') {
         _logger.info('Trying to pardon the last stealer');
-        _pardonLastStealer(player);
+        pardonLastStealer(playerWhoRequestedPardon: player);
         return;
       } else if (message == '!boost') {
         _logger.info('Trying to boost the train');
@@ -514,7 +514,7 @@ class GameManager {
   /// Performs the pardon to a player, that is giving back the points to the team
   /// and remove the stolen flag for the player. This is only performed if the
   /// pardonner is not the stealer themselves.
-  void _pardonLastStealer(Player playerWhoRequestedPardon) {
+  void pardonLastStealer({required Player playerWhoRequestedPardon}) {
     _logger.info('Pardoning the last stealer...');
 
     if (_remainingPardons < 1) {

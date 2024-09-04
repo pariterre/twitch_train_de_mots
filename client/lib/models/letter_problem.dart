@@ -561,7 +561,7 @@ class ProblemGenerator {
         await TrainDeMotsEbsManager.instance.connectToEbs();
       }
 
-      final completer = TrainDeMotsEbsManager.instance.requestNewLetterProblem(
+      final completer = TrainDeMotsEbsManager.instance.generateLetterProblem(
         nbLetterInSmallestWord: nbLetterInSmallestWord,
         minLetters: minLetters,
         maxLetters: maxLetters,

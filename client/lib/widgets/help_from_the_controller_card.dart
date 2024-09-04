@@ -73,9 +73,9 @@ class _PardonState extends State<_Pardon> {
 
   void _refresh() => setState(() {});
 
-  void _onStealerPardoned(WordSolution solution) {
+  void _onStealerPardoned(WordSolution? solution) {
     // If isStolen is true, it means it was pardoned by the wrong user
-    if (solution.isStolen) return;
+    if (solution == null || solution.isStolen) return;
 
     _lastStealer = null;
     setState(() {});

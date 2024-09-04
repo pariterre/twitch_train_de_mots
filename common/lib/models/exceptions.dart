@@ -1,10 +1,10 @@
-import 'package:common/models/ebs_communication.dart';
+import 'package:common/models/ebs_helpers.dart';
 
 abstract class InvalidMessageException implements Exception {
   @override
   String toString() => 'Invalid message';
 
-  FromEbsMessages get message;
+  FromEbsToClientMessages get message;
 }
 
 class NoBroadcasterIdException implements InvalidMessageException {
@@ -12,7 +12,8 @@ class NoBroadcasterIdException implements InvalidMessageException {
   String toString() => 'No broadcasterId found';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.noBroadcasterIdException;
+  FromEbsToClientMessages get message =>
+      FromEbsToClientMessages.noBroadcasterIdException;
 }
 
 class InvalidAlgorithmException implements InvalidMessageException {
@@ -20,7 +21,8 @@ class InvalidAlgorithmException implements InvalidMessageException {
   String toString() => 'Invalid algorithm';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
+  FromEbsToClientMessages get message =>
+      FromEbsToClientMessages.invalidAlgorithmException;
 }
 
 class InvalidTimeoutException implements InvalidMessageException {
@@ -28,7 +30,8 @@ class InvalidTimeoutException implements InvalidMessageException {
   String toString() => 'Invalid timeout';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
+  FromEbsToClientMessages get message =>
+      FromEbsToClientMessages.invalidAlgorithmException;
 }
 
 class InvalidConfigurationException implements InvalidMessageException {
@@ -36,5 +39,44 @@ class InvalidConfigurationException implements InvalidMessageException {
   String toString() => 'Invalid configuration';
 
   @override
-  FromEbsMessages get message => FromEbsMessages.invalidAlgorithmException;
+  FromEbsToClientMessages get message =>
+      FromEbsToClientMessages.invalidAlgorithmException;
+}
+
+class TimeoutException implements Exception {
+  final String message;
+
+  TimeoutException(this.message);
+
+  @override
+  String toString() {
+    return 'TimeoutException: $message';
+  }
+}
+
+class UnauthorizedException implements Exception {
+  UnauthorizedException();
+
+  @override
+  String toString() {
+    return 'Token verification failed';
+  }
+}
+
+class InvalidEndpointException implements Exception {
+  InvalidEndpointException();
+
+  @override
+  String toString() {
+    return 'Invalid endpoint';
+  }
+}
+
+class ConnexionToWebSocketdRefusedException implements Exception {
+  ConnexionToWebSocketdRefusedException();
+
+  @override
+  String toString() {
+    return 'Connexion to WebSocketd refused';
+  }
 }
