@@ -13,7 +13,20 @@ enum FromClientToEbsMessages {
 }
 
 enum FromFrontendToEbsMessages {
+  initialize,
+  registerToGame,
   pardonRequest;
+
+  factory FromFrontendToEbsMessages.fromString(String name) {
+    try {
+      return FromFrontendToEbsMessages.values
+          .firstWhere((e) => name.contains(e.name));
+    } catch (e) {
+      throw InvalidEndpointException();
+    }
+  }
+
+  String asEndpoint() => '/$name';
 }
 
 enum FromEbsToManagerMessages {
@@ -37,38 +50,6 @@ enum FromEbsToClientMessages {
 
 enum FromEbsToFrontendMessages {
   ping,
+  gameStarted,
   pardonStatusUpdate;
-}
-
-enum FrontendHttpGetEndpoints {
-  initialize;
-
-  factory FrontendHttpGetEndpoints.fromString(String name) {
-    try {
-      return FrontendHttpGetEndpoints.values
-          .firstWhere((e) => name.contains(e.toString()));
-    } catch (e) {
-      throw InvalidEndpointException();
-    }
-  }
-
-  @override
-  String toString() => '/$name';
-}
-
-enum FrontendHttpPostEndpoints {
-  pardon,
-  dummyRequest;
-
-  factory FrontendHttpPostEndpoints.fromString(String name) {
-    try {
-      return FrontendHttpPostEndpoints.values
-          .firstWhere((e) => name.contains(e.toString()));
-    } catch (e) {
-      throw InvalidEndpointException();
-    }
-  }
-
-  @override
-  String toString() => '/$name';
 }

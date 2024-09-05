@@ -14,7 +14,16 @@ final _logger = Logger('GameManager');
 /// game state. In that sense, it provides a communication channel between the
 /// client and the frontends.
 class GameManager {
+  ///
+  /// Ids that interact with the game
   final int broadcasterId;
+  final Map<int, String> _userIdToOpaqueId = {};
+  final Map<int, String> _userIdToLogin = {};
+  final Map<String, int> _opaqueIdToUserId = {};
+  final Map<String, int> _loginToUserId = {};
+
+  ///
+  /// Communication protocol with main manager
   final SendPort _sendPort;
   final Map<int, Completer> _completers = {};
   int addCompleter() {
@@ -24,32 +33,21 @@ class GameManager {
     return id;
   }
 
-  final Map<String, int> loginToId = {};
-
   void completeCompleter(int id, dynamic value) {
     final completer = _completers[id]!;
     completer.complete(value);
   }
 
-  Completer popCompleter(int id) {
-    final completer = _completers.remove(id);
-    if (completer == null) {
-      throw Exception('Completer not found');
-    }
-    return completer;
-  }
-
+  ///
+  /// Game state variables
   bool _isRunning = true;
+  Future<void> requestEndOfGame() async => _isRunning = false;
 
   GameManager({required this.broadcasterId, required SendPort sendPort})
       : _sendPort = sendPort {
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
     _gameLoop();
-  }
-
-  Future<void> requestEndOfGame() async {
-    _isRunning = false;
   }
 
   Future<void> requestPardonStealer(String playerName) async {
@@ -60,24 +58,52 @@ class GameManager {
         data: {'player_name': playerName});
   }
 
+  Future<void> registerToGame(
+      {required int userId, required String opaqueId}) async {
+    _logger.info('Registering to game');
+
+    // Do not lose time if the user is already registered
+    if (_userIdToOpaqueId.containsKey(userId)) return;
+
+    // Get the login of the user
+    final login = await sendQuestionToManager(
+        type: FromEbsToManagerMessages.getLogin, data: {'user_id': userId});
+    if (login == null) {
+      _logger.severe('Could not get login for user $userId');
+      return;
+    }
+
+    // Register the user
+    _userIdToOpaqueId[userId] = opaqueId;
+    _opaqueIdToUserId[opaqueId] = userId;
+    _userIdToLogin[userId] = login;
+    _loginToUserId[login] = userId;
+  }
+
   Future<void> pardonStatusUpdate(String loginWhoCanPardon) async {
     _logger.info('Last stealer is pardoned');
 
-    int userId = -1;
-    if (loginWhoCanPardon.isNotEmpty) {
-      userId = loginToId[loginWhoCanPardon] ?? -1;
-      if (userId < 0) {
-        userId = await sendQuestionToManager(
-                type: FromEbsToManagerMessages.getUserId,
-                data: {'login': loginWhoCanPardon}) ??
-            -1;
-        if (userId >= 0) loginToId[loginWhoCanPardon] = userId;
-      }
+    if (loginWhoCanPardon.isEmpty) {
+      sendMessageToFrontend(
+          type: FromEbsToFrontendMessages.pardonStatusUpdate,
+          data: {
+            'users_who_can_pardon': ['']
+          });
     }
+
+    if (!_loginToUserId.containsKey(loginWhoCanPardon)) {
+      _logger.severe('User $loginWhoCanPardon is not registered');
+      return;
+    }
+
+    // Get the opaque id
+    final userId = _loginToUserId[loginWhoCanPardon]!;
+    final opaqueId = _userIdToOpaqueId[userId]!;
+
     sendMessageToFrontend(
         type: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
-          'users_who_can_pardon': [userId]
+          'users_who_can_pardon': [opaqueId]
         });
   }
 
@@ -87,6 +113,9 @@ class GameManager {
 
   Future<void> _gameLoop() async {
     _logger.info('Game loop started for client: $broadcasterId');
+
+    // Inform the frontend that the game has started and they are required to register
+    sendMessageToFrontend(type: FromEbsToFrontendMessages.gameStarted);
 
     while (_isRunning) {
       // Perform game logic

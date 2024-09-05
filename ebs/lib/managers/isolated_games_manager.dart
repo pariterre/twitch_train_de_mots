@@ -311,6 +311,19 @@ class _IsolatedGame {
       final data = message['data'];
 
       switch (type) {
+        case FromFrontendToEbsMessages.initialize:
+          // Do nothing
+          break;
+
+        case FromFrontendToEbsMessages.registerToGame:
+          final userId = data['user_id'];
+          final opaqueId = data['opaque_id'];
+          if (userId == null || opaqueId == null) {
+            // TODO: Send error message
+            return;
+          }
+          manager.registerToGame(userId: userId, opaqueId: opaqueId);
+
         case FromFrontendToEbsMessages.pardonRequest:
           final userId = data['user_id'];
 

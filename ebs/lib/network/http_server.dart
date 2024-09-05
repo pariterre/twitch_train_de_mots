@@ -72,7 +72,7 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/client/')) {
     await _handleClientHttpGetRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
-    await _handleFrontendGetHttpRequest(request);
+    await _handleFrontendHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }
@@ -80,7 +80,7 @@ Future<void> _handleGetHttpRequest(HttpRequest request) async {
 
 Future<void> _handlPostHttpRequest(HttpRequest request) async {
   if (request.uri.path.contains('/frontend/')) {
-    await _handleFrontendPostHttpRequest(request);
+    await _handleFrontendHttpRequest(request);
   } else {
     throw InvalidEndpointException();
   }

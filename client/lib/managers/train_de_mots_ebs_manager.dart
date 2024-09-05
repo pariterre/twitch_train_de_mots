@@ -62,10 +62,10 @@ class TrainDeMotsEbsManager {
     }
 
     // Connect the listeners to the GameManager
-    GameManager.instance.onStealerPardoned
-        .addListener(_sendStealerWasPardonedToFrontend);
-    GameManager.instance.onSolutionWasStolen
-        .addListener(_sendSolutionWasStolenToFrontend);
+    final gm = GameManager.instance;
+    gm.onStealerPardoned.addListener(_sendStealerWasPardonedToFrontend);
+    gm.onSolutionWasStolen.addListener(_sendSolutionWasStolenToFrontend);
+    gm.onRoundIsOver.addListener(_onRoundIsOver);
 
     _logger.info('Connected to the EBS server');
   }
@@ -74,10 +74,10 @@ class TrainDeMotsEbsManager {
   /// Dispose the TrainDeMotsEbsManager by closing the connection with the
   /// EBS server.
   void dispose() {
-    GameManager.instance.onStealerPardoned
-        .removeListener(_sendStealerWasPardonedToFrontend);
-    GameManager.instance.onSolutionWasStolen
-        .removeListener(_sendSolutionWasStolenToFrontend);
+    final gm = GameManager.instance;
+    gm.onStealerPardoned.removeListener(_sendStealerWasPardonedToFrontend);
+    gm.onSolutionWasStolen.removeListener(_sendSolutionWasStolenToFrontend);
+    gm.onRoundIsOver.removeListener(_onRoundIsOver);
     _socket?.sink.close();
   }
 
@@ -125,6 +125,10 @@ class TrainDeMotsEbsManager {
     );
 
     return _completers[LetterProblem]!;
+  }
+
+  void _onRoundIsOver(bool playSound) {
+    _sendStealerWasPardonedToFrontend(null);
   }
 
   ///

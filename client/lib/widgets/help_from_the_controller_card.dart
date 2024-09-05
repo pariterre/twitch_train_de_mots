@@ -59,6 +59,7 @@ class _PardonState extends State<_Pardon> {
     gm.onNewPardonGranted.addListener(_refresh);
     gm.onStealerPardoned.addListener(_onStealerPardoned);
     gm.onSolutionWasStolen.addListener(_onSolutionWasStolen);
+    gm.onRoundIsOver.addListener(_resetCard);
   }
 
   @override
@@ -67,6 +68,7 @@ class _PardonState extends State<_Pardon> {
     gm.onNewPardonGranted.removeListener(_refresh);
     gm.onStealerPardoned.removeListener(_onStealerPardoned);
     gm.onSolutionWasStolen.removeListener(_onSolutionWasStolen);
+    gm.onRoundIsOver.removeListener(_resetCard);
 
     super.dispose();
   }
@@ -83,6 +85,11 @@ class _PardonState extends State<_Pardon> {
 
   void _onSolutionWasStolen(WordSolution solution) {
     _lastStealer = solution.stolenFrom.name;
+    setState(() {});
+  }
+
+  void _resetCard(_) {
+    _lastStealer = null;
     setState(() {});
   }
 

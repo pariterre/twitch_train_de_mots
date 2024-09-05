@@ -27,7 +27,7 @@ class TwitchManager {
   /// Setup listeners for all the messages that come from the EBS.
   final onPardonStatusUpdate = TwitchGenericListener();
 
-  String get obfucatedUserId {
+  String get opaqueUserId {
     if (_frontendManager == null) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
@@ -50,13 +50,18 @@ class TwitchManager {
         ebsUri: Uri.parse('http://localhost:3010/frontend'),
       ),
       initializeEndpoint: '/initialize',
+      isTwitchUserIdRequired: true,
       onHasConnectedCallback: () async {
         _logger.info('Connected to Twitch');
         _isConnectedToEbs = true;
         _hasConnectedToEbsCompleter.complete(_isConnectedToEbs);
       },
       pubSubCallback: _onPubSubMessageReceived,
-    ).then((manager) => _frontendManager = manager);
+    ).then((manager) {
+      _frontendManager = manager;
+      // Try to register to the game. This will fail if the game has not started.
+      _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+    });
   }
 
   Future<void> _onPubSubMessageReceived(String raw) async {
@@ -69,11 +74,15 @@ class TwitchManager {
         case FromEbsToFrontendMessages.ping:
           _logger.info('PING received');
           break;
+
+        case FromEbsToFrontendMessages.gameStarted:
+          // Register to the game when the game has started
+          _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+          break;
+
         case FromEbsToFrontendMessages.pardonStatusUpdate:
-          _logger.info('Received pardon message, stealer that can pardon: '
-              '${data['users_who_can_pardon']}');
-          onPardonStatusUpdate.notifyListeners(
-              (callback) => callback(data['users_who_can_pardon']));
+          final users = List<String>.from(data['users_who_can_pardon']);
+          onPardonStatusUpdate.notifyListeners((callback) => callback(users));
           break;
       }
     } catch (e) {
@@ -85,14 +94,19 @@ class TwitchManager {
   /// Post a request to pardon the stealer. No confirmation is received from
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
-  Future<void> pardonStealer() async {
+  Future<void> pardonStealer() async =>
+      await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+
+  ///
+  /// Send a message to the EBS based on the [type] of message.
+  Future<Map<String, dynamic>> _sendMessageToEbs(
+      FromFrontendToEbsMessages type) async {
     if (!_isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
     }
 
-    await _frontendManager!.apiToEbs
-        .post(FrontendHttpPostEndpoints.pardon.toString());
+    return await _frontendManager!.apiToEbs.post(type.asEndpoint());
   }
 
   bool get _isInitialized {
