@@ -2,17 +2,16 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
+import 'package:common/models/custom_callback.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
-import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
-
-import 'package:logging/logging.dart';
 
 final _logger = Logger('DatabaseManager');
 

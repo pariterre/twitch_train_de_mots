@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:common/models/custom_callback.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/models/custom_callback.dart';
 import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
