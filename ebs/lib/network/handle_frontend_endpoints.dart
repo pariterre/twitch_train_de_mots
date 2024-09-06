@@ -15,26 +15,36 @@ Future<void> _handleFrontendHttpRequest(HttpRequest request) async {
   final opaqueUserId = payload?['opaque_user_id'];
 
   switch (requestEndpoint) {
-    case FromFrontendToEbsMessages.initialize:
-      _sendSuccessResponse(request, {'authorized': true});
-      break;
     case FromFrontendToEbsMessages.registerToGame:
       // Get the message of the POST request
-      IsolatedGamesManager.instance.messageFromFrontendToIsolated(
-          broadcasterId: broadcasterId,
-          type: FromFrontendToEbsMessages.registerToGame,
-          data: {'user_id': userId, 'opaque_id': opaqueUserId});
+      final response = await IsolatedGamesManager.instance
+          .messageFromFrontendToIsolated(
+              broadcasterId: broadcasterId,
+              type: FromFrontendToEbsMessages.registerToGame,
+              data: {'user_id': userId, 'opaque_id': opaqueUserId});
 
-      _sendSuccessResponse(request, {'response': 'OK'});
+      if (response['status'] != 'OK') {
+        _sendErrorResponse(
+            request, HttpStatus.unauthorized, 'Could not register to game');
+        return;
+      }
+      _sendSuccessResponse(request, response);
       break;
+
     case FromFrontendToEbsMessages.pardonRequest:
       // Get the message of the POST request
-      IsolatedGamesManager.instance.messageFromFrontendToIsolated(
-          broadcasterId: broadcasterId,
-          type: FromFrontendToEbsMessages.pardonRequest,
-          data: {'user_id': userId});
+      final response = await IsolatedGamesManager.instance
+          .messageFromFrontendToIsolated(
+              broadcasterId: broadcasterId,
+              type: FromFrontendToEbsMessages.pardonRequest,
+              data: {'user_id': userId});
 
-      _sendSuccessResponse(request, {'response': 'OK'});
+      if (response['status'] != 'OK') {
+        _sendErrorResponse(
+            request, HttpStatus.unauthorized, 'Could not pardon the stealer');
+        return;
+      }
+      _sendSuccessResponse(request, response);
       break;
   }
 }

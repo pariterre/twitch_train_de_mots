@@ -8,6 +8,7 @@ import 'package:common/models/exceptions.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/game_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
+import 'package:train_de_mots_ebs/models/completers.dart';
 
 final _logger = Logger('IsolateGameManagers');
 
@@ -47,6 +48,7 @@ class IsolatedGamesManager {
   static IsolatedGamesManager get instance => _instance;
   IsolatedGamesManager._internal();
 
+  final _completers = Completers();
   final Map<int, _IsolateInterface> _isolates = {};
 
   ///
@@ -66,8 +68,9 @@ class IsolatedGamesManager {
         .listen((message) => _handleMessageFromIsolated(message, socket, data));
 
     // Emulate an is connected message to send to the client
-    _handleMessageFromIsolatedToClient(
-        {'type': FromEbsToClientMessages.isConnected.index}, socket);
+    _handleMessageFromIsolatedToClient({
+      'message': {'type': FromEbsToClientMessages.isConnected.index}
+    }, socket);
   }
 
   ///
@@ -84,24 +87,24 @@ class IsolatedGamesManager {
     final target = MessageTarget.values[message['target']];
     switch (target) {
       case MessageTarget.manager:
-        await _handleMessageFromIsolatedToManager(
-            message['message'], data, socket);
+        await _handleMessageFromIsolatedToManager(message, data, socket);
         break;
       case MessageTarget.client:
-        await _handleMessageFromIsolatedToClient(message['message'], socket);
+        await _handleMessageFromIsolatedToClient(message, socket);
         break;
       case MessageTarget.frontend:
-        await _handleMessageFromIsolatedToFrontend(message['message'], socket);
+        await _handleMessageFromIsolatedToFrontend(message, socket);
         break;
     }
   }
 
   Future<void> _handleMessageFromIsolatedToManager(
-      message, _IsolateData isolateData, WebSocket socket) async {
+      rawMessage, _IsolateData isolateData, WebSocket socket) async {
+    final message = rawMessage['message'];
+
     final tm = TwitchManagerExtension.instance;
     final type = FromEbsToManagerMessages.values[message['type'] as int];
     final data = message['data'];
-    final completerId = message['completer_id'] as int?;
 
     switch (type) {
       case FromEbsToManagerMessages.initialize:
@@ -111,6 +114,12 @@ class IsolatedGamesManager {
         isolate.sendPortClient = data['sendPortClient'];
         isolate.sendPortFrontend = data['sendPortFrontend'];
         break;
+
+      case FromEbsToManagerMessages.responseInternal:
+        final completerId = rawMessage['internal_main']['completer_id'] as int;
+        _completers.complete(completerId, data);
+        break;
+
       case FromEbsToManagerMessages.getUserId:
         final login = data['login'];
         final userId = await tm.userId(login: login);
@@ -119,7 +128,7 @@ class IsolatedGamesManager {
           broadcasterId: isolateData.twitchBroadcasterId,
           type: FromManagerToEbsMessages.getUserId,
           data: {'user_id': userId},
-          completerId: completerId,
+          internalIsolate: rawMessage['internal_isolate'],
         );
         break;
       case FromEbsToManagerMessages.getDisplayName:
@@ -130,7 +139,7 @@ class IsolatedGamesManager {
           broadcasterId: isolateData.twitchBroadcasterId,
           type: FromManagerToEbsMessages.getDisplayName,
           data: {'display_name': displayName},
-          completerId: completerId,
+          internalIsolate: rawMessage['internal_isolate'],
         );
         break;
 
@@ -142,7 +151,7 @@ class IsolatedGamesManager {
           broadcasterId: isolateData.twitchBroadcasterId,
           type: FromManagerToEbsMessages.getLogin,
           data: {'login': login},
-          completerId: completerId,
+          internalIsolate: rawMessage['internal_isolate'],
         );
         break;
     }
@@ -150,12 +159,12 @@ class IsolatedGamesManager {
 
   Future<void> _handleMessageFromIsolatedToClient(
       Map<String, dynamic> message, WebSocket socket) async {
-    socket.add(json.encode(message));
+    socket.add(json.encode(message['message']));
   }
 
   Future<void> _handleMessageFromIsolatedToFrontend(
       Map<String, dynamic> message, WebSocket socket) async {
-    TwitchManagerExtension.instance.sendExtentionMessage(message);
+    TwitchManagerExtension.instance.sendExtentionMessage(message['message']);
   }
 
   Future<void> messageFromClientToIsolated(message, WebSocket socket) async {
@@ -174,7 +183,7 @@ class IsolatedGamesManager {
 
   // TODO ADD WAY TO INFORM THE ISOLATED THAT THE CONNEXION WAS LOST
 
-  Future<void> messageFromFrontendToIsolated({
+  Future<Map<String, dynamic>> messageFromFrontendToIsolated({
     required int broadcasterId,
     required FromFrontendToEbsMessages type,
     Map<String, dynamic>? data,
@@ -182,18 +191,25 @@ class IsolatedGamesManager {
     final sendPortFrontend = _isolates[broadcasterId]?.sendPortFrontend;
     if (sendPortFrontend == null) {
       _logger.info('No active game with id: $broadcasterId');
-      return;
+      return {'status': 'NOK'};
     }
 
     // Relay the message to the worker isolate
-    sendPortFrontend.send({'type': type.index, 'data': data});
+    final completerId = _completers.spawn();
+    sendPortFrontend.send({
+      'type': type.index,
+      'data': data,
+      'internal_main': {'completer_id': completerId}
+    });
+
+    return await _completers.get(completerId)!.future;
   }
 
   Future<void> messageFromManagerToIsolated({
     required int broadcasterId,
     required FromManagerToEbsMessages type,
     Map<String, dynamic>? data,
-    int? completerId,
+    Map<String, dynamic>? internalIsolate,
   }) async {
     final sendPortManager = _isolates[broadcasterId]?.sendPortManager;
     if (sendPortManager == null) {
@@ -202,10 +218,12 @@ class IsolatedGamesManager {
     }
 
     // Relay the message to the worker isolate
-    final response = {'type': type.index, 'data': data};
-    if (completerId != null) {
-      response['completer_id'] = completerId;
-    }
+    final response = {
+      'type': type.index,
+      'data': data,
+      'internal_isolate': internalIsolate
+    };
+
     sendPortManager.send(response);
   }
 }
@@ -224,7 +242,7 @@ class _IsolatedGame {
         broadcasterId: data.twitchBroadcasterId, sendPort: sendPort);
 
     // Send the SendPort to the main isolate, so it can communicate back to the isolate
-    manager
+    manager.communications
         .sendMessageToManager(type: FromEbsToManagerMessages.initialize, data: {
       'sendPortManager': receivePortManager.sendPort,
       'sendPortClient': receivePortClient.sendPort,
@@ -248,17 +266,20 @@ class _IsolatedGame {
     // it sends an error message back to the client
     final type = FromManagerToEbsMessages.values[message['type'] as int];
     final data = message['data'];
-    final completerId = message['completer_id'] as int?;
+    final completerId = message['internal_isolate']['completer_id'];
 
     switch (type) {
       case FromManagerToEbsMessages.getUserId:
-        manager.completeCompleter(completerId!, data['user_id']);
+        manager.communications
+            .complete(completerId: completerId, data: data['user_id']);
         break;
       case FromManagerToEbsMessages.getDisplayName:
-        manager.completeCompleter(completerId!, data['display_name']);
+        manager.communications
+            .complete(completerId: completerId, data: data['display_name']);
         break;
       case FromManagerToEbsMessages.getLogin:
-        manager.completeCompleter(completerId!, data['login']);
+        manager.communications
+            .complete(completerId: completerId, data: data['login']);
         break;
     }
   }
@@ -277,7 +298,7 @@ class _IsolatedGame {
 
       switch (type) {
         case FromClientToEbsMessages.newLetterProblemRequest:
-          manager.sendMessageToClient(
+          manager.communications.sendMessageToClient(
               type: FromEbsToClientMessages.newLetterProblemGenerated,
               data: (await manager.generateProblem(data)).serialize());
           break;
@@ -291,9 +312,9 @@ class _IsolatedGame {
           break;
       }
     } on InvalidMessageException catch (e) {
-      manager.sendMessageToClient(type: e.message);
+      manager.communications.sendMessageToClient(type: e.message);
     } catch (e) {
-      manager.sendMessageToClient(
+      manager.communications.sendMessageToClient(
           type: FromEbsToClientMessages.unkownMessageException);
     }
   }
@@ -302,6 +323,18 @@ class _IsolatedGame {
   /// Handle messages from the client and relay them to the game manager
   static Future<void> _handleMessageFromFrontend(
       message, GameManager manager) async {
+    // Helper function to send a response to the frontend
+    Future<void> sendReponseSubroutine(
+        {required bool isSuccess,
+        Map<String, dynamic>? data,
+        Map<String, dynamic>? internalMain}) async {
+      if (internalMain?['completer_id'] == null) return;
+      manager.communications.sendMessageToManager(
+          type: FromEbsToManagerMessages.responseInternal,
+          data: {'status': isSuccess ? 'OK' : 'NOK', 'data': data},
+          internalMain: internalMain);
+    }
+
     _logger.info('Received message from client or frontend');
 
     // Parse and handle the message from the client. If the message is invalid,
@@ -309,35 +342,37 @@ class _IsolatedGame {
     try {
       final type = FromFrontendToEbsMessages.values[message['type'] as int];
       final data = message['data'];
+      final internalMain = message['internal_main'];
 
       switch (type) {
-        case FromFrontendToEbsMessages.initialize:
-          // Do nothing
-          break;
-
         case FromFrontendToEbsMessages.registerToGame:
           final userId = data['user_id'];
           final opaqueId = data['opaque_id'];
           if (userId == null || opaqueId == null) {
-            // TODO: Send error message
+            sendReponseSubroutine(isSuccess: false, internalMain: internalMain);
             return;
           }
-          manager.registerToGame(userId: userId, opaqueId: opaqueId);
+          final isConnected =
+              await manager.registerToGame(userId: userId, opaqueId: opaqueId);
+          sendReponseSubroutine(
+              isSuccess: isConnected, internalMain: internalMain);
 
         case FromFrontendToEbsMessages.pardonRequest:
           final userId = data['user_id'];
 
-          final login = (await manager.sendQuestionToManager(
+          final login = (await manager.communications.sendQuestionToManager(
               type: FromEbsToManagerMessages.getLogin,
               data: {'user_id': userId})) as String;
 
           manager.requestPardonStealer(login);
+
+          sendReponseSubroutine(isSuccess: true, internalMain: internalMain);
           break;
       }
     } on InvalidMessageException catch (e) {
-      manager.sendMessageToClient(type: e.message);
+      manager.communications.sendMessageToClient(type: e.message);
     } catch (e) {
-      manager.sendMessageToClient(
+      manager.communications.sendMessageToClient(
           type: FromEbsToClientMessages.unkownMessageException);
     }
   }

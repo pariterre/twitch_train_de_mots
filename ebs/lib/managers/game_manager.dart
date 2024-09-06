@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:common/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
+import 'package:train_de_mots_ebs/models/completers.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 
 final _logger = Logger('GameManager');
@@ -24,19 +25,7 @@ class GameManager {
 
   ///
   /// Communication protocol with main manager
-  final SendPort _sendPort;
-  final Map<int, Completer> _completers = {};
-  int addCompleter() {
-    final completer = Completer();
-    final id = _completers.hashCode;
-    _completers[id] = completer;
-    return id;
-  }
-
-  void completeCompleter(int id, dynamic value) {
-    final completer = _completers[id]!;
-    completer.complete(value);
-  }
+  final GameManagerCommunication communications;
 
   ///
   /// Game state variables
@@ -44,7 +33,7 @@ class GameManager {
   Future<void> requestEndOfGame() async => _isRunning = false;
 
   GameManager({required this.broadcasterId, required SendPort sendPort})
-      : _sendPort = sendPort {
+      : communications = GameManagerCommunication(sendPort: sendPort) {
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
     _gameLoop();
@@ -53,24 +42,24 @@ class GameManager {
   Future<void> requestPardonStealer(String playerName) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    sendMessageToClient(
+    communications.sendMessageToClient(
         type: FromEbsToClientMessages.pardonRequest,
         data: {'player_name': playerName});
   }
 
-  Future<void> registerToGame(
+  Future<bool> registerToGame(
       {required int userId, required String opaqueId}) async {
     _logger.info('Registering to game');
 
     // Do not lose time if the user is already registered
-    if (_userIdToOpaqueId.containsKey(userId)) return;
+    if (_userIdToOpaqueId.containsKey(userId)) return true;
 
     // Get the login of the user
-    final login = await sendQuestionToManager(
+    final login = await communications.sendQuestionToManager(
         type: FromEbsToManagerMessages.getLogin, data: {'user_id': userId});
     if (login == null) {
       _logger.severe('Could not get login for user $userId');
-      return;
+      return false;
     }
 
     // Register the user
@@ -78,13 +67,14 @@ class GameManager {
     _opaqueIdToUserId[opaqueId] = userId;
     _userIdToLogin[userId] = login;
     _loginToUserId[login] = userId;
+    return true;
   }
 
   Future<void> pardonStatusUpdate(String loginWhoCanPardon) async {
     _logger.info('Last stealer is pardoned');
 
     if (loginWhoCanPardon.isEmpty) {
-      sendMessageToFrontend(
+      communications.sendMessageToFrontend(
           type: FromEbsToFrontendMessages.pardonStatusUpdate,
           data: {
             'users_who_can_pardon': ['']
@@ -100,7 +90,7 @@ class GameManager {
     final userId = _loginToUserId[loginWhoCanPardon]!;
     final opaqueId = _userIdToOpaqueId[userId]!;
 
-    sendMessageToFrontend(
+    communications.sendMessageToFrontend(
         type: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
           'users_who_can_pardon': [opaqueId]
@@ -115,19 +105,26 @@ class GameManager {
     _logger.info('Game loop started for client: $broadcasterId');
 
     // Inform the frontend that the game has started and they are required to register
-    sendMessageToFrontend(type: FromEbsToFrontendMessages.gameStarted);
+    communications.sendMessageToFrontend(
+        type: FromEbsToFrontendMessages.gameStarted);
 
     while (_isRunning) {
       // Perform game logic
       _logger.info('Game loop tick for client: $broadcasterId');
       await Future.delayed(Duration(seconds: 5));
 
-      // sendMessageToClient(type: FromEbsToClientMessages.ping);
-      // sendMessageToFrontend(type: FromEbsToFrontendMessages.ping);
+      // _gameManagerCommunication.sendMessageToClient(type: FromEbsToClientMessages.ping);
+      // _gameManagerCommunication.sendMessageToFrontend(type: FromEbsToFrontendMessages.ping);
     }
 
     _logger.info('Game loop ended for client: $broadcasterId');
   }
+}
+
+class GameManagerCommunication {
+  final SendPort sendPort;
+
+  GameManagerCommunication({required this.sendPort});
 
   void sendMessageToClient(
       {required FromEbsToClientMessages type, Map<String, dynamic>? data}) {
@@ -135,41 +132,54 @@ class GameManager {
       'target': MessageTarget.client.index,
       'message': {'type': type.index, 'data': data}
     };
-    _sendPort.send(message);
+    sendPort.send(message);
   }
 
-  void sendMessageToFrontend(
-      {required FromEbsToFrontendMessages type, Map<String, dynamic>? data}) {
+  void sendMessageToFrontend({
+    required FromEbsToFrontendMessages type,
+    Map<String, dynamic>? data,
+  }) {
     final message = {
       'target': MessageTarget.frontend.index,
-      'message': {'type': type.index, 'data': data ?? ''}
+      'message': {'type': type.index, 'data': data ?? ''},
     };
-    _sendPort.send(message);
+    sendPort.send(message);
   }
 
   void sendMessageToManager(
-      {required FromEbsToManagerMessages type, Map<String, dynamic>? data}) {
+      {required FromEbsToManagerMessages type,
+      Map<String, dynamic>? data,
+      Map<String, dynamic>? internalMain}) {
     final message = {
       'target': MessageTarget.manager.index,
-      'message': {'type': type.index, 'data': data}
+      'message': {'type': type.index, 'data': data},
+      'internal_main': internalMain,
     };
-    _sendPort.send(message);
+    sendPort.send(message);
   }
 
+  final _completers = Completers();
   Future<dynamic> sendQuestionToManager(
-      {required FromEbsToManagerMessages type, Map<String, dynamic>? data}) {
-    final completerId = addCompleter();
-    final completer = _completers[completerId]!;
+      {required FromEbsToManagerMessages type,
+      Map<String, dynamic>? data,
+      Map<String, dynamic>? internalMain}) {
+    final completerId = _completers.spawn();
+    final completer = _completers.get(completerId)!;
 
     final message = {
       'target': MessageTarget.manager.index,
-      'message': {'type': type.index, 'data': data, 'completer_id': completerId}
+      'message': {'type': type.index, 'data': data},
+      'internal_isolate': {'completer_id': completerId},
+      'internal_main': internalMain,
     };
-    _sendPort.send(message);
+    sendPort.send(message);
 
-    completer.future.then((value) {
-      _completers.remove(completerId);
-    });
     return completer.future;
+  }
+
+  Future<void> complete(
+      {required int? completerId, required dynamic data}) async {
+    if (completerId == null) return;
+    _completers.get(completerId)?.complete(data);
   }
 }

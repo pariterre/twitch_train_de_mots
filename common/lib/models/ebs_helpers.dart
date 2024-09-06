@@ -13,7 +13,6 @@ enum FromClientToEbsMessages {
 }
 
 enum FromFrontendToEbsMessages {
-  initialize,
   registerToGame,
   pardonRequest;
 
@@ -31,6 +30,7 @@ enum FromFrontendToEbsMessages {
 
 enum FromEbsToManagerMessages {
   initialize,
+  responseInternal,
   getUserId,
   getDisplayName,
   getLogin;

@@ -2,31 +2,25 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
+import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
-import 'package:twitch_manager/models/twitch_listener.dart';
 
 final _logger = Logger('TwitchManagerMain');
 
 class TwitchManager {
   ///
-  /// Flag to check if the frontend is connected to the EBS. This is used to
-  /// prevent the programmer from calling the methods before the Twitch
-  /// frontend has connected to the EBS. If ones need to know when the
-  /// frontend has connected to the EBS, they can listen to the
-  /// [onHasConnectedToEbs] stream.
-  bool _isConnectedToEbs = false;
-  final _hasConnectedToEbsCompleter = Completer<bool>();
-  Future<bool> get onHasConnectedToEbs => _hasConnectedToEbsCompleter.future;
-
-  ///
   /// Interface reference to the TwitchFrontendManager.
   tm.TwitchFrontendManager? _frontendManager;
 
   ///
-  /// Setup listeners for all the messages that come from the EBS.
-  final onPardonStatusUpdate = TwitchGenericListener();
+  /// Initialize the TwitchManager
+  static Future<void> initialize() async => instance;
 
+  ///
+  /// Get the opaque user ID of the current user. This is the ID that is used
+  /// to identify the user in the game. The EBS is well aware of this ID and
+  /// can use it to identify the user even if it is opaque.
   String get opaqueUserId {
     if (_frontendManager == null) {
       _logger.severe('TwitchManager is not initialized');
@@ -34,6 +28,24 @@ class TwitchManager {
     }
 
     return _frontendManager!.authenticator.opaqueUserId;
+  }
+
+  ///
+  /// Post a request to pardon the stealer. No confirmation is received from
+  /// the EBS. If the request is successful, the stealer is pardoned and a message
+  /// is sent to PubSub.
+  Future<void> pardonStealer() async =>
+      await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+
+  ///
+  /// Callback to know when the TwitchManager has connected to the Twitch
+  /// backend services.
+  final _isInitializedCompleter = Completer();
+  Future<void> get onFinishedInitializing => _isInitializedCompleter.future;
+  bool get isInitialized => _isInitializedCompleter.isCompleted;
+  Future<void> _onFinishedInitializing() async {
+    _logger.info('Connected to Twitch service');
+    _isInitializedCompleter.complete();
   }
 
   ///
@@ -46,21 +58,18 @@ class TwitchManager {
   TwitchManager._() {
     tm.TwitchFrontendManager.factory(
       appInfo: tm.TwitchFrontendInfo(
-        appName: 'Train de mots',
-        ebsUri: Uri.parse('http://localhost:3010/frontend'),
-      ),
-      initializeEndpoint: '/initialize',
+          appName: 'Train de mots',
+          ebsUri: Uri.parse('http://localhost:3010/frontend')),
       isTwitchUserIdRequired: true,
-      onHasConnectedCallback: () async {
-        _logger.info('Connected to Twitch');
-        _isConnectedToEbs = true;
-        _hasConnectedToEbsCompleter.complete(_isConnectedToEbs);
-      },
+      onConnectedToTwitchService: _onFinishedInitializing,
       pubSubCallback: _onPubSubMessageReceived,
     ).then((manager) {
       _frontendManager = manager;
-      // Try to register to the game. This will fail if the game has not started.
-      _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+
+      // Try to register to the game. This will fail if the game has not started,
+      // but we don't care about that. If the game is indeed started, we will be
+      // registered to it.
+      _hasRegisteredToGame();
     });
   }
 
@@ -77,48 +86,49 @@ class TwitchManager {
 
         case FromEbsToFrontendMessages.gameStarted:
           // Register to the game when the game has started
-          _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+          _hasRegisteredToGame();
           break;
 
         case FromEbsToFrontendMessages.pardonStatusUpdate:
-          final users = List<String>.from(data['users_who_can_pardon']);
-          onPardonStatusUpdate.notifyListeners((callback) => callback(users));
+          _pardonnersChanged(data);
           break;
       }
     } catch (e) {
-      _logger.severe('Error parsing message from EBS: $raw');
+      _logger.severe('Message from Twitch: $raw');
     }
   }
 
-  ///
-  /// Post a request to pardon the stealer. No confirmation is received from
-  /// the EBS. If the request is successful, the stealer is pardoned and a message
-  /// is sent to PubSub.
-  Future<void> pardonStealer() async =>
-      await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+  Future<void> _hasRegisteredToGame() async {
+    final response =
+        await _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+    if (response?['status'] != 'OK') {
+      _logger.info('No game started yet');
+      return;
+    }
+
+    _logger.info('Registered to game');
+    GameManager.instance.startGame();
+  }
+
+  Future<void> _pardonnersChanged(Map<String, dynamic> data) async {
+    GameManager.instance
+        .newPardonners(List<String>.from(data['users_who_can_pardon']));
+  }
 
   ///
   /// Send a message to the EBS based on the [type] of message.
-  Future<Map<String, dynamic>> _sendMessageToEbs(
+  Future<Map<String, dynamic>?> _sendMessageToEbs(
       FromFrontendToEbsMessages type) async {
-    if (!_isInitialized) {
+    if (!isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
     }
 
-    return await _frontendManager!.apiToEbs.post(type.asEndpoint());
+    try {
+      return await _frontendManager!.apiToEbs.postRequest(type.asEndpoint());
+    } catch (e) {
+      _logger.severe('Error sending message to EBS: $e');
+      return null;
+    }
   }
-
-  bool get _isInitialized {
-    // If the programmer forgets to call TwitchManager.initialize()
-    if (_frontendManager == null) return false;
-
-    // If the programmer calls the pardon method before the TwitchManager has connected
-    if (!_isConnectedToEbs) return false;
-
-    return true;
-  }
-
-  // Initialize the TwitchManager
-  static Future<void> initialize() async => instance;
 }

@@ -12,11 +12,12 @@ class WaitingRoom extends StatelessWidget {
         title: const Text('Train de mots!'),
       ),
       body: FutureBuilder(
-          future: TwitchManager.instance.onHasConnectedToEbs,
+          future: TwitchManager.instance.onFinishedInitializing,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
+
             return const GameScreen();
           }),
     );

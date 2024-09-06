@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -12,28 +13,32 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  bool _currentPlayerCanPardon = false;
+  bool _canPlayerPardon = false;
 
   @override
   void initState() {
     super.initState();
 
-    TwitchManager.instance.onPardonStatusUpdate
-        .startListening(_updatePlayersWhoCanPardon);
+    final gm = GameManager.instance;
+    gm.onGameStarted.addListener(_refresh);
+    gm.onPardonnersChanged.addListener(_updatePlayersWhoCanPardon);
   }
 
   @override
   void dispose() {
-    TwitchManager.instance.onPardonStatusUpdate
-        .stopListening(_updatePlayersWhoCanPardon);
+    final gm = GameManager.instance;
+    gm.onGameStarted.removeListener(_refresh);
+    gm.onPardonnersChanged.removeListener(_updatePlayersWhoCanPardon);
 
     super.dispose();
   }
 
-  void _updatePlayersWhoCanPardon(List<String> userIds) {
-    _logger.info('Update current pardonners to: $userIds');
+  void _refresh() => setState(() {});
+
+  void _updatePlayersWhoCanPardon(List<String> pardonners) {
+    _logger.info('Update current pardonners to: $pardonners');
     final myId = TwitchManager.instance.opaqueUserId;
-    _currentPlayerCanPardon = userIds.any((id) => id == myId);
+    _canPlayerPardon = pardonners.any((id) => id == myId);
     setState(() {});
   }
 
@@ -45,7 +50,7 @@ class _GameScreenState extends State<GameScreen> {
       children: [
         Text('My user ID: ${TwitchManager.instance.opaqueUserId}'),
         ElevatedButton(
-          onPressed: _currentPlayerCanPardon
+          onPressed: _canPlayerPardon
               ? () => TwitchManager.instance.pardonStealer()
               : null,
           child: const Text('Pardon'),
