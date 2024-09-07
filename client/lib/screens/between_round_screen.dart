@@ -1,15 +1,15 @@
+import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/round_success.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/widgets/growing_widget.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
-import 'package:train_de_mots/widgets/themed_elevated_button.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
   const BetweenRoundsOverlay({super.key});

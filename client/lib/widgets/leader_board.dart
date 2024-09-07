@@ -1,7 +1,7 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 

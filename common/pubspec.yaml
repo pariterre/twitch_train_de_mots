@@ -6,6 +6,10 @@ environment:
   sdk: ^3.4.4
 
 dependencies:
+  flutter:
+    sdk: flutter
+  logging: ^1.2.0
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   lints: ^3.0.0

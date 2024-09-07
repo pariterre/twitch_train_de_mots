@@ -1,7 +1,7 @@
+import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/snowfall_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
-import 'package:train_de_mots/widgets/snowfall_overlay.dart';
 
 final _logger = Logger('Background');
 

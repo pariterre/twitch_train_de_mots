@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/models/custom_callback.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_de_mots/models/exceptions.dart';
 
 const _textSizeDefault = 20.0;
 const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);

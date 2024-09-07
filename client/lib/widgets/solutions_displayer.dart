@@ -1,10 +1,10 @@
 import 'dart:math';
 
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/clock.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';

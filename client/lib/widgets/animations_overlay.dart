@@ -1,6 +1,6 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/bouncy_container.dart';
 

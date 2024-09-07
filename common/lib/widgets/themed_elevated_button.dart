@@ -1,5 +1,5 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 
 class ThemedElevatedButton extends StatefulWidget {
   const ThemedElevatedButton({

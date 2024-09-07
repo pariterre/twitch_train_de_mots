@@ -1,14 +1,14 @@
+import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
-import 'package:train_de_mots/managers/theme_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
 import 'package:train_de_mots/screens/splash_screen.dart';
-import 'package:train_de_mots/widgets/background.dart';
 import 'package:train_de_mots/widgets/configuration_drawer.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 

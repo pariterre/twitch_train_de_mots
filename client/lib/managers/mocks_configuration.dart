@@ -9,7 +9,7 @@ import 'package:twitch_manager/twitch_manager.dart';
 class MocksConfiguration {
   // Useful for developpers
   static bool showDebugOptions = false;
-  static bool useLocalEbs = false;
+  static bool useLocalEbs = true;
   static bool useDatabaseMock = false;
   static bool useTwitchManagerMock = false;
 

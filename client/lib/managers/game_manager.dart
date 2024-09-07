@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/models/custom_callback.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/difficulty.dart';
-import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/round_success.dart';

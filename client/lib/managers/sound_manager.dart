@@ -1,8 +1,8 @@
+import 'package:common/models/exceptions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
