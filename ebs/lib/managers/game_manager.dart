@@ -70,30 +70,30 @@ class GameManager {
     return true;
   }
 
-  Future<void> pardonStatusUpdate(String loginWhoCanPardon) async {
+  Future<void> pardonStatusUpdate(String pardonnerUserId) async {
     _logger.info('Last stealer is pardoned');
 
-    if (loginWhoCanPardon.isEmpty) {
+    if (pardonnerUserId.isEmpty) {
       communications.sendMessageToFrontend(
           type: FromEbsToFrontendMessages.pardonStatusUpdate,
           data: {
-            'users_who_can_pardon': ['']
+            'pardonner_user_id': ['']
           });
     }
 
-    if (!_loginToUserId.containsKey(loginWhoCanPardon)) {
-      _logger.severe('User $loginWhoCanPardon is not registered');
+    if (!_loginToUserId.containsKey(pardonnerUserId)) {
+      _logger.severe('User $pardonnerUserId is not registered');
       return;
     }
 
     // Get the opaque id
-    final userId = _loginToUserId[loginWhoCanPardon]!;
+    final userId = _loginToUserId[pardonnerUserId]!;
     final opaqueId = _userIdToOpaqueId[userId]!;
 
     communications.sendMessageToFrontend(
         type: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
-          'users_who_can_pardon': [opaqueId]
+          'pardonner_user_id': [opaqueId]
         });
   }
 

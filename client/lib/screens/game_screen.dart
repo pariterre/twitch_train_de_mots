@@ -29,7 +29,7 @@ class _GameScreenState extends State<GameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.addListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerReady.addListener(_refresh);
+    TwitchManager.instance.onTwitchManagerHasConnected.addListener(_refresh);
   }
 
   @override
@@ -39,7 +39,7 @@ class _GameScreenState extends State<GameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.removeListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerReady.removeListener(_refresh);
+    TwitchManager.instance.onTwitchManagerHasConnected.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -48,7 +48,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return TwitchManager.instance.hasNotManager
+    return TwitchManager.instance.isNotConnected
         ? Center(child: CircularProgressIndicator(color: tm.mainColor))
         : TwitchManager.instance.debugOverlay(
             child: const Stack(

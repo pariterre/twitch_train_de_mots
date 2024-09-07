@@ -8,6 +8,8 @@ import 'package:twitch_manager/twitch_manager.dart' as tm;
 
 final _logger = Logger('TwitchManagerMain');
 
+TwitchManager? _instance;
+
 class TwitchManager {
   ///
   /// Interface reference to the TwitchFrontendManager.
@@ -15,7 +17,9 @@ class TwitchManager {
 
   ///
   /// Initialize the TwitchManager
-  static Future<void> initialize() async => instance;
+  static Future<void> initialize({bool useMocker = false}) async => useMocker
+      ? _instance = TwitchManagerMock()
+      : _instance = TwitchManager._();
 
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
@@ -23,8 +27,8 @@ class TwitchManager {
   /// can use it to identify the user even if it is opaque.
   String get opaqueUserId {
     if (_frontendManager == null) {
-      _logger.severe('TwitchManager is not initialized');
-      throw Exception('TwitchManager is not initialized');
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
     }
 
     return _frontendManager!.authenticator.opaqueUserId;
@@ -53,24 +57,35 @@ class TwitchManager {
   /// automatically initializes the TwitchManager. However, ones is encouraged
   /// to call [TwitchManager.initialize()] before using the TwitchManager to make
   /// sure that the TwitchManager is configured correctly.
-  static final _instance = TwitchManager._();
-  static TwitchManager get instance => _instance;
+
+  static TwitchManager get instance {
+    if (_instance == null) {
+      _logger.severe('TwitchManager is not initialized, please call '
+          'TwitchManager.initialize() before using the instance');
+      throw Exception('TwitchManager is not initialized, please call '
+          'TwitchManager.initialize() before using the instance');
+    }
+    return _instance!;
+  }
+
   TwitchManager._() {
-    tm.TwitchFrontendManager.factory(
+    _callTwitchFrontendManagerFactory();
+  }
+
+  Future<void> _callTwitchFrontendManagerFactory() async {
+    _frontendManager = await tm.TwitchFrontendManager.factory(
       appInfo: tm.TwitchFrontendInfo(
           appName: 'Train de mots',
           ebsUri: Uri.parse('http://localhost:3010/frontend')),
       isTwitchUserIdRequired: true,
       onConnectedToTwitchService: _onFinishedInitializing,
       pubSubCallback: _onPubSubMessageReceived,
-    ).then((manager) {
-      _frontendManager = manager;
+    );
 
-      // Try to register to the game. This will fail if the game has not started,
-      // but we don't care about that. If the game is indeed started, we will be
-      // registered to it.
-      _hasRegisteredToGame();
-    });
+    // Try to register to the game. This will fail if the game has not started,
+    // but we don't care about that. If the game is indeed started, we will be
+    // registered to it.
+    _hasRegisteredToGame();
   }
 
   Future<void> _onPubSubMessageReceived(String raw) async {
@@ -112,7 +127,7 @@ class TwitchManager {
 
   Future<void> _pardonnersChanged(Map<String, dynamic> data) async {
     GameManager.instance
-        .newPardonners(List<String>.from(data['users_who_can_pardon']));
+        .newPardonners(List<String>.from(data['pardonner_user_id']));
   }
 
   ///
@@ -129,6 +144,34 @@ class TwitchManager {
     } catch (e) {
       _logger.severe('Error sending message to EBS: $e');
       return null;
+    }
+  }
+}
+
+class TwitchManagerMock extends TwitchManager {
+  TwitchManagerMock() : super._() {
+    _onFinishedInitializing();
+  }
+
+  @override
+  Future<void> _callTwitchFrontendManagerFactory() async {
+    // Try to register to the game. This will fail if the game has not started,
+    // but we don't care about that. If the game is indeed started, we will be
+    // registered to it.
+    _hasRegisteredToGame();
+  }
+
+  @override
+  String get opaqueUserId => 'U0123456789';
+
+  @override
+  Future<Map<String, dynamic>> _sendMessageToEbs(
+      FromFrontendToEbsMessages type) async {
+    switch (type) {
+      case FromFrontendToEbsMessages.registerToGame:
+        return {'status': 'OK'};
+      case FromFrontendToEbsMessages.pardonRequest:
+        return {'status': 'OK'};
     }
   }
 }

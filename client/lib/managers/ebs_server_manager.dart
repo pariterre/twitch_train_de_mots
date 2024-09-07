@@ -9,20 +9,20 @@ import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-final _logger = Logger('TrainDeMotEbsManager');
+final _logger = Logger('EbsServerManager');
 
-class TrainDeMotsEbsManager {
+class EbsServerManager {
   // Singleton
-  static TrainDeMotsEbsManager get instance {
+  static EbsServerManager get instance {
     if (_instance == null) {
       throw Exception(
-          'TrainDeMotsManager not initialized, call initialize() first');
+          'EbsServerManager not initialized, call initialize() first');
     }
     return _instance!;
   }
 
-  static TrainDeMotsEbsManager? _instance;
-  TrainDeMotsEbsManager._internal({required Uri? ebsUri}) : _ebsUri = ebsUri;
+  static EbsServerManager? _instance;
+  EbsServerManager._internal({required Uri? ebsUri}) : _ebsUri = ebsUri;
 
   WebSocketChannel? _socket;
 
@@ -36,29 +36,59 @@ class TrainDeMotsEbsManager {
   static Future<void> initialize({required Uri? ebsUri}) async {
     if (_instance != null) return;
 
-    _instance = TrainDeMotsEbsManager._internal(ebsUri: ebsUri);
+    _instance = EbsServerManager._internal(ebsUri: ebsUri);
+    _instance?._connect();
   }
 
   ///
   /// Connect to the ebs
-  Future<void> connectToEbs() async {
-    // TODO Fail gracefully if the server is not available
-    final twitchBroadcasterId = TwitchManager.instance.broadcasterId;
-    if (_ebsUri == null) return;
+  Completer<bool>? _connectingToEbsCompleter;
+  Future<bool> _connect() async {
+    Future<bool> retryOnFail(String errormessage) async {
+      _logger.severe(errormessage);
+      _isConnectedToEbs = false;
+      _logger.severe('Reconnecting to EBS in 10 seconds');
+      await Future.delayed(const Duration(seconds: 10));
+      _connectingToEbsCompleter = null;
+      _connect();
+      return _connectingToEbsCompleter!.future;
+    }
 
-    _instance!._socket = WebSocketChannel.connect(Uri.parse(
-        '$_ebsUri/client/connect?broadcasterId=$twitchBroadcasterId'));
-    await _instance!._socket!.ready;
-    _logger.info('Connected to the EBS server');
+    if (_ebsUri == null) return false;
 
+    // If we already are connecting, return the future
+    if (_connectingToEbsCompleter != null) {
+      return _connectingToEbsCompleter!.future;
+    }
+    _connectingToEbsCompleter = Completer();
+
+    // Connect to EBS server
+    try {
+      final twitchBroadcasterId = TwitchManager.instance.broadcasterId;
+      _instance!._socket = WebSocketChannel.connect(Uri.parse(
+          '$_ebsUri/client/connect?broadcasterId=$twitchBroadcasterId'));
+      await _instance!._socket!.ready;
+    } catch (e) {
+      return retryOnFail('Could not connect to EBS');
+    }
+
+    // Listen to the messages from the EBS server
     _instance!._socket!.stream.listen(
       _instance!._handleMessageFromEbs,
-      onDone: () => _logger.info('Connection closed by the EBS server'),
-      onError: (error) => _logger.severe('Error: $error'),
+      onDone: () {
+        retryOnFail('Connection closed by the EBS server');
+      },
+      onError: (error) {
+        retryOnFail('Error with communicating to the EBS server: $error');
+      },
     );
 
-    while (!_isConnectedToEbs) {
-      await Future.delayed(const Duration(milliseconds: 100));
+    try {
+      _isConnectedToEbs = await _instance!._connectingToEbsCompleter!.future
+          .timeout(const Duration(seconds: 10));
+      if (!_isConnectedToEbs) throw Exception('Could not connect to EBS');
+    } catch (e) {
+      return retryOnFail('Could not connect to EBS');
     }
 
     // Connect the listeners to the GameManager
@@ -68,6 +98,7 @@ class TrainDeMotsEbsManager {
     gm.onRoundIsOver.addListener(_onRoundIsOver);
 
     _logger.info('Connected to the EBS server');
+    return true;
   }
 
   ///
@@ -103,12 +134,13 @@ class TrainDeMotsEbsManager {
     _completers[LetterProblem] = Completer();
 
     _completers[LetterProblem]!.future.timeout(maxSearchingTime, onTimeout: () {
-      _logger.severe('Failed to get a new letter problem in time');
-      _completers[LetterProblem]!
-          .completeError('Failed to get a new letter problem in time');
+      _logger
+          .severe('Failed to get a new letter problem from EBS server in time');
+      _completers[LetterProblem]!.completeError(
+          'Failed to get a new letter problem from EBS server in time');
     });
 
-    _logger.info('Requesting a new letter problem with config');
+    _logger.info('Requesting a new letter problem to EBS server');
     _sendMessageToEbs(
       type: FromClientToEbsMessages.newLetterProblemRequest,
       data: {
@@ -135,7 +167,7 @@ class TrainDeMotsEbsManager {
   /// Handle the new letter problem received from the EBS server and complete the
   /// completer.
   void _receivedNewLetterProblemFromEbs(Map<String, dynamic> message) {
-    _logger.info('Received new letter problem: $message');
+    _logger.info('Received new letter problem from EBS server: $message');
     _completers[LetterProblem]!.complete(message);
   }
 
@@ -145,12 +177,12 @@ class TrainDeMotsEbsManager {
   void _sendStealerWasPardonedToFrontend(WordSolution? solution) =>
       _sendMessageToEbs(
           type: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'users_who_can_pardon': ''});
+          data: {'pardonner_user_id': ''});
 
   void _sendSolutionWasStolenToFrontend(WordSolution? solution) =>
       _sendMessageToEbs(
           type: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'users_who_can_pardon': solution?.stolenFrom.name});
+          data: {'pardonner_user_id': solution?.stolenFrom.name});
 
   ///
   /// Handle the messages received from the EBS server
@@ -161,8 +193,8 @@ class TrainDeMotsEbsManager {
 
     switch (type) {
       case FromEbsToClientMessages.isConnected:
-        _logger.info('Connected to the EBS server');
-        _isConnectedToEbs = true;
+        _logger.info('Client has connected to the EBS server');
+        _connectingToEbsCompleter?.complete(true);
         break;
 
       case FromEbsToClientMessages.newLetterProblemGenerated:

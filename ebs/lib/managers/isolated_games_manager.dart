@@ -181,7 +181,7 @@ class IsolatedGamesManager {
     sendPortClient.send(data);
   }
 
-  // TODO ADD WAY TO INFORM THE ISOLATED THAT THE CONNEXION WAS LOST
+  // TODO Add a way to inform the client that the connexion was lost and kill the isolate if too long before reconnecting
 
   Future<Map<String, dynamic>> messageFromFrontendToIsolated({
     required int broadcasterId,
@@ -304,7 +304,7 @@ class _IsolatedGame {
           break;
 
         case FromClientToEbsMessages.pardonStatusUpdate:
-          manager.pardonStatusUpdate(data['users_who_can_pardon']);
+          manager.pardonStatusUpdate(data['pardonner_user_id']);
           break;
 
         case FromClientToEbsMessages.disconnect:

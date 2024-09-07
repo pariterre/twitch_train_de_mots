@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/train_de_mots_ebs_manager.dart';
+import 'package:train_de_mots/managers/ebs_server_manager.dart';
 import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -557,11 +557,11 @@ class ProblemGenerator {
     }
 
     try {
-      if (!TrainDeMotsEbsManager.instance.isConnectedToEbs) {
-        await TrainDeMotsEbsManager.instance.connectToEbs();
+      if (!EbsServerManager.instance.isConnectedToEbs) {
+        throw Exception('Not connected to EBS server');
       }
 
-      final completer = TrainDeMotsEbsManager.instance.generateLetterProblem(
+      final completer = EbsServerManager.instance.generateLetterProblem(
         nbLetterInSmallestWord: nbLetterInSmallestWord,
         minLetters: minLetters,
         maxLetters: maxLetters,

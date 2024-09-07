@@ -22,8 +22,9 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  Future<void> _setTwitchManager() async {
-    await TwitchManager.instance.showConnectManagerDialog(context);
+  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
+    await TwitchManager.instance
+        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
     setState(() {});
   }
 
@@ -44,6 +45,9 @@ class _MainScreenState extends State<MainScreen> {
     final dm = DatabaseManager.instance;
     dm.onFullyLoggedIn.addListener(_refresh);
     dm.onLoggedOut.addListener(_refresh);
+
+    TwitchManager.instance.onTwitchManagerHasDisconnected
+        .addListener(_reconnectedAfterDisconnect);
   }
 
   @override
@@ -61,8 +65,14 @@ class _MainScreenState extends State<MainScreen> {
     dm.onFullyLoggedIn.removeListener(_refresh);
     dm.onLoggedOut.removeListener(_refresh);
 
+    TwitchManager.instance.onTwitchManagerHasDisconnected
+        .removeListener(_reconnectedAfterDisconnect);
+
     super.dispose();
   }
+
+  void _reconnectedAfterDisconnect() =>
+      _setTwitchManager(reloadIfPossible: false);
 
   Future<void> _showMessageDialog(String message) async {
     final cm = ConfigurationManager.instance;
@@ -88,8 +98,9 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TwitchManager.instance.hasNotManager) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
+    if (TwitchManager.instance.isNotConnected) {
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _setTwitchManager(reloadIfPossible: true));
     }
   }
 
@@ -105,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       body: Background(
-        child: TwitchManager.instance.hasNotManager
+        child: TwitchManager.instance.isNotConnected
             ? Center(child: CircularProgressIndicator(color: tm.mainColor))
             : Stack(
                 children: [

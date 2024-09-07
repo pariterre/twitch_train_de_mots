@@ -45,7 +45,7 @@ class _DebugScreenState extends State<DebugScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TwitchManager.instance.hasNotManager) {
+    if (TwitchManager.instance.isNotConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
   }

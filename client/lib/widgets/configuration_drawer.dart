@@ -6,6 +6,7 @@ import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/theme_manager.dart';
+import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -122,7 +123,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                         tileColor: Colors.black,
                         leading: const Icon(Icons.logout),
                         title: const Text(
-                          'Sortir du train (Déconnexion)',
+                          'Descendre du train',
                           style: TextStyle(color: Colors.white),
                         ),
                         onTap: () async {
@@ -135,9 +136,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                                     yesTitle: 'Quitter',
                                   ));
                           if (result == null || !result) return;
+                          if (context.mounted) Navigator.pop(context);
 
                           await dm.logOut();
-                          if (context.mounted) Navigator.pop(context);
+                          TwitchManager.instance.disconnect();
                         }),
                   ],
                 ),

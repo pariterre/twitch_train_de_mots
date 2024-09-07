@@ -8,7 +8,8 @@ import 'package:twitch_manager/twitch_manager.dart' as tm;
 final _logger = Logger('TwitchManager');
 
 class TwitchManager {
-  final onTwitchManagerReady = CustomCallback();
+  final onTwitchManagerHasConnected = CustomCallback();
+  final onTwitchManagerHasDisconnected = CustomCallback();
 
   void initialize({bool useMock = false}) {
     _isMockActive = useMock;
@@ -16,8 +17,8 @@ class TwitchManager {
 
   ///
   /// Get if the manager is connected or not
-  bool get hasManager => _manager != null;
-  bool get hasNotManager => !hasManager;
+  bool get isConnected => _manager != null;
+  bool get isNotConnected => !isConnected;
 
   ///
   /// Call all the listeners when a message is received
@@ -33,12 +34,13 @@ class TwitchManager {
 
   ///
   /// Provide an easy access to the TwitchManager connect dialog
-  Future<bool> showConnectManagerDialog(BuildContext context) async {
+  Future<bool> showConnectManagerDialog(BuildContext context,
+      {bool reloadIfPossible = true}) async {
     _logger.info('Showing connect manager dialog...');
 
     if (_manager != null) {
       // Already connected
-      _logger.warning('Manager already connected');
+      _logger.warning('TwitchManager already connected');
       return true;
     }
 
@@ -50,16 +52,30 @@ class TwitchManager {
               onConnexionEstablished: (manager) =>
                   Navigator.of(context).pop(manager),
               appInfo: _appInfo,
-              reload: true,
+              reload: reloadIfPossible,
             ));
     if (manager == null) return false;
 
     _manager = manager;
     _manager!.chat.onMessageReceived.startListening(_onMessageReceived);
-    onTwitchManagerReady.notifyListeners();
+    onTwitchManagerHasConnected.notifyListeners();
 
-    _logger.info('Manager connected');
+    _logger.info('TwitchManager connected');
     return true;
+  }
+
+  Future<bool> disconnect() {
+    if (_manager == null) {
+      _logger.warning('TwitchManager already disconnected');
+      return Future.value(true);
+    }
+
+    _manager!.disconnect();
+    _manager = null;
+    onTwitchManagerHasDisconnected.notifyListeners();
+
+    _logger.info('TwitchManager disconnected');
+    return Future.value(true);
   }
 
   /// -------- ///

@@ -8,7 +8,7 @@ void main() async {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
   });
-  await TwitchManager.initialize();
+  await TwitchManager.initialize(useMocker: false);
 
   runApp(const MyApp());
 }
