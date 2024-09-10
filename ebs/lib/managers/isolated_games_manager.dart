@@ -309,6 +309,7 @@ class _IsolatedGame {
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.isSuccess);
+          break;
 
         case FromClientToEbsMessages.pong:
           gm.communications.complete(

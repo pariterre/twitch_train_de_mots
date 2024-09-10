@@ -44,57 +44,62 @@ void startHttpServer({required NetworkParameters parameters}) async {
       continue;
     }
 
-    try {
-      if (request.method == 'OPTIONS') {
-        await _handleOptionsRequest(request);
-      } else if (request.method == 'GET') {
-        await _handleGetHttpRequest(request);
-      } else if (request.method == 'POST') {
-        await _handlPostHttpRequest(request);
-      } else {
-        _sendErrorResponse(
-            request,
-            HttpStatus.methodNotAllowed,
-            MessageProtocol(
-                fromTo: FromEbsToGeneric.error,
-                isSuccess: false,
-                data: {
-                  'error_message': 'Invalid request method: ${request.method}'
-                }));
-      }
-    } on InvalidEndpointException {
+    if (request.method == 'OPTIONS') {
+      _gardedHandleRequest(request, _handleOptionsRequest);
+    } else if (request.method == 'GET') {
+      _gardedHandleRequest(request, _handleGetHttpRequest);
+    } else if (request.method == 'POST') {
+      _gardedHandleRequest(request, _handlPostHttpRequest);
+    } else {
       _sendErrorResponse(
           request,
-          HttpStatus.notFound,
+          HttpStatus.methodNotAllowed,
           MessageProtocol(
               fromTo: FromEbsToGeneric.error,
               isSuccess: false,
-              data: {'error_message': 'Invalid endpoint'}));
-    } on UnauthorizedException {
-      _sendErrorResponse(
-          request,
-          HttpStatus.unauthorized,
-          MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
-              isSuccess: false,
-              data: {'error_message': 'Unauthorized'}));
-    } on ConnexionToWebSocketdRefusedException {
-      _sendErrorResponse(
-          request,
-          HttpStatus.serviceUnavailable,
-          MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
-              isSuccess: false,
-              data: {'error_message': 'Connexion to WebSocketd refused'}));
-    } catch (e) {
-      _sendErrorResponse(
-          request,
-          HttpStatus.internalServerError,
-          MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
-              isSuccess: false,
-              data: {'error_message': 'An error occurred: ${e.toString()}'}));
+              data: {
+                'error_message': 'Invalid request method: ${request.method}'
+              }));
     }
+  }
+}
+
+Future<void> _gardedHandleRequest(
+    HttpRequest request, Function(HttpRequest) handler) async {
+  try {
+    await handler(request);
+  } on InvalidEndpointException {
+    _sendErrorResponse(
+        request,
+        HttpStatus.notFound,
+        MessageProtocol(
+            fromTo: FromEbsToGeneric.error,
+            isSuccess: false,
+            data: {'error_message': 'Invalid endpoint'}));
+  } on UnauthorizedException {
+    _sendErrorResponse(
+        request,
+        HttpStatus.unauthorized,
+        MessageProtocol(
+            fromTo: FromEbsToGeneric.error,
+            isSuccess: false,
+            data: {'error_message': 'Unauthorized'}));
+  } on ConnexionToWebSocketdRefusedException {
+    _sendErrorResponse(
+        request,
+        HttpStatus.serviceUnavailable,
+        MessageProtocol(
+            fromTo: FromEbsToGeneric.error,
+            isSuccess: false,
+            data: {'error_message': 'Connexion to WebSocketd refused'}));
+  } catch (e) {
+    _sendErrorResponse(
+        request,
+        HttpStatus.internalServerError,
+        MessageProtocol(
+            fromTo: FromEbsToGeneric.error,
+            isSuccess: false,
+            data: {'error_message': 'An error occurred: ${e.toString()}'}));
   }
 }
 

@@ -36,7 +36,14 @@ class EbsServerManager {
     if (_instance != null) return;
 
     _instance = EbsServerManager._internal(ebsUri: ebsUri);
-    _instance?._connect();
+    TwitchManager.instance.onTwitchManagerHasConnected
+        .addListener(_instance!._twitchManagerHasConnected);
+  }
+
+  void _twitchManagerHasConnected() {
+    TwitchManager.instance.onTwitchManagerHasConnected
+        .removeListener(_instance!._twitchManagerHasConnected);
+    _connect();
   }
 
   ///

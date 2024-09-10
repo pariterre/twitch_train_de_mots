@@ -94,7 +94,7 @@ class TwitchManager {
 
   Future<void> _onPubSubMessageReceived(String raw) async {
     try {
-      _logger.info('Message from Pubsub: $raw');
+      _logger.fine('Message from Pubsub: $raw');
       final json = jsonDecode(raw.replaceAll('\'', '"'));
       final message = MessageProtocol.fromJson(json);
 
@@ -104,18 +104,21 @@ class TwitchManager {
           break;
 
         case FromEbsToFrontendMessages.gameStarted:
-          // Register to the game when the game has started
+          _logger.info('Game started by streamer');
           _registerToGame();
           break;
 
         case FromEbsToFrontendMessages.roundStarted:
+          _logger.info('Round started by streamer');
           GameManager.instance.startRound();
           break;
 
         case FromEbsToFrontendMessages.roundEnded:
+          _logger.info('Round ended by streamer');
           GameManager.instance.endRound();
 
         case FromEbsToFrontendMessages.pardonStatusUpdate:
+          _logger.info('Pardonners changed');
           _pardonnersChanged(message.data!);
           break;
 
@@ -124,7 +127,7 @@ class TwitchManager {
           break;
       }
     } catch (e) {
-      _logger.severe('Message from Twitch: $raw');
+      // The message is not a valid JSON, ignore it
     }
   }
 
@@ -133,7 +136,7 @@ class TwitchManager {
         await _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
-      _logger.info('No game started yet');
+      _logger.info('Cannot register to game, as no has game started yet');
       return;
     }
 
