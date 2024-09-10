@@ -242,11 +242,11 @@ class _IsolatedGame {
         }));
 
     // Handle the messages from the main, client or frontends
-    receivePortMain.listen((message) =>
+    receivePortMain.listen((message) async =>
         _handleMessageFromMain(MessageProtocol.decode(message), gm));
-    receivePortClient.listen((message) =>
+    receivePortClient.listen((message) async =>
         _handleMessageFromClient(MessageProtocol.decode(message), gm));
-    receivePortFrontend.listen((message) =>
+    receivePortFrontend.listen((message) async =>
         _handleMessageFromFrontend(MessageProtocol.decode(message), gm));
   }
 
