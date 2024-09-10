@@ -160,7 +160,7 @@ class TwitchManagerExtension {
     );
   }
 
-  Future<void> sendExtentionMessage(Map<String, dynamic> message) async {
+  Future<void> sendPubsubMessage(Map<String, dynamic> message) async {
     await _postApiRequest(
       endPoint: 'helix/extensions/pubsub',
       bearer: await _getSharedBearerToken(),

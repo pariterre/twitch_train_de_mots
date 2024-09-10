@@ -54,6 +54,12 @@ class _DebugScreenState extends State<DebugScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Background(
+      backgroundLayer: Image.asset(
+        'assets/images/train.png',
+        height: MediaQuery.of(context).size.height,
+        opacity: const AlwaysStoppedAnimation(0.05),
+        fit: BoxFit.cover,
+      ),
       child: TwitchManager.instance.debugOverlay(
         child: const Center(child: Text('Coucou')),
       ),

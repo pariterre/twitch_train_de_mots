@@ -20,7 +20,13 @@ void startHttpServer({required NetworkParameters parameters}) async {
   await for (final request in httpServer) {
     final ipAddress = request.connectionInfo?.remoteAddress.address;
     if (ipAddress == null) {
-      _sendErrorResponse(request, HttpStatus.forbidden, 'Connexion refused');
+      _sendErrorResponse(
+          request,
+          HttpStatus.forbidden,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'Connexion refused'}));
       continue;
     }
 
@@ -28,7 +34,13 @@ void startHttpServer({required NetworkParameters parameters}) async {
         'New request received from $ipAddress (${parameters.rateLimiter.requestCount(ipAddress) + 1} / ${parameters.rateLimiter.maxRequests})');
 
     if (parameters.rateLimiter.isRateLimited(ipAddress)) {
-      _sendErrorResponse(request, HttpStatus.tooManyRequests, 'Rate limited');
+      _sendErrorResponse(
+          request,
+          HttpStatus.tooManyRequests,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'Rate limited'}));
       continue;
     }
 
@@ -40,19 +52,48 @@ void startHttpServer({required NetworkParameters parameters}) async {
       } else if (request.method == 'POST') {
         await _handlPostHttpRequest(request);
       } else {
-        _sendErrorResponse(request, HttpStatus.methodNotAllowed,
-            'Invalid request method: ${request.method}');
+        _sendErrorResponse(
+            request,
+            HttpStatus.methodNotAllowed,
+            MessageProtocol(
+                fromTo: FromEbsToGeneric.error,
+                isSuccess: false,
+                data: {
+                  'error_message': 'Invalid request method: ${request.method}'
+                }));
       }
     } on InvalidEndpointException {
-      _sendErrorResponse(request, HttpStatus.notFound, 'Invalid endpoint');
+      _sendErrorResponse(
+          request,
+          HttpStatus.notFound,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'Invalid endpoint'}));
     } on UnauthorizedException {
-      _sendErrorResponse(request, HttpStatus.unauthorized, 'Unauthorized');
+      _sendErrorResponse(
+          request,
+          HttpStatus.unauthorized,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'Unauthorized'}));
     } on ConnexionToWebSocketdRefusedException {
-      _sendErrorResponse(request, HttpStatus.serviceUnavailable,
-          'Connexion to WebSocketd refused');
+      _sendErrorResponse(
+          request,
+          HttpStatus.serviceUnavailable,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'Connexion to WebSocketd refused'}));
     } catch (e) {
-      _sendErrorResponse(request, HttpStatus.internalServerError,
-          'An error occurred: ${e.toString()}');
+      _sendErrorResponse(
+          request,
+          HttpStatus.internalServerError,
+          MessageProtocol(
+              fromTo: FromEbsToGeneric.error,
+              isSuccess: false,
+              data: {'error_message': 'An error occurred: ${e.toString()}'}));
     }
   }
 }
@@ -86,21 +127,22 @@ Future<void> _handlPostHttpRequest(HttpRequest request) async {
   }
 }
 
-_sendSuccessResponse(HttpRequest request, Map<String, dynamic> data) {
-  _logger.info('Sending success response: $data');
+_sendSuccessResponse(HttpRequest request, MessageProtocol message) {
+  _logger.info('Sending success response: ${message.data}');
   request.response
     ..statusCode = HttpStatus.ok
     ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write(json.encode(data))
+    ..write(message.encode())
     ..close();
 }
 
-_sendErrorResponse(HttpRequest request, int statusCode, String message) {
-  _logger.severe('Sending error response: $message');
+_sendErrorResponse(
+    HttpRequest request, int statusCode, MessageProtocol message) {
+  _logger.severe('Sending error response: ${message.data}');
   request.response
     ..statusCode = statusCode
     ..headers.add('Access-Control-Allow-Origin', '*')
-    ..write(message)
+    ..write(message.encode())
     ..close();
 }
 

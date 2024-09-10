@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/waiting_room.dart';
@@ -9,6 +10,8 @@ void main() async {
     debugPrint(message);
   });
   await TwitchManager.initialize(useMocker: false);
+
+  ThemeManager.initialize();
 
   runApp(const MyApp());
 }

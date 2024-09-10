@@ -3,7 +3,6 @@ import 'dart:isolate';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/models/completers.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 
@@ -28,26 +27,41 @@ class GameManager {
   final GameManagerCommunication communications;
 
   ///
-  /// Game state variables
-  bool _isRunning = true;
-  Future<void> requestEndOfGame() async => _isRunning = false;
-
-  GameManager({required this.broadcasterId, required SendPort sendPort})
+  /// Create a new GameManager. This method automatically starts a keep alive
+  /// mechanism to keep the connexion alive. If it fails, the game is ended.
+  /// [broadcasterId] the id of the broadcaster
+  /// [sendPort] the port to communicate with the main manager
+  GameManager.clientStartedTheGame(
+      {required this.broadcasterId, required SendPort sendPort})
       : communications = GameManagerCommunication(sendPort: sendPort) {
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
-    _gameLoop();
+    communications.sendMessageToManager(MessageProtocol(
+        target: MessageTargets.frontend,
+        fromTo: FromEbsToFrontendMessages.gameStarted));
+
+    // Keep the connexion alive
+    _keepAlive();
+    Timer.periodic(Duration(minutes: 1), (_) => _keepAlive());
   }
 
-  Future<void> requestPardonStealer(String playerName) async {
+  ///
+  /// Handle a message from the frontend to pardon the last stealer
+  /// [playerName] the name of the player to pardon
+  Future<bool> frontendRequestedToPardon(String playerName) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    communications.sendMessageToClient(
-        type: FromEbsToClientMessages.pardonRequest,
-        data: {'player_name': playerName});
+    return await communications.sendQuestionToManager(MessageProtocol(
+        target: MessageTargets.client,
+        fromTo: FromEbsToClientMessages.pardonRequest,
+        data: {'player_name': playerName}));
   }
 
-  Future<bool> registerToGame(
+  ///
+  /// Handle a message from the frontend to register to the game
+  /// [userId] the twitch id of the user
+  /// [opaqueId] the opaque id of the user (provided by the frontend)
+  Future<bool> frontendRegisteredToTheGame(
       {required int userId, required String opaqueId}) async {
     _logger.info('Registering to game');
 
@@ -55,8 +69,11 @@ class GameManager {
     if (_userIdToOpaqueId.containsKey(userId)) return true;
 
     // Get the login of the user
-    final login = await communications.sendQuestionToManager(
-        type: FromEbsToManagerMessages.getLogin, data: {'user_id': userId});
+    final login = await communications.sendQuestionToManager(MessageProtocol(
+        target: MessageTargets.manager,
+        fromTo: FromEbsToManagerMessages.getLogin,
+        data: {'user_id': userId}));
+
     if (login == null) {
       _logger.severe('Could not get login for user $userId');
       return false;
@@ -70,15 +87,19 @@ class GameManager {
     return true;
   }
 
-  Future<void> pardonStatusUpdate(String pardonnerUserId) async {
+  ///
+  /// Handle a message from the client to update the pardonners status.
+  /// [pardonnerUserId] the twitch id of the user that can pardon
+  Future<void> clientUpdatedPardonnersStatus(String pardonnerUserId) async {
     _logger.info('Last stealer is pardoned');
 
     if (pardonnerUserId.isEmpty) {
-      communications.sendMessageToFrontend(
-          type: FromEbsToFrontendMessages.pardonStatusUpdate,
+      communications.sendMessageToManager(MessageProtocol(
+          target: MessageTargets.frontend,
+          fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
           data: {
             'pardonner_user_id': ['']
-          });
+          }));
     }
 
     if (!_loginToUserId.containsKey(pardonnerUserId)) {
@@ -90,96 +111,91 @@ class GameManager {
     final userId = _loginToUserId[pardonnerUserId]!;
     final opaqueId = _userIdToOpaqueId[userId]!;
 
-    communications.sendMessageToFrontend(
-        type: FromEbsToFrontendMessages.pardonStatusUpdate,
+    communications.sendMessageToManager(MessageProtocol(
+        target: MessageTargets.frontend,
+        fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
           'pardonner_user_id': [opaqueId]
-        });
+        }));
   }
 
-  Future<LetterProblem> generateProblem(Map<String, dynamic> request) async {
+  ///
+  /// Handle a message from the client to end the game
+  Future<void> clientEndedTheGame() async {
+    _logger.info('Game ended for client: $broadcasterId');
+    communications.sendMessageToManager(MessageProtocol(
+      target: MessageTargets.frontend,
+      fromTo: FromEbsToFrontendMessages.gameEnded,
+    ));
+    communications.sendMessageToManager(MessageProtocol(
+      target: MessageTargets.client,
+      fromTo: FromEbsToClientMessages.disconnect,
+    ));
+    communications.sendMessageToManager(MessageProtocol(
+      target: MessageTargets.manager,
+      fromTo: FromEbsToManagerMessages.canDestroyIsolated,
+    ));
+  }
+
+  ///
+  /// Handle a message from the client to generate a new letter problem
+  /// [request] the configuration for the new problem
+  Future<LetterProblem> clientRequestedANewLetterProblem(
+      Map<String, dynamic> request) async {
     return LetterProblem.generateProblemFromRequest(request);
   }
 
-  Future<void> _gameLoop() async {
-    _logger.info('Game loop started for client: $broadcasterId');
-
-    // Inform the frontend that the game has started and they are required to register
-    communications.sendMessageToFrontend(
-        type: FromEbsToFrontendMessages.gameStarted);
-
-    while (_isRunning) {
-      // Perform game logic
-      _logger.info('Game loop tick for client: $broadcasterId');
-      await Future.delayed(Duration(seconds: 5));
-
-      // _gameManagerCommunication.sendMessageToClient(type: FromEbsToClientMessages.ping);
-      // _gameManagerCommunication.sendMessageToFrontend(type: FromEbsToFrontendMessages.ping);
+  ///
+  /// Keep the connexion alive. If it fails, the game is ended.
+  Future<void> _keepAlive() async {
+    _logger.info('Sending keep alive message');
+    try {
+      final response = await communications
+          .sendQuestionToManager(MessageProtocol(
+              target: MessageTargets.client,
+              fromTo: FromEbsToClientMessages.ping))
+          .timeout(Duration(seconds: 30),
+              onTimeout: () => {'response': 'NOT PONG'});
+      if (response?['response'] != 'PONG') {
+        throw Exception('Client is not alive');
+      }
+    } catch (e) {
+      _logger.severe('Client is not alive, ending game');
+      clientEndedTheGame();
     }
-
-    _logger.info('Game loop ended for client: $broadcasterId');
   }
 }
 
 class GameManagerCommunication {
   final SendPort sendPort;
-
-  GameManagerCommunication({required this.sendPort});
-
-  void sendMessageToClient(
-      {required FromEbsToClientMessages type, Map<String, dynamic>? data}) {
-    final message = {
-      'target': MessageTarget.client.index,
-      'message': {'type': type.index, 'data': data}
-    };
-    sendPort.send(message);
-  }
-
-  void sendMessageToFrontend({
-    required FromEbsToFrontendMessages type,
-    Map<String, dynamic>? data,
-  }) {
-    final message = {
-      'target': MessageTarget.frontend.index,
-      'message': {'type': type.index, 'data': data ?? ''},
-    };
-    sendPort.send(message);
-  }
-
-  void sendMessageToManager(
-      {required FromEbsToManagerMessages type,
-      Map<String, dynamic>? data,
-      Map<String, dynamic>? internalMain}) {
-    final message = {
-      'target': MessageTarget.manager.index,
-      'message': {'type': type.index, 'data': data},
-      'internal_main': internalMain,
-    };
-    sendPort.send(message);
-  }
-
-  final _completers = Completers();
-  Future<dynamic> sendQuestionToManager(
-      {required FromEbsToManagerMessages type,
-      Map<String, dynamic>? data,
-      Map<String, dynamic>? internalMain}) {
-    final completerId = _completers.spawn();
-    final completer = _completers.get(completerId)!;
-
-    final message = {
-      'target': MessageTarget.manager.index,
-      'message': {'type': type.index, 'data': data},
-      'internal_isolate': {'completer_id': completerId},
-      'internal_main': internalMain,
-    };
-    sendPort.send(message);
-
-    return completer.future;
-  }
-
+  final completers = Completers();
   Future<void> complete(
       {required int? completerId, required dynamic data}) async {
     if (completerId == null) return;
-    _completers.get(completerId)?.complete(data);
+    completers.get(completerId)?.complete(data);
+  }
+
+  GameManagerCommunication({required this.sendPort});
+
+  ///
+  /// Send a message to the manager. The message will be redirected based on the
+  /// target field of the message.
+  /// [message] the message to send
+  void sendMessageToManager(MessageProtocol message) => sendPort.send(message);
+
+  ///
+  /// Send a message to the manager while expecting an actual response. This is
+  /// useful when the client needs to wait for a response from the manager
+  /// [message] the message to send
+  /// returns a future that will be completed when the manager responds
+  Future<dynamic> sendQuestionToManager(MessageProtocol message) {
+    final completerId = completers.spawn();
+    final completer = completers.get(completerId)!;
+
+    sendPort
+        .send(message.copyWith(internalIsolate: {'completer_id': completerId}));
+
+    return completer.future.timeout(Duration(seconds: 30),
+        onTimeout: () => throw Exception('Timeout'));
   }
 }

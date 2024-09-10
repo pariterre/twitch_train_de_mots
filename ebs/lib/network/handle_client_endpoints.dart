@@ -10,7 +10,6 @@ Future<void> _handleClientHttpGetRequest(HttpRequest request) async {
 
 Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
   try {
-    _logger.info('New client connexion');
     final socket = await WebSocketTransformer.upgrade(request);
 
     final broadcasterId =
@@ -25,12 +24,27 @@ Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
       return;
     }
 
+    _logger.info('New client connexion (broadcasterId: $broadcasterId)');
     IsolatedGamesManager.instance.newClient(broadcasterId, socket: socket);
 
     // Establish a persistent communication with the client
-    socket.listen((message) => IsolatedGamesManager.instance
-        .messageFromClientToIsolated(message, socket));
+    socket
+        .listen((message) => IsolatedGamesManager.instance
+            .messageFromClientToIsolated(
+                MessageProtocol.decode(message), socket))
+        .onDone(
+          () => _handleConnexionToClientTerminated(broadcasterId, socket),
+        );
   } catch (e) {
     throw ConnexionToWebSocketdRefusedException();
   }
+}
+
+Future<void> _handleConnexionToClientTerminated(
+    int broadcasterId, WebSocket socket) async {
+  IsolatedGamesManager.instance.messageFromClientToIsolated(
+      MessageProtocol(
+          fromTo: FromClientToEbsMessages.disconnect,
+          data: {'broadcaster_id': broadcasterId}),
+      socket);
 }

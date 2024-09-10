@@ -432,7 +432,7 @@ class GameManager {
     if (cm.canUseControllerHelper) {
       if (message == '!pardon') {
         _logger.info('Trying to pardon the last stealer');
-        pardonLastStealer(playerWhoRequestedPardon: player);
+        pardonLastStealer(pardonner: player);
         return;
       } else if (message == '!boost') {
         _logger.info('Trying to boost the train');
@@ -514,28 +514,28 @@ class GameManager {
   /// Performs the pardon to a player, that is giving back the points to the team
   /// and remove the stolen flag for the player. This is only performed if the
   /// pardonner is not the stealer themselves.
-  void pardonLastStealer({required Player playerWhoRequestedPardon}) {
+  bool pardonLastStealer({required Player pardonner}) {
     _logger.info('Pardoning the last stealer...');
 
     if (_remainingPardons < 1) {
       // Player cannot pardon anymore
       _logger.warning('No more pardons available');
-      return;
+      return false;
     }
 
     if (_lastStolenSolution == null) {
       // Tell the players that there was no stealer to pardon
       onStealerPardoned.notifyListenersWithParameter(null);
       _logger.warning('No stealer to pardon');
-      return;
+      return false;
     }
     final solution = _lastStolenSolution!;
 
     // Only the player who was stolen from can pardon the stealer
-    if (solution.stolenFrom != playerWhoRequestedPardon) {
+    if (solution.stolenFrom != pardonner) {
       onStealerPardoned.notifyListenersWithParameter(solution);
       _logger.warning('Player cannot pardon the stealer');
-      return;
+      return false;
     }
 
     // If we get here, the solution is pardoned (so not stolen anymore)
@@ -547,7 +547,8 @@ class GameManager {
     onStealerPardoned.notifyListenersWithParameter(solution);
 
     _logger.info('Stealer (${solution.foundBy.name}) has been pardoned by '
-        '${playerWhoRequestedPardon.name}');
+        '${pardonner.name}');
+    return true;
   }
 
   ///

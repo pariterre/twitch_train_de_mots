@@ -1,3 +1,5 @@
+import 'package:common/widgets/background.dart';
+import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
@@ -42,20 +44,36 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {});
   }
 
+  void _onPardonPressed() async {
+    final isSuccess = await TwitchManager.instance.pardonStealer();
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+          isSuccess ? 'Pardon request successful' : 'Pardon request failed'),
+      duration: const Duration(seconds: 2),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('My user ID: ${TwitchManager.instance.opaqueUserId}'),
-        ElevatedButton(
-          onPressed: _canPlayerPardon
-              ? () => TwitchManager.instance.pardonStealer()
-              : null,
-          child: const Text('Pardon'),
-        ),
-      ],
-    ));
+    return Background(
+      backgroundLayer: Image.asset(
+        'assets/images/train.png',
+        height: MediaQuery.of(context).size.height,
+        opacity: const AlwaysStoppedAnimation(0.05),
+        fit: BoxFit.cover,
+      ),
+      child: Center(
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ThemedElevatedButton(
+            onPressed: _canPlayerPardon ? _onPardonPressed : null,
+            buttonText: 'Pardon',
+          ),
+        ],
+      )),
+    );
   }
 }

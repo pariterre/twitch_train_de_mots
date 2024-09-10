@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
@@ -47,6 +46,8 @@ class EbsServerManager {
     Future<bool> retryOnFail(String errormessage) async {
       _logger.severe(errormessage);
       _isConnectedToEbs = false;
+      // Stop listening to the messages from the EBS server
+      _instance!._socket?.sink.close();
       _logger.severe('Reconnecting to EBS in 10 seconds');
       await Future.delayed(const Duration(seconds: 10));
       _connectingToEbsCompleter = null;
@@ -142,18 +143,20 @@ class EbsServerManager {
 
     _logger.info('Requesting a new letter problem to EBS server');
     _sendMessageToEbs(
-      type: FromClientToEbsMessages.newLetterProblemRequest,
-      data: {
-        'algorithm': 'fromRandomWord',
-        'lengthShortestSolutionMin': nbLetterInSmallestWord,
-        'lengthShortestSolutionMax': nbLetterInSmallestWord,
-        'lengthLongestSolutionMin': minLetters,
-        'lengthLongestSolutionMax': maxLetters,
-        'nbSolutionsMin': minimumNbOfWords,
-        'nbSolutionsMax': maximumNbOfWords,
-        'nbUselessLetters': addUselessLetter ? 1 : 0,
-        'timeout': maxSearchingTime.inSeconds,
-      },
+      MessageProtocol(
+        fromTo: FromClientToEbsMessages.newLetterProblemRequest,
+        data: {
+          'algorithm': 'fromRandomWord',
+          'lengthShortestSolutionMin': nbLetterInSmallestWord,
+          'lengthShortestSolutionMax': nbLetterInSmallestWord,
+          'lengthLongestSolutionMin': minLetters,
+          'lengthLongestSolutionMax': maxLetters,
+          'nbSolutionsMin': minimumNbOfWords,
+          'nbSolutionsMax': maximumNbOfWords,
+          'nbUselessLetters': addUselessLetter ? 1 : 0,
+          'timeout': maxSearchingTime.inSeconds,
+        },
+      ),
     );
 
     return _completers[LetterProblem]!;
@@ -175,65 +178,78 @@ class EbsServerManager {
   /// Send a message to the EBS server to notify that a stealer has been pardoned
   /// by the broadcaster to the frontends.
   void _sendStealerWasPardonedToFrontend(WordSolution? solution) =>
-      _sendMessageToEbs(
-          type: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'pardonner_user_id': ''});
+      _sendMessageToEbs(MessageProtocol(
+          fromTo: FromClientToEbsMessages.pardonStatusUpdate,
+          data: {'pardonner_user_id': ''}));
 
   void _sendSolutionWasStolenToFrontend(WordSolution? solution) =>
-      _sendMessageToEbs(
-          type: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'pardonner_user_id': solution?.stolenFrom.name});
+      _sendMessageToEbs(MessageProtocol(
+          fromTo: FromClientToEbsMessages.pardonStatusUpdate,
+          data: {'pardonner_user_id': solution?.stolenFrom.name}));
 
   ///
   /// Handle the messages received from the EBS server
-  void _handleMessageFromEbs(message) {
-    final messageDecoded = json.decode(message);
-    final type = FromEbsToClientMessages.values[messageDecoded['type'] as int];
-    final data = messageDecoded['data'] as Map<String, dynamic>?;
+  void _handleMessageFromEbs(raw) {
+    final message = MessageProtocol.decode(raw);
 
-    switch (type) {
+    switch (message.fromTo as FromEbsToClientMessages) {
       case FromEbsToClientMessages.isConnected:
         _logger.info('Client has connected to the EBS server');
         _connectingToEbsCompleter?.complete(true);
         break;
 
       case FromEbsToClientMessages.newLetterProblemGenerated:
-        _receivedNewLetterProblemFromEbs(data!);
+        _receivedNewLetterProblemFromEbs(message.data!);
         break;
 
       case FromEbsToClientMessages.pardonRequest:
         final gm = GameManager.instance;
         try {
-          final player = gm.players
-              .firstWhere((player) => player.name == data!['player_name']);
-          gm.pardonLastStealer(playerWhoRequestedPardon: player);
+          final player = gm.players.firstWhere(
+              (player) => player.name == message.data?['player_name']);
+
+          final response = message.copyWith(
+              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              isSuccess: gm.pardonLastStealer(pardonner: player));
+          _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while pardoning the stealer: $e');
-          return;
+          final response = message.copyWith(
+              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              isSuccess: false);
+          _sendMessageToEbs(response);
         }
         break;
 
       case FromEbsToClientMessages.ping:
-        _logger.info('Ping received');
+        _logger.info('Ping received, sending pong');
+        final response = message.copyWith(
+            fromTo: FromClientToEbsMessages.pong, data: {'response': 'PONG'});
+        _sendMessageToEbs(response);
+        break;
+
+      case FromEbsToClientMessages.disconnect:
+        _logger
+            .severe('EBS server has disconnected, reconnecting in 10 seconds');
+        Future.delayed(const Duration(seconds: 10)).then((_) => _connect());
         break;
       case FromEbsToClientMessages.unkownMessageException:
       case FromEbsToClientMessages.noBroadcasterIdException:
       case FromEbsToClientMessages.invalidAlgorithmException:
       case FromEbsToClientMessages.invalidTimeoutException:
       case FromEbsToClientMessages.invalidConfigurationException:
-        _logger.severe('Error: $type');
+        _logger.severe('Error: ${message.fromTo}');
     }
   }
 
   ///
   /// Send a message to the EBS server
-  void _sendMessageToEbs(
-      {required FromClientToEbsMessages type, Map<String, dynamic>? data}) {
-    final message = {
-      'broadcasterId': TwitchManager.instance.broadcasterId,
-      'type': type.index,
-      'data': data,
-    };
-    _socket!.sink.add(json.encode(message));
+  void _sendMessageToEbs(MessageProtocol message) {
+    final augmentedMessage = message.copyWith(
+        data: message.data ?? {}
+          ..addAll({
+            'broadcaster_id': TwitchManager.instance.broadcasterId,
+          }));
+    _socket!.sink.add(augmentedMessage.encode());
   }
 }

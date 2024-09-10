@@ -38,8 +38,11 @@ class TwitchManager {
   /// Post a request to pardon the stealer. No confirmation is received from
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
-  Future<void> pardonStealer() async =>
-      await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+  Future<bool> pardonStealer() async {
+    final response =
+        await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+    return response.isSuccess ?? false;
+  }
 
   ///
   /// Callback to know when the TwitchManager has connected to the Twitch
@@ -81,11 +84,12 @@ class TwitchManager {
       onConnectedToTwitchService: _onFinishedInitializing,
       pubSubCallback: _onPubSubMessageReceived,
     );
+    _logger.info('TwitchFrontendManager is ready');
 
     // Try to register to the game. This will fail if the game has not started,
     // but we don't care about that. If the game is indeed started, we will be
     // registered to it.
-    _hasRegisteredToGame();
+    _registerToGame();
   }
 
   Future<void> _onPubSubMessageReceived(String raw) async {
@@ -101,11 +105,15 @@ class TwitchManager {
 
         case FromEbsToFrontendMessages.gameStarted:
           // Register to the game when the game has started
-          _hasRegisteredToGame();
+          _registerToGame();
           break;
 
         case FromEbsToFrontendMessages.pardonStatusUpdate:
           _pardonnersChanged(data);
+          break;
+
+        case FromEbsToFrontendMessages.gameEnded:
+          // TODO : Show the game ended screen
           break;
       }
     } catch (e) {
@@ -113,10 +121,11 @@ class TwitchManager {
     }
   }
 
-  Future<void> _hasRegisteredToGame() async {
+  Future<void> _registerToGame() async {
     final response =
         await _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
-    if (response?['status'] != 'OK') {
+    final isSuccess = response.isSuccess ?? false;
+    if (!isSuccess) {
       _logger.info('No game started yet');
       return;
     }
@@ -131,19 +140,23 @@ class TwitchManager {
   }
 
   ///
-  /// Send a message to the EBS based on the [type] of message.
-  Future<Map<String, dynamic>?> _sendMessageToEbs(
-      FromFrontendToEbsMessages type) async {
+  /// Send a message to the EBS based on the [fromTo] of message.
+  Future<MessageProtocol> _sendMessageToEbs(
+      FromFrontendToEbsMessages fromTo) async {
     if (!isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
     }
 
     try {
-      return await _frontendManager!.apiToEbs.postRequest(type.asEndpoint());
+      final message = MessageProtocol(fromTo: fromTo);
+      final response = await _frontendManager!.apiToEbs
+          .postRequest(fromTo.asEndpoint(), message.toJson());
+      _logger.info('Message sent to EBS: $response');
+      return MessageProtocol.fromJson(response);
     } catch (e) {
-      _logger.severe('Error sending message to EBS: $e');
-      return null;
+      _logger.severe('Failed to send message to EBS: $e');
+      return MessageProtocol(fromTo: fromTo, isSuccess: false);
     }
   }
 }
@@ -158,20 +171,22 @@ class TwitchManagerMock extends TwitchManager {
     // Try to register to the game. This will fail if the game has not started,
     // but we don't care about that. If the game is indeed started, we will be
     // registered to it.
-    _hasRegisteredToGame();
+    _registerToGame();
   }
 
   @override
   String get opaqueUserId => 'U0123456789';
 
   @override
-  Future<Map<String, dynamic>> _sendMessageToEbs(
-      FromFrontendToEbsMessages type) async {
-    switch (type) {
+  Future<MessageProtocol> _sendMessageToEbs(
+      FromFrontendToEbsMessages fromTo) async {
+    switch (fromTo) {
       case FromFrontendToEbsMessages.registerToGame:
-        return {'status': 'OK'};
+        return MessageProtocol(
+            fromTo: FromFrontendToEbsMessages.registerToGame, isSuccess: true);
       case FromFrontendToEbsMessages.pardonRequest:
-        return {'status': 'OK'};
+        return MessageProtocol(
+            fromTo: FromFrontendToEbsMessages.pardonRequest, isSuccess: true);
     }
   }
 }

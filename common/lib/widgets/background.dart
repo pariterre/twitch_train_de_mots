@@ -6,8 +6,10 @@ import 'package:logging/logging.dart';
 final _logger = Logger('Background');
 
 class Background extends StatefulWidget {
-  const Background({super.key, this.child, this.withSnowfall = true});
+  const Background(
+      {super.key, this.child, this.withSnowfall = true, this.backgroundLayer});
 
+  final Widget? backgroundLayer;
   final bool withSnowfall;
   final Widget? child;
 
@@ -92,15 +94,11 @@ class _BackgroundState extends State<Background>
             );
           },
         ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Image.asset(
-            'assets/images/splash_screen.png',
-            height: MediaQuery.of(context).size.height,
-            opacity: const AlwaysStoppedAnimation(0.05),
-            fit: BoxFit.cover,
+        if (widget.backgroundLayer != null)
+          Align(
+            alignment: Alignment.topCenter,
+            child: widget.backgroundLayer,
           ),
-        ),
         if (widget.withSnowfall) const SnowfallOverlay(),
         if (widget.child != null) widget.child!,
       ],

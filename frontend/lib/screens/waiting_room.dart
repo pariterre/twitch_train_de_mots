@@ -8,9 +8,6 @@ class WaitingRoom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Train de mots!'),
-      ),
       body: FutureBuilder(
           future: TwitchManager.instance.onFinishedInitializing,
           builder: (context, snapshot) {

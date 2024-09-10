@@ -19,13 +19,17 @@ Future<void> _handleFrontendHttpRequest(HttpRequest request) async {
       // Get the message of the POST request
       final response = await IsolatedGamesManager.instance
           .messageFromFrontendToIsolated(
-              broadcasterId: broadcasterId,
-              type: FromFrontendToEbsMessages.registerToGame,
-              data: {'user_id': userId, 'opaque_id': opaqueUserId});
+              message: MessageProtocol(
+                  fromTo: FromFrontendToEbsMessages.registerToGame,
+                  data: {
+            'broadcaster_id': broadcasterId,
+            'user_id': userId,
+            'opaque_id': opaqueUserId
+          }));
 
-      if (response['status'] != 'OK') {
-        _sendErrorResponse(
-            request, HttpStatus.unauthorized, 'Could not register to game');
+      final isSuccess = response.isSuccess ?? false;
+      if (!isSuccess) {
+        _sendErrorResponse(request, HttpStatus.unauthorized, response);
         return;
       }
       _sendSuccessResponse(request, response);
@@ -35,13 +39,13 @@ Future<void> _handleFrontendHttpRequest(HttpRequest request) async {
       // Get the message of the POST request
       final response = await IsolatedGamesManager.instance
           .messageFromFrontendToIsolated(
-              broadcasterId: broadcasterId,
-              type: FromFrontendToEbsMessages.pardonRequest,
-              data: {'user_id': userId});
+              message: MessageProtocol(
+                  fromTo: FromFrontendToEbsMessages.pardonRequest,
+                  data: {'broadcaster_id': broadcasterId, 'user_id': userId}));
 
-      if (response['status'] != 'OK') {
-        _sendErrorResponse(
-            request, HttpStatus.unauthorized, 'Could not pardon the stealer');
+      final isSuccess = response.isSuccess ?? false;
+      if (!isSuccess) {
+        _sendErrorResponse(request, HttpStatus.unauthorized, response);
         return;
       }
       _sendSuccessResponse(request, response);

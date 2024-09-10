@@ -1,18 +1,149 @@
+import 'dart:convert';
+
 import 'package:common/models/exceptions.dart';
 
-enum FromManagerToEbsMessages {
+class MessageProtocol {
+  final MessageTargets? target;
+  final FromToMessages fromTo;
+
+  final Map<String, dynamic>? data;
+  final bool? isSuccess;
+  final Map<String, dynamic>? internalMain;
+  final Map<String, dynamic>? internalIsolate;
+
+  MessageProtocol({
+    this.target,
+    required this.fromTo,
+    this.data,
+    this.isSuccess,
+    this.internalMain,
+    this.internalIsolate,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'target': target?.index,
+        'from_to': fromTo.getIndex,
+        'from_to_type': fromTo._fromToType.index,
+        'data': data,
+        'is_success': isSuccess,
+        'internal_main': internalMain,
+        'internal_isolate': internalIsolate,
+      };
+  String encode() => jsonEncode(toJson());
+
+  factory MessageProtocol.fromJson(Map<String, dynamic> json) {
+    return MessageProtocol(
+      target:
+          json['target'] == null ? null : MessageTargets.values[json['target']],
+      fromTo:
+          _FromToTypes.values[json['from_to_type']].toFromTo(json['from_to']),
+      data: json['data'],
+      isSuccess: json['is_success'],
+      internalMain: json['internal_main'],
+      internalIsolate: json['internal_isolate'],
+    );
+  }
+
+  factory MessageProtocol.decode(String raw) {
+    return MessageProtocol.fromJson(jsonDecode(raw));
+  }
+
+  MessageProtocol copyWith({
+    MessageTargets? target,
+    FromToMessages? fromTo,
+    Map<String, dynamic>? data,
+    bool? isSuccess,
+    Map<String, dynamic>? internalMain,
+    Map<String, dynamic>? internalIsolate,
+  }) {
+    target ??= this.target;
+    fromTo ??= this.fromTo;
+    data ??= this.data;
+    isSuccess ??= this.isSuccess;
+    internalMain ??= this.internalMain;
+    internalIsolate ??= this.internalIsolate;
+
+    return MessageProtocol(
+      target: target,
+      fromTo: fromTo,
+      data: data,
+      isSuccess: isSuccess,
+      internalMain: internalMain,
+      internalIsolate: internalIsolate,
+    );
+  }
+}
+
+enum MessageTargets {
+  manager,
+  client,
+  frontend;
+}
+
+mixin FromToMessages {
+  int get getIndex;
+  List<FromToMessages> get getValues;
+  _FromToTypes get _fromToType;
+}
+
+enum _FromToTypes {
+  managerToEbs,
+  clientToEbs,
+  frontendToEbs,
+  ebsToManager,
+  ebsToClient,
+  ebsToFrontend;
+
+  FromToMessages toFromTo(int index) {
+    switch (this) {
+      case _FromToTypes.managerToEbs:
+        return FromManagerToEbsMessages.values[index];
+      case _FromToTypes.clientToEbs:
+        return FromClientToEbsMessages.values[index];
+      case _FromToTypes.frontendToEbs:
+        return FromFrontendToEbsMessages.values[index];
+      case _FromToTypes.ebsToManager:
+        return FromEbsToManagerMessages.values[index];
+      case _FromToTypes.ebsToClient:
+        return FromEbsToClientMessages.values[index];
+      case _FromToTypes.ebsToFrontend:
+        return FromEbsToFrontendMessages.values[index];
+    }
+  }
+}
+
+enum FromManagerToEbsMessages implements FromToMessages {
   getUserId,
   getDisplayName,
   getLogin;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.managerToEbs;
 }
 
-enum FromClientToEbsMessages {
+enum FromClientToEbsMessages implements FromToMessages {
   newLetterProblemRequest,
   pardonStatusUpdate,
+  pardonRequestStatus,
+  pong,
   disconnect;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.clientToEbs;
 }
 
-enum FromFrontendToEbsMessages {
+enum FromFrontendToEbsMessages implements FromToMessages {
   registerToGame,
   pardonRequest;
 
@@ -25,18 +156,35 @@ enum FromFrontendToEbsMessages {
     }
   }
 
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.frontendToEbs;
+
   String asEndpoint() => '/$name';
 }
 
-enum FromEbsToManagerMessages {
+enum FromEbsToManagerMessages implements FromToMessages {
   initialize,
   responseInternal,
   getUserId,
   getDisplayName,
-  getLogin;
+  getLogin,
+  canDestroyIsolated;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.ebsToManager;
 }
 
-enum FromEbsToClientMessages {
+enum FromEbsToClientMessages implements FromToMessages {
   isConnected,
   ping,
   newLetterProblemGenerated,
@@ -45,11 +193,42 @@ enum FromEbsToClientMessages {
   invalidAlgorithmException,
   invalidTimeoutException,
   invalidConfigurationException,
-  unkownMessageException;
+  unkownMessageException,
+  disconnect;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.ebsToClient;
 }
 
-enum FromEbsToFrontendMessages {
+enum FromEbsToFrontendMessages implements FromToMessages {
   ping,
   gameStarted,
-  pardonStatusUpdate;
+  pardonStatusUpdate,
+  gameEnded;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.ebsToFrontend;
+}
+
+enum FromEbsToGeneric implements FromToMessages {
+  response,
+  error;
+
+  @override
+  int get getIndex => index;
+
+  @override
+  List<FromToMessages> get getValues => values;
+  @override
+  _FromToTypes get _fromToType => _FromToTypes.ebsToFrontend;
 }

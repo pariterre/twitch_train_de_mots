@@ -358,7 +358,7 @@ class _Train extends StatelessWidget {
               child: GrowingWidget(
                 growingFactor: 0.97,
                 duration: const Duration(milliseconds: 1500),
-                child: Image.asset('assets/images/splash_screen.png',
+                child: Image.asset('assets/images/train.png',
                     opacity: const AlwaysStoppedAnimation(0.9)),
               )),
         );

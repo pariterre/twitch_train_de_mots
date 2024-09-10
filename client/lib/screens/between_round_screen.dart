@@ -887,7 +887,7 @@ class _BackgroundState extends State<_Background> {
             ),
           )),
         ),
-        Image.asset('assets/images/splash_screen.png',
+        Image.asset('assets/images/train.png',
             height: MediaQuery.of(context).size.height * 0.6,
             fit: BoxFit.cover,
             opacity: const AlwaysStoppedAnimation(0.04)),
