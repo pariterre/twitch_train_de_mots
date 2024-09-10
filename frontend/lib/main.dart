@@ -1,7 +1,7 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
-import 'package:frontend/screens/waiting_room.dart';
+import 'package:frontend/screens/connect_room.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: WaitingRoom(),
+      home: ConnectRoom(),
     );
   }
 }

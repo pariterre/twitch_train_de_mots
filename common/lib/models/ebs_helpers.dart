@@ -129,6 +129,8 @@ enum FromMainToEbsMessages implements FromToMessages {
 
 enum FromClientToEbsMessages implements FromToMessages {
   newLetterProblemRequest,
+  roundStarted,
+  roundEnded,
   pardonStatusUpdate,
   pardonRequestStatus,
   pong,
@@ -208,6 +210,8 @@ enum FromEbsToClientMessages implements FromToMessages {
 enum FromEbsToFrontendMessages implements FromToMessages {
   ping,
   gameStarted,
+  roundStarted,
+  roundEnded,
   pardonStatusUpdate,
   gameEnded;
 

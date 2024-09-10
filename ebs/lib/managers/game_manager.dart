@@ -36,13 +36,31 @@ class GameManager {
       : communications = GameManagerCommunication(sendPort: sendPort) {
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
-    communications.sendMessageToMain(MessageProtocol(
+    communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.frontend,
         fromTo: FromEbsToFrontendMessages.gameStarted));
 
     // Keep the connexion alive
     _keepAlive();
     Timer.periodic(Duration(minutes: 1), (_) => _keepAlive());
+  }
+
+  ///
+  /// Handle a message from the client to start a new round
+  Future<void> clientStartedARound() async {
+    _logger.info('Client started a round');
+    communications.sendMessageViaMain(MessageProtocol(
+        target: MessageTargets.frontend,
+        fromTo: FromEbsToFrontendMessages.roundStarted));
+  }
+
+  ///
+  /// Handle a message from the client that the round is over
+  Future<void> clientEndedARound() async {
+    _logger.info('Client ended a round');
+    communications.sendMessageViaMain(MessageProtocol(
+        target: MessageTargets.frontend,
+        fromTo: FromEbsToFrontendMessages.roundEnded));
   }
 
   ///
@@ -94,7 +112,7 @@ class GameManager {
     _logger.info('Last stealer is pardoned');
 
     if (pardonnerUserId.isEmpty) {
-      communications.sendMessageToMain(MessageProtocol(
+      communications.sendMessageViaMain(MessageProtocol(
           target: MessageTargets.frontend,
           fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
           data: {
@@ -111,7 +129,7 @@ class GameManager {
     final userId = _loginToUserId[pardonnerUserId]!;
     final opaqueId = _userIdToOpaqueId[userId]!;
 
-    communications.sendMessageToMain(MessageProtocol(
+    communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.frontend,
         fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
@@ -123,15 +141,15 @@ class GameManager {
   /// Handle a message from the client to end the game
   Future<void> clientEndedTheGame() async {
     _logger.info('Game ended for client: $broadcasterId');
-    communications.sendMessageToMain(MessageProtocol(
+    communications.sendMessageViaMain(MessageProtocol(
       target: MessageTargets.frontend,
       fromTo: FromEbsToFrontendMessages.gameEnded,
     ));
-    communications.sendMessageToMain(MessageProtocol(
+    communications.sendMessageViaMain(MessageProtocol(
       target: MessageTargets.client,
       fromTo: FromEbsToClientMessages.disconnect,
     ));
-    communications.sendMessageToMain(MessageProtocol(
+    communications.sendMessageViaMain(MessageProtocol(
       target: MessageTargets.main,
       fromTo: FromEbsToMainMessages.canDestroyIsolated,
     ));
@@ -181,7 +199,7 @@ class GameManagerCommunication {
   /// Send a message to main. The message will be redirected based on the
   /// target field of the message.
   /// [message] the message to send
-  void sendMessageToMain(MessageProtocol message) => sendPort.send(message);
+  void sendMessageViaMain(MessageProtocol message) => sendPort.send(message);
 
   ///
   /// Send a message to main while expecting an actual response. This is

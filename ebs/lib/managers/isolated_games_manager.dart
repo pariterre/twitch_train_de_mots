@@ -232,7 +232,7 @@ class _IsolatedGame {
         broadcasterId: data.twitchBroadcasterId, sendPort: sendPort);
 
     // Send the SendPort to the main isolate, so it can communicate back to the isolate
-    gm.communications.sendMessageToMain(MessageProtocol(
+    gm.communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.main,
         fromTo: FromEbsToMainMessages.initialize,
         data: {
@@ -284,8 +284,16 @@ class _IsolatedGame {
     // it sends an error message back to the client
     try {
       switch (message.fromTo as FromClientToEbsMessages) {
+        case FromClientToEbsMessages.roundStarted:
+          gm.clientStartedARound();
+          break;
+
+        case FromClientToEbsMessages.roundEnded:
+          gm.clientEndedARound();
+          break;
+
         case FromClientToEbsMessages.newLetterProblemRequest:
-          gm.communications.sendMessageToMain(MessageProtocol(
+          gm.communications.sendMessageViaMain(MessageProtocol(
               target: MessageTargets.client,
               fromTo: FromEbsToClientMessages.newLetterProblemGenerated,
               data: (await gm.clientRequestedANewLetterProblem(message.data!))
@@ -313,16 +321,16 @@ class _IsolatedGame {
           break;
       }
     } on InvalidMessageException catch (e) {
-      gm.communications.sendMessageToMain(MessageProtocol(
+      gm.communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.client,
         fromTo: e.message,
       ));
-      gm.communications.sendMessageToMain(MessageProtocol(
+      gm.communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.client,
         fromTo: e.message,
       ));
     } catch (e) {
-      gm.communications.sendMessageToMain(MessageProtocol(
+      gm.communications.sendMessageViaMain(MessageProtocol(
           target: MessageTargets.client,
           fromTo: FromEbsToClientMessages.unkownMessageException));
     }
@@ -334,7 +342,7 @@ class _IsolatedGame {
       MessageProtocol message, GameManager gm) async {
     // Helper function to send a response to the frontend
     Future<void> sendReponseSubroutine(MessageProtocol message) async {
-      gm.communications.sendMessageToMain(message.copyWith(
+      gm.communications.sendMessageViaMain(message.copyWith(
           target: MessageTargets.main,
           fromTo: FromEbsToMainMessages.responseInternal));
     }

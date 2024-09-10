@@ -94,11 +94,11 @@ class TwitchManager {
 
   Future<void> _onPubSubMessageReceived(String raw) async {
     try {
-      final message = jsonDecode(raw.replaceAll('\'', '"'));
-      final type = FromEbsToFrontendMessages.values[message['type']];
-      final data = message['data'];
+      _logger.info('Message from Pubsub: $raw');
+      final json = jsonDecode(raw.replaceAll('\'', '"'));
+      final message = MessageProtocol.fromJson(json);
 
-      switch (type) {
+      switch (message.fromTo as FromEbsToFrontendMessages) {
         case FromEbsToFrontendMessages.ping:
           _logger.info('PING received');
           break;
@@ -108,8 +108,15 @@ class TwitchManager {
           _registerToGame();
           break;
 
+        case FromEbsToFrontendMessages.roundStarted:
+          GameManager.instance.startRound();
+          break;
+
+        case FromEbsToFrontendMessages.roundEnded:
+          GameManager.instance.endRound();
+
         case FromEbsToFrontendMessages.pardonStatusUpdate:
-          _pardonnersChanged(data);
+          _pardonnersChanged(message.data!);
           break;
 
         case FromEbsToFrontendMessages.gameEnded:

@@ -94,6 +94,8 @@ class EbsServerManager {
 
     // Connect the listeners to the GameManager
     final gm = GameManager.instance;
+    gm.onRoundStarted.addListener(_sendRoundStartedToFrontend);
+    gm.onRoundIsOver.addListener(_sendRoundEndedToFrontend);
     gm.onStealerPardoned.addListener(_sendStealerWasPardonedToFrontend);
     gm.onSolutionWasStolen.addListener(_sendSolutionWasStolenToFrontend);
     gm.onRoundIsOver.addListener(_onRoundIsOver);
@@ -107,6 +109,8 @@ class EbsServerManager {
   /// EBS server.
   void dispose() {
     final gm = GameManager.instance;
+    gm.onRoundStarted.removeListener(_sendRoundStartedToFrontend);
+    gm.onRoundIsOver.removeListener(_sendRoundEndedToFrontend);
     gm.onStealerPardoned.removeListener(_sendStealerWasPardonedToFrontend);
     gm.onSolutionWasStolen.removeListener(_sendSolutionWasStolenToFrontend);
     gm.onRoundIsOver.removeListener(_onRoundIsOver);
@@ -175,6 +179,20 @@ class EbsServerManager {
   }
 
   ///
+  /// Send a message to the EBS server to notify that a new round has started
+  Future<void> _sendRoundStartedToFrontend() async {
+    _sendMessageToEbs(
+        MessageProtocol(fromTo: FromClientToEbsMessages.roundStarted));
+  }
+
+  ///
+  /// Send a message to the EBS server to notify that a round has ended
+  Future<void> _sendRoundEndedToFrontend(_) async {
+    _sendMessageToEbs(
+        MessageProtocol(fromTo: FromClientToEbsMessages.roundEnded));
+  }
+
+  ///
   /// Send a message to the EBS server to notify that a stealer has been pardoned
   /// by the broadcaster to the frontends.
   void _sendStealerWasPardonedToFrontend(WordSolution? solution) =>
@@ -182,6 +200,9 @@ class EbsServerManager {
           fromTo: FromClientToEbsMessages.pardonStatusUpdate,
           data: {'pardonner_user_id': ''}));
 
+  ///
+  /// Send a message to the EBS server to notify that a solution has been stolen
+  /// by a player to the frontends.
   void _sendSolutionWasStolenToFrontend(WordSolution? solution) =>
       _sendMessageToEbs(MessageProtocol(
           fromTo: FromClientToEbsMessages.pardonStatusUpdate,
