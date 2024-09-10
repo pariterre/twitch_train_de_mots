@@ -36,7 +36,7 @@ class GameManager {
       : communications = GameManagerCommunication(sendPort: sendPort) {
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
-    communications.sendMessageToManager(MessageProtocol(
+    communications.sendMessageToMain(MessageProtocol(
         target: MessageTargets.frontend,
         fromTo: FromEbsToFrontendMessages.gameStarted));
 
@@ -51,7 +51,7 @@ class GameManager {
   Future<bool> frontendRequestedToPardon(String playerName) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    return await communications.sendQuestionToManager(MessageProtocol(
+    return await communications.sendQuestionToMain(MessageProtocol(
         target: MessageTargets.client,
         fromTo: FromEbsToClientMessages.pardonRequest,
         data: {'player_name': playerName}));
@@ -69,9 +69,9 @@ class GameManager {
     if (_userIdToOpaqueId.containsKey(userId)) return true;
 
     // Get the login of the user
-    final login = await communications.sendQuestionToManager(MessageProtocol(
-        target: MessageTargets.manager,
-        fromTo: FromEbsToManagerMessages.getLogin,
+    final login = await communications.sendQuestionToMain(MessageProtocol(
+        target: MessageTargets.main,
+        fromTo: FromEbsToMainMessages.getLogin,
         data: {'user_id': userId}));
 
     if (login == null) {
@@ -94,7 +94,7 @@ class GameManager {
     _logger.info('Last stealer is pardoned');
 
     if (pardonnerUserId.isEmpty) {
-      communications.sendMessageToManager(MessageProtocol(
+      communications.sendMessageToMain(MessageProtocol(
           target: MessageTargets.frontend,
           fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
           data: {
@@ -111,7 +111,7 @@ class GameManager {
     final userId = _loginToUserId[pardonnerUserId]!;
     final opaqueId = _userIdToOpaqueId[userId]!;
 
-    communications.sendMessageToManager(MessageProtocol(
+    communications.sendMessageToMain(MessageProtocol(
         target: MessageTargets.frontend,
         fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
         data: {
@@ -123,17 +123,17 @@ class GameManager {
   /// Handle a message from the client to end the game
   Future<void> clientEndedTheGame() async {
     _logger.info('Game ended for client: $broadcasterId');
-    communications.sendMessageToManager(MessageProtocol(
+    communications.sendMessageToMain(MessageProtocol(
       target: MessageTargets.frontend,
       fromTo: FromEbsToFrontendMessages.gameEnded,
     ));
-    communications.sendMessageToManager(MessageProtocol(
+    communications.sendMessageToMain(MessageProtocol(
       target: MessageTargets.client,
       fromTo: FromEbsToClientMessages.disconnect,
     ));
-    communications.sendMessageToManager(MessageProtocol(
-      target: MessageTargets.manager,
-      fromTo: FromEbsToManagerMessages.canDestroyIsolated,
+    communications.sendMessageToMain(MessageProtocol(
+      target: MessageTargets.main,
+      fromTo: FromEbsToMainMessages.canDestroyIsolated,
     ));
   }
 
@@ -151,7 +151,7 @@ class GameManager {
     _logger.info('Sending keep alive message');
     try {
       final response = await communications
-          .sendQuestionToManager(MessageProtocol(
+          .sendQuestionToMain(MessageProtocol(
               target: MessageTargets.client,
               fromTo: FromEbsToClientMessages.ping))
           .timeout(Duration(seconds: 30),
@@ -178,17 +178,17 @@ class GameManagerCommunication {
   GameManagerCommunication({required this.sendPort});
 
   ///
-  /// Send a message to the manager. The message will be redirected based on the
+  /// Send a message to main. The message will be redirected based on the
   /// target field of the message.
   /// [message] the message to send
-  void sendMessageToManager(MessageProtocol message) => sendPort.send(message);
+  void sendMessageToMain(MessageProtocol message) => sendPort.send(message);
 
   ///
-  /// Send a message to the manager while expecting an actual response. This is
-  /// useful when the client needs to wait for a response from the manager
+  /// Send a message to main while expecting an actual response. This is
+  /// useful when the client needs to wait for a response from the main
   /// [message] the message to send
-  /// returns a future that will be completed when the manager responds
-  Future<dynamic> sendQuestionToManager(MessageProtocol message) {
+  /// returns a future that will be completed when the main responds
+  Future<dynamic> sendQuestionToMain(MessageProtocol message) {
     final completerId = completers.spawn();
     final completer = completers.get(completerId)!;
 

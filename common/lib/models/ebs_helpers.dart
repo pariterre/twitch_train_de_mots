@@ -75,7 +75,7 @@ class MessageProtocol {
 }
 
 enum MessageTargets {
-  manager,
+  main,
   client,
   frontend;
 }
@@ -87,23 +87,23 @@ mixin FromToMessages {
 }
 
 enum _FromToTypes {
-  managerToEbs,
+  mainToEbs,
   clientToEbs,
   frontendToEbs,
-  ebsToManager,
+  ebsToMain,
   ebsToClient,
   ebsToFrontend;
 
   FromToMessages toFromTo(int index) {
     switch (this) {
-      case _FromToTypes.managerToEbs:
-        return FromManagerToEbsMessages.values[index];
+      case _FromToTypes.mainToEbs:
+        return FromMainToEbsMessages.values[index];
       case _FromToTypes.clientToEbs:
         return FromClientToEbsMessages.values[index];
       case _FromToTypes.frontendToEbs:
         return FromFrontendToEbsMessages.values[index];
-      case _FromToTypes.ebsToManager:
-        return FromEbsToManagerMessages.values[index];
+      case _FromToTypes.ebsToMain:
+        return FromEbsToMainMessages.values[index];
       case _FromToTypes.ebsToClient:
         return FromEbsToClientMessages.values[index];
       case _FromToTypes.ebsToFrontend:
@@ -112,7 +112,7 @@ enum _FromToTypes {
   }
 }
 
-enum FromManagerToEbsMessages implements FromToMessages {
+enum FromMainToEbsMessages implements FromToMessages {
   getUserId,
   getDisplayName,
   getLogin;
@@ -124,7 +124,7 @@ enum FromManagerToEbsMessages implements FromToMessages {
   List<FromToMessages> get getValues => values;
 
   @override
-  _FromToTypes get _fromToType => _FromToTypes.managerToEbs;
+  _FromToTypes get _fromToType => _FromToTypes.mainToEbs;
 }
 
 enum FromClientToEbsMessages implements FromToMessages {
@@ -167,7 +167,7 @@ enum FromFrontendToEbsMessages implements FromToMessages {
   String asEndpoint() => '/$name';
 }
 
-enum FromEbsToManagerMessages implements FromToMessages {
+enum FromEbsToMainMessages implements FromToMessages {
   initialize,
   responseInternal,
   getUserId,
@@ -181,7 +181,7 @@ enum FromEbsToManagerMessages implements FromToMessages {
   @override
   List<FromToMessages> get getValues => values;
   @override
-  _FromToTypes get _fromToType => _FromToTypes.ebsToManager;
+  _FromToTypes get _fromToType => _FromToTypes.ebsToMain;
 }
 
 enum FromEbsToClientMessages implements FromToMessages {
