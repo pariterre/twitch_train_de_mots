@@ -1,7 +1,7 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
-import 'package:frontend/screens/connect_room.dart';
+import 'package:frontend/screens/main_screen.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -9,7 +9,7 @@ void main() async {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
   });
-  await TwitchManager.initialize(useMocker: false);
+  await TwitchManager.initialize(useMocker: true);
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
@@ -21,8 +21,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: ConnectRoom(),
+    return MaterialApp(
+      home: Scaffold(
+        body: FutureBuilder(
+            future: TwitchManager.instance.onFinishedInitializing,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return const MainScreen();
+            }),
+      ),
     );
   }
 }

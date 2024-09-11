@@ -3,6 +3,7 @@ import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/header.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('PlayScreen');
@@ -15,7 +16,7 @@ class PlayScreen extends StatelessWidget {
     return const Center(
         child: Stack(
       children: [
-        _Header(),
+        Header(titleText: 'Le train est en route!\n' 'Bon voyage!'),
         Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -26,25 +27,6 @@ class PlayScreen extends StatelessWidget {
         ),
       ],
     ));
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
-        child: Text(
-          'Le train est en route!\n' 'Bon voyage!',
-          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 30),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
   }
 }
 

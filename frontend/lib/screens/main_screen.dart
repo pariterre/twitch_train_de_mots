@@ -4,14 +4,14 @@ import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/screens/play_screen.dart';
 import 'package:frontend/screens/waiting_screen.dart';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();

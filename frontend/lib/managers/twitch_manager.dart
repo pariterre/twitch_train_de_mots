@@ -184,9 +184,7 @@ class TwitchManagerMock extends TwitchManager {
 
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
-    // Try to register to the game. This will fail if the game has not started,
-    // but we don't care about that. If the game is indeed started, we will be
-    // registered to it.
+    // Uncomment the next line to simulate a connexion of the client with the EBS
     _registerToGame();
 
     // Uncomment the next line to simulate that a round started
