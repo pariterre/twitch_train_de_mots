@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _textSizeDefault = 20.0;
@@ -44,6 +45,9 @@ class ThemeManager {
     _updateLeaderTextSizes();
     _save();
   }
+
+  late final textFrontendSc =
+      GoogleFonts.almendraSc(color: textColor, fontSize: textSize);
 
   final titleSize = 32.0;
 

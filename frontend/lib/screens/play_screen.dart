@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
@@ -6,14 +7,55 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('PlayScreen');
 
-class PlayScreen extends StatefulWidget {
+class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
 
   @override
-  State<PlayScreen> createState() => _PlayScreenState();
+  Widget build(BuildContext context) {
+    return const Center(
+        child: Stack(
+      children: [
+        _Header(),
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Pardon(),
+            ],
+          ),
+        ),
+      ],
+    ));
+  }
 }
 
-class _PlayScreenState extends State<PlayScreen> {
+class _Header extends StatelessWidget {
+  const _Header();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
+        child: Text(
+          'Le train est en route!\n' 'Bon voyage!',
+          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 30),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+class _Pardon extends StatefulWidget {
+  const _Pardon();
+
+  @override
+  State<_Pardon> createState() => _PardonState();
+}
+
+class _PardonState extends State<_Pardon> {
   bool _canPlayerPardon = false;
 
   @override
@@ -40,7 +82,12 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   void _onPardonPressed() async {
+    final canPlayerPardonBack = _canPlayerPardon;
+    setState(() => _canPlayerPardon = false);
+
     final isSuccess = await TwitchManager.instance.pardonStealer();
+    if (!isSuccess) setState(() => _canPlayerPardon = canPlayerPardonBack);
+
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -52,15 +99,21 @@ class _PlayScreenState extends State<PlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Column(
+    final tm = ThemeManager.instance;
+
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Text(
+          'Donner son pardon...',
+          style: tm.textFrontendSc,
+        ),
+        const SizedBox(height: 8),
         ThemedElevatedButton(
           onPressed: _canPlayerPardon ? _onPardonPressed : null,
           buttonText: 'Pardon',
         ),
       ],
-    ));
+    );
   }
 }

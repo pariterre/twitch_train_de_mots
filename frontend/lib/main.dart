@@ -10,8 +10,8 @@ void main() async {
     debugPrint(message);
   });
   await TwitchManager.initialize(useMocker: false);
-
-  ThemeManager.initialize();
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeManager.initialize();
 
   runApp(const MyApp());
 }

@@ -173,8 +173,14 @@ class TwitchManager {
 
 class TwitchManagerMock extends TwitchManager {
   TwitchManagerMock() : super._() {
+    _logger.info('WARNING: Using TwitchManagerMock');
     _onFinishedInitializing();
   }
+
+  @override
+  bool get isInitialized => true;
+
+  bool _acceptPardon = true;
 
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
@@ -182,6 +188,16 @@ class TwitchManagerMock extends TwitchManager {
     // but we don't care about that. If the game is indeed started, we will be
     // registered to it.
     _registerToGame();
+
+    // Uncomment the next line to simulate that a round started
+    GameManager.instance.startRound();
+
+    // Uncomment the next line to simulate that the user can pardon
+    Future.delayed(const Duration(seconds: 1))
+        .then((_) => GameManager.instance.newPardonners([opaqueUserId]));
+
+    // Uncomment the next line to simulate that the client refused the pardon
+    _acceptPardon = false;
   }
 
   @override
@@ -195,8 +211,11 @@ class TwitchManagerMock extends TwitchManager {
         return MessageProtocol(
             fromTo: FromFrontendToEbsMessages.registerToGame, isSuccess: true);
       case FromFrontendToEbsMessages.pardonRequest:
+        // Simulate a response delay
+        await Future.delayed(const Duration(seconds: 1));
         return MessageProtocol(
-            fromTo: FromFrontendToEbsMessages.pardonRequest, isSuccess: true);
+            fromTo: FromFrontendToEbsMessages.pardonRequest,
+            isSuccess: _acceptPardon);
     }
   }
 }
