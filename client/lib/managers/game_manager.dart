@@ -436,7 +436,7 @@ class GameManager {
         return;
       } else if (message == '!boost') {
         _logger.info('Trying to boost the train');
-        _boostTrain(player);
+        boostTrain(player);
         return;
       }
     }
@@ -554,22 +554,22 @@ class GameManager {
   ///
   /// Boost the train. This will double the score for the subsequent solutions
   /// found during the next boostTime
-  void _boostTrain(Player player) {
+  bool boostTrain(Player player) {
     _logger.info('Boosting the train...');
     if (isTrainBoosted) {
       _logger.warning('Train is already boosted');
-      return;
+      return false;
     }
 
     if (_remainingBoosts < 1) {
       _logger.warning('No more boosts available');
-      return;
+      return false;
     }
 
     // All players requesting a boost must be unique
     if (_requestedBoost.contains(player)) {
       _logger.warning('Player already requested the boost');
-      return;
+      return false;
     }
     _requestedBoost.add(player);
 
@@ -585,6 +585,7 @@ class GameManager {
     onTrainGotBoosted.notifyListenersWithParameter(nbBoostStillNeeded);
 
     _logger.info('Train has been boosted');
+    return true;
   }
 
   ///

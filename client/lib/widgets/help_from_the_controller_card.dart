@@ -59,7 +59,8 @@ class _PardonState extends State<_Pardon> {
     gm.onNewPardonGranted.addListener(_refresh);
     gm.onStealerPardoned.addListener(_onStealerPardoned);
     gm.onSolutionWasStolen.addListener(_onSolutionWasStolen);
-    gm.onRoundIsOver.addListener(_resetCard);
+    gm.onRoundIsOver.addListener(_resetCardInterfaced);
+    gm.onRoundStarted.addListener(_resetCard);
   }
 
   @override
@@ -68,7 +69,8 @@ class _PardonState extends State<_Pardon> {
     gm.onNewPardonGranted.removeListener(_refresh);
     gm.onStealerPardoned.removeListener(_onStealerPardoned);
     gm.onSolutionWasStolen.removeListener(_onSolutionWasStolen);
-    gm.onRoundIsOver.removeListener(_resetCard);
+    gm.onRoundIsOver.removeListener(_resetCardInterfaced);
+    gm.onRoundStarted.removeListener(_resetCard);
 
     super.dispose();
   }
@@ -88,10 +90,9 @@ class _PardonState extends State<_Pardon> {
     setState(() {});
   }
 
-  void _resetCard(_) {
-    _lastStealer = null;
-    setState(() {});
-  }
+  void _resetCardInterfaced(_) => _resetCard();
+
+  void _resetCard() => setState(() => _lastStealer = null);
 
   @override
   Widget build(BuildContext context) {

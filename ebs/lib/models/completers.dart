@@ -5,7 +5,8 @@ class Completers {
 
   int spawn() {
     final completer = Completer();
-    final id = _completers.hashCode;
+    // Create a unique id for the completer based on salted hashcode
+    final id = _completers.hashCode + DateTime.now().hashCode;
     _completers[id] = completer;
 
     completer.future.then((_) => _completers.remove(id));

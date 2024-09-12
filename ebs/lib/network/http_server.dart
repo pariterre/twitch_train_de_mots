@@ -24,7 +24,7 @@ void startHttpServer({required NetworkParameters parameters}) async {
           request,
           HttpStatus.forbidden,
           MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
+              fromTo: FromEbsToGeneric.unauthorizedError,
               isSuccess: false,
               data: {'error_message': 'Connexion refused'}));
       continue;
@@ -38,7 +38,7 @@ void startHttpServer({required NetworkParameters parameters}) async {
           request,
           HttpStatus.tooManyRequests,
           MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
+              fromTo: FromEbsToGeneric.unknownError,
               isSuccess: false,
               data: {'error_message': 'Rate limited'}));
       continue;
@@ -55,7 +55,7 @@ void startHttpServer({required NetworkParameters parameters}) async {
           request,
           HttpStatus.methodNotAllowed,
           MessageProtocol(
-              fromTo: FromEbsToGeneric.error,
+              fromTo: FromEbsToGeneric.invalidEndpoint,
               isSuccess: false,
               data: {
                 'error_message': 'Invalid request method: ${request.method}'
@@ -73,7 +73,7 @@ Future<void> _gardedHandleRequest(
         request,
         HttpStatus.notFound,
         MessageProtocol(
-            fromTo: FromEbsToGeneric.error,
+            fromTo: FromEbsToGeneric.invalidEndpoint,
             isSuccess: false,
             data: {'error_message': 'Invalid endpoint'}));
   } on UnauthorizedException {
@@ -81,7 +81,7 @@ Future<void> _gardedHandleRequest(
         request,
         HttpStatus.unauthorized,
         MessageProtocol(
-            fromTo: FromEbsToGeneric.error,
+            fromTo: FromEbsToGeneric.unauthorizedError,
             isSuccess: false,
             data: {'error_message': 'Unauthorized'}));
   } on ConnexionToWebSocketdRefusedException {
@@ -89,7 +89,7 @@ Future<void> _gardedHandleRequest(
         request,
         HttpStatus.serviceUnavailable,
         MessageProtocol(
-            fromTo: FromEbsToGeneric.error,
+            fromTo: FromEbsToGeneric.unauthorizedError,
             isSuccess: false,
             data: {'error_message': 'Connexion to WebSocketd refused'}));
   } catch (e) {
@@ -97,7 +97,7 @@ Future<void> _gardedHandleRequest(
         request,
         HttpStatus.internalServerError,
         MessageProtocol(
-            fromTo: FromEbsToGeneric.error,
+            fromTo: FromEbsToGeneric.unknownError,
             isSuccess: false,
             data: {'error_message': 'An error occurred: ${e.toString()}'}));
   }

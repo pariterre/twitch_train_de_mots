@@ -65,4 +65,12 @@ class GameManager {
     onPardonnersChanged.notifyListenersWithParameter(currentPardonners);
   }
   // TODO: Request for pardonners status when connecting
+
+  ///
+  /// Boost availability
+  int _boostCount = 0;
+  int get boostCount => _boostCount;
+  final onBoostAvailabilityChanged = CustomCallback();
+  void changeBoostCount(int boostCount) => _boostCount = boostCount;
+  // TODO: Request the number of boost remaining at connexion
 }

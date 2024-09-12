@@ -218,6 +218,7 @@ class EbsServerManager {
   ///
   /// Handle the messages received from the EBS server
   void _handleMessageFromEbs(raw) {
+    final gm = GameManager.instance;
     final message = MessageProtocol.decode(raw);
 
     switch (message.fromTo as FromEbsToClientMessages) {
@@ -231,7 +232,6 @@ class EbsServerManager {
         break;
 
       case FromEbsToClientMessages.pardonRequest:
-        final gm = GameManager.instance;
         try {
           final player = gm.players.firstWhere(
               (player) => player.name == message.data?['player_name']);
@@ -242,6 +242,24 @@ class EbsServerManager {
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while pardoning the stealer: $e');
+          final response = message.copyWith(
+              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              isSuccess: false);
+          _sendMessageToEbs(response);
+        }
+        break;
+
+      case FromEbsToClientMessages.boostRequest:
+        try {
+          final player = gm.players.firstWhere(
+              (player) => player.name == message.data?['player_name']);
+
+          final response = message.copyWith(
+              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              isSuccess: gm.boostTrain(player));
+          _sendMessageToEbs(response);
+        } catch (e) {
+          _logger.severe('Error while boosting the train: $e');
           final response = message.copyWith(
               fromTo: FromClientToEbsMessages.pardonRequestStatus,
               isSuccess: false);

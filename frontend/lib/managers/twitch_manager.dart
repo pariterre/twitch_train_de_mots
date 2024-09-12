@@ -45,6 +45,16 @@ class TwitchManager {
   }
 
   ///
+  /// Post a request to pardon the stealer. No confirmation is received from
+  /// the EBS. If the request is successful, the stealer is pardoned and a message
+  /// is sent to PubSub.
+  Future<bool> boostTrain() async {
+    final response =
+        await _sendMessageToEbs(FromFrontendToEbsMessages.boostRequest);
+    return response.isSuccess ?? false;
+  }
+
+  ///
   /// Callback to know when the TwitchManager has connected to the Twitch
   /// backend services.
   final _isInitializedCompleter = Completer();
@@ -181,6 +191,7 @@ class TwitchManagerMock extends TwitchManager {
   bool get isInitialized => true;
 
   bool _acceptPardon = true;
+  bool _acceptBoost = true;
 
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
@@ -196,6 +207,9 @@ class TwitchManagerMock extends TwitchManager {
 
     // Uncomment the next line to simulate that the client refused the pardon
     _acceptPardon = false;
+
+    // Uncomment the next line to simulate that the client refused the boost
+    _acceptBoost = false;
   }
 
   @override
@@ -214,6 +228,11 @@ class TwitchManagerMock extends TwitchManager {
         return MessageProtocol(
             fromTo: FromFrontendToEbsMessages.pardonRequest,
             isSuccess: _acceptPardon);
+      case FromFrontendToEbsMessages.boostRequest:
+        await Future.delayed(const Duration(seconds: 1));
+        return MessageProtocol(
+            fromTo: FromFrontendToEbsMessages.boostRequest,
+            isSuccess: _acceptBoost);
     }
   }
 }

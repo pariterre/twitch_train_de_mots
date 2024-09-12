@@ -147,7 +147,8 @@ enum FromClientToEbsMessages implements FromToMessages {
 
 enum FromFrontendToEbsMessages implements FromToMessages {
   registerToGame,
-  pardonRequest;
+  pardonRequest,
+  boostRequest;
 
   factory FromFrontendToEbsMessages.fromString(String name) {
     try {
@@ -191,6 +192,7 @@ enum FromEbsToClientMessages implements FromToMessages {
   ping,
   newLetterProblemGenerated,
   pardonRequest,
+  boostRequest,
   noBroadcasterIdException,
   invalidAlgorithmException,
   invalidTimeoutException,
@@ -226,7 +228,9 @@ enum FromEbsToFrontendMessages implements FromToMessages {
 
 enum FromEbsToGeneric implements FromToMessages {
   response,
-  error;
+  unknownError,
+  unauthorizedError,
+  invalidEndpoint;
 
   @override
   int get getIndex => index;

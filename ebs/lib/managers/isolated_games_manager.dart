@@ -53,8 +53,12 @@ class IsolatedGamesManager {
         mainSendPort: mainReceivePort.sendPort);
 
     // Keep track of the isolate game to kill it if required
-    _isolates[broadcasterId] = _IsolateInterface(
-        isolate: await Isolate.spawn(_IsolatedGame.startNewGameManager, data));
+    if (!_isolates.containsKey(broadcasterId)) {
+      // Only for new games (ignore reconnections)
+      _isolates[broadcasterId] = _IsolateInterface(
+          isolate:
+              await Isolate.spawn(_IsolatedGame.startNewGameManager, data));
+    }
 
     // Establish communication with the worker isolate
     mainReceivePort
@@ -342,58 +346,60 @@ class _IsolatedGame {
   static Future<void> _handleMessageFromFrontend(
       MessageProtocol message, GameManager gm) async {
     // Helper function to send a response to the frontend
-    Future<void> sendReponseSubroutine(MessageProtocol message) async {
+    Future<void> sendInternalReponseSubroutine(MessageProtocol message) async {
       gm.communications.sendMessageViaMain(message.copyWith(
           target: MessageTargets.main,
           fromTo: FromEbsToMainMessages.responseInternal));
     }
 
+    Future<void> sendErrorInternalReponseSubroutine(
+        FromEbsToGeneric error) async {
+      gm.communications
+          .sendMessageViaMain(MessageProtocol(fromTo: error, isSuccess: false));
+    }
+
     _logger.info('Received message from client or frontend');
-
-    // Parse and handle the message from the client. If the message is invalid,
-    // it sends an error message back to the client
     try {
-      switch (message.fromTo as FromFrontendToEbsMessages) {
+      late final int userId;
+      try {
+        userId = message.data!['user_id']!;
+      } catch (e) {
+        sendErrorInternalReponseSubroutine(FromEbsToGeneric.unauthorizedError);
+        return;
+      }
+
+      late final String opaqueId;
+      try {
+        opaqueId = message.data!['opaque_id']!;
+      } catch (e) {
+        sendErrorInternalReponseSubroutine(FromEbsToGeneric.invalidEndpoint);
+        return;
+      }
+
+      late final FromFrontendToEbsMessages fromTo;
+      try {
+        fromTo = message.fromTo as FromFrontendToEbsMessages;
+      } catch (e) {
+        sendErrorInternalReponseSubroutine(FromEbsToGeneric.unknownError);
+        return;
+      }
+
+      late final bool isSuccess;
+      switch (fromTo) {
         case FromFrontendToEbsMessages.registerToGame:
-          try {
-            final userId = message.data!['user_id'];
-            final opaqueId = message.data!['opaque_id'];
-            if (userId == null || opaqueId == null) throw 'Not enough data';
-
-            sendReponseSubroutine(
-              message.copyWith(
-                  isSuccess: await gm.frontendRegisteredToTheGame(
-                      userId: userId, opaqueId: opaqueId)),
-            );
-          } catch (e) {
-            sendReponseSubroutine(
-              message.copyWith(isSuccess: false),
-            );
-          }
-
+          isSuccess = await gm.frontendRegisteredToTheGame(
+              userId: userId, opaqueId: opaqueId);
+          break;
         case FromFrontendToEbsMessages.pardonRequest:
-          try {
-            final userId = message.data!['user_id'];
-            if (userId == null) throw 'Not enough data';
-
-            final login = (await gm.communications.sendQuestionToMain(
-                MessageProtocol(
-                    target: MessageTargets.main,
-                    fromTo: FromEbsToMainMessages.getLogin,
-                    data: {'user_id': userId}))) as String?;
-            if (login == null) throw 'Could not get login';
-
-            sendReponseSubroutine(message.copyWith(
-                isSuccess: await gm.frontendRequestedToPardon(login)));
-          } catch (e) {
-            sendReponseSubroutine(message.copyWith(isSuccess: false));
-          }
+          isSuccess = await gm.frontendRequestedToPardon(userId);
+          break;
+        case FromFrontendToEbsMessages.boostRequest:
+          isSuccess = await gm.frontendRequestedToBoost(userId);
           break;
       }
-    } on InvalidMessageException catch (e) {
-      sendReponseSubroutine(MessageProtocol(fromTo: e.message));
+      sendInternalReponseSubroutine(message.copyWith(isSuccess: isSuccess));
     } catch (e) {
-      sendReponseSubroutine(MessageProtocol(
+      sendInternalReponseSubroutine(MessageProtocol(
           fromTo: FromEbsToClientMessages.unkownMessageException));
     }
   }

@@ -41,8 +41,8 @@ class GameManager {
         fromTo: FromEbsToFrontendMessages.gameStarted));
 
     // Keep the connexion alive
-    _keepAlive();
-    Timer.periodic(Duration(minutes: 1), (_) => _keepAlive());
+    _keepAlive(null);
+    Timer.periodic(Duration(minutes: 1), _keepAlive);
   }
 
   ///
@@ -65,13 +65,37 @@ class GameManager {
 
   ///
   /// Handle a message from the frontend to pardon the last stealer
-  /// [playerName] the name of the player to pardon
-  Future<bool> frontendRequestedToPardon(String playerName) async {
+  /// [userId] the id of the user that wants to pardon
+  Future<bool> frontendRequestedToPardon(int userId) async {
     _logger.info('Resquesting to pardon last stealer');
+
+    final playerName = _userIdToLogin[userId];
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
 
     return await communications.sendQuestionToMain(MessageProtocol(
         target: MessageTargets.client,
         fromTo: FromEbsToClientMessages.pardonRequest,
+        data: {'player_name': playerName}));
+  }
+
+  ///
+  /// Handle a message from the frontend to boost the train
+  /// [userId] the id of the user that wants to pardon
+  Future<bool> frontendRequestedToBoost(int userId) async {
+    _logger.info('Resquesting to boost the train');
+
+    final playerName = _userIdToLogin[userId];
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    return await communications.sendQuestionToMain(MessageProtocol(
+        target: MessageTargets.client,
+        fromTo: FromEbsToClientMessages.boostRequest,
         data: {'player_name': playerName}));
   }
 
@@ -165,7 +189,7 @@ class GameManager {
 
   ///
   /// Keep the connexion alive. If it fails, the game is ended.
-  Future<void> _keepAlive() async {
+  Future<void> _keepAlive(Timer? keepGameManagerAlive) async {
     _logger.info('Sending keep alive message');
     try {
       final response = await communications
@@ -175,10 +199,12 @@ class GameManager {
           .timeout(Duration(seconds: 30),
               onTimeout: () => {'response': 'NOT PONG'});
       if (response?['response'] != 'PONG') {
+        keepGameManagerAlive?.cancel();
         throw Exception('Client is not alive');
       }
     } catch (e) {
       _logger.severe('Client is not alive, ending game');
+      keepGameManagerAlive?.cancel();
       clientEndedTheGame();
     }
   }
