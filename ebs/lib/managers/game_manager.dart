@@ -34,6 +34,10 @@ class GameManager {
   GameManager.clientStartedTheGame(
       {required this.broadcasterId, required SendPort sendPort})
       : communications = GameManagerCommunication(sendPort: sendPort) {
+    // Set up the logger
+    Logger.root.onRecord.listen((record) => print(
+        '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
+
     _logger.info(
         'GameManager created for client: $broadcasterId, starting game loop');
     communications.sendMessageViaMain(MessageProtocol(
@@ -133,8 +137,6 @@ class GameManager {
   /// Handle a message from the client to update the pardonners status.
   /// [pardonnerUserId] the twitch id of the user that can pardon
   Future<void> clientUpdatedPardonnersStatus(String pardonnerUserId) async {
-    _logger.info('Last stealer is pardoned');
-
     if (pardonnerUserId.isEmpty) {
       communications.sendMessageViaMain(MessageProtocol(
           target: MessageTargets.frontend,
@@ -143,11 +145,7 @@ class GameManager {
             'pardonner_user_id': ['']
           }));
     }
-
-    if (!_loginToUserId.containsKey(pardonnerUserId)) {
-      _logger.severe('User $pardonnerUserId is not registered');
-      return;
-    }
+    if (!_loginToUserId.containsKey(pardonnerUserId)) return;
 
     // Get the opaque id
     final userId = _loginToUserId[pardonnerUserId]!;
@@ -190,8 +188,8 @@ class GameManager {
   ///
   /// Keep the connexion alive. If it fails, the game is ended.
   Future<void> _keepAlive(Timer? keepGameManagerAlive) async {
-    _logger.info('Sending keep alive message');
     try {
+      _logger.info('PING');
       final response = await communications
           .sendQuestionToMain(MessageProtocol(
               target: MessageTargets.client,
@@ -202,8 +200,9 @@ class GameManager {
         keepGameManagerAlive?.cancel();
         throw Exception('Client is not alive');
       }
+      _logger.info('PONG');
     } catch (e) {
-      _logger.severe('Client is not alive, ending game');
+      _logger.severe('Client missed the ping, closing connexion');
       keepGameManagerAlive?.cancel();
       clientEndedTheGame();
     }

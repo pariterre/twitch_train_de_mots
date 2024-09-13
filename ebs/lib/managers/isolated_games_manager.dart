@@ -46,13 +46,15 @@ class IsolatedGamesManager {
 
   ///
   /// Launch a new game
+  /// Returns if a new game was indeed created. If false, it means we should not
+  /// listen to the websocket anymore as it is already connected to a game.
   Future<void> newClient(int broadcasterId, {required WebSocket socket}) async {
     final mainReceivePort = ReceivePort();
     final data = _IsolateData(
         twitchBroadcasterId: broadcasterId,
         mainSendPort: mainReceivePort.sendPort);
 
-    // Keep track of the isolate game to kill it if required
+    // Create a new game
     if (!_isolates.containsKey(broadcasterId)) {
       // Only for new games (ignore reconnections)
       _isolates[broadcasterId] = _IsolateInterface(
@@ -256,22 +258,26 @@ class _IsolatedGame {
 
   static Future<void> _handleMessageFromMain(
       MessageProtocol message, GameManager gm) async {
-    _logger.info('Received message from main');
-
     // Parse and handle the message from the main. If the message is invalid,
     // it sends an error message back to the client
     final completerId = message.internalIsolate!['completer_id'];
 
     switch (message.fromTo as FromMainToEbsMessages) {
       case FromMainToEbsMessages.getUserId:
+        _logger.info(
+            'Main sent back the user id (broadcastId: ${gm.broadcasterId})');
         gm.communications
             .complete(completerId: completerId, data: message.data!['user_id']);
         break;
       case FromMainToEbsMessages.getDisplayName:
+        _logger.info(
+            'Main sent back the display name (broadcastId: ${gm.broadcasterId})');
         gm.communications.complete(
             completerId: completerId, data: message.data!['display_name']);
         break;
       case FromMainToEbsMessages.getLogin:
+        _logger.info(
+            'Main sent back the login (broadcastId: ${gm.broadcasterId})');
         gm.communications
             .complete(completerId: completerId, data: message.data!['login']);
         break;
@@ -282,21 +288,23 @@ class _IsolatedGame {
   /// Handle messages from the client and relay them to the game manager
   static Future<void> _handleMessageFromClient(
       MessageProtocol message, GameManager gm) async {
-    _logger.info('Received message from client or frontend');
-
     // Parse and handle the message from the client. If the message is invalid,
     // it sends an error message back to the client
     try {
       switch (message.fromTo as FromClientToEbsMessages) {
         case FromClientToEbsMessages.roundStarted:
+          _logger.info('Client started a round');
+
           gm.clientStartedARound();
           break;
 
         case FromClientToEbsMessages.roundEnded:
+          _logger.info('Client ended a round');
           gm.clientEndedARound();
           break;
 
         case FromClientToEbsMessages.newLetterProblemRequest:
+          _logger.info('Client requested a new letter problem');
           gm.communications.sendMessageViaMain(MessageProtocol(
               target: MessageTargets.client,
               fromTo: FromEbsToClientMessages.newLetterProblemGenerated,
@@ -305,11 +313,13 @@ class _IsolatedGame {
           break;
 
         case FromClientToEbsMessages.pardonStatusUpdate:
+          _logger.info('Client updated pardonners status');
           gm.clientUpdatedPardonnersStatus(
               message.data?['pardonner_user_id'] ?? '');
           break;
 
         case FromClientToEbsMessages.pardonRequestStatus:
+          _logger.info('Client answered request pardon status');
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.isSuccess);
@@ -322,6 +332,7 @@ class _IsolatedGame {
           break;
 
         case FromClientToEbsMessages.disconnect:
+          _logger.info('Client ended the game');
           gm.clientEndedTheGame();
           break;
       }
@@ -358,7 +369,6 @@ class _IsolatedGame {
           .sendMessageViaMain(MessageProtocol(fromTo: error, isSuccess: false));
     }
 
-    _logger.info('Received message from client or frontend');
     try {
       late final int userId;
       try {
@@ -387,13 +397,17 @@ class _IsolatedGame {
       late final bool isSuccess;
       switch (fromTo) {
         case FromFrontendToEbsMessages.registerToGame:
+          _logger.info('Frontend (userId: $userId) registered to the game');
+
           isSuccess = await gm.frontendRegisteredToTheGame(
               userId: userId, opaqueId: opaqueId);
           break;
         case FromFrontendToEbsMessages.pardonRequest:
+          _logger.info('Frontend (userId: $userId) requested to pardon');
           isSuccess = await gm.frontendRequestedToPardon(userId);
           break;
         case FromFrontendToEbsMessages.boostRequest:
+          _logger.info('Frontend (userId: $userId) requested to boost');
           isSuccess = await gm.frontendRequestedToBoost(userId);
           break;
       }

@@ -651,12 +651,12 @@ class GameManager {
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   Future<void> _tickingClock() async {
-    _logger.info('Tic...');
+    _logger.fine('Tic...');
     onClockTicked.notifyListeners();
 
     if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
       _logger.fine('The game is not running, so nothing more to do');
-      _logger.info('Toc');
+      _logger.fine('Toc');
       return;
     }
 
@@ -741,7 +741,7 @@ class GameManager {
       _boostStartedAt = null;
     }
 
-    _logger.info('Toc');
+    _logger.fine('Toc');
   }
 
   bool _checkForEndOfRound() {
