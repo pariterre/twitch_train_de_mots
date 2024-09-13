@@ -47,28 +47,30 @@ class EbsServerManager {
   }
 
   ///
-  /// Connect to the ebs
-  Completer<bool>? _connectingToEbsCompleter;
-  Future<bool> _connect() async {
-    Future<bool> retryOnFail(String errormessage) async {
-      _logger.severe(errormessage);
+  /// Connect to the EBS server
+  bool get _isConnectingToEbs => _hasConnectedToEbsCompleter != null;
+  Completer<bool>? _hasConnectedToEbsCompleter;
+  StreamSubscription? _ebsStreamSubscription;
+  Future<void> _connect() async {
+    _logger.info('Connecting to EBS server');
+
+    Future<void> retry(String errorMessage) async {
+      if (_isConnectingToEbs) return;
+
+      _logger.severe(errorMessage);
+      // Do some clean up
       _isConnectedToEbs = false;
-      // Stop listening to the messages from the EBS server
-      _instance!._socket?.sink.close();
+      _ebsStreamSubscription?.cancel();
       _logger.severe('Reconnecting to EBS in 10 seconds');
       await Future.delayed(const Duration(seconds: 10));
-      _connectingToEbsCompleter = null;
       _connect();
-      return _connectingToEbsCompleter!.future;
     }
 
-    if (_ebsUri == null) return false;
+    if (_ebsUri == null) return;
 
     // If we already are connecting, return the future
-    if (_connectingToEbsCompleter != null) {
-      return _connectingToEbsCompleter!.future;
-    }
-    _connectingToEbsCompleter = Completer();
+    if (_hasConnectedToEbsCompleter != null) return;
+    _hasConnectedToEbsCompleter = Completer();
 
     // Connect to EBS server
     try {
@@ -77,26 +79,37 @@ class EbsServerManager {
           '$_ebsUri/client/connect?broadcasterId=$twitchBroadcasterId'));
       await _instance!._socket!.ready;
     } catch (e) {
-      return retryOnFail('Could not connect to EBS');
+      retry('Could not connect to EBS');
+      return;
     }
 
     // Listen to the messages from the EBS server
-    _instance!._socket!.stream.listen(
-      _instance!._handleMessageFromEbs,
+    _ebsStreamSubscription = _instance!._socket!.stream.listen(
+      (raw) {
+        try {
+          _instance!._handleMessageFromEbs(raw);
+        } catch (e) {
+          // Do nothing, this is to prevent the program from crashing
+          // When ill-formatted messages are received
+        }
+      },
       onDone: () {
-        retryOnFail('Connection closed by the EBS server');
+        dispose();
+        retry('Connection closed by the EBS server');
       },
       onError: (error) {
-        retryOnFail('Error with communicating to the EBS server: $error');
+        dispose();
+        retry('Error with communicating to the EBS server: $error');
       },
     );
 
     try {
-      _isConnectedToEbs = await _instance!._connectingToEbsCompleter!.future
-          .timeout(const Duration(seconds: 10));
-      if (!_isConnectedToEbs) throw Exception('Could not connect to EBS');
+      final isConnected = await _hasConnectedToEbsCompleter!.future
+          .timeout(const Duration(seconds: 30), onTimeout: () => false);
+      if (!isConnected) throw Exception('Timeout');
     } catch (e) {
-      return retryOnFail('Could not connect to EBS');
+      _hasConnectedToEbsCompleter = null;
+      return retry('Error while connecting to EBS: $e');
     }
 
     // Connect the listeners to the GameManager
@@ -108,7 +121,8 @@ class EbsServerManager {
     gm.onRoundIsOver.addListener(_onRoundIsOver);
 
     _logger.info('Connected to the EBS server');
-    return true;
+    _hasConnectedToEbsCompleter = null;
+    return;
   }
 
   ///
@@ -224,7 +238,7 @@ class EbsServerManager {
     switch (message.fromTo as FromEbsToClientMessages) {
       case FromEbsToClientMessages.isConnected:
         _logger.info('Client has connected to the EBS server');
-        _connectingToEbsCompleter?.complete(true);
+        _hasConnectedToEbsCompleter?.complete(true);
         break;
 
       case FromEbsToClientMessages.newLetterProblemGenerated:

@@ -197,8 +197,7 @@ class GameManager {
           .timeout(Duration(seconds: 30),
               onTimeout: () => {'response': 'NOT PONG'});
       if (response?['response'] != 'PONG') {
-        keepGameManagerAlive?.cancel();
-        throw Exception('Client is not alive');
+        throw Exception('No pong');
       }
       _logger.info('PONG');
     } catch (e) {

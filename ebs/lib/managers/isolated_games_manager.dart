@@ -56,7 +56,7 @@ class IsolatedGamesManager {
 
     // Create a new game
     if (!_isolates.containsKey(broadcasterId)) {
-      // Only for new games (ignore reconnections)
+      _logger.info('Starting a new game (broadcasterId: $broadcasterId)');
       _isolates[broadcasterId] = _IsolateInterface(
           isolate:
               await Isolate.spawn(_IsolatedGame.startNewGameManager, data));
@@ -89,7 +89,7 @@ class IsolatedGamesManager {
     try {
       switch (message.target as MessageTargets) {
         case MessageTargets.main:
-          await _handleMessageFromIsolatedToMain(message, data, socket);
+          await _handleMessageFromIsolatedToMain(message, data);
           break;
         case MessageTargets.client:
           await _handleMessageFromIsolatedToClient(message, socket);
@@ -103,8 +103,8 @@ class IsolatedGamesManager {
     }
   }
 
-  Future<void> _handleMessageFromIsolatedToMain(MessageProtocol message,
-      _IsolateData isolateData, WebSocket socket) async {
+  Future<void> _handleMessageFromIsolatedToMain(
+      MessageProtocol message, _IsolateData isolateData) async {
     final tm = TwitchManagerExtension.instance;
 
     switch (message.fromTo as FromEbsToMainMessages) {
