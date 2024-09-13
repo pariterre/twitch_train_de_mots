@@ -129,10 +129,9 @@ enum FromMainToEbsMessages implements FromToMessages {
 
 enum FromClientToEbsMessages implements FromToMessages {
   newLetterProblemRequest,
-  roundStarted,
-  roundEnded,
-  pardonStatusUpdate,
-  pardonRequestStatus,
+  updateGameState,
+  pardonRequestResponse,
+  boostRequestResponse,
   pong,
   disconnect;
 
@@ -210,12 +209,10 @@ enum FromEbsToClientMessages implements FromToMessages {
 }
 
 enum FromEbsToFrontendMessages implements FromToMessages {
-  ping,
-  gameStarted,
-  roundStarted,
-  roundEnded,
-  pardonStatusUpdate,
-  gameEnded;
+  clientConnected,
+  clientDisconnected,
+  gameStateUpdate,
+  ;
 
   @override
   int get getIndex => index;

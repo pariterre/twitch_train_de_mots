@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/exceptions.dart';
+import 'package:common/models/game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/game_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
@@ -292,15 +293,9 @@ class _IsolatedGame {
     // it sends an error message back to the client
     try {
       switch (message.fromTo as FromClientToEbsMessages) {
-        case FromClientToEbsMessages.roundStarted:
-          _logger.info('Client started a round');
-
-          gm.clientStartedARound();
-          break;
-
-        case FromClientToEbsMessages.roundEnded:
-          _logger.info('Client ended a round');
-          gm.clientEndedARound();
+        case FromClientToEbsMessages.updateGameState:
+          await gm.clientUpdatedGameState(
+              GameState.deserialize(message.data!['game_state']));
           break;
 
         case FromClientToEbsMessages.newLetterProblemRequest:
@@ -312,14 +307,15 @@ class _IsolatedGame {
                   .serialize()));
           break;
 
-        case FromClientToEbsMessages.pardonStatusUpdate:
-          _logger.info('Client updated pardonners status');
-          gm.clientUpdatedPardonnersStatus(
-              message.data?['pardonner_user_id'] ?? '');
+        case FromClientToEbsMessages.pardonRequestResponse:
+          _logger.info('Client answered request pardon status');
+          gm.communications.complete(
+              completerId: message.internalIsolate!['completer_id'],
+              data: message.isSuccess);
           break;
 
-        case FromClientToEbsMessages.pardonRequestStatus:
-          _logger.info('Client answered request pardon status');
+        case FromClientToEbsMessages.boostRequestResponse:
+          _logger.info('Client answered request boost status');
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.isSuccess);

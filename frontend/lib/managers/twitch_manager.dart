@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
+import 'package:common/models/game_state.dart';
+import 'package:common/models/game_status.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
@@ -109,31 +111,20 @@ class TwitchManager {
       final message = MessageProtocol.fromJson(json);
 
       switch (message.fromTo as FromEbsToFrontendMessages) {
-        case FromEbsToFrontendMessages.ping:
-          _logger.info('PING received');
-          break;
-
-        case FromEbsToFrontendMessages.gameStarted:
+        case FromEbsToFrontendMessages.clientConnected:
           _logger.info('Game started by streamer');
           _registerToGame();
           break;
-
-        case FromEbsToFrontendMessages.roundStarted:
-          _logger.info('Round started by streamer');
-          GameManager.instance.startRound();
-          break;
-
-        case FromEbsToFrontendMessages.roundEnded:
-          _logger.info('Round ended by streamer');
-          GameManager.instance.endRound();
-
-        case FromEbsToFrontendMessages.pardonStatusUpdate:
-          _logger.info('Pardonners changed');
-          _pardonnersChanged(message.data!);
-          break;
-
-        case FromEbsToFrontendMessages.gameEnded:
+        case FromEbsToFrontendMessages.clientDisconnected:
           // TODO : Show the game ended screen
+          break;
+
+        case FromEbsToFrontendMessages.gameStateUpdate:
+          _logger.info('Round started by streamer');
+
+          GameManager.instance.updateGameState(
+              GameState.deserialize(message.data!['game_state']));
+
           break;
       }
     } catch (e) {
@@ -151,12 +142,6 @@ class TwitchManager {
     }
 
     _logger.info('Registered to game');
-    GameManager.instance.startGame();
-  }
-
-  Future<void> _pardonnersChanged(Map<String, dynamic> data) async {
-    GameManager.instance
-        .newPardonners(List<String>.from(data['pardonner_user_id']));
   }
 
   ///
@@ -199,11 +184,25 @@ class TwitchManagerMock extends TwitchManager {
     _registerToGame();
 
     // Uncomment the next line to simulate that a round started
-    GameManager.instance.startRound();
+    GameManager.instance.updateGameState(GameState(
+      status: GameStatus.roundStarted,
+      round: 1,
+      pardonRemaining: 1,
+      pardonners: [],
+      boostRemaining: 0,
+      boostStillNeeded: 0,
+    ));
 
     // Uncomment the next line to simulate that the user can pardon
     Future.delayed(const Duration(seconds: 1))
-        .then((_) => GameManager.instance.newPardonners([opaqueUserId]));
+        .then((_) => GameManager.instance.updateGameState(GameState(
+              status: GameStatus.roundStarted,
+              round: 1,
+              pardonRemaining: 1,
+              pardonners: [opaqueUserId],
+              boostRemaining: 0,
+              boostStillNeeded: 0,
+            )));
 
     // Uncomment the next line to simulate that the client refused the pardon
     _acceptPardon = false;

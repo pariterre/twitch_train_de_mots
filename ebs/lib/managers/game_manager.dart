@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:common/models/ebs_helpers.dart';
+import 'package:common/models/game_state.dart';
+import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
+
 import 'package:train_de_mots_ebs/models/completers.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 
@@ -27,6 +30,17 @@ class GameManager {
   final GameManagerCommunication communications;
 
   ///
+  /// Holds the current state of the game
+  GameState _gameState = GameState(
+    status: GameStatus.initializing,
+    round: 0,
+    pardonRemaining: 0,
+    pardonners: [],
+    boostRemaining: 0,
+    boostStillNeeded: 0,
+  );
+
+  ///
   /// Create a new GameManager. This method automatically starts a keep alive
   /// mechanism to keep the connexion alive. If it fails, the game is ended.
   /// [broadcasterId] the id of the broadcaster
@@ -42,29 +56,52 @@ class GameManager {
         'GameManager created for client: $broadcasterId, starting game loop');
     communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.frontend,
-        fromTo: FromEbsToFrontendMessages.gameStarted));
+        fromTo: FromEbsToFrontendMessages.clientConnected));
 
     // Keep the connexion alive
     _keepAlive(null);
     Timer.periodic(Duration(minutes: 1), _keepAlive);
   }
 
-  ///
-  /// Handle a message from the client to start a new round
-  Future<void> clientStartedARound() async {
-    _logger.info('Client started a round');
+  Future<void> clientUpdatedGameState(GameState gameState) async {
+    _logger.info('Updating game state to $gameState');
+    _gameState = gameState;
+    await sendGameStateToFrontend();
+  }
+
+  Future<void> sendGameStateToFrontend() async {
+    _logger.info('Sending game state to frontend');
+
     communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.frontend,
-        fromTo: FromEbsToFrontendMessages.roundStarted));
+        fromTo: FromEbsToFrontendMessages.gameStateUpdate,
+        data: {'game_state': _gameState.serialize()}));
   }
 
   ///
-  /// Handle a message from the client that the round is over
-  Future<void> clientEndedARound() async {
-    _logger.info('Client ended a round');
+  /// Handle a message from the client to end the game
+  Future<void> clientEndedTheGame() async {
+    _logger.info('Game ended for client: $broadcasterId');
     communications.sendMessageViaMain(MessageProtocol(
-        target: MessageTargets.frontend,
-        fromTo: FromEbsToFrontendMessages.roundEnded));
+      target: MessageTargets.frontend,
+      fromTo: FromEbsToFrontendMessages.clientDisconnected,
+    ));
+    communications.sendMessageViaMain(MessageProtocol(
+      target: MessageTargets.client,
+      fromTo: FromEbsToClientMessages.disconnect,
+    ));
+    communications.sendMessageViaMain(MessageProtocol(
+      target: MessageTargets.main,
+      fromTo: FromEbsToMainMessages.canDestroyIsolated,
+    ));
+  }
+
+  ///
+  /// Handle a message from the client to generate a new letter problem
+  /// [request] the configuration for the new problem
+  Future<LetterProblem> clientRequestedANewLetterProblem(
+      Map<String, dynamic> request) async {
+    return LetterProblem.generateProblemFromRequest(request);
   }
 
   ///
@@ -130,59 +167,9 @@ class GameManager {
     _opaqueIdToUserId[opaqueId] = userId;
     _userIdToLogin[userId] = login;
     _loginToUserId[login] = userId;
+
+    sendGameStateToFrontend();
     return true;
-  }
-
-  ///
-  /// Handle a message from the client to update the pardonners status.
-  /// [pardonnerUserId] the twitch id of the user that can pardon
-  Future<void> clientUpdatedPardonnersStatus(String pardonnerUserId) async {
-    if (pardonnerUserId.isEmpty) {
-      communications.sendMessageViaMain(MessageProtocol(
-          target: MessageTargets.frontend,
-          fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
-          data: {
-            'pardonner_user_id': ['']
-          }));
-    }
-    if (!_loginToUserId.containsKey(pardonnerUserId)) return;
-
-    // Get the opaque id
-    final userId = _loginToUserId[pardonnerUserId]!;
-    final opaqueId = _userIdToOpaqueId[userId]!;
-
-    communications.sendMessageViaMain(MessageProtocol(
-        target: MessageTargets.frontend,
-        fromTo: FromEbsToFrontendMessages.pardonStatusUpdate,
-        data: {
-          'pardonner_user_id': [opaqueId]
-        }));
-  }
-
-  ///
-  /// Handle a message from the client to end the game
-  Future<void> clientEndedTheGame() async {
-    _logger.info('Game ended for client: $broadcasterId');
-    communications.sendMessageViaMain(MessageProtocol(
-      target: MessageTargets.frontend,
-      fromTo: FromEbsToFrontendMessages.gameEnded,
-    ));
-    communications.sendMessageViaMain(MessageProtocol(
-      target: MessageTargets.client,
-      fromTo: FromEbsToClientMessages.disconnect,
-    ));
-    communications.sendMessageViaMain(MessageProtocol(
-      target: MessageTargets.main,
-      fromTo: FromEbsToMainMessages.canDestroyIsolated,
-    ));
-  }
-
-  ///
-  /// Handle a message from the client to generate a new letter problem
-  /// [request] the configuration for the new problem
-  Future<LetterProblem> clientRequestedANewLetterProblem(
-      Map<String, dynamic> request) async {
-    return LetterProblem.generateProblemFromRequest(request);
   }
 
   ///

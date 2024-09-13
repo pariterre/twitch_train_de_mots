@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:common/models/ebs_helpers.dart';
+import 'package:common/models/game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
-import 'package:train_de_mots/models/word_solution.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 final _logger = Logger('EbsServerManager');
@@ -114,11 +114,11 @@ class EbsServerManager {
 
     // Connect the listeners to the GameManager
     final gm = GameManager.instance;
-    gm.onRoundStarted.addListener(_sendRoundStartedToFrontend);
-    gm.onRoundIsOver.addListener(_sendRoundEndedToFrontend);
-    gm.onStealerPardoned.addListener(_sendStealerWasPardonedToFrontend);
-    gm.onSolutionWasStolen.addListener(_sendSolutionWasStolenToFrontend);
-    gm.onRoundIsOver.addListener(_onRoundIsOver);
+    gm.onRoundStarted.addListener(_sendGameStateToEbs);
+    gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
+    gm.onStealerPardoned.addListener(_sendGameStateToEbsWithParameter);
+    gm.onSolutionWasStolen.addListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
 
     _logger.info('Connected to the EBS server');
     _hasConnectedToEbsCompleter = null;
@@ -130,11 +130,11 @@ class EbsServerManager {
   /// EBS server.
   void dispose() {
     final gm = GameManager.instance;
-    gm.onRoundStarted.removeListener(_sendRoundStartedToFrontend);
-    gm.onRoundIsOver.removeListener(_sendRoundEndedToFrontend);
-    gm.onStealerPardoned.removeListener(_sendStealerWasPardonedToFrontend);
-    gm.onSolutionWasStolen.removeListener(_sendSolutionWasStolenToFrontend);
-    gm.onRoundIsOver.removeListener(_onRoundIsOver);
+    gm.onRoundStarted.removeListener(_sendGameStateToEbs);
+    gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onStealerPardoned.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onSolutionWasStolen.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
     _socket?.sink.close();
   }
 
@@ -187,10 +187,6 @@ class EbsServerManager {
     return _completers[LetterProblem]!;
   }
 
-  void _onRoundIsOver(bool playSound) {
-    _sendStealerWasPardonedToFrontend(null);
-  }
-
   ///
   /// Handle the new letter problem received from the EBS server and complete the
   /// completer.
@@ -201,33 +197,31 @@ class EbsServerManager {
 
   ///
   /// Send a message to the EBS server to notify that a new round has started
-  Future<void> _sendRoundStartedToFrontend() async {
+  Future<void> _sendGameStateToEbs() async {
+    // final status = GameStatus.values[gameState['game_status'] as int];
+    // final round = gameState['round'] as int;
+    // final pardonRemaining = gameState['pardon_remaining'] as int;
+    // final pardonners = gameState['pardonners'] as List<String>;
+    // final boostRemaining = gameState['boost_remaining'] as int;
+    // final boostRequested = gameState['boost_requested'] as int;
+    final gm = GameManager.instance;
     _sendMessageToEbs(
-        MessageProtocol(fromTo: FromClientToEbsMessages.roundStarted));
+        MessageProtocol(fromTo: FromClientToEbsMessages.updateGameState, data: {
+      'game_state': GameState(
+        status: gm.gameStatus,
+        round: gm.roundCount,
+        pardonRemaining: gm.remainingPardon,
+        pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
+        boostRemaining: gm.remainingBoosts,
+        boostStillNeeded: gm.numberOfBoostStillNeeded,
+      ).serialize(),
+    }));
   }
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
-  Future<void> _sendRoundEndedToFrontend(_) async {
-    _sendMessageToEbs(
-        MessageProtocol(fromTo: FromClientToEbsMessages.roundEnded));
-  }
-
-  ///
-  /// Send a message to the EBS server to notify that a stealer has been pardoned
-  /// by the broadcaster to the frontends.
-  void _sendStealerWasPardonedToFrontend(WordSolution? solution) =>
-      _sendMessageToEbs(MessageProtocol(
-          fromTo: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'pardonner_user_id': ''}));
-
-  ///
-  /// Send a message to the EBS server to notify that a solution has been stolen
-  /// by a player to the frontends.
-  void _sendSolutionWasStolenToFrontend(WordSolution? solution) =>
-      _sendMessageToEbs(MessageProtocol(
-          fromTo: FromClientToEbsMessages.pardonStatusUpdate,
-          data: {'pardonner_user_id': solution?.stolenFrom.name}));
+  Future<void> _sendGameStateToEbsWithParameter(_) async =>
+      _sendGameStateToEbs();
 
   ///
   /// Handle the messages received from the EBS server
@@ -251,13 +245,13 @@ class EbsServerManager {
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              fromTo: FromClientToEbsMessages.pardonRequestResponse,
               isSuccess: gm.pardonLastStealer(pardonner: player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while pardoning the stealer: $e');
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              fromTo: FromClientToEbsMessages.pardonRequestResponse,
               isSuccess: false);
           _sendMessageToEbs(response);
         }
@@ -269,13 +263,13 @@ class EbsServerManager {
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              fromTo: FromClientToEbsMessages.boostRequestResponse,
               isSuccess: gm.boostTrain(player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while boosting the train: $e');
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestStatus,
+              fromTo: FromClientToEbsMessages.boostRequestResponse,
               isSuccess: false);
           _sendMessageToEbs(response);
         }

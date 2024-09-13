@@ -1,4 +1,6 @@
 import 'package:common/models/custom_callback.dart';
+import 'package:common/models/game_state.dart';
+import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('GameManager');
@@ -12,65 +14,88 @@ class GameManager {
 
   ///
   /// Flag to indicate if the game has started
-  bool _isGameRunning = false;
-  bool _isRoundRunning = false;
+  GameState _gameState = GameState(
+      status: GameStatus.initializing,
+      round: 0,
+      pardonRemaining: 0,
+      pardonners: [],
+      boostRemaining: 0,
+      boostStillNeeded: 0);
+
+  void updateGameState(GameState newGameState) {
+    if (_gameState.status != newGameState.status) {
+      _logger.info('Game status changed to ${newGameState.status}');
+      switch (newGameState.status) {
+        case GameStatus.roundStarted:
+          onRoundStarted.notifyListeners();
+          break;
+        case GameStatus.initializing:
+        case GameStatus.roundPreparing:
+        case GameStatus.roundReady:
+        case GameStatus.revealAnswers:
+          onRoundEnded.notifyListeners();
+          break;
+      }
+    }
+
+    if (_gameState.round != newGameState.round) {
+      _logger.info('Round changed to ${newGameState.round}');
+    }
+
+    if (_gameState.pardonners != newGameState.pardonners) {
+      _logger.info('Pardonners changed to ${newGameState.pardonners}');
+      onPardonnersChanged.notifyListeners();
+    }
+
+    if (_gameState.boostRemaining != newGameState.boostRemaining) {
+      _logger.info('Boost count changed to ${newGameState.boostRemaining}');
+      onBoostAvailabilityChanged.notifyListeners();
+    }
+
+    if (_gameState.boostStillNeeded != newGameState.boostStillNeeded) {
+      _logger.info(
+          'Boost still needed changed to ${newGameState.boostStillNeeded}');
+    }
+
+    _gameState = newGameState;
+  }
 
   ///
   /// Callback to know when the game has started
   final onGameStarted = CustomCallback();
-  bool get isGameRunning => _isGameRunning;
+  bool get isGameRunning => _gameState.status != GameStatus.initializing;
   void startGame() {
     _logger.info('Starting a new game');
-    _isGameRunning = true;
+    _gameState.status = GameStatus.roundPreparing;
     onGameStarted.notifyListeners();
   }
 
   ///
-  /// Callback to know when a round has started
+  /// Callback to know when a round has started or ended
+  int get currentRound => _gameState.round;
+  bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
   final onRoundStarted = CustomCallback();
-  bool get isRoundRunning => _isRoundRunning;
-  void startRound() {
-    _logger.info('Starting a new round');
-    _isRoundRunning = true;
-    onRoundStarted.notifyListeners();
-  }
-
-  ///
-  /// Callback to know when a round has ended
   final onRoundEnded = CustomCallback();
-  void endRound() {
-    _logger.info('Ending the current round');
-    _isRoundRunning = false;
-    onRoundEnded.notifyListeners();
-  }
 
   ///
   /// Callback to know when the game has stopped
-  final onGameStopped = CustomCallback();
+  final onClientDisconnected = CustomCallback();
   void stopGame() {
     _logger.info('Stopping the current game');
-    _isGameRunning = false;
-    onGameStopped.notifyListeners();
+    _gameState.status = GameStatus.initializing;
+    onClientDisconnected.notifyListeners();
   }
 
   ///
   /// Stealer and pardonner management
-  final List<String> _currentPardonners = [];
   final onPardonnersChanged = CustomCallback();
-  List<String> get currentPardonners => List.unmodifiable(_currentPardonners);
-  void newPardonners(List<String> newPardonners) {
-    _logger.info('New pardonners: $newPardonners');
-    _currentPardonners.clear();
-    _currentPardonners.addAll(newPardonners);
-    onPardonnersChanged.notifyListenersWithParameter(currentPardonners);
-  }
+  List<String> get currentPardonners =>
+      List.unmodifiable(_gameState.pardonners);
   // TODO: Request for pardonners status when connecting
 
   ///
   /// Boost availability
-  int _boostCount = 0;
-  int get boostCount => _boostCount;
+  int get boostCount => _gameState.boostRemaining;
   final onBoostAvailabilityChanged = CustomCallback();
-  void changeBoostCount(int boostCount) => _boostCount = boostCount;
   // TODO: Request the number of boost remaining at connexion
 }

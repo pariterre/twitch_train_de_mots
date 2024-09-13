@@ -1,3 +1,4 @@
+import 'package:common/models/game_status.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';

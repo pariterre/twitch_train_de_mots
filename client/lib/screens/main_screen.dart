@@ -1,4 +1,5 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/models/game_status.dart';
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';

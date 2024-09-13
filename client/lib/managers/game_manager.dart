@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
+import 'package:common/models/game_status.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
@@ -14,14 +15,6 @@ import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/round_success.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
-
-enum GameStatus {
-  initializing,
-  roundPreparing,
-  roundReady,
-  roundStarted,
-  revealAnswers,
-}
 
 final _logger = Logger('GameManager');
 
@@ -84,6 +77,7 @@ class GameManager {
   bool _roundHasGoldenSolution = false;
 
   WordSolution? _lastStolenSolution;
+  WordSolution? get lastStolenSolution => _lastStolenSolution;
   int _remainingPardons = 0;
   int get remainingPardon => _remainingPardons;
 
@@ -95,6 +89,10 @@ class GameManager {
       .difference(DateTime.now());
   DateTime? _boostStartedAt;
   final List<Player> _requestedBoost = [];
+  int get numberOfBoostStillNeeded {
+    final cm = ConfigurationManager.instance;
+    return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
+  }
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -574,15 +572,12 @@ class GameManager {
     _requestedBoost.add(player);
 
     // If we fulfill the number of boost requests needed, we can start the boost
-    final cm = ConfigurationManager.instance;
-    final nbBoostStillNeeded =
-        cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
-    if (nbBoostStillNeeded == 0) {
+    if (numberOfBoostStillNeeded == 0) {
       _remainingBoosts -= 1;
       _boostStartedAt = DateTime.now();
     }
 
-    onTrainGotBoosted.notifyListenersWithParameter(nbBoostStillNeeded);
+    onTrainGotBoosted.notifyListenersWithParameter(numberOfBoostStillNeeded);
 
     _logger.info('Train has been boosted');
     return true;

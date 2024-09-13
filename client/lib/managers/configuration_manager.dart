@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
+import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
