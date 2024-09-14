@@ -1,6 +1,6 @@
 part of 'package:train_de_mots_ebs/network/http_server.dart';
 
-Future<void> _handleClientHttpGetRequest(HttpRequest request) async {
+Future<void> _handleAppHttpGetRequest(HttpRequest request) async {
   if (request.uri.path.contains('/connect')) {
     _handleConnectToWebSocketRequest(request);
   } else {
@@ -17,34 +17,33 @@ Future<void> _handleConnectToWebSocketRequest(HttpRequest request) async {
     if (broadcasterId == null) {
       _logger.severe('No broadcasterId found');
       socket.add(json.encode({
-        'type': FromEbsToClientMessages.noBroadcasterIdException.index,
+        'type': FromEbsToAppMessages.noBroadcasterIdException.index,
         'message': NoBroadcasterIdException().message,
       }));
       socket.close();
       return;
     }
 
-    _logger.info('New client connexion (broadcasterId: $broadcasterId)');
-    IsolatedGamesManager.instance.newClient(broadcasterId, socket: socket);
+    _logger.info('New App connexion (broadcasterId: $broadcasterId)');
+    IsolatedGamesManager.instance.newStreamer(broadcasterId, socket: socket);
 
-    // Establish a persistent communication with the client
+    // Establish a persistent communication with the App
     socket
         .listen((message) => IsolatedGamesManager.instance
-            .messageFromClientToIsolated(
-                MessageProtocol.decode(message), socket))
+            .messageFromAppToIsolated(MessageProtocol.decode(message), socket))
         .onDone(
-          () => _handleConnexionToClientTerminated(broadcasterId, socket),
+          () => _handleConnexionToAppTerminated(broadcasterId, socket),
         );
   } catch (e) {
     throw ConnexionToWebSocketdRefusedException();
   }
 }
 
-Future<void> _handleConnexionToClientTerminated(
+Future<void> _handleConnexionToAppTerminated(
     int broadcasterId, WebSocket socket) async {
-  IsolatedGamesManager.instance.messageFromClientToIsolated(
+  IsolatedGamesManager.instance.messageFromAppToIsolated(
       MessageProtocol(
-          fromTo: FromClientToEbsMessages.disconnect,
+          fromTo: FromAppToEbsMessages.disconnect,
           data: {'broadcaster_id': broadcasterId}),
       socket);
 }

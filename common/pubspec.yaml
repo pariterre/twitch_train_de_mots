@@ -1,5 +1,5 @@
 name: common
-description: Common things to share between the server and the client
+description: Common things to share between the EBS server, the App and the Frontend
 version: 1.0.0
 
 environment:

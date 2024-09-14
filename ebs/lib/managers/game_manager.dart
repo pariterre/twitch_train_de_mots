@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/game_state.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 
@@ -12,10 +12,10 @@ import 'package:train_de_mots_ebs/models/letter_problem.dart';
 final _logger = Logger('GameManager');
 
 ///
-/// This class syncs with the states of the game on the client side. It therefore
-/// constantly waits for updates from the client, without proactively changing the
+/// This class syncs with the states of the game on the App side. It therefore
+/// constantly waits for updates from the App, without proactively changing the
 /// game state. In that sense, it provides a communication channel between the
-/// client and the frontends.
+/// App and the Frontends.
 class GameManager {
   ///
   /// Ids that interact with the game
@@ -31,7 +31,7 @@ class GameManager {
 
   ///
   /// Holds the current state of the game
-  GameState _gameState = GameState(
+  SimplifiedGameState _gameState = SimplifiedGameState(
     status: GameStatus.initializing,
     round: 0,
     pardonRemaining: 0,
@@ -39,13 +39,14 @@ class GameManager {
     boostRemaining: 0,
     boostStillNeeded: 0,
   );
+  SimplifiedGameState get gameState => _gameState;
 
   ///
   /// Create a new GameManager. This method automatically starts a keep alive
   /// mechanism to keep the connexion alive. If it fails, the game is ended.
   /// [broadcasterId] the id of the broadcaster
   /// [sendPort] the port to communicate with the main manager
-  GameManager.clientStartedTheGame(
+  GameManager.appStartedTheGame(
       {required this.broadcasterId, required SendPort sendPort})
       : communications = GameManagerCommunication(sendPort: sendPort) {
     // Set up the logger
@@ -53,17 +54,17 @@ class GameManager {
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
     _logger.info(
-        'GameManager created for client: $broadcasterId, starting game loop');
+        'GameManager created for streamer: $broadcasterId, starting game loop');
     communications.sendMessageViaMain(MessageProtocol(
         target: MessageTargets.frontend,
-        fromTo: FromEbsToFrontendMessages.clientConnected));
+        fromTo: FromEbsToFrontendMessages.streamHasConnected));
 
     // Keep the connexion alive
     _keepAlive(null);
     Timer.periodic(Duration(minutes: 1), _keepAlive);
   }
 
-  Future<void> clientUpdatedGameState(GameState gameState) async {
+  Future<void> appUpdatedGameState(SimplifiedGameState gameState) async {
     _logger.info('Updating game state to $gameState');
     _gameState = gameState;
     await sendGameStateToFrontend();
@@ -79,16 +80,16 @@ class GameManager {
   }
 
   ///
-  /// Handle a message from the client to end the game
-  Future<void> clientEndedTheGame() async {
-    _logger.info('Game ended for client: $broadcasterId');
+  /// Handle a message from the App to end the game
+  Future<void> appEndedTheGame() async {
+    _logger.info('Game ended for streamer: $broadcasterId');
     communications.sendMessageViaMain(MessageProtocol(
       target: MessageTargets.frontend,
-      fromTo: FromEbsToFrontendMessages.clientDisconnected,
+      fromTo: FromEbsToFrontendMessages.streamerHasDisconnected,
     ));
     communications.sendMessageViaMain(MessageProtocol(
-      target: MessageTargets.client,
-      fromTo: FromEbsToClientMessages.disconnect,
+      target: MessageTargets.app,
+      fromTo: FromEbsToAppMessages.disconnect,
     ));
     communications.sendMessageViaMain(MessageProtocol(
       target: MessageTargets.main,
@@ -97,10 +98,11 @@ class GameManager {
   }
 
   ///
-  /// Handle a message from the client to generate a new letter problem
+  /// Handle a message from the App to generate a new letter problem
   /// [request] the configuration for the new problem
-  Future<LetterProblem> clientRequestedANewLetterProblem(
+  Future<LetterProblem> appRequestedANewLetterProblem(
       Map<String, dynamic> request) async {
+    _logger.info('Generating a new letter problem');
     return LetterProblem.generateProblemFromRequest(request);
   }
 
@@ -117,8 +119,8 @@ class GameManager {
     }
 
     return await communications.sendQuestionToMain(MessageProtocol(
-        target: MessageTargets.client,
-        fromTo: FromEbsToClientMessages.pardonRequest,
+        target: MessageTargets.app,
+        fromTo: FromEbsToAppMessages.pardonRequest,
         data: {'player_name': playerName}));
   }
 
@@ -135,8 +137,8 @@ class GameManager {
     }
 
     return await communications.sendQuestionToMain(MessageProtocol(
-        target: MessageTargets.client,
-        fromTo: FromEbsToClientMessages.boostRequest,
+        target: MessageTargets.app,
+        fromTo: FromEbsToAppMessages.boostRequest,
         data: {'player_name': playerName}));
   }
 
@@ -168,7 +170,6 @@ class GameManager {
     _userIdToLogin[userId] = login;
     _loginToUserId[login] = userId;
 
-    sendGameStateToFrontend();
     return true;
   }
 
@@ -179,8 +180,7 @@ class GameManager {
       _logger.info('PING');
       final response = await communications
           .sendQuestionToMain(MessageProtocol(
-              target: MessageTargets.client,
-              fromTo: FromEbsToClientMessages.ping))
+              target: MessageTargets.app, fromTo: FromEbsToAppMessages.ping))
           .timeout(Duration(seconds: 30),
               onTimeout: () => {'response': 'NOT PONG'});
       if (response?['response'] != 'PONG') {
@@ -188,9 +188,9 @@ class GameManager {
       }
       _logger.info('PONG');
     } catch (e) {
-      _logger.severe('Client missed the ping, closing connexion');
+      _logger.severe('App missed the ping, closing connexion');
       keepGameManagerAlive?.cancel();
-      clientEndedTheGame();
+      appEndedTheGame();
     }
   }
 }
@@ -214,7 +214,7 @@ class GameManagerCommunication {
 
   ///
   /// Send a message to main while expecting an actual response. This is
-  /// useful when the client needs to wait for a response from the main
+  /// useful we needs to wait for a response from the main.
   /// [message] the message to send
   /// returns a future that will be completed when the main responds
   Future<dynamic> sendQuestionToMain(MessageProtocol message) {

@@ -4,7 +4,7 @@ abstract class InvalidMessageException implements Exception {
   @override
   String toString() => 'Invalid message';
 
-  FromEbsToClientMessages get message;
+  FromEbsToAppMessages get message;
 }
 
 class NoBroadcasterIdException implements InvalidMessageException {
@@ -12,8 +12,8 @@ class NoBroadcasterIdException implements InvalidMessageException {
   String toString() => 'No broadcasterId found';
 
   @override
-  FromEbsToClientMessages get message =>
-      FromEbsToClientMessages.noBroadcasterIdException;
+  FromEbsToAppMessages get message =>
+      FromEbsToAppMessages.noBroadcasterIdException;
 }
 
 class InvalidAlgorithmException implements InvalidMessageException {
@@ -21,8 +21,8 @@ class InvalidAlgorithmException implements InvalidMessageException {
   String toString() => 'Invalid algorithm';
 
   @override
-  FromEbsToClientMessages get message =>
-      FromEbsToClientMessages.invalidAlgorithmException;
+  FromEbsToAppMessages get message =>
+      FromEbsToAppMessages.invalidAlgorithmException;
 }
 
 class InvalidTimeoutException implements InvalidMessageException {
@@ -30,8 +30,8 @@ class InvalidTimeoutException implements InvalidMessageException {
   String toString() => 'Invalid timeout';
 
   @override
-  FromEbsToClientMessages get message =>
-      FromEbsToClientMessages.invalidAlgorithmException;
+  FromEbsToAppMessages get message =>
+      FromEbsToAppMessages.invalidAlgorithmException;
 }
 
 class InvalidConfigurationException implements InvalidMessageException {
@@ -39,8 +39,8 @@ class InvalidConfigurationException implements InvalidMessageException {
   String toString() => 'Invalid configuration';
 
   @override
-  FromEbsToClientMessages get message =>
-      FromEbsToClientMessages.invalidAlgorithmException;
+  FromEbsToAppMessages get message =>
+      FromEbsToAppMessages.invalidAlgorithmException;
 }
 
 class TimeoutException implements Exception {

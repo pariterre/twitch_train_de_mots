@@ -9,7 +9,7 @@ import 'package:train_de_mots_ebs/managers/isolated_games_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
 import 'package:train_de_mots_ebs/network/network_parameters.dart';
 
-part 'package:train_de_mots_ebs/network/handle_client_endpoints.dart';
+part 'package:train_de_mots_ebs/network/handle_app_endpoints.dart';
 part 'package:train_de_mots_ebs/network/handle_frontend_endpoints.dart';
 
 final _logger = Logger('http_server');
@@ -115,8 +115,8 @@ Future<void> _handleOptionsRequest(HttpRequest request) async {
 }
 
 Future<void> _handleGetHttpRequest(HttpRequest request) async {
-  if (request.uri.path.contains('/client/')) {
-    await _handleClientHttpGetRequest(request);
+  if (request.uri.path.contains('/app/')) {
+    await _handleAppHttpGetRequest(request);
   } else if (request.uri.path.contains('/frontend/')) {
     await _handleFrontendHttpRequest(request);
   } else {

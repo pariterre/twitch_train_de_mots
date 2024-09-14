@@ -60,7 +60,8 @@ class _PardonRequestState extends State<_PardonRequest> {
     super.dispose();
   }
 
-  void _updatePlayersWhoCanPardon(List<String> pardonners) {
+  void _updatePlayersWhoCanPardon() {
+    final pardonners = GameManager.instance.pardonners;
     _logger.info('Update current pardonners to: $pardonners');
     final myId = TwitchManager.instance.opaqueUserId;
     _canPlayerPardon = pardonners.any((id) => id == myId);

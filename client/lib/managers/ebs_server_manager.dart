@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/game_state.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
@@ -75,8 +75,8 @@ class EbsServerManager {
     // Connect to EBS server
     try {
       final twitchBroadcasterId = TwitchManager.instance.broadcasterId;
-      _instance!._socket = WebSocketChannel.connect(Uri.parse(
-          '$_ebsUri/client/connect?broadcasterId=$twitchBroadcasterId'));
+      _instance!._socket = WebSocketChannel.connect(
+          Uri.parse('$_ebsUri/app/connect?broadcasterId=$twitchBroadcasterId'));
       await _instance!._socket!.ready;
     } catch (e) {
       retry('Could not connect to EBS');
@@ -169,7 +169,7 @@ class EbsServerManager {
     _logger.info('Requesting a new letter problem to EBS server');
     _sendMessageToEbs(
       MessageProtocol(
-        fromTo: FromClientToEbsMessages.newLetterProblemRequest,
+        fromTo: FromAppToEbsMessages.newLetterProblemRequest,
         data: {
           'algorithm': 'fromRandomWord',
           'lengthShortestSolutionMin': nbLetterInSmallestWord,
@@ -206,8 +206,8 @@ class EbsServerManager {
     // final boostRequested = gameState['boost_requested'] as int;
     final gm = GameManager.instance;
     _sendMessageToEbs(
-        MessageProtocol(fromTo: FromClientToEbsMessages.updateGameState, data: {
-      'game_state': GameState(
+        MessageProtocol(fromTo: FromAppToEbsMessages.updateGameState, data: {
+      'game_state': SimplifiedGameState(
         status: gm.gameStatus,
         round: gm.roundCount,
         pardonRemaining: gm.remainingPardon,
@@ -229,69 +229,69 @@ class EbsServerManager {
     final gm = GameManager.instance;
     final message = MessageProtocol.decode(raw);
 
-    switch (message.fromTo as FromEbsToClientMessages) {
-      case FromEbsToClientMessages.isConnected:
-        _logger.info('Client has connected to the EBS server');
+    switch (message.fromTo as FromEbsToAppMessages) {
+      case FromEbsToAppMessages.isConnected:
+        _logger.info('A streamer has connected to the EBS server');
         _hasConnectedToEbsCompleter?.complete(true);
         break;
 
-      case FromEbsToClientMessages.newLetterProblemGenerated:
+      case FromEbsToAppMessages.newLetterProblemGenerated:
         _receivedNewLetterProblemFromEbs(message.data!);
         break;
 
-      case FromEbsToClientMessages.pardonRequest:
+      case FromEbsToAppMessages.pardonRequest:
         try {
           final player = gm.players.firstWhere(
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestResponse,
+              fromTo: FromAppToEbsMessages.pardonRequestResponse,
               isSuccess: gm.pardonLastStealer(pardonner: player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while pardoning the stealer: $e');
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.pardonRequestResponse,
+              fromTo: FromAppToEbsMessages.pardonRequestResponse,
               isSuccess: false);
           _sendMessageToEbs(response);
         }
         break;
 
-      case FromEbsToClientMessages.boostRequest:
+      case FromEbsToAppMessages.boostRequest:
         try {
           final player = gm.players.firstWhere(
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.boostRequestResponse,
+              fromTo: FromAppToEbsMessages.boostRequestResponse,
               isSuccess: gm.boostTrain(player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while boosting the train: $e');
           final response = message.copyWith(
-              fromTo: FromClientToEbsMessages.boostRequestResponse,
+              fromTo: FromAppToEbsMessages.boostRequestResponse,
               isSuccess: false);
           _sendMessageToEbs(response);
         }
         break;
 
-      case FromEbsToClientMessages.ping:
+      case FromEbsToAppMessages.ping:
         _logger.info('Ping received, sending pong');
         final response = message.copyWith(
-            fromTo: FromClientToEbsMessages.pong, data: {'response': 'PONG'});
+            fromTo: FromAppToEbsMessages.pong, data: {'response': 'PONG'});
         _sendMessageToEbs(response);
         break;
 
-      case FromEbsToClientMessages.disconnect:
+      case FromEbsToAppMessages.disconnect:
         _logger
             .severe('EBS server has disconnected, reconnecting in 10 seconds');
         Future.delayed(const Duration(seconds: 10)).then((_) => _connect());
         break;
-      case FromEbsToClientMessages.unkownMessageException:
-      case FromEbsToClientMessages.noBroadcasterIdException:
-      case FromEbsToClientMessages.invalidAlgorithmException:
-      case FromEbsToClientMessages.invalidTimeoutException:
-      case FromEbsToClientMessages.invalidConfigurationException:
+      case FromEbsToAppMessages.unkownMessageException:
+      case FromEbsToAppMessages.noBroadcasterIdException:
+      case FromEbsToAppMessages.invalidAlgorithmException:
+      case FromEbsToAppMessages.invalidTimeoutException:
+      case FromEbsToAppMessages.invalidConfigurationException:
         _logger.severe('Error: ${message.fromTo}');
     }
   }

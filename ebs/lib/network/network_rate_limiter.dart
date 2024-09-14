@@ -5,14 +5,14 @@ class NetworkRateLimiter {
 
   NetworkRateLimiter(this.maxRequests, this.duration);
 
-  int requestCount(String clientIP) {
-    final requests = _clientRequests[clientIP];
+  int requestCount(String clientIp) {
+    final requests = _clientRequests[clientIp];
     return requests?.length ?? 0;
   }
 
-  bool isRateLimited(String clientIP) {
+  bool isRateLimited(String clientIp) {
     final now = DateTime.now();
-    final requests = _clientRequests.putIfAbsent(clientIP, () => []);
+    final requests = _clientRequests.putIfAbsent(clientIp, () => []);
     requests.removeWhere((time) => now.difference(time) > duration);
 
     if (requests.length >= maxRequests) {

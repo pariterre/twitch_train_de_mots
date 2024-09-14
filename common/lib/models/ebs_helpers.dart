@@ -76,7 +76,7 @@ class MessageProtocol {
 
 enum MessageTargets {
   main,
-  client,
+  app,
   frontend;
 }
 
@@ -88,24 +88,24 @@ mixin FromToMessages {
 
 enum _FromToTypes {
   mainToEbs,
-  clientToEbs,
+  appToEbs,
   frontendToEbs,
   ebsToMain,
-  ebsToClient,
+  ebsToApp,
   ebsToFrontend;
 
   FromToMessages toFromTo(int index) {
     switch (this) {
       case _FromToTypes.mainToEbs:
         return FromMainToEbsMessages.values[index];
-      case _FromToTypes.clientToEbs:
-        return FromClientToEbsMessages.values[index];
+      case _FromToTypes.appToEbs:
+        return FromAppToEbsMessages.values[index];
       case _FromToTypes.frontendToEbs:
         return FromFrontendToEbsMessages.values[index];
       case _FromToTypes.ebsToMain:
         return FromEbsToMainMessages.values[index];
-      case _FromToTypes.ebsToClient:
-        return FromEbsToClientMessages.values[index];
+      case _FromToTypes.ebsToApp:
+        return FromEbsToAppMessages.values[index];
       case _FromToTypes.ebsToFrontend:
         return FromEbsToFrontendMessages.values[index];
     }
@@ -127,7 +127,7 @@ enum FromMainToEbsMessages implements FromToMessages {
   _FromToTypes get _fromToType => _FromToTypes.mainToEbs;
 }
 
-enum FromClientToEbsMessages implements FromToMessages {
+enum FromAppToEbsMessages implements FromToMessages {
   newLetterProblemRequest,
   updateGameState,
   pardonRequestResponse,
@@ -141,11 +141,12 @@ enum FromClientToEbsMessages implements FromToMessages {
   @override
   List<FromToMessages> get getValues => values;
   @override
-  _FromToTypes get _fromToType => _FromToTypes.clientToEbs;
+  _FromToTypes get _fromToType => _FromToTypes.appToEbs;
 }
 
 enum FromFrontendToEbsMessages implements FromToMessages {
   registerToGame,
+  requestGameState,
   pardonRequest,
   boostRequest;
 
@@ -186,7 +187,7 @@ enum FromEbsToMainMessages implements FromToMessages {
   _FromToTypes get _fromToType => _FromToTypes.ebsToMain;
 }
 
-enum FromEbsToClientMessages implements FromToMessages {
+enum FromEbsToAppMessages implements FromToMessages {
   isConnected,
   ping,
   newLetterProblemGenerated,
@@ -205,14 +206,13 @@ enum FromEbsToClientMessages implements FromToMessages {
   @override
   List<FromToMessages> get getValues => values;
   @override
-  _FromToTypes get _fromToType => _FromToTypes.ebsToClient;
+  _FromToTypes get _fromToType => _FromToTypes.ebsToApp;
 }
 
 enum FromEbsToFrontendMessages implements FromToMessages {
-  clientConnected,
-  clientDisconnected,
-  gameStateUpdate,
-  ;
+  streamHasConnected,
+  streamerHasDisconnected,
+  gameStateUpdate;
 
   @override
   int get getIndex => index;

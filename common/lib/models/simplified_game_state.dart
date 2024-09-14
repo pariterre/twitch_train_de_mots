@@ -1,6 +1,6 @@
 import 'package:common/models/game_status.dart';
 
-class GameState {
+class SimplifiedGameState {
   GameStatus status;
   int round;
 
@@ -10,7 +10,7 @@ class GameState {
   int boostRemaining;
   int boostStillNeeded;
 
-  GameState({
+  SimplifiedGameState({
     required this.status,
     required this.round,
     required this.pardonRemaining,
@@ -18,6 +18,23 @@ class GameState {
     required this.boostRemaining,
     required this.boostStillNeeded,
   });
+
+  SimplifiedGameState copyWith({
+    GameStatus? status,
+    int? round,
+    int? pardonRemaining,
+    List<String>? pardonners,
+    int? boostRemaining,
+    int? boostStillNeeded,
+  }) =>
+      SimplifiedGameState(
+        status: status ??= this.status,
+        round: round ??= this.round,
+        pardonRemaining: pardonRemaining ??= this.pardonRemaining,
+        pardonners: pardonners ??= this.pardonners,
+        boostRemaining: boostRemaining ??= this.boostRemaining,
+        boostStillNeeded: boostStillNeeded ??= this.boostStillNeeded,
+      );
 
   Map<String, dynamic> serialize() {
     return {
@@ -30,8 +47,8 @@ class GameState {
     };
   }
 
-  static GameState deserialize(Map<String, dynamic> data) {
-    return GameState(
+  static SimplifiedGameState deserialize(Map<String, dynamic> data) {
+    return SimplifiedGameState(
       status: GameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
       pardonRemaining: data['pardon_remaining'] as int,

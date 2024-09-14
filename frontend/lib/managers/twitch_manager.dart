@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/game_state.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
@@ -101,7 +101,8 @@ class TwitchManager {
     // Try to register to the game. This will fail if the game has not started,
     // but we don't care about that. If the game is indeed started, we will be
     // registered to it.
-    _registerToGame();
+    await _registerToGame();
+    await _requestGameStatus();
   }
 
   Future<void> _onPubSubMessageReceived(String raw) async {
@@ -111,19 +112,23 @@ class TwitchManager {
       final message = MessageProtocol.fromJson(json);
 
       switch (message.fromTo as FromEbsToFrontendMessages) {
-        case FromEbsToFrontendMessages.clientConnected:
-          _logger.info('Game started by streamer');
+        case FromEbsToFrontendMessages.streamHasConnected:
+          _logger.info('Streamer connected to the game');
           _registerToGame();
           break;
-        case FromEbsToFrontendMessages.clientDisconnected:
-          // TODO : Show the game ended screen
+
+        case FromEbsToFrontendMessages.streamerHasDisconnected:
+          _logger.info('Streamer disconnected from the game');
+          final gm = GameManager.instance;
+          gm.updateGameState(
+              gm.gameState.copyWith(status: GameStatus.initializing));
           break;
 
         case FromEbsToFrontendMessages.gameStateUpdate:
           _logger.info('Round started by streamer');
 
           GameManager.instance.updateGameState(
-              GameState.deserialize(message.data!['game_state']));
+              SimplifiedGameState.deserialize(message.data!['game_state']));
 
           break;
       }
@@ -142,6 +147,20 @@ class TwitchManager {
     }
 
     _logger.info('Registered to game');
+  }
+
+  Future<void> _requestGameStatus() async {
+    final response =
+        await _sendMessageToEbs(FromFrontendToEbsMessages.requestGameState);
+    final isSuccess = response.isSuccess ?? false;
+    if (!isSuccess) {
+      _logger.info('Cannot get game status');
+      return;
+    }
+
+    _logger.info('Game status received');
+    GameManager.instance.updateGameState(
+        SimplifiedGameState.deserialize(response.data!['game_state']));
   }
 
   ///
@@ -180,22 +199,13 @@ class TwitchManagerMock extends TwitchManager {
 
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
-    // Uncomment the next line to simulate a connexion of the client with the EBS
+    // Uncomment the next line to simulate a connexion of the App with the EBS
     _registerToGame();
+    _requestGameStatus();
 
-    // Uncomment the next line to simulate that a round started
-    GameManager.instance.updateGameState(GameState(
-      status: GameStatus.roundStarted,
-      round: 1,
-      pardonRemaining: 1,
-      pardonners: [],
-      boostRemaining: 0,
-      boostStillNeeded: 0,
-    ));
-
-    // Uncomment the next line to simulate that the user can pardon
+    // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 1))
-        .then((_) => GameManager.instance.updateGameState(GameState(
+        .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
               status: GameStatus.roundStarted,
               round: 1,
               pardonRemaining: 1,
@@ -204,10 +214,10 @@ class TwitchManagerMock extends TwitchManager {
               boostStillNeeded: 0,
             )));
 
-    // Uncomment the next line to simulate that the client refused the pardon
+    // Uncomment the next line to simulate that the App refused the pardon
     _acceptPardon = false;
 
-    // Uncomment the next line to simulate that the client refused the boost
+    // Uncomment the next line to simulate that the App refused the boost
     _acceptBoost = false;
   }
 
@@ -232,6 +242,20 @@ class TwitchManagerMock extends TwitchManager {
         return MessageProtocol(
             fromTo: FromFrontendToEbsMessages.boostRequest,
             isSuccess: _acceptBoost);
+      case FromFrontendToEbsMessages.requestGameState:
+        return MessageProtocol(
+            fromTo: FromFrontendToEbsMessages.requestGameState,
+            isSuccess: true,
+            data: jsonDecode(jsonEncode({
+              'game_state': SimplifiedGameState(
+                status: GameStatus.roundStarted,
+                round: 1,
+                pardonRemaining: 1,
+                pardonners: [],
+                boostRemaining: 0,
+                boostStillNeeded: 0,
+              ).serialize(),
+            })));
     }
   }
 }

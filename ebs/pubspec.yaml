@@ -14,6 +14,8 @@ dependencies:
   dart_jsonwebtoken: ^2.14.0
   common: 
     path: ../common
+  twitch_manager:
+    path: ../common/plugins/twitch_manager
 
 dev_dependencies:
   lints: ^4.0.0

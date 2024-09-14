@@ -1,5 +1,5 @@
 import 'package:common/models/custom_callback.dart';
-import 'package:common/models/game_state.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 
@@ -14,18 +14,20 @@ class GameManager {
 
   ///
   /// Flag to indicate if the game has started
-  GameState _gameState = GameState(
+  final _gameState = SimplifiedGameState(
       status: GameStatus.initializing,
       round: 0,
       pardonRemaining: 0,
       pardonners: [],
       boostRemaining: 0,
       boostStillNeeded: 0);
+  SimplifiedGameState get gameState => _gameState;
 
-  void updateGameState(GameState newGameState) {
+  void updateGameState(SimplifiedGameState newGameState) {
     if (_gameState.status != newGameState.status) {
-      _logger.info('Game status changed to ${newGameState.status}');
-      switch (newGameState.status) {
+      _gameState.status = newGameState.status;
+      _logger.info('Game status changed to ${_gameState.status}');
+      switch (_gameState.status) {
         case GameStatus.roundStarted:
           onRoundStarted.notifyListeners();
           break;
@@ -39,25 +41,27 @@ class GameManager {
     }
 
     if (_gameState.round != newGameState.round) {
+      _gameState.round = newGameState.round;
       _logger.info('Round changed to ${newGameState.round}');
     }
 
     if (_gameState.pardonners != newGameState.pardonners) {
+      _gameState.pardonners = newGameState.pardonners;
       _logger.info('Pardonners changed to ${newGameState.pardonners}');
       onPardonnersChanged.notifyListeners();
     }
 
     if (_gameState.boostRemaining != newGameState.boostRemaining) {
+      _gameState.boostRemaining = newGameState.boostRemaining;
       _logger.info('Boost count changed to ${newGameState.boostRemaining}');
       onBoostAvailabilityChanged.notifyListeners();
     }
 
     if (_gameState.boostStillNeeded != newGameState.boostStillNeeded) {
+      _gameState.boostStillNeeded = newGameState.boostStillNeeded;
       _logger.info(
           'Boost still needed changed to ${newGameState.boostStillNeeded}');
     }
-
-    _gameState = newGameState;
   }
 
   ///
@@ -79,23 +83,20 @@ class GameManager {
 
   ///
   /// Callback to know when the game has stopped
-  final onClientDisconnected = CustomCallback();
+  final onGameEnded = CustomCallback();
   void stopGame() {
     _logger.info('Stopping the current game');
     _gameState.status = GameStatus.initializing;
-    onClientDisconnected.notifyListeners();
+    onGameEnded.notifyListeners();
   }
 
   ///
   /// Stealer and pardonner management
   final onPardonnersChanged = CustomCallback();
-  List<String> get currentPardonners =>
-      List.unmodifiable(_gameState.pardonners);
-  // TODO: Request for pardonners status when connecting
+  List<String> get pardonners => List.unmodifiable(_gameState.pardonners);
 
   ///
   /// Boost availability
   int get boostCount => _gameState.boostRemaining;
   final onBoostAvailabilityChanged = CustomCallback();
-  // TODO: Request the number of boost remaining at connexion
 }

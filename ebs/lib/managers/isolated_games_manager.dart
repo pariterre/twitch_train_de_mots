@@ -4,7 +4,7 @@ import 'dart:isolate';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/exceptions.dart';
-import 'package:common/models/game_state.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/game_manager.dart';
 import 'package:train_de_mots_ebs/managers/twitch_manager_extension.dart';
@@ -22,13 +22,13 @@ class _IsolateData {
 class _IsolateInterface {
   final Isolate isolate;
   SendPort? sendPortMain;
-  SendPort? sendPortClient;
+  SendPort? sendPortApp;
   SendPort? sendPortFrontend;
 
   void clear() {
     isolate.kill(priority: Isolate.immediate);
     sendPortMain = null;
-    sendPortClient = null;
+    sendPortApp = null;
     sendPortFrontend = null;
   }
 
@@ -49,7 +49,8 @@ class IsolatedGamesManager {
   /// Launch a new game
   /// Returns if a new game was indeed created. If false, it means we should not
   /// listen to the websocket anymore as it is already connected to a game.
-  Future<void> newClient(int broadcasterId, {required WebSocket socket}) async {
+  Future<void> newStreamer(int broadcasterId,
+      {required WebSocket socket}) async {
     final mainReceivePort = ReceivePort();
     final data = _IsolateData(
         twitchBroadcasterId: broadcasterId,
@@ -57,7 +58,7 @@ class IsolatedGamesManager {
 
     // Create a new game
     if (!_isolates.containsKey(broadcasterId)) {
-      _logger.info('Starting a new game (broadcasterId: $broadcasterId)');
+      _logger.info('Starting a new connexion (broadcasterId: $broadcasterId)');
       _isolates[broadcasterId] = _IsolateInterface(
           isolate:
               await Isolate.spawn(_IsolatedGame.startNewGameManager, data));
@@ -67,18 +68,18 @@ class IsolatedGamesManager {
     mainReceivePort
         .listen((message) => _handleMessageFromIsolated(message, socket, data));
 
-    // Emulate an is connected message to send to the client
+    // Emulate an is connected message to send to the App
     _handleMessageFromIsolated(
         MessageProtocol(
-            fromTo: FromEbsToClientMessages.isConnected,
-            target: MessageTargets.client),
+            fromTo: FromEbsToAppMessages.isConnected,
+            target: MessageTargets.app),
         socket,
         data);
   }
 
   ///
   /// Stop all games
-  void stopAllGames() {
+  void killAllIsolates() {
     for (var interface in _isolates.values) {
       interface.clear();
     }
@@ -92,8 +93,8 @@ class IsolatedGamesManager {
         case MessageTargets.main:
           await _handleMessageFromIsolatedToMain(message, data);
           break;
-        case MessageTargets.client:
-          await _handleMessageFromIsolatedToClient(message, socket);
+        case MessageTargets.app:
+          await _handleMessageFromIsolatedToApp(message, socket);
           break;
         case MessageTargets.frontend:
           await _handleMessageFromIsolatedToFrontend(message, socket);
@@ -113,7 +114,7 @@ class IsolatedGamesManager {
         final isolate = _isolates[isolateData.twitchBroadcasterId]!;
 
         isolate.sendPortMain = message.data!['send_port_main'];
-        isolate.sendPortClient = message.data!['send_port_client'];
+        isolate.sendPortApp = message.data!['send_port_app'];
         isolate.sendPortFrontend = message.data!['send_port_frontend'];
         break;
 
@@ -166,7 +167,7 @@ class IsolatedGamesManager {
     }
   }
 
-  Future<void> _handleMessageFromIsolatedToClient(
+  Future<void> _handleMessageFromIsolatedToApp(
       MessageProtocol message, WebSocket socket) async {
     socket.add(message.encode());
   }
@@ -176,18 +177,18 @@ class IsolatedGamesManager {
     TwitchManagerExtension.instance.sendPubsubMessage(message.toJson());
   }
 
-  Future<void> messageFromClientToIsolated(
+  Future<void> messageFromAppToIsolated(
       MessageProtocol message, WebSocket socket) async {
     final broadcasterId = message.data?['broadcaster_id'];
 
-    final sendPortClient = _isolates[broadcasterId]?.sendPortClient;
-    if (sendPortClient == null) {
+    final sendPortApp = _isolates[broadcasterId]?.sendPortApp;
+    if (sendPortApp == null) {
       _logger.info('No active game with id: $broadcasterId');
       return;
     }
 
     // Relay the message to the worker isolate
-    sendPortClient.send(message.encode());
+    sendPortApp.send(message.encode());
   }
 
   Future<MessageProtocol> messageFromFrontendToIsolated(
@@ -232,10 +233,10 @@ class _IsolatedGame {
     final sendPort = data.mainSendPort;
 
     final receivePortMain = ReceivePort();
-    final receivePortClient = ReceivePort();
+    final receivePortApp = ReceivePort();
     final receivePortFrontend = ReceivePort();
 
-    final gm = GameManager.clientStartedTheGame(
+    final gm = GameManager.appStartedTheGame(
         broadcasterId: data.twitchBroadcasterId, sendPort: sendPort);
 
     // Send the SendPort to the main isolate, so it can communicate back to the isolate
@@ -244,15 +245,15 @@ class _IsolatedGame {
         fromTo: FromEbsToMainMessages.initialize,
         data: {
           'send_port_main': receivePortMain.sendPort,
-          'send_port_client': receivePortClient.sendPort,
+          'send_port_app': receivePortApp.sendPort,
           'send_port_frontend': receivePortFrontend.sendPort
         }));
 
-    // Handle the messages from the main, client or frontends
+    // Handle the messages from the main, app or frontends
     receivePortMain.listen((message) async =>
         _handleMessageFromMain(MessageProtocol.decode(message), gm));
-    receivePortClient.listen((message) async =>
-        _handleMessageFromClient(MessageProtocol.decode(message), gm));
+    receivePortApp.listen((message) async =>
+        _handleMessageFromApp(MessageProtocol.decode(message), gm));
     receivePortFrontend.listen((message) async =>
         _handleMessageFromFrontend(MessageProtocol.decode(message), gm));
   }
@@ -260,7 +261,7 @@ class _IsolatedGame {
   static Future<void> _handleMessageFromMain(
       MessageProtocol message, GameManager gm) async {
     // Parse and handle the message from the main. If the message is invalid,
-    // it sends an error message back to the client
+    // it sends an error message back to the App
     final completerId = message.internalIsolate!['completer_id'];
 
     switch (message.fromTo as FromMainToEbsMessages) {
@@ -286,70 +287,69 @@ class _IsolatedGame {
   }
 
   ///
-  /// Handle messages from the client and relay them to the game manager
-  static Future<void> _handleMessageFromClient(
+  /// Handle messages from the App and relay them to the game manager
+  static Future<void> _handleMessageFromApp(
       MessageProtocol message, GameManager gm) async {
-    // Parse and handle the message from the client. If the message is invalid,
-    // it sends an error message back to the client
+    // Parse and handle the message from the App. If the message is invalid,
+    // it sends an error message back to the App
     try {
-      switch (message.fromTo as FromClientToEbsMessages) {
-        case FromClientToEbsMessages.updateGameState:
-          await gm.clientUpdatedGameState(
-              GameState.deserialize(message.data!['game_state']));
+      switch (message.fromTo as FromAppToEbsMessages) {
+        case FromAppToEbsMessages.updateGameState:
+          await gm.appUpdatedGameState(
+              SimplifiedGameState.deserialize(message.data!['game_state']));
           break;
 
-        case FromClientToEbsMessages.newLetterProblemRequest:
-          _logger.info('Client requested a new letter problem');
+        case FromAppToEbsMessages.newLetterProblemRequest:
           gm.communications.sendMessageViaMain(MessageProtocol(
-              target: MessageTargets.client,
-              fromTo: FromEbsToClientMessages.newLetterProblemGenerated,
-              data: (await gm.clientRequestedANewLetterProblem(message.data!))
+              target: MessageTargets.app,
+              fromTo: FromEbsToAppMessages.newLetterProblemGenerated,
+              data: (await gm.appRequestedANewLetterProblem(message.data!))
                   .serialize()));
           break;
 
-        case FromClientToEbsMessages.pardonRequestResponse:
-          _logger.info('Client answered request pardon status');
+        case FromAppToEbsMessages.pardonRequestResponse:
+          _logger.info('App answered request pardon status');
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.isSuccess);
           break;
 
-        case FromClientToEbsMessages.boostRequestResponse:
-          _logger.info('Client answered request boost status');
+        case FromAppToEbsMessages.boostRequestResponse:
+          _logger.info('App answered request boost status');
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.isSuccess);
           break;
 
-        case FromClientToEbsMessages.pong:
+        case FromAppToEbsMessages.pong:
           gm.communications.complete(
               completerId: message.internalIsolate!['completer_id'],
               data: message.data!);
           break;
 
-        case FromClientToEbsMessages.disconnect:
-          _logger.info('Client ended the game');
-          gm.clientEndedTheGame();
+        case FromAppToEbsMessages.disconnect:
+          _logger.info('Streamer has ended the game');
+          gm.appEndedTheGame();
           break;
       }
     } on InvalidMessageException catch (e) {
       gm.communications.sendMessageViaMain(MessageProtocol(
-        target: MessageTargets.client,
+        target: MessageTargets.app,
         fromTo: e.message,
       ));
       gm.communications.sendMessageViaMain(MessageProtocol(
-        target: MessageTargets.client,
+        target: MessageTargets.app,
         fromTo: e.message,
       ));
     } catch (e) {
       gm.communications.sendMessageViaMain(MessageProtocol(
-          target: MessageTargets.client,
-          fromTo: FromEbsToClientMessages.unkownMessageException));
+          target: MessageTargets.app,
+          fromTo: FromEbsToAppMessages.unkownMessageException));
     }
   }
 
   ///
-  /// Handle messages from the client and relay them to the game manager
+  /// Handle messages from the App and relay them to the game manager
   static Future<void> _handleMessageFromFrontend(
       MessageProtocol message, GameManager gm) async {
     // Helper function to send a response to the frontend
@@ -398,6 +398,12 @@ class _IsolatedGame {
           isSuccess = await gm.frontendRegisteredToTheGame(
               userId: userId, opaqueId: opaqueId);
           break;
+        case FromFrontendToEbsMessages.requestGameState:
+          _logger.info('Frontend (userId: $userId) requested the game state');
+          final gameState = gm.gameState.serialize();
+          message.copyWith(data: {'game_state': gameState});
+          isSuccess = true;
+          break;
         case FromFrontendToEbsMessages.pardonRequest:
           _logger.info('Frontend (userId: $userId) requested to pardon');
           isSuccess = await gm.frontendRequestedToPardon(userId);
@@ -409,8 +415,8 @@ class _IsolatedGame {
       }
       sendInternalReponseSubroutine(message.copyWith(isSuccess: isSuccess));
     } catch (e) {
-      sendInternalReponseSubroutine(MessageProtocol(
-          fromTo: FromEbsToClientMessages.unkownMessageException));
+      sendInternalReponseSubroutine(
+          MessageProtocol(fromTo: FromEbsToAppMessages.unkownMessageException));
     }
   }
 }

@@ -30,7 +30,7 @@ void main(List<String> arguments) async {
   initializeTwitchManagerExtension();
   startHttpServer(parameters: networkParameters);
 
-  // TO REMOVE
+  // TODO Move this to when starting an isolate
   TwitchManagerExtension.instance
       .sendChatMessage('Bienvenue au Train de mots!');
 }
