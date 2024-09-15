@@ -9,9 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   diacritic: ^0.1.4
-  http: ^1.2.1
   logging: ^1.2.0
-  dart_jsonwebtoken: ^2.14.0
   common: 
     path: ../common
   twitch_manager:

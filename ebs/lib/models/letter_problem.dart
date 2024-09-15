@@ -357,7 +357,7 @@ class LetterProblem {
       try {
         return Duration(seconds: forceIntParse(timeout));
       } catch (e) {
-        throw InvalidTimeoutException();
+        throw TimeoutException('Could not parse timeout');
       }
     }
 

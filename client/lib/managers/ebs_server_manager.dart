@@ -5,7 +5,8 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
-import 'package:train_de_mots/models/letter_problem.dart';
+import 'package:twitch_manager/models/ebs/completers.dart';
+import 'package:twitch_manager/twitch_manager.dart' as tm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 final _logger = Logger('EbsServerManager');
@@ -91,6 +92,7 @@ class EbsServerManager {
         } catch (e) {
           // Do nothing, this is to prevent the program from crashing
           // When ill-formatted messages are received
+          _logger.severe('Error while handling message from EBS: $e');
         }
       },
       onDone: () {
@@ -141,13 +143,13 @@ class EbsServerManager {
   ///
   /// API section under the the for of requests to the EBS server
   ///
-  final Map<dynamic, Completer> _completers = {};
+  final _completers = Completers();
 
   ///
   /// Request a new letter problem, it will return a completer that will complete
   /// when the EBS server sends the new letter problem. Note requesting twice will
   /// result in undefined behavior.
-  Completer generateLetterProblem({
+  Future<Map<String, dynamic>> generateLetterProblem({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -155,67 +157,70 @@ class EbsServerManager {
     required int maximumNbOfWords,
     required bool addUselessLetter,
     required Duration maxSearchingTime,
-  }) {
+  }) async {
     // Create a new completer with a timout of maxSearchingTime
-    _completers[LetterProblem] = Completer();
+    final completerId = _completers.spawn();
 
-    _completers[LetterProblem]!.future.timeout(maxSearchingTime, onTimeout: () {
+    _completers.get(completerId)!.future.timeout(maxSearchingTime,
+        onTimeout: () {
       _logger
           .severe('Failed to get a new letter problem from EBS server in time');
-      _completers[LetterProblem]!.completeError(
+      _completers.get(completerId)!.completeError(
           'Failed to get a new letter problem from EBS server in time');
     });
 
     _logger.info('Requesting a new letter problem to EBS server');
     _sendMessageToEbs(
-      MessageProtocol(
-        fromTo: FromAppToEbsMessages.newLetterProblemRequest,
+      tm.MessageProtocol(
+        from: tm.MessageFrom.app,
+        to: tm.MessageTo.ebsIsolated,
+        type: tm.MessageTypes.get,
         data: {
-          'algorithm': 'fromRandomWord',
-          'lengthShortestSolutionMin': nbLetterInSmallestWord,
-          'lengthShortestSolutionMax': nbLetterInSmallestWord,
-          'lengthLongestSolutionMin': minLetters,
-          'lengthLongestSolutionMax': maxLetters,
-          'nbSolutionsMin': minimumNbOfWords,
-          'nbSolutionsMax': maximumNbOfWords,
-          'nbUselessLetters': addUselessLetter ? 1 : 0,
-          'timeout': maxSearchingTime.inSeconds,
+          'request': ToBackendMessages.newLetterProblemRequest,
+          'configuration': {
+            'algorithm': 'fromRandomWord',
+            'lengthShortestSolutionMin': nbLetterInSmallestWord,
+            'lengthShortestSolutionMax': nbLetterInSmallestWord,
+            'lengthLongestSolutionMin': minLetters,
+            'lengthLongestSolutionMax': maxLetters,
+            'nbSolutionsMin': minimumNbOfWords,
+            'nbSolutionsMax': maximumNbOfWords,
+            'nbUselessLetters': addUselessLetter ? 1 : 0,
+            'timeout': maxSearchingTime.inSeconds,
+          }
         },
       ),
     );
 
-    return _completers[LetterProblem]!;
-  }
-
-  ///
-  /// Handle the new letter problem received from the EBS server and complete the
-  /// completer.
-  void _receivedNewLetterProblemFromEbs(Map<String, dynamic> message) {
-    _logger.info('Received new letter problem from EBS server: $message');
-    _completers[LetterProblem]!.complete(message);
+    return _completers.get(completerId)!.future as Future<Map<String, dynamic>>;
   }
 
   ///
   /// Send a message to the EBS server to notify that a new round has started
-  Future<void> _sendGameStateToEbs() async {
-    // final status = GameStatus.values[gameState['game_status'] as int];
-    // final round = gameState['round'] as int;
-    // final pardonRemaining = gameState['pardon_remaining'] as int;
-    // final pardonners = gameState['pardonners'] as List<String>;
-    // final boostRemaining = gameState['boost_remaining'] as int;
-    // final boostRequested = gameState['boost_requested'] as int;
+  Future<void> _sendGameStateToEbs(
+      [tm.MessageProtocol? previousMessage]) async {
+    final type = previousMessage == null
+        ? tm.MessageTypes.put
+        : tm.MessageTypes.response;
+    previousMessage ??= tm.MessageProtocol(
+        from: tm.MessageFrom.app, to: tm.MessageTo.frontend, type: type);
+
     final gm = GameManager.instance;
-    _sendMessageToEbs(
-        MessageProtocol(fromTo: FromAppToEbsMessages.updateGameState, data: {
-      'game_state': SimplifiedGameState(
-        status: gm.gameStatus,
-        round: gm.roundCount,
-        pardonRemaining: gm.remainingPardon,
-        pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
-        boostRemaining: gm.remainingBoosts,
-        boostStillNeeded: gm.numberOfBoostStillNeeded,
-      ).serialize(),
-    }));
+    _sendMessageToEbs(previousMessage.copyWith(
+        from: tm.MessageFrom.app,
+        to: tm.MessageTo.frontend,
+        type: type,
+        data: {
+          'type': ToFrontendMessages.gameState,
+          'game_state': SimplifiedGameState(
+            status: gm.gameStatus,
+            round: gm.roundCount,
+            pardonRemaining: gm.remainingPardon,
+            pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
+            boostRemaining: gm.remainingBoosts,
+            boostStillNeeded: gm.numberOfBoostStillNeeded,
+          ).serialize(),
+        }));
   }
 
   ///
@@ -227,80 +232,104 @@ class EbsServerManager {
   /// Handle the messages received from the EBS server
   void _handleMessageFromEbs(raw) {
     final gm = GameManager.instance;
-    final message = MessageProtocol.decode(raw);
+    final message = tm.MessageProtocol.decode(raw);
+    final messageType = message.type;
 
-    switch (message.fromTo as FromEbsToAppMessages) {
-      case FromEbsToAppMessages.isConnected:
+    switch (messageType) {
+      case tm.MessageTypes.handShake:
         _logger.info('A streamer has connected to the EBS server');
         _hasConnectedToEbsCompleter?.complete(true);
+        return;
+      case tm.MessageTypes.ping:
+        _logger.info('Ping received, sending pong');
+        _sendMessageToEbs(message.copyWith(
+            from: tm.MessageFrom.app,
+            to: tm.MessageTo.ebsIsolated,
+            type: tm.MessageTypes.pong));
+        return;
+      case tm.MessageTypes.response:
+        _logger.info('Received response from the EBS server: $message');
+        final completerId = message.internalClient!['completer_id'] as int;
+        _completers.get(completerId)!.complete(message);
+        return;
+      case tm.MessageTypes.disconnect:
+        _logger
+            .severe('EBS server has disconnected, reconnecting in 10 seconds');
+        Future.delayed(const Duration(seconds: 10)).then((_) => _connect());
+        break;
+      case tm.MessageTypes.get:
+      case tm.MessageTypes.pong:
+      case tm.MessageTypes.put:
+        // From that point, we actually don't really care about the type of message
+        // So, just accept all of them and proceed to the next switch
+        break;
+    }
+
+    if (!message.isSuccess!) {
+      _logger.severe(
+          'Error while handling message from EBS: ${message.data?['error_message']}');
+      return;
+    }
+
+    switch (message.data!['type'] as ToAppMessages) {
+      case ToAppMessages.gameStateRequest:
+        _sendGameStateToEbs(message);
         break;
 
-      case FromEbsToAppMessages.newLetterProblemGenerated:
-        _receivedNewLetterProblemFromEbs(message.data!);
-        break;
-
-      case FromEbsToAppMessages.pardonRequest:
+      case ToAppMessages.pardonRequest:
         try {
           final player = gm.players.firstWhere(
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromAppToEbsMessages.pardonRequestResponse,
+              from: tm.MessageFrom.app,
+              to: tm.MessageTo.frontend,
+              type: tm.MessageTypes.response,
               isSuccess: gm.pardonLastStealer(pardonner: player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while pardoning the stealer: $e');
           final response = message.copyWith(
-              fromTo: FromAppToEbsMessages.pardonRequestResponse,
+              from: tm.MessageFrom.app,
+              to: tm.MessageTo.frontend,
+              type: tm.MessageTypes.response,
               isSuccess: false);
           _sendMessageToEbs(response);
         }
         break;
 
-      case FromEbsToAppMessages.boostRequest:
+      case ToAppMessages.boostRequest:
         try {
           final player = gm.players.firstWhere(
               (player) => player.name == message.data?['player_name']);
 
           final response = message.copyWith(
-              fromTo: FromAppToEbsMessages.boostRequestResponse,
+              from: tm.MessageFrom.app,
+              to: tm.MessageTo.ebsIsolated,
+              type: tm.MessageTypes.response,
               isSuccess: gm.boostTrain(player));
           _sendMessageToEbs(response);
         } catch (e) {
           _logger.severe('Error while boosting the train: $e');
           final response = message.copyWith(
-              fromTo: FromAppToEbsMessages.boostRequestResponse,
+              from: tm.MessageFrom.app,
+              to: tm.MessageTo.ebsIsolated,
+              type: tm.MessageTypes.response,
               isSuccess: false);
           _sendMessageToEbs(response);
         }
         break;
-
-      case FromEbsToAppMessages.ping:
-        _logger.info('Ping received, sending pong');
-        final response = message.copyWith(
-            fromTo: FromAppToEbsMessages.pong, data: {'response': 'PONG'});
-        _sendMessageToEbs(response);
-        break;
-
-      case FromEbsToAppMessages.disconnect:
-        _logger
-            .severe('EBS server has disconnected, reconnecting in 10 seconds');
-        Future.delayed(const Duration(seconds: 10)).then((_) => _connect());
-        break;
-      case FromEbsToAppMessages.unkownMessageException:
-      case FromEbsToAppMessages.noBroadcasterIdException:
-      case FromEbsToAppMessages.invalidAlgorithmException:
-      case FromEbsToAppMessages.invalidTimeoutException:
-      case FromEbsToAppMessages.invalidConfigurationException:
-        _logger.severe('Error: ${message.fromTo}');
     }
   }
 
   ///
   /// Send a message to the EBS server
-  void _sendMessageToEbs(MessageProtocol message) {
+  void _sendMessageToEbs(tm.MessageProtocol message) {
     final augmentedMessage = message.copyWith(
-        data: message.data ?? {}
+        from: message.from,
+        to: message.to,
+        type: message.type,
+        data: (message.data ?? {})
           ..addAll({
             'broadcaster_id': TwitchManager.instance.broadcasterId,
           }));

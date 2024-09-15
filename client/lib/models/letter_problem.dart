@@ -561,7 +561,8 @@ class ProblemGenerator {
         throw Exception('Not connected to EBS server');
       }
 
-      final completer = EbsServerManager.instance.generateLetterProblem(
+      Map<String, dynamic> data =
+          await EbsServerManager.instance.generateLetterProblem(
         nbLetterInSmallestWord: nbLetterInSmallestWord,
         minLetters: minLetters,
         maxLetters: maxLetters,
@@ -570,8 +571,6 @@ class ProblemGenerator {
         addUselessLetter: addUselessLetter,
         maxSearchingTime: maxSearchingTime,
       );
-
-      Map<String, dynamic> data = await completer.future;
 
       final finalProblem = _letterProblemFromListLetters(
           candidateLetters: data['letters'].split(''),

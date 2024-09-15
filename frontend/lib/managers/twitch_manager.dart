@@ -6,6 +6,7 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:twitch_manager/models/ebs/network/communication_protocols.dart';
 import 'package:twitch_manager/twitch_manager.dart' as tm;
 
 final _logger = Logger('TwitchManagerMain');
@@ -41,8 +42,7 @@ class TwitchManager {
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
   Future<bool> pardonStealer() async {
-    final response =
-        await _sendMessageToEbs(FromFrontendToEbsMessages.pardonRequest);
+    final response = await _sendMessageToApp(ToAppMessages.pardonRequest);
     return response.isSuccess ?? false;
   }
 
@@ -51,8 +51,7 @@ class TwitchManager {
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
   Future<bool> boostTrain() async {
-    final response =
-        await _sendMessageToEbs(FromFrontendToEbsMessages.boostRequest);
+    final response = await _sendMessageToApp(ToAppMessages.boostRequest);
     return response.isSuccess ?? false;
   }
 
@@ -111,25 +110,30 @@ class TwitchManager {
       final json = jsonDecode(raw.replaceAll('\'', '"'));
       final message = MessageProtocol.fromJson(json);
 
-      switch (message.fromTo as FromEbsToFrontendMessages) {
-        case FromEbsToFrontendMessages.streamHasConnected:
+      switch (message.data!['type'] as ToFrontendMessages) {
+        case ToFrontendMessages.streamerHasConnected:
           _logger.info('Streamer connected to the game');
           _registerToGame();
           break;
 
-        case FromEbsToFrontendMessages.streamerHasDisconnected:
+        case ToFrontendMessages.streamerHasDisconnected:
           _logger.info('Streamer disconnected from the game');
           final gm = GameManager.instance;
           gm.updateGameState(
               gm.gameState.copyWith(status: GameStatus.initializing));
           break;
 
-        case FromEbsToFrontendMessages.gameStateUpdate:
+        case ToFrontendMessages.gameState:
           _logger.info('Round started by streamer');
 
           GameManager.instance.updateGameState(
               SimplifiedGameState.deserialize(message.data!['game_state']));
 
+          break;
+
+        case ToFrontendMessages.pardonResponse:
+        case ToFrontendMessages.boostResponse:
+          _logger.severe('This message should not be received by Pubsub');
           break;
       }
     } catch (e) {
@@ -138,8 +142,7 @@ class TwitchManager {
   }
 
   Future<void> _registerToGame() async {
-    final response =
-        await _sendMessageToEbs(FromFrontendToEbsMessages.registerToGame);
+    final response = await _sendMessageToEbs(MessageTypes.handShake);
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
       _logger.info('Cannot register to game, as no has game started yet');
@@ -150,8 +153,7 @@ class TwitchManager {
   }
 
   Future<void> _requestGameStatus() async {
-    final response =
-        await _sendMessageToEbs(FromFrontendToEbsMessages.requestGameState);
+    final response = await _sendMessageToApp(ToAppMessages.gameStateRequest);
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
       _logger.info('Cannot get game status');
@@ -164,23 +166,61 @@ class TwitchManager {
   }
 
   ///
-  /// Send a message to the EBS based on the [fromTo] of message.
-  Future<MessageProtocol> _sendMessageToEbs(
-      FromFrontendToEbsMessages fromTo) async {
+  /// Send a message to the App based on the [type] of message.
+  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request) async {
     if (!isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
     }
 
     try {
-      final message = MessageProtocol(fromTo: fromTo);
-      final response = await _frontendManager!.apiToEbs
-          .postRequest(fromTo.asEndpoint(), message.toJson());
+      final response = await _frontendManager!.apiToEbs.postRequest(
+          MessageTypes.get,
+          MessageProtocol(
+              from: MessageFrom.frontend,
+              to: MessageTo.app,
+              type: MessageTypes.get,
+              data: {'type': request}).toJson());
       _logger.info('Message sent to EBS: $response');
       return MessageProtocol.fromJson(response);
     } catch (e) {
       _logger.severe('Failed to send message to EBS: $e');
-      return MessageProtocol(fromTo: fromTo, isSuccess: false);
+      return MessageProtocol(
+          from: MessageFrom.app,
+          to: MessageTo.frontend,
+          type: MessageTypes.response,
+          isSuccess: false);
+    }
+  }
+
+  ///
+  /// Send a message to the EBS based on the [type] of message.
+  Future<MessageProtocol> _sendMessageToEbs(MessageTypes type) async {
+    if (!isInitialized) {
+      _logger.severe('TwitchManager is not initialized');
+      throw Exception('TwitchManager is not initialized');
+    }
+
+    if (type == MessageTypes.get || type == MessageTypes.put) {
+      _logger.severe('Cannot send a message of type $type to the EBS');
+      throw Exception('Cannot send a message of type $type to the EBS');
+    }
+
+    try {
+      final response = await _frontendManager!.apiToEbs.postRequest(
+          MessageTypes.handShake,
+          MessageProtocol(
+                  from: MessageFrom.frontend, to: MessageTo.ebsMain, type: type)
+              .toJson());
+      _logger.info('Message sent to EBS: $response');
+      return MessageProtocol.fromJson(response);
+    } catch (e) {
+      _logger.severe('Failed to send message to EBS: $e');
+      return MessageProtocol(
+          from: MessageFrom.ebsMain,
+          to: MessageTo.frontend,
+          type: MessageTypes.response,
+          isSuccess: false);
     }
   }
 }
@@ -225,26 +265,25 @@ class TwitchManagerMock extends TwitchManager {
   String get opaqueUserId => 'U0123456789';
 
   @override
-  Future<MessageProtocol> _sendMessageToEbs(
-      FromFrontendToEbsMessages fromTo) async {
-    switch (fromTo) {
-      case FromFrontendToEbsMessages.registerToGame:
+  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request) async {
+    switch (request) {
+      case ToAppMessages.pardonRequest:
         return MessageProtocol(
-            fromTo: FromFrontendToEbsMessages.registerToGame, isSuccess: true);
-      case FromFrontendToEbsMessages.pardonRequest:
-        // Simulate a response delay
-        await Future.delayed(const Duration(seconds: 1));
-        return MessageProtocol(
-            fromTo: FromFrontendToEbsMessages.pardonRequest,
+            from: MessageFrom.app,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
             isSuccess: _acceptPardon);
-      case FromFrontendToEbsMessages.boostRequest:
-        await Future.delayed(const Duration(seconds: 1));
+      case ToAppMessages.boostRequest:
         return MessageProtocol(
-            fromTo: FromFrontendToEbsMessages.boostRequest,
+            from: MessageFrom.app,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
             isSuccess: _acceptBoost);
-      case FromFrontendToEbsMessages.requestGameState:
+      case ToAppMessages.gameStateRequest:
         return MessageProtocol(
-            fromTo: FromFrontendToEbsMessages.requestGameState,
+            from: MessageFrom.app,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SimplifiedGameState(
@@ -256,6 +295,30 @@ class TwitchManagerMock extends TwitchManager {
                 boostStillNeeded: 0,
               ).serialize(),
             })));
+    }
+  }
+
+  @override
+  Future<MessageProtocol> _sendMessageToEbs(MessageTypes type) async {
+    switch (type) {
+      case MessageTypes.handShake:
+        return MessageProtocol(
+            from: MessageFrom.ebsIsolated,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
+            isSuccess: true);
+
+      case MessageTypes.ping:
+      case MessageTypes.pong:
+      case MessageTypes.get:
+      case MessageTypes.put:
+      case MessageTypes.response:
+      case MessageTypes.disconnect:
+        return MessageProtocol(
+            from: MessageFrom.ebsIsolated,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
+            isSuccess: false);
     }
   }
 }

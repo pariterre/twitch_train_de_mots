@@ -1,46 +1,18 @@
-import 'package:common/models/ebs_helpers.dart';
+abstract class TrainDeMotsException implements Exception {}
 
-abstract class InvalidMessageException implements Exception {
-  @override
-  String toString() => 'Invalid message';
-
-  FromEbsToAppMessages get message;
-}
-
-class NoBroadcasterIdException implements InvalidMessageException {
+class NoBroadcasterIdException implements TrainDeMotsException {
   @override
   String toString() => 'No broadcasterId found';
-
-  @override
-  FromEbsToAppMessages get message =>
-      FromEbsToAppMessages.noBroadcasterIdException;
 }
 
-class InvalidAlgorithmException implements InvalidMessageException {
+class InvalidAlgorithmException implements TrainDeMotsException {
   @override
   String toString() => 'Invalid algorithm';
-
-  @override
-  FromEbsToAppMessages get message =>
-      FromEbsToAppMessages.invalidAlgorithmException;
 }
 
-class InvalidTimeoutException implements InvalidMessageException {
-  @override
-  String toString() => 'Invalid timeout';
-
-  @override
-  FromEbsToAppMessages get message =>
-      FromEbsToAppMessages.invalidAlgorithmException;
-}
-
-class InvalidConfigurationException implements InvalidMessageException {
+class InvalidConfigurationException implements TrainDeMotsException {
   @override
   String toString() => 'Invalid configuration';
-
-  @override
-  FromEbsToAppMessages get message =>
-      FromEbsToAppMessages.invalidAlgorithmException;
 }
 
 class TimeoutException implements Exception {
@@ -51,33 +23,6 @@ class TimeoutException implements Exception {
   @override
   String toString() {
     return 'TimeoutException: $message';
-  }
-}
-
-class UnauthorizedException implements Exception {
-  UnauthorizedException();
-
-  @override
-  String toString() {
-    return 'Token verification failed';
-  }
-}
-
-class InvalidEndpointException implements Exception {
-  InvalidEndpointException();
-
-  @override
-  String toString() {
-    return 'Invalid endpoint';
-  }
-}
-
-class ConnexionToWebSocketdRefusedException implements Exception {
-  ConnexionToWebSocketdRefusedException();
-
-  @override
-  String toString() {
-    return 'Connexion to WebSocketd refused';
   }
 }
 

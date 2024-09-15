@@ -9,7 +9,7 @@ void main() async {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
   });
-  await TwitchManager.initialize(useMocker: false);
+  await TwitchManager.initialize(useMocker: true);
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
