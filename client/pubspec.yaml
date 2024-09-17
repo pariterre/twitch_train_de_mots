@@ -24,7 +24,6 @@ dependencies:
   http: ^1.2.1
   mutex: ^3.1.0
   logging: ^1.2.0
-  web_socket_channel: ^3.0.1
   common: 
     path: ../common
 

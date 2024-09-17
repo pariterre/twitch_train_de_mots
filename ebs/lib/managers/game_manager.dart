@@ -6,8 +6,7 @@ import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
-import 'package:twitch_manager/models/ebs/ebs_exceptions.dart';
-import 'package:twitch_manager/twitch_manager.dart';
+import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('GameManager');
 
@@ -16,7 +15,7 @@ final _logger = Logger('GameManager');
 /// constantly waits for updates from the App, without proactively changing the
 /// game state. In that sense, it provides a communication channel between the
 /// App and the Frontends.
-class GameManager extends IsolatedInstanceManagerAbstract {
+class GameManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SimplifiedGameState _gameState = SimplifiedGameState(
@@ -32,10 +31,13 @@ class GameManager extends IsolatedInstanceManagerAbstract {
   ///
   /// Create a new GameManager. This method automatically starts a keep alive
   /// mechanism to keep the connexion alive. If it fails, the game is ended.
-  /// [broadcasterId] the id of the broadcaster
-  /// [sendPort] the port to communicate with the main manager
-  GameManager({required super.broadcasterId, required super.ebsInfo})
-      : super() {
+  /// [broadcasterId] the id of the broadcaster.
+  /// [ebsInfo] the configuration of the EBS.
+  GameManager.spawn({
+    required super.broadcasterId,
+    required super.ebsInfo,
+    required super.sendPort,
+  }) : super() {
     // Set up the logger
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
@@ -44,7 +46,7 @@ class GameManager extends IsolatedInstanceManagerAbstract {
         from: MessageFrom.ebsIsolated,
         to: MessageTo.frontend,
         type: MessageTypes.put,
-        data: {'type': ToFrontendMessages.streamerHasConnected}));
+        data: {'type': ToFrontendMessages.streamerHasConnected.name}));
   }
 
   Future<void> _sendGameStateToFrontend() async {
@@ -55,7 +57,7 @@ class GameManager extends IsolatedInstanceManagerAbstract {
         to: MessageTo.frontend,
         type: MessageTypes.put,
         data: {
-          'type': ToFrontendMessages.gameState,
+          'type': ToFrontendMessages.gameState.name,
           'game_state': _gameState.serialize()
         }));
   }
@@ -86,7 +88,7 @@ class GameManager extends IsolatedInstanceManagerAbstract {
         to: MessageTo.ebsMain,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.pardonRequest,
+          'type': ToAppMessages.pardonRequest.name,
           'player_name': playerName
         }));
   }
@@ -107,7 +109,10 @@ class GameManager extends IsolatedInstanceManagerAbstract {
         from: MessageFrom.ebsIsolated,
         to: MessageTo.app,
         type: MessageTypes.get,
-        data: {'type': ToAppMessages.boostRequest, 'player_name': playerName}));
+        data: {
+          'type': ToAppMessages.boostRequest.name,
+          'player_name': playerName
+        }));
   }
 
   @override
@@ -119,9 +124,7 @@ class GameManager extends IsolatedInstanceManagerAbstract {
       await _handleRequest(message);
 
   Future<void> _handleRequest(MessageProtocol message) async {
-    final from = message.from;
-
-    switch (from) {
+    switch (message.from) {
       case MessageFrom.app:
         await _handleMessageFromApp(message);
         break;
@@ -131,23 +134,48 @@ class GameManager extends IsolatedInstanceManagerAbstract {
       case MessageFrom.ebsMain:
       case MessageFrom.ebsIsolated:
       case MessageFrom.generic:
-        throw InvalidEndpointException();
+        throw 'Request not supported';
     }
   }
 
   Future<void> _handleMessageFromApp(MessageProtocol message) async {
     try {
-      switch (message.data!['type'] as ToBackendMessages) {
-        case ToBackendMessages.newLetterProblemRequest:
-          final letterProblem = await _appRequestedANewLetterProblem(
-              message.data!['request'] as Map<String, dynamic>);
-          communicator.sendMessageViaMain(message.copyWith(
-              from: MessageFrom.ebsIsolated,
-              to: MessageTo.app,
-              type: MessageTypes.response,
-              isSuccess: true,
-              data: {'letter_problem': letterProblem.serialize()}));
+      switch (message.to) {
+        case MessageTo.ebsIsolated:
+          switch (ToBackendMessages.values.byName(message.data!['type'])) {
+            case ToBackendMessages.newLetterProblemRequest:
+              final letterProblem = await _appRequestedANewLetterProblem(
+                  message.data!['configuration'] as Map<String, dynamic>);
+              communicator.sendMessageViaMain(message.copyWith(
+                  from: MessageFrom.ebsIsolated,
+                  to: MessageTo.app,
+                  type: MessageTypes.response,
+                  isSuccess: true,
+                  data: {'letter_problem': letterProblem.serialize()}));
+              break;
+          }
           break;
+        case MessageTo.frontend:
+          switch (ToFrontendMessages.values.byName(message.data!['type'])) {
+            case ToFrontendMessages.streamerHasConnected:
+              break;
+            case ToFrontendMessages.streamerHasDisconnected:
+              break;
+            case ToFrontendMessages.gameState:
+              _gameState = SimplifiedGameState.deserialize(
+                  message.data!['game_state'] as Map<String, dynamic>);
+              _sendGameStateToFrontend();
+              break;
+            case ToFrontendMessages.pardonResponse:
+              break;
+            case ToFrontendMessages.boostResponse:
+              break;
+          }
+          break;
+        case MessageTo.app:
+        case MessageTo.generic:
+        case MessageTo.ebsMain:
+          throw 'Request not supported';
       }
     } catch (e) {
       communicator.sendErrorReponse(
@@ -200,7 +228,7 @@ class GameManager extends IsolatedInstanceManagerAbstract {
                 isSuccess: await _frontendRequestedBoosted(userId)));
         }
       } else {
-        throw InvalidTargetException();
+        throw 'Request not supported';
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());

@@ -5,12 +5,12 @@ import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
-import 'package:twitch_manager/twitch_manager.dart';
+import 'package:twitch_manager/twitch_app.dart';
 
 class MocksConfiguration {
   // Useful for developpers
   static bool showDebugOptions = false;
-  static bool useLocalEbs = true;
+  static bool useLocalEbs = false;
   static bool useDatabaseMock = false;
   static bool useTwitchManagerMock = false;
 

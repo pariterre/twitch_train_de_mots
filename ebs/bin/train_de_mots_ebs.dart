@@ -1,9 +1,8 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:twitch_manager/twitch_manager.dart';
-import 'package:twitch_manager/models/ebs/network/http_server.dart';
-import 'package:twitch_manager/models/ebs/network/network_parameters.dart';
+import 'package:train_de_mots_ebs/managers/game_manager.dart';
+import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('TrainDeMotsEbs');
 
@@ -27,9 +26,12 @@ void main(List<String> arguments) async {
   final networkParameters = _processNetworkArguments(arguments,
       defaultHost: 'localhost', defaultPort: 3010);
 
-  initializeTwitchManagerExtension();
-  startHttpServer(parameters: networkParameters);
+  startEbsServer(
+      parameters: networkParameters,
+      ebsInfo: getTwitchEbsInfo(),
+      isolatedFactory: GameManager.spawn);
 
+  // TODO change "isolatedFactory" better naming
   // TODO Move this to when starting an isolate
   // TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!');
 }
@@ -109,7 +111,7 @@ void _setupLoggerFromArguments(List<String> arguments) {
   }
 }
 
-void initializeTwitchManagerExtension() {
+TwitchEbsInfo getTwitchEbsInfo() {
   final sharedSecret = Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
   if (sharedSecret == null) {
     throw ArgumentError(
@@ -125,12 +127,11 @@ void initializeTwitchManagerExtension() {
         'TRAIN_DE_MOTS_EXTENSION_SECRET environment variable');
   }
 
-  TwitchEbsManager.initialize(
-      ebsInfo: TwitchEbsInfo(
+  return TwitchEbsInfo(
     appName: 'Train de mots',
     twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
     extensionVersion: '0.0.1',
     extensionSecret: extensionSecret,
     sharedSecret: sharedSecret,
-  ));
+  );
 }

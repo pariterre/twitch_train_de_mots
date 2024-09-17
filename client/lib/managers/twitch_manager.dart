@@ -2,8 +2,8 @@ import 'package:common/models/custom_callback.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
-import 'package:twitch_manager/models/twitch_listener.dart';
-import 'package:twitch_manager/twitch_manager.dart' as tm;
+import 'package:twitch_manager/twitch_app.dart';
+import 'package:twitch_manager/twitch_utils.dart';
 
 final _logger = Logger('TwitchManager');
 
@@ -29,8 +29,8 @@ class TwitchManager {
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
-  tm.TwitchAppDebugOverlay debugOverlay({required child}) =>
-      tm.TwitchAppDebugOverlay(manager: _manager!, child: child);
+  TwitchAppDebugOverlay debugOverlay({required child}) =>
+      TwitchAppDebugOverlay(manager: _manager!, child: child);
 
   ///
   /// Provide an easy access to the TwitchManager connect dialog
@@ -44,9 +44,9 @@ class TwitchManager {
       return true;
     }
 
-    final manager = await showDialog<tm.TwitchAppManager>(
+    final manager = await showDialog<TwitchAppManager>(
         context: context,
-        builder: (context) => tm.TwitchAppAuthenticationDialog(
+        builder: (context) => TwitchAppAuthenticationDialog(
               isMockActive: _isMockActive,
               debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
               onConnexionEstablished: (manager) =>
@@ -81,7 +81,7 @@ class TwitchManager {
   /// -------- ///
   /// INTERNAL ///
   /// -------- ///
-  tm.TwitchAppManager? _manager;
+  TwitchAppManager? _manager;
 
   ///
   /// Declare the singleton
@@ -92,12 +92,12 @@ class TwitchManager {
   ///
   /// Twitch options
   bool _isMockActive = false;
-  final _appInfo = tm.TwitchAppInfo(
+  final _appInfo = TwitchAppInfo(
       appName: 'Train de mots',
       twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
       scope: const [
-        tm.TwitchScope.chatRead,
-        tm.TwitchScope.readFollowers,
+        TwitchAppScope.chatRead,
+        TwitchAppScope.readFollowers,
       ],
       twitchRedirectUri: Uri.https(
           'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
@@ -111,7 +111,7 @@ class TwitchManager {
   ///
   /// Holds the callback to call when a message is received
   final _chatListeners =
-      TwitchGenericListener<Function(String sender, String message)>();
+      TwitchListener<Function(String sender, String message)>();
   void _onMessageReceived(String sender, String message) =>
       _chatListeners.notifyListeners((callback) => callback(sender, message));
 }

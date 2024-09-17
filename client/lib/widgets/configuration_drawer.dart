@@ -451,7 +451,8 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
     final cm = ConfigurationManager.instance;
 
     return PopScope(
-      onPopInvoked: (didPop) => cm.finalizeConfigurationChanges(),
+      onPopInvokedWithResult: (didPop, result) =>
+          cm.finalizeConfigurationChanges(),
       child: ParchmentDialog(
         title: 'Configuration avancée',
         width: 500,

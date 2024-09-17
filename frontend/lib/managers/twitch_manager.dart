@@ -6,8 +6,8 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:twitch_manager/models/ebs/network/communication_protocols.dart';
-import 'package:twitch_manager/twitch_manager.dart' as tm;
+import 'package:twitch_manager/ebs/network/communication_protocols.dart';
+import 'package:twitch_manager/twitch_frontend.dart' as tm;
 
 final _logger = Logger('TwitchManagerMain');
 
