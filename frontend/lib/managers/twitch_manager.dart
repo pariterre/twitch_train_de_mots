@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
@@ -58,12 +58,12 @@ class TwitchManager {
   ///
   /// Callback to know when the TwitchManager has connected to the Twitch
   /// backend services.
-  final _isInitializedCompleter = Completer();
-  Future<void> get onFinishedInitializing => _isInitializedCompleter.future;
-  bool get isInitialized => _isInitializedCompleter.isCompleted;
+  bool get isInitialized => _onInitialized.isCompleted;
+  Future<bool> get onInitialized => _onInitialized.future;
+  final _onInitialized = Completer<bool>();
   Future<void> _onFinishedInitializing() async {
     _logger.info('Connected to Twitch service');
-    _isInitializedCompleter.complete();
+    _onInitialized.complete(true);
   }
 
   ///
@@ -142,6 +142,7 @@ class TwitchManager {
   }
 
   Future<void> _registerToGame() async {
+    // TODO Make this automatic
     final response = await _sendMessageToEbs(MessageTypes.handShake);
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
@@ -173,24 +174,11 @@ class TwitchManager {
       throw Exception('TwitchManager is not initialized');
     }
 
-    try {
-      final response = await _frontendManager!.apiToEbs.postRequest(
-          MessageTypes.get,
-          MessageProtocol(
-              from: MessageFrom.frontend,
-              to: MessageTo.app,
-              type: MessageTypes.get,
-              data: {'type': request}).toJson());
-      _logger.info('Message sent to EBS: $response');
-      return MessageProtocol.fromJson(response);
-    } catch (e) {
-      _logger.severe('Failed to send message to EBS: $e');
-      return MessageProtocol(
-          from: MessageFrom.app,
-          to: MessageTo.frontend,
-          type: MessageTypes.response,
-          isSuccess: false);
-    }
+    return await _frontendManager!.sendMessageToApp(MessageProtocol(
+        from: MessageFrom.frontend,
+        to: MessageTo.app,
+        type: MessageTypes.get,
+        data: {'type': request}));
   }
 
   ///
@@ -201,27 +189,8 @@ class TwitchManager {
       throw Exception('TwitchManager is not initialized');
     }
 
-    if (type == MessageTypes.get || type == MessageTypes.put) {
-      _logger.severe('Cannot send a message of type $type to the EBS');
-      throw Exception('Cannot send a message of type $type to the EBS');
-    }
-
-    try {
-      final response = await _frontendManager!.apiToEbs.postRequest(
-          MessageTypes.handShake,
-          MessageProtocol(
-                  from: MessageFrom.frontend, to: MessageTo.ebsMain, type: type)
-              .toJson());
-      _logger.info('Message sent to EBS: $response');
-      return MessageProtocol.fromJson(response);
-    } catch (e) {
-      _logger.severe('Failed to send message to EBS: $e');
-      return MessageProtocol(
-          from: MessageFrom.ebsMain,
-          to: MessageTo.frontend,
-          type: MessageTypes.response,
-          isSuccess: false);
-    }
+    return await _frontendManager!.sendMessageToEbs(MessageProtocol(
+        from: MessageFrom.frontend, to: MessageTo.ebsMain, type: type));
   }
 }
 

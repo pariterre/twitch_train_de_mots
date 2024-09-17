@@ -34,10 +34,10 @@ class GameManager extends TwitchEbsManagerAbstract {
   /// [broadcasterId] the id of the broadcaster.
   /// [ebsInfo] the configuration of the EBS.
   GameManager.spawn({
-    required super.broadcasterId,
+    required int broadcasterId,
     required super.ebsInfo,
     required super.sendPort,
-  }) : super() {
+  }) : super(broadcasterId: broadcasterId) {
     // Set up the logger
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
@@ -47,6 +47,9 @@ class GameManager extends TwitchEbsManagerAbstract {
         to: MessageTo.frontend,
         type: MessageTypes.put,
         data: {'type': ToFrontendMessages.streamerHasConnected.name}));
+
+    _logger.info('Sending welcome message');
+    TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
   }
 
   Future<void> _sendGameStateToFrontend() async {
@@ -189,7 +192,6 @@ class GameManager extends TwitchEbsManagerAbstract {
 
   Future<void> _handleMessageFromFrontend(MessageProtocol message) async {
     // Helper function to send a response to the frontend
-
     late final int userId;
     try {
       userId = message.data!['user_id']!;
@@ -198,37 +200,30 @@ class GameManager extends TwitchEbsManagerAbstract {
     }
 
     try {
-      if (message.to == MessageTo.ebsIsolated) {
-        switch (message.data!['type'] as ToBackendMessages) {
-          case ToBackendMessages.newLetterProblemRequest:
-            communicator.sendErrorReponse(
-                message, 'Wrong message from frontend');
-            break;
-        }
-      } else if (message.to == MessageTo.app) {
-        switch (message.data!['type'] as ToAppMessages) {
-          case ToAppMessages.gameStateRequest:
-            communicator.sendReponse(message.copyWith(
-                from: MessageFrom.ebsIsolated,
-                to: MessageTo.frontend,
-                type: MessageTypes.response,
-                isSuccess: true,
-                data: {'game_state': gameState.serialize()}));
-          case ToAppMessages.pardonRequest:
-            communicator.sendReponse(message.copyWith(
-                from: MessageFrom.ebsIsolated,
-                to: MessageTo.frontend,
-                type: MessageTypes.response,
-                isSuccess: await _frontendRequestedPardonned(userId)));
-          case ToAppMessages.boostRequest:
-            communicator.sendReponse(message.copyWith(
-                from: MessageFrom.ebsIsolated,
-                to: MessageTo.frontend,
-                type: MessageTypes.response,
-                isSuccess: await _frontendRequestedBoosted(userId)));
-        }
-      } else {
+      if (message.to != MessageTo.app) {
         throw 'Request not supported';
+      }
+
+      switch (ToAppMessages.values.byName(message.data!['type'])) {
+        case ToAppMessages.gameStateRequest:
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: true,
+              data: {'game_state': gameState.serialize()}));
+        case ToAppMessages.pardonRequest:
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: await _frontendRequestedPardonned(userId)));
+        case ToAppMessages.boostRequest:
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: await _frontendRequestedBoosted(userId)));
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());

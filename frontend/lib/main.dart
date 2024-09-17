@@ -9,7 +9,7 @@ void main() async {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
   });
-  await TwitchManager.initialize(useMocker: true);
+  await TwitchManager.initialize(useMocker: false);
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         body: FutureBuilder(
-            future: TwitchManager.instance.onFinishedInitializing,
+            future: TwitchManager.instance.onInitialized,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());

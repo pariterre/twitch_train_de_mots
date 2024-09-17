@@ -24,8 +24,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     TwitchManager.instance.onTwitchManagerHasConnected
         .addListener(_twitchManagerHasConnected);
 
-    onEbsHasConnected.startListening(listenToGameManagerCallbacks);
-    onEbsHasDisconnected.startListening(disposeListeners);
+    onEbsHasConnected.listen(listenToGameManagerCallbacks);
+    onEbsHasDisconnected.listen(disposeListeners);
   }
 
   void _twitchManagerHasConnected() {

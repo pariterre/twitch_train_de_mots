@@ -29,11 +29,7 @@ void main(List<String> arguments) async {
   startEbsServer(
       parameters: networkParameters,
       ebsInfo: getTwitchEbsInfo(),
-      isolatedFactory: GameManager.spawn);
-
-  // TODO change "isolatedFactory" better naming
-  // TODO Move this to when starting an isolate
-  // TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!');
+      twitchEbsManagerFactory: GameManager.spawn);
 }
 
 NetworkParameters _processNetworkArguments(List<String> arguments,
@@ -133,5 +129,6 @@ TwitchEbsInfo getTwitchEbsInfo() {
     extensionVersion: '0.0.1',
     extensionSecret: extensionSecret,
     sharedSecret: sharedSecret,
+    isTwitchUserIdRequired: true,
   );
 }

@@ -24,7 +24,7 @@ class TwitchManager {
   /// Call all the listeners when a message is received
   void addChatListener(Function(String sender, String message) callback) {
     _logger.info('Adding chat listener');
-    _chatListeners.startListening(callback);
+    _chatListeners.listen(callback);
   }
 
   ///
@@ -57,7 +57,7 @@ class TwitchManager {
     if (manager == null) return false;
 
     _manager = manager;
-    _manager!.chat.onMessageReceived.startListening(_onMessageReceived);
+    _manager!.chat.onMessageReceived.listen(_onMessageReceived);
     onTwitchManagerHasConnected.notifyListeners();
 
     _logger.info('TwitchManager connected');
