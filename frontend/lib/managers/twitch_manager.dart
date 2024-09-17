@@ -51,7 +51,15 @@ class TwitchManager {
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
   Future<bool> boostTrain() async {
-    final response = await _sendMessageToApp(ToAppMessages.boostRequest);
+    final response =
+        await _sendMessageToApp(ToAppMessages.boostRequest).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => MessageProtocol(
+          from: MessageFrom.ebsIsolated,
+          to: MessageTo.frontend,
+          type: MessageTypes.response,
+          isSuccess: false),
+    );
     return response.isSuccess ?? false;
   }
 
@@ -97,23 +105,18 @@ class TwitchManager {
     );
     _logger.info('TwitchFrontendManager is ready');
 
-    // Try to register to the game. This will fail if the game has not started,
-    // but we don't care about that. If the game is indeed started, we will be
-    // registered to it.
-    await _registerToGame();
+    // Try to get the game status. This will fail if the game has not started yet
+    // but it is not a problem, the game will send a message to the frontend when
+    // it is ready.
     await _requestGameStatus();
   }
 
-  Future<void> _onPubSubMessageReceived(String raw) async {
+  Future<void> _onPubSubMessageReceived(MessageProtocol message) async {
     try {
-      _logger.fine('Message from Pubsub: $raw');
-      final json = jsonDecode(raw.replaceAll('\'', '"'));
-      final message = MessageProtocol.fromJson(json);
-
-      switch (message.data!['type'] as ToFrontendMessages) {
+      switch (ToFrontendMessages.values.byName(message.data!['type'])) {
         case ToFrontendMessages.streamerHasConnected:
           _logger.info('Streamer connected to the game');
-          _registerToGame();
+          await _requestGameStatus();
           break;
 
         case ToFrontendMessages.streamerHasDisconnected:
@@ -141,18 +144,6 @@ class TwitchManager {
     }
   }
 
-  Future<void> _registerToGame() async {
-    // TODO Make this automatic
-    final response = await _sendMessageToEbs(MessageTypes.handShake);
-    final isSuccess = response.isSuccess ?? false;
-    if (!isSuccess) {
-      _logger.info('Cannot register to game, as no has game started yet');
-      return;
-    }
-
-    _logger.info('Registered to game');
-  }
-
   Future<void> _requestGameStatus() async {
     final response = await _sendMessageToApp(ToAppMessages.gameStateRequest);
     final isSuccess = response.isSuccess ?? false;
@@ -178,19 +169,7 @@ class TwitchManager {
         from: MessageFrom.frontend,
         to: MessageTo.app,
         type: MessageTypes.get,
-        data: {'type': request}));
-  }
-
-  ///
-  /// Send a message to the EBS based on the [type] of message.
-  Future<MessageProtocol> _sendMessageToEbs(MessageTypes type) async {
-    if (!isInitialized) {
-      _logger.severe('TwitchManager is not initialized');
-      throw Exception('TwitchManager is not initialized');
-    }
-
-    return await _frontendManager!.sendMessageToEbs(MessageProtocol(
-        from: MessageFrom.frontend, to: MessageTo.ebsMain, type: type));
+        data: {'type': request.name}));
   }
 }
 
@@ -209,7 +188,6 @@ class TwitchManagerMock extends TwitchManager {
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
     // Uncomment the next line to simulate a connexion of the App with the EBS
-    _registerToGame();
     _requestGameStatus();
 
     // Uncomment the next line to simulate that the user can pardon in 1 second
@@ -264,30 +242,6 @@ class TwitchManagerMock extends TwitchManager {
                 boostStillNeeded: 0,
               ).serialize(),
             })));
-    }
-  }
-
-  @override
-  Future<MessageProtocol> _sendMessageToEbs(MessageTypes type) async {
-    switch (type) {
-      case MessageTypes.handShake:
-        return MessageProtocol(
-            from: MessageFrom.ebsIsolated,
-            to: MessageTo.frontend,
-            type: MessageTypes.response,
-            isSuccess: true);
-
-      case MessageTypes.ping:
-      case MessageTypes.pong:
-      case MessageTypes.get:
-      case MessageTypes.put:
-      case MessageTypes.response:
-      case MessageTypes.disconnect:
-        return MessageProtocol(
-            from: MessageFrom.ebsIsolated,
-            to: MessageTo.frontend,
-            type: MessageTypes.response,
-            isSuccess: false);
     }
   }
 }

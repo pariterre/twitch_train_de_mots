@@ -434,7 +434,7 @@ class GameManager {
         return;
       } else if (message == '!boost') {
         _logger.info('Trying to boost the train');
-        boostTrain(player);
+        boostTrain(player: player);
         return;
       }
     }
@@ -552,7 +552,7 @@ class GameManager {
   ///
   /// Boost the train. This will double the score for the subsequent solutions
   /// found during the next boostTime
-  bool boostTrain(Player player) {
+  bool boostTrain({required Player player}) {
     _logger.info('Boosting the train...');
     if (isTrainBoosted) {
       _logger.warning('Train is already boosted');

@@ -42,7 +42,7 @@ class GameManager extends TwitchEbsManagerAbstract {
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
-    communicator.sendMessageViaMain(MessageProtocol(
+    communicator.sendMessage(MessageProtocol(
         from: MessageFrom.ebsIsolated,
         to: MessageTo.frontend,
         type: MessageTypes.put,
@@ -55,7 +55,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   Future<void> _sendGameStateToFrontend() async {
     _logger.info('Sending game state to frontend');
 
-    communicator.sendMessageViaMain(MessageProtocol(
+    communicator.sendMessage(MessageProtocol(
         from: MessageFrom.ebsIsolated,
         to: MessageTo.frontend,
         type: MessageTypes.put,
@@ -86,7 +86,7 @@ class GameManager extends TwitchEbsManagerAbstract {
       return false;
     }
 
-    return await communicator.sendQuestionViaMain(MessageProtocol(
+    final response = await communicator.sendQuestion(MessageProtocol(
         from: MessageFrom.ebsIsolated,
         to: MessageTo.ebsMain,
         type: MessageTypes.get,
@@ -94,6 +94,7 @@ class GameManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.pardonRequest.name,
           'player_name': playerName
         }));
+    return response.isSuccess ?? false;
   }
 
   ///
@@ -108,7 +109,7 @@ class GameManager extends TwitchEbsManagerAbstract {
       return false;
     }
 
-    return await communicator.sendQuestionViaMain(MessageProtocol(
+    final response = await communicator.sendQuestion(MessageProtocol(
         from: MessageFrom.ebsIsolated,
         to: MessageTo.app,
         type: MessageTypes.get,
@@ -116,6 +117,7 @@ class GameManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.boostRequest.name,
           'player_name': playerName
         }));
+    return response.isSuccess ?? false;
   }
 
   @override
@@ -149,7 +151,7 @@ class GameManager extends TwitchEbsManagerAbstract {
             case ToBackendMessages.newLetterProblemRequest:
               final letterProblem = await _appRequestedANewLetterProblem(
                   message.data!['configuration'] as Map<String, dynamic>);
-              communicator.sendMessageViaMain(message.copyWith(
+              communicator.sendMessage(message.copyWith(
                   from: MessageFrom.ebsIsolated,
                   to: MessageTo.app,
                   type: MessageTypes.response,
@@ -219,11 +221,12 @@ class GameManager extends TwitchEbsManagerAbstract {
               type: MessageTypes.response,
               isSuccess: await _frontendRequestedPardonned(userId)));
         case ToAppMessages.boostRequest:
+          final isSuccess = await _frontendRequestedBoosted(userId);
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
               to: MessageTo.frontend,
               type: MessageTypes.response,
-              isSuccess: await _frontendRequestedBoosted(userId)));
+              isSuccess: isSuccess));
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());

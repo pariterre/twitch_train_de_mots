@@ -145,9 +145,40 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       _sendGameStateToEbs();
 
   @override
-  Future<void> handleGetRequest(MessageProtocol message) {
-    // There is currently no get request to handle
-    throw UnimplementedError();
+  Future<void> handleGetRequest(MessageProtocol message) async {
+    try {
+      final gm = GameManager.instance;
+      final playerName = message.data!['player_name'] as String;
+      final player =
+          gm.players.firstWhere((element) => element.name == playerName);
+
+      switch (ToAppMessages.values.byName(message.data!['type'])) {
+        case ToAppMessages.gameStateRequest:
+          _sendGameStateToEbs();
+          break;
+        case ToAppMessages.pardonRequest:
+          sendMessageToEbs(message.copyWith(
+              from: MessageFrom.app,
+              to: MessageTo.ebsIsolated,
+              type: MessageTypes.response,
+              isSuccess: gm.pardonLastStealer(pardonner: player)));
+          break;
+        case ToAppMessages.boostRequest:
+          sendResponseToEbs(message.copyWith(
+              from: MessageFrom.app,
+              to: MessageTo.ebsIsolated,
+              type: MessageTypes.response,
+              isSuccess: gm.boostTrain(player: player)));
+          break;
+      }
+    } catch (e) {
+      _logger.severe('Error while handling message from EBS: $e');
+      sendResponseToEbs(message.copyWith(
+          from: MessageFrom.app,
+          to: MessageTo.ebsIsolated,
+          type: MessageTypes.response,
+          isSuccess: false));
+    }
   }
 
   @override
