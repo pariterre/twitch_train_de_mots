@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
 
-final _logger = Logger('TwitchManagerMain');
+final _logger = Logger('TwitchManager');
 
 TwitchManager? _instance;
 
