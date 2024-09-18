@@ -13,24 +13,29 @@ class PlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-        child: Stack(
-      children: [
-        Header(
-            titleText: 'Le train est en route!\n'
-                'Bon voyage!'), // TODO Add the next station
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _PardonRequest(),
-              SizedBox(height: 30.0),
-              _BoostRequest(),
-            ],
+    return Center(
+      child: Stack(
+        children: [
+          Header(
+              titleText: 'Le train est en route!\n'
+                  'Prochaine station : ${GameManager.instance.currentRound}!'),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Transform.scale(
+                      scale: 0.8, child: const _PardonRequest()),
+                ),
+                Flexible(
+                    child: Transform.scale(
+                        scale: 0.8, child: const _BoostRequest())),
+              ],
+            ),
           ),
-        ),
-      ],
-    ));
+        ],
+      ),
+    );
   }
 }
 
@@ -92,7 +97,7 @@ class _PardonRequestState extends State<_PardonRequest> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Donner son pardon...',
+          'Padonner..',
           style: tm.textFrontendSc,
         ),
         const SizedBox(height: 8),

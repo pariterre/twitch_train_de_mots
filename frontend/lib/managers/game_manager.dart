@@ -37,6 +37,8 @@ class GameManager {
         case GameStatus.revealAnswers:
           onRoundEnded.notifyListeners();
           break;
+        case GameStatus.uninitialized:
+          break;
       }
     }
 
@@ -67,7 +69,7 @@ class GameManager {
   ///
   /// Callback to know when the game has started
   final onGameStarted = CustomCallback();
-  bool get isGameRunning => _gameState.status != GameStatus.initializing;
+  GameStatus get status => _gameState.status;
   void startGame() {
     _logger.info('Starting a new game');
     _gameState.status = GameStatus.roundPreparing;

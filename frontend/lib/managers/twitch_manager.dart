@@ -123,7 +123,7 @@ class TwitchManager {
           _logger.info('Streamer disconnected from the game');
           final gm = GameManager.instance;
           gm.updateGameState(
-              gm.gameState.copyWith(status: GameStatus.initializing));
+              gm.gameState.copyWith(status: GameStatus.uninitialized));
           break;
 
         case ToFrontendMessages.gameState:

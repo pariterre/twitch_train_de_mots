@@ -1,6 +1,7 @@
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
+import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/play_screen.dart';
 import 'package:frontend/screens/waiting_screen.dart';
 
@@ -34,16 +35,20 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Background(
-      backgroundLayer: Image.asset(
-        'assets/images/train.png',
-        height: MediaQuery.of(context).size.height,
-        opacity: const AlwaysStoppedAnimation(0.05),
-        fit: BoxFit.cover,
+    return SizedBox(
+      width: (TwitchManager.instance is TwitchManagerMock) ? 320 : null,
+      height: (TwitchManager.instance is TwitchManagerMock) ? 300 : null,
+      child: Background(
+        backgroundLayer: Image.asset(
+          'assets/images/train.png',
+          height: MediaQuery.of(context).size.height,
+          opacity: const AlwaysStoppedAnimation(0.05),
+          fit: BoxFit.cover,
+        ),
+        child: GameManager.instance.isRoundRunning
+            ? const PlayScreen()
+            : const WaitingScreen(),
       ),
-      child: GameManager.instance.isRoundRunning
-          ? const PlayScreen()
-          : const WaitingScreen(),
     );
   }
 }

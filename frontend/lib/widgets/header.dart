@@ -11,10 +11,10 @@ class Header extends StatelessWidget {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
         child: Text(
           titleText,
-          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 40),
+          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 26),
           textAlign: TextAlign.center,
         ),
       ),

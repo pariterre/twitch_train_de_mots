@@ -19,7 +19,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SimplifiedGameState _gameState = SimplifiedGameState(
-    status: GameStatus.initializing,
+    status: GameStatus.initialized,
     round: 0,
     pardonRemaining: 0,
     pardonners: [],
