@@ -19,7 +19,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SimplifiedGameState _gameState = SimplifiedGameState(
-    status: GameStatus.initialized,
+    status: GameStatus.initializing,
     round: 0,
     pardonRemaining: 0,
     pardonners: [],
@@ -27,6 +27,15 @@ class GameManager extends TwitchEbsManagerAbstract {
     boostStillNeeded: 0,
   );
   SimplifiedGameState get gameState => _gameState;
+  set gameState(SimplifiedGameState value) {
+    _gameState = value;
+
+    // Convert the pardonners from login to opaque id
+    for (int i = 0; i < _gameState.pardonners.length; i++) {
+      final pardonnerId = loginToUserId[_gameState.pardonners[i]] ?? -1;
+      _gameState.pardonners[i] = userIdToOpaqueId[pardonnerId] ?? '';
+    }
+  }
 
   ///
   /// Create a new GameManager. This method automatically starts a keep alive
@@ -88,7 +97,7 @@ class GameManager extends TwitchEbsManagerAbstract {
 
     final response = await communicator.sendQuestion(MessageProtocol(
         from: MessageFrom.ebsIsolated,
-        to: MessageTo.ebsMain,
+        to: MessageTo.app,
         type: MessageTypes.get,
         data: {
           'type': ToAppMessages.pardonRequest.name,
@@ -167,7 +176,7 @@ class GameManager extends TwitchEbsManagerAbstract {
             case ToFrontendMessages.streamerHasDisconnected:
               break;
             case ToFrontendMessages.gameState:
-              _gameState = SimplifiedGameState.deserialize(
+              gameState = SimplifiedGameState.deserialize(
                   message.data!['game_state'] as Map<String, dynamic>);
               _sendGameStateToFrontend();
               break;

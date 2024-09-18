@@ -170,9 +170,10 @@ class _HeaderState extends State<_Header> {
       case GameStatus.revealAnswers:
         title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
         break;
+      case GameStatus.uninitialized:
+      case GameStatus.initializing:
       case GameStatus.roundReady:
       case GameStatus.roundPreparing:
-      case GameStatus.initializing:
         title = 'Le Train de mots!';
         break;
     }
@@ -284,6 +285,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case GameStatus.revealAnswers:
         text = 'Les solutions étaient :';
         break;
+      case GameStatus.uninitialized:
       case GameStatus.initializing:
         text = 'Initialisation...';
         break;

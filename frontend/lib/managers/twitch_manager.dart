@@ -42,7 +42,13 @@ class TwitchManager {
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
   Future<bool> pardonStealer() async {
-    final response = await _sendMessageToApp(ToAppMessages.pardonRequest);
+    final response = await _sendMessageToApp(ToAppMessages.pardonRequest)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => MessageProtocol(
+                from: MessageFrom.ebsIsolated,
+                to: MessageTo.frontend,
+                type: MessageTypes.response,
+                isSuccess: false));
     return response.isSuccess ?? false;
   }
 
@@ -117,6 +123,9 @@ class TwitchManager {
         case ToFrontendMessages.streamerHasConnected:
           _logger.info('Streamer connected to the game');
           await _requestGameStatus();
+
+          // TODO: Make sure the user register
+          // TODO: Add user to the game?
           break;
 
         case ToFrontendMessages.streamerHasDisconnected:
@@ -205,7 +214,7 @@ class TwitchManagerMock extends TwitchManager {
     _acceptPardon = false;
 
     // Uncomment the next line to simulate that the App refused the boost
-    _acceptBoost = false;
+    _acceptBoost = true;
   }
 
   @override

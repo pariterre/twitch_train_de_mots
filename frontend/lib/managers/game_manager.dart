@@ -1,6 +1,7 @@
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
+import 'package:frontend/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('GameManager');
@@ -97,8 +98,22 @@ class GameManager {
   final onPardonnersChanged = CustomCallback();
   List<String> get pardonners => List.unmodifiable(_gameState.pardonners);
 
+  final onPardonGranted = CustomCallback<Function(bool)>();
+  Future<bool> pardonStealer() async {
+    final isSuccess = await TwitchManager.instance.pardonStealer();
+    onPardonGranted.notifyListenersWithParameter(isSuccess);
+    return isSuccess;
+  }
+
   ///
   /// Boost availability
   int get boostCount => _gameState.boostRemaining;
   final onBoostAvailabilityChanged = CustomCallback();
+
+  final onBoostGranted = CustomCallback<Function(bool)>();
+  Future<bool> boostTrain() async {
+    final isSuccess = await TwitchManager.instance.boostTrain();
+    onBoostGranted.notifyListenersWithParameter(isSuccess);
+    return isSuccess;
+  }
 }

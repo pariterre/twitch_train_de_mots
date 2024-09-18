@@ -3,6 +3,7 @@ import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/animations_overlay.dart';
 import 'package:frontend/widgets/header.dart';
 import 'package:logging/logging.dart';
 
@@ -18,7 +19,7 @@ class PlayScreen extends StatelessWidget {
         children: [
           Header(
               titleText: 'Le train est en route!\n'
-                  'Prochaine station : ${GameManager.instance.currentRound}!'),
+                  'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
           Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -33,6 +34,7 @@ class PlayScreen extends StatelessWidget {
               ],
             ),
           ),
+          const AnimationOverlay(),
         ],
       ),
     );
@@ -77,16 +79,8 @@ class _PardonRequestState extends State<_PardonRequest> {
     final canPlayerPardonBack = _canPlayerPardon;
     setState(() => _canPlayerPardon = false);
 
-    final isSuccess = await TwitchManager.instance.pardonStealer();
+    final isSuccess = await GameManager.instance.pardonStealer();
     if (!isSuccess) setState(() => _canPlayerPardon = canPlayerPardonBack);
-
-    if (!mounted) return;
-    // TODO Change the snack bar and change it to bouncy bounds
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-          isSuccess ? 'Pardon request successful' : 'Pardon request failed'),
-      duration: const Duration(seconds: 2),
-    ));
   }
 
   @override
@@ -148,16 +142,8 @@ class _BoostRequestState extends State<_BoostRequest> {
     final canPlayerBoostBack = _canPlayerBoost;
     setState(() => _canPlayerBoost = false);
 
-    final isSuccess = await TwitchManager.instance.boostTrain();
+    final isSuccess = await GameManager.instance.boostTrain();
     if (!isSuccess) setState(() => _canPlayerBoost = canPlayerBoostBack);
-
-    if (!mounted) return;
-    // TODO Change the snack bar and change it to bouncy bounds
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content:
-          Text(isSuccess ? 'Boost request successful' : 'Boost request failed'),
-      duration: const Duration(seconds: 2),
-    ));
   }
 
   @override
