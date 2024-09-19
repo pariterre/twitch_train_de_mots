@@ -33,9 +33,9 @@ dependencies:
   http: ^1.2.2
   logging: ^1.2.0
   common:
-    path: ../common
+    path: ../../common
   twitch_manager:
-    path: ../common/plugins/twitch_manager
+    path: ../../common/plugins/twitch_manager
 
 
   # The following adds the Cupertino Icons font to your application.

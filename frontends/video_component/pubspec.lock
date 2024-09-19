@@ -52,7 +52,7 @@ packages:
   common:
     dependency: "direct main"
     description:
-      path: "../common"
+      path: "../../common"
       relative: true
     source: path
     version: "1.0.0"
@@ -487,7 +487,7 @@ packages:
   twitch_manager:
     dependency: "direct main"
     description:
-      path: "../common/plugins/twitch_manager"
+      path: "../../common/plugins/twitch_manager"
       relative: true
     source: path
     version: "1.0.0+1"
