@@ -135,6 +135,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
             pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
             boostRemaining: gm.remainingBoosts,
             boostStillNeeded: gm.numberOfBoostStillNeeded,
+            boosters: gm.requestedBoost.map((e) => e.name).toList(),
           ).serialize(),
         }));
   }
@@ -149,8 +150,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     try {
       final gm = GameManager.instance;
       final playerName = message.data!['player_name'] as String;
-      final player =
-          gm.players.firstWhere((element) => element.name == playerName);
+      final player = gm.players.firstWhereOrAdd(playerName);
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:

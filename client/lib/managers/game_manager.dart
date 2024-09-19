@@ -89,6 +89,7 @@ class GameManager {
       .difference(DateTime.now());
   DateTime? _boostStartedAt;
   final List<Player> _requestedBoost = [];
+  List<Player> get requestedBoost => List.unmodifiable(_requestedBoost);
   int get numberOfBoostStillNeeded {
     final cm = ConfigurationManager.instance;
     return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;

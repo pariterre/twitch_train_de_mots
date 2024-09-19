@@ -25,6 +25,7 @@ class GameManager extends TwitchEbsManagerAbstract {
     pardonners: [],
     boostRemaining: 0,
     boostStillNeeded: 0,
+    boosters: [],
   );
   SimplifiedGameState get gameState => _gameState;
   set gameState(SimplifiedGameState value) {
@@ -34,6 +35,12 @@ class GameManager extends TwitchEbsManagerAbstract {
     for (int i = 0; i < _gameState.pardonners.length; i++) {
       final pardonnerId = loginToUserId[_gameState.pardonners[i]] ?? -1;
       _gameState.pardonners[i] = userIdToOpaqueId[pardonnerId] ?? '';
+    }
+
+    // Convert the boosters from login to opaque id
+    for (int i = 0; i < _gameState.boosters.length; i++) {
+      final boosterId = loginToUserId[_gameState.boosters[i]] ?? -1;
+      _gameState.boosters[i] = userIdToOpaqueId[boosterId] ?? '';
     }
   }
 
@@ -80,7 +87,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   ///
   /// Handle a message from the frontend to pardon the last stealer
   /// [userId] the id of the user that wants to pardon
-  Future<bool> _frontendRequestedPardonned(int userId) async {
+  Future<bool> _frontendRequestedToPardon(int userId) async {
     _logger.info('Resquesting to pardon last stealer');
 
     final playerName = userIdToLogin[userId];
@@ -97,6 +104,10 @@ class GameManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.pardonRequest.name,
           'player_name': playerName
         }));
+    if (response.isSuccess ?? false) {
+      _gameState.pardonRemaining--;
+      _gameState.pardonners.remove(userIdToOpaqueId[userId]);
+    }
     return response.isSuccess ?? false;
   }
 
@@ -120,7 +131,13 @@ class GameManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.boostRequest.name,
           'player_name': playerName
         }));
-    return response.isSuccess ?? false;
+    final isSuccess = response.isSuccess ?? false;
+    if (isSuccess) {
+      _gameState.boostStillNeeded--;
+      _gameState.boosters.add(userIdToOpaqueId[userId] ?? '');
+    }
+
+    return isSuccess;
   }
 
   @override
@@ -218,7 +235,7 @@ class GameManager extends TwitchEbsManagerAbstract {
               from: MessageFrom.ebsIsolated,
               to: MessageTo.frontend,
               type: MessageTypes.response,
-              isSuccess: await _frontendRequestedPardonned(userId)));
+              isSuccess: await _frontendRequestedToPardon(userId)));
         case ToAppMessages.boostRequest:
           final isSuccess = await _frontendRequestedBoosted(userId);
           communicator.sendReponse(message.copyWith(

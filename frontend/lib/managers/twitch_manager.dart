@@ -26,9 +26,11 @@ class TwitchManager {
 
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
-  /// to identify the user in the game. The EBS is well aware of this ID and
-  /// can use it to identify the user even if it is opaque.
-  String get opaqueUserId {
+  /// to identify the user in the game even though it is impossible to identify
+  /// the user with this. The EBS is well aware of this opcaity and can use it
+  /// to identify the user even if it is opaque (if the extension requested such
+  /// permissions).
+  String get userId {
     if (_frontendManager == null) {
       _logger.severe('TwitchFrontendManager is not ready yet');
       throw Exception('TwitchFrontendManager is not ready yet');
@@ -195,9 +197,10 @@ class TwitchManagerMock extends TwitchManager {
               status: GameStatus.roundStarted,
               round: 1,
               pardonRemaining: 1,
-              pardonners: [opaqueUserId],
+              pardonners: [userId],
               boostRemaining: 0,
               boostStillNeeded: 0,
+              boosters: [],
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -208,7 +211,7 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   @override
-  String get opaqueUserId => 'U0123456789';
+  String get userId => 'U0123456789';
 
   @override
   Future<MessageProtocol> _sendMessageToApp(ToAppMessages request) async {
@@ -239,6 +242,7 @@ class TwitchManagerMock extends TwitchManager {
                 pardonners: [],
                 boostRemaining: 0,
                 boostStillNeeded: 0,
+                boosters: [],
               ).serialize(),
             })));
     }

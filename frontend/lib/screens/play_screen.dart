@@ -57,6 +57,10 @@ class _PardonRequestState extends State<_PardonRequest> {
 
     final gm = GameManager.instance;
     gm.onPardonnersChanged.addListener(_updatePlayersWhoCanPardon);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updatePlayersWhoCanPardon();
+    });
   }
 
   @override
@@ -70,8 +74,8 @@ class _PardonRequestState extends State<_PardonRequest> {
   void _updatePlayersWhoCanPardon() {
     final pardonners = GameManager.instance.pardonners;
     _logger.info('Update current pardonners to: $pardonners');
-    final myId = TwitchManager.instance.opaqueUserId;
-    _canPlayerPardon = pardonners.any((id) => id == myId);
+    final myId = TwitchManager.instance.userId;
+    _canPlayerPardon = pardonners.contains(myId);
     setState(() {});
   }
 
@@ -120,6 +124,10 @@ class _BoostRequestState extends State<_BoostRequest> {
 
     final gm = GameManager.instance;
     gm.onBoostAvailabilityChanged.addListener(_updateBoostAvailability);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateBoostAvailability();
+    });
   }
 
   @override
@@ -131,7 +139,9 @@ class _BoostRequestState extends State<_BoostRequest> {
   }
 
   void _updateBoostAvailability() {
-    _canPlayerBoost = GameManager.instance.boostCount > 0;
+    final gm = GameManager.instance;
+    _canPlayerBoost = gm.boostCount > 0 &&
+        !gm.boosters.contains(TwitchManager.instance.userId);
     _logger.info(_canPlayerBoost
         ? 'The player can boost the train'
         : 'The player cannot boost the train');

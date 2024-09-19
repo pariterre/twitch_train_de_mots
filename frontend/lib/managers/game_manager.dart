@@ -14,34 +14,27 @@ class GameManager {
   GameManager._();
 
   ///
+  /// Callback to know when a round has started or ended
+  int get currentRound => _gameState.round;
+  bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
+
+  ///
   /// Flag to indicate if the game has started
   final _gameState = SimplifiedGameState(
-      status: GameStatus.uninitialized,
-      round: 0,
-      pardonRemaining: 0,
-      pardonners: [],
-      boostRemaining: 0,
-      boostStillNeeded: 0);
-  SimplifiedGameState get gameState => _gameState;
+    status: GameStatus.uninitialized,
+    round: 0,
+    pardonRemaining: 0,
+    pardonners: [],
+    boostRemaining: 0,
+    boostStillNeeded: 0,
+    boosters: [],
+  );
 
   void updateGameState(SimplifiedGameState newGameState) {
     if (_gameState.status != newGameState.status) {
       _gameState.status = newGameState.status;
+      onGameStatusUpdated.notifyListeners();
       _logger.info('Game status changed to ${_gameState.status}');
-      switch (_gameState.status) {
-        case GameStatus.roundStarted:
-          onRoundStarted.notifyListeners();
-          break;
-        case GameStatus.initializing:
-        case GameStatus.roundPreparing:
-        case GameStatus.roundReady:
-        case GameStatus.revealAnswers:
-          onRoundEnded.notifyListeners();
-          break;
-        case GameStatus.uninitialized:
-          onGameEnded.notifyListeners();
-          break;
-      }
     }
 
     if (_gameState.round != newGameState.round) {
@@ -66,32 +59,27 @@ class GameManager {
       _logger.info(
           'Boost still needed changed to ${newGameState.boostStillNeeded}');
     }
+
+    if (_gameState.boosters != newGameState.boosters) {
+      _gameState.boosters = newGameState.boosters;
+      _logger.info('Boosters changed to ${newGameState.boosters}');
+    }
   }
 
   ///
   /// Callback to know when the game has started
-  final onGameStarted = CustomCallback();
   GameStatus get status => _gameState.status;
+  final onGameStatusUpdated = CustomCallback();
   void startGame() {
     _logger.info('Starting a new game');
-    _gameState.status = GameStatus.initializing;
-    onGameStarted.notifyListeners();
+    updateGameState(_gameState.copyWith(status: GameStatus.initializing));
   }
 
   ///
-  /// Callback to know when a round has started or ended
-  int get currentRound => _gameState.round;
-  bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
-  final onRoundStarted = CustomCallback();
-  final onRoundEnded = CustomCallback();
-
-  ///
   /// Callback to know when the game has stopped
-  final onGameEnded = CustomCallback();
   void stopGame() {
     _logger.info('Stopping the current game');
-    _gameState.status = GameStatus.uninitialized;
-    onGameEnded.notifyListeners();
+    updateGameState(_gameState.copyWith(status: GameStatus.uninitialized));
   }
 
   ///
@@ -117,4 +105,6 @@ class GameManager {
     onBoostGranted.notifyListenersWithParameter(isSuccess);
     return isSuccess;
   }
+
+  List<String> get boosters => List.unmodifiable(_gameState.boosters);
 }

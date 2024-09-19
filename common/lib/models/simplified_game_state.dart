@@ -9,6 +9,7 @@ class SimplifiedGameState {
 
   int boostRemaining;
   int boostStillNeeded;
+  List<String> boosters;
 
   SimplifiedGameState({
     required this.status,
@@ -17,6 +18,7 @@ class SimplifiedGameState {
     required this.pardonners,
     required this.boostRemaining,
     required this.boostStillNeeded,
+    required this.boosters,
   });
 
   SimplifiedGameState copyWith({
@@ -26,6 +28,7 @@ class SimplifiedGameState {
     List<String>? pardonners,
     int? boostRemaining,
     int? boostStillNeeded,
+    List<String>? boosters,
   }) =>
       SimplifiedGameState(
         status: status ??= this.status,
@@ -34,6 +37,7 @@ class SimplifiedGameState {
         pardonners: pardonners ??= this.pardonners,
         boostRemaining: boostRemaining ??= this.boostRemaining,
         boostStillNeeded: boostStillNeeded ??= this.boostStillNeeded,
+        boosters: boosters ??= this.boosters,
       );
 
   Map<String, dynamic> serialize() {
@@ -44,6 +48,7 @@ class SimplifiedGameState {
       'pardonners': pardonners,
       'boost_remaining': boostRemaining,
       'boost_still_needed': boostStillNeeded,
+      'boosters': boosters,
     };
   }
 
@@ -55,6 +60,7 @@ class SimplifiedGameState {
       pardonners: (data['pardonners'] as List).cast<String>(),
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
+      boosters: (data['boosters'] as List).cast<String>(),
     );
   }
 }
