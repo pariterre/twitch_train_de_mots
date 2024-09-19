@@ -9,8 +9,6 @@ enum ToAppMessages {
 }
 
 enum ToFrontendMessages {
-  streamerHasConnected,
-  streamerHasDisconnected,
   gameState,
   pardonResponse,
   boostResponse,

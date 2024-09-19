@@ -51,12 +51,6 @@ class GameManager extends TwitchEbsManagerAbstract {
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
-    communicator.sendMessage(MessageProtocol(
-        from: MessageFrom.ebsIsolated,
-        to: MessageTo.frontend,
-        type: MessageTypes.put,
-        data: {'type': ToFrontendMessages.streamerHasConnected.name}));
-
     _logger.info('Sending welcome message');
     TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
   }
@@ -171,10 +165,6 @@ class GameManager extends TwitchEbsManagerAbstract {
           break;
         case MessageTo.frontend:
           switch (ToFrontendMessages.values.byName(message.data!['type'])) {
-            case ToFrontendMessages.streamerHasConnected:
-              break;
-            case ToFrontendMessages.streamerHasDisconnected:
-              break;
             case ToFrontendMessages.gameState:
               gameState = SimplifiedGameState.deserialize(
                   message.data!['game_state'] as Map<String, dynamic>);

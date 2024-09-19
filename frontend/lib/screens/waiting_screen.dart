@@ -5,8 +5,33 @@ import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
 
-class WaitingScreen extends StatelessWidget {
+class WaitingScreen extends StatefulWidget {
   const WaitingScreen({super.key});
+
+  @override
+  State<WaitingScreen> createState() => _WaitingScreenState();
+}
+
+class _WaitingScreenState extends State<WaitingScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onGameStarted.addListener(_refresh);
+    gm.onGameEnded.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onGameStarted.removeListener(_refresh);
+    gm.onGameEnded.removeListener(_refresh);
+
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +43,7 @@ class WaitingScreen extends StatelessWidget {
       case GameStatus.uninitialized:
         textToShow = 'Bien le bonjour cheminot\u00b7e,\n'
             '\n'
-            'Nous sommes en attente du départ du train, veuillez patienter...';
+            'Nous sommes en attente de votre cheminot\u00b7e en chef, veuillez patienter...';
         break;
       case GameStatus.initializing:
       case GameStatus.roundStarted:
@@ -28,7 +53,7 @@ class WaitingScreen extends StatelessWidget {
         textToShow =
             'Votre cheminot\u00b7e en chef est prêt\u00b7e pour le grand départ vers le Nord!\n'
             '\n'
-            'Prochain arrêt: Station ${gm.currentRound}';
+            'Prochain arrêt: Station ${gm.currentRound + 1}';
         break;
     }
 

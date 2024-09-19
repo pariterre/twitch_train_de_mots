@@ -16,7 +16,7 @@ class GameManager {
   ///
   /// Flag to indicate if the game has started
   final _gameState = SimplifiedGameState(
-      status: GameStatus.initializing,
+      status: GameStatus.uninitialized,
       round: 0,
       pardonRemaining: 0,
       pardonners: [],
@@ -39,6 +39,7 @@ class GameManager {
           onRoundEnded.notifyListeners();
           break;
         case GameStatus.uninitialized:
+          onGameEnded.notifyListeners();
           break;
       }
     }
@@ -73,7 +74,7 @@ class GameManager {
   GameStatus get status => _gameState.status;
   void startGame() {
     _logger.info('Starting a new game');
-    _gameState.status = GameStatus.roundPreparing;
+    _gameState.status = GameStatus.initializing;
     onGameStarted.notifyListeners();
   }
 
@@ -89,7 +90,7 @@ class GameManager {
   final onGameEnded = CustomCallback();
   void stopGame() {
     _logger.info('Stopping the current game');
-    _gameState.status = GameStatus.initializing;
+    _gameState.status = GameStatus.uninitialized;
     onGameEnded.notifyListeners();
   }
 

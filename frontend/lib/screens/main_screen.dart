@@ -18,15 +18,19 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
 
     final gm = GameManager.instance;
+    gm.onGameStarted.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
     gm.onRoundEnded.addListener(_refresh);
+    gm.onGameEnded.addListener(_refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
+    gm.onGameStarted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
     gm.onRoundEnded.removeListener(_refresh);
+    gm.onGameEnded.removeListener(_refresh);
 
     super.dispose();
   }

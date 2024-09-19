@@ -106,9 +106,14 @@ class TwitchManager {
           appName: 'Train de mots',
           ebsUri: Uri.parse('http://localhost:3010/frontend')),
       isTwitchUserIdRequired: true,
-      onConnectedToTwitchService: _onFinishedInitializing,
-      pubSubCallback: _onPubSubMessageReceived,
+      onHasConnected: _onFinishedInitializing,
     );
+    _frontendManager!.onMessageReceived.listen(_onPubSubMessageReceived);
+    _frontendManager!.onStreamerHasConnected
+        .listen(GameManager.instance.startGame);
+    _frontendManager!.onStreamerHasDisconnected
+        .listen(GameManager.instance.stopGame);
+
     _logger.info('TwitchFrontendManager is ready');
 
     // Try to get the game status. This will fail if the game has not started yet
@@ -120,21 +125,6 @@ class TwitchManager {
   Future<void> _onPubSubMessageReceived(MessageProtocol message) async {
     try {
       switch (ToFrontendMessages.values.byName(message.data!['type'])) {
-        case ToFrontendMessages.streamerHasConnected:
-          _logger.info('Streamer connected to the game');
-          await _requestGameStatus();
-
-          // TODO: Make sure the user register
-          // TODO: Add user to the game?
-          break;
-
-        case ToFrontendMessages.streamerHasDisconnected:
-          _logger.info('Streamer disconnected from the game');
-          final gm = GameManager.instance;
-          gm.updateGameState(
-              gm.gameState.copyWith(status: GameStatus.uninitialized));
-          break;
-
         case ToFrontendMessages.gameState:
           _logger.info('Round started by streamer');
 
