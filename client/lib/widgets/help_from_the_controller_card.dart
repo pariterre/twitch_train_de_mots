@@ -20,7 +20,7 @@ class HelpFromTheControllerCard extends StatelessWidget {
           children: [
             Text(
               'Aides du contrôleur :',
-              style: TextStyle(
+              style: tm.clientMainTextStyle.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: tm.titleSize * 0.6,
                   color: tm.textColor),
@@ -107,11 +107,12 @@ class _PardonState extends State<_Pardon> {
           child: Text(
             '!pardon${_lastStealer == null ? '' : ' ($_lastStealer)'}',
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: tm.titleSize * 0.6, color: tm.textColor),
+            style: tm.clientMainTextStyle
+                .copyWith(fontSize: tm.titleSize * 0.6, color: tm.textColor),
           ),
         ),
         Text('x ${gm.remainingPardon}',
-            style: TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontStyle: FontStyle.italic,
                 fontSize: tm.titleSize * 0.6,
                 color: tm.textColor)),
@@ -161,13 +162,14 @@ class _BoostState extends State<_Boost> {
       children: [
         Text(
           '!boost',
-          style: TextStyle(fontSize: tm.titleSize * 0.6, color: tm.textColor),
+          style: tm.clientMainTextStyle
+              .copyWith(fontSize: tm.titleSize * 0.6, color: tm.textColor),
         ),
         Text(
             gm.isTrainBoosted
                 ? 'Boost (${gm.trainBoostRemainingTime!.inSeconds})'
                 : 'x ${gm.remainingBoosts}',
-            style: TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontStyle: FontStyle.italic,
                 fontSize: tm.titleSize * 0.6,
                 color: tm.textColor)),

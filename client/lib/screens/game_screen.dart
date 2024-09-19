@@ -183,7 +183,7 @@ class _HeaderState extends State<_Header> {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: tm.clientMainTextStyle.copyWith(
               fontWeight: FontWeight.bold,
               fontSize: tm.titleSize,
               color: tm.textColor),
@@ -293,7 +293,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
 
     return Text(
       text,
-      style: TextStyle(
+      style: tm.clientMainTextStyle.copyWith(
           fontWeight: FontWeight.bold, fontSize: 26, color: tm.textColor),
     );
   }

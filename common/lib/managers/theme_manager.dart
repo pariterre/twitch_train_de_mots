@@ -46,6 +46,8 @@ class ThemeManager {
     _save();
   }
 
+  late final clientMainTextStyle =
+      GoogleFonts.almendraSc(color: textColor, fontSize: textSize);
   late final textFrontendSc =
       GoogleFonts.almendraSc(color: textColor, fontSize: textSize);
 
@@ -115,7 +117,7 @@ class ThemeManager {
   final leaderTextColor = Colors.white;
   final leaderStealerColor = Colors.red;
 
-  late final buttonTextStyle = TextStyle(
+  late final buttonTextStyle = textFrontendSc.copyWith(
       color: backgroundColorDark, fontSize: 20, fontWeight: FontWeight.bold);
   late final elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: textColor,

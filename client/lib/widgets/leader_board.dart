@@ -83,7 +83,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text('Tableau des cheminot\u00b7e\u00b7s',
-                            style: TextStyle(
+                            style: tm.clientMainTextStyle.copyWith(
                               fontSize: 26,
                               color: tm.leaderTextColor,
                             )),
@@ -114,7 +114,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                           child: Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
                         child: Text('En attente de joueurs...',
-                            style: TextStyle(
+                            style: tm.clientMainTextStyle.copyWith(
                                 fontSize: 20, color: tm.leaderTextColor)),
                       )),
                     const SizedBox(height: 12.0),
@@ -159,10 +159,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
     bool isStealer = false,
   }) {
     final tm = ThemeManager.instance;
-    final style = TextStyle(
-        fontSize: 20,
-        color: isStealer ? tm.leaderStealerColor : tm.leaderTextColor,
-        fontWeight: isTitle || isStealer ? FontWeight.bold : FontWeight.normal);
+    final style = isTitle
+        ? tm.clientMainTextStyle.copyWith(
+            fontSize: 20,
+            color: tm.leaderTextColor,
+            fontWeight: FontWeight.bold)
+        : TextStyle(
+            fontSize: 20,
+            color: isStealer ? tm.leaderStealerColor : tm.leaderTextColor,
+            fontWeight: isStealer ? FontWeight.bold : FontWeight.normal);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

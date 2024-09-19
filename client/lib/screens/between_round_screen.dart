@@ -161,7 +161,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
       children: [
         if (gm.successLevel != SuccessLevel.failed)
           Text('En direction de la Station N\u00b0${gm.roundCount + 1}',
-              style: TextStyle(
+              style: tm.clientMainTextStyle.copyWith(
                   fontSize: 26,
                   fontWeight: FontWeight.normal,
                   color: tm.textColor)),
@@ -618,8 +618,10 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildTitleTile(String title) {
+    final tm = ThemeManager.instance;
+
     return Text(title,
-        style: const TextStyle(
+        style: tm.clientMainTextStyle.copyWith(
             fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white));
   }
 
@@ -722,7 +724,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
             children: [
               Text(
                 'Entrée en gare à la Station N\u00b0${gm.roundCount}!',
-                style: TextStyle(
+                style: tm.clientMainTextStyle.copyWith(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: tm.textColor),
@@ -731,7 +733,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               Text(
                 'Félicitation! Nous avons traversé '
                 '${gm.successLevel.toInt()} station${gm.successLevel.toInt() > 1 ? 's' : ''}!',
-                style: TextStyle(
+                style: tm.clientMainTextStyle.copyWith(
                     fontSize: 26,
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
@@ -741,7 +743,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                     'Le contrôleur est impressionné par votre honnêteté.\n'
                     'Il vous accorde un pardon supplémentaire!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: tm.clientMainTextStyle.copyWith(
                         fontSize: 20,
                         fontWeight: FontWeight.normal,
                         color: tm.textColor)),
@@ -807,7 +809,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
           ),
           Text(
             'Le tableau des cheminot\u00b7e\u00b7s',
-            style: TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
           ),
           GrowingWidget(
@@ -943,7 +945,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
             children: [
               Text(
                 'Immobilisé entre deux stations',
-                style: TextStyle(
+                style: tm.clientMainTextStyle.copyWith(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: tm.textColor),
@@ -951,7 +953,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               const SizedBox(height: 16.0),
               Text(
                 'Le Petit Train du Nord n\'a pu se rendre à destination',
-                style: TextStyle(
+                style: tm.clientMainTextStyle.copyWith(
                     fontSize: 26,
                     fontWeight: FontWeight.normal,
                     color: tm.textColor),
@@ -959,7 +961,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               const SizedBox(height: 8.0),
               Text(
                   'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
-                  style: TextStyle(
+                  style: tm.clientMainTextStyle.copyWith(
                       fontSize: 26,
                       fontWeight: FontWeight.normal,
                       color: tm.textColor)),

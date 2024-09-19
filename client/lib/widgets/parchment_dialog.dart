@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 
 class ParchmentDialog extends StatefulWidget {
@@ -64,6 +65,8 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return AlertDialog(
       content: SizedBox(
         width: widget.width,
@@ -84,8 +87,10 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.title,
-                      style: const TextStyle(
-                          fontSize: 24.0, fontWeight: FontWeight.bold)),
+                      style: tm.clientMainTextStyle.copyWith(
+                          color: Colors.black,
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8.0),
                   widget.content,
                   Align(

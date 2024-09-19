@@ -146,7 +146,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
                       padding: const EdgeInsets.all(12.0),
                       child: Text(
                         'Mots de ${solutions.first.word.length} lettres',
-                        style: TextStyle(
+                        style: tm.clientMainTextStyle.copyWith(
                             fontWeight: FontWeight.bold,
                             color: tm.textColor,
                             fontSize: tm.textSize),

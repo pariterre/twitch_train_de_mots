@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   Text(
                     'Train de mots',
-                    style: TextStyle(
+                    style: tm.clientMainTextStyle.copyWith(
                       fontSize: 48.0,
                       color: tm.textColor,
                       fontWeight: FontWeight.bold,
@@ -122,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
                         'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
                         'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
-                        style: TextStyle(
+                        style: tm.clientMainTextStyle.copyWith(
                           fontSize: 24.0,
                           color: tm.textColor,
                         ),
@@ -131,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   const SizedBox(height: 30.0),
                   Text(
                     'C\'est un départ! Tchou Tchou!!',
-                    style: TextStyle(
+                    style: tm.clientMainTextStyle.copyWith(
                       fontSize: 24.0,
                       color: tm.textColor,
                       fontWeight: FontWeight.bold,
@@ -257,7 +257,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
                 child: Text(
                     'Ô Cheminot\u00b7te! J\'ai une mission pour vous sur le Petit Train du Nord! '
                     'Mais avant toute chose, veuillez identifier votre équipe!',
-                    style: TextStyle(
+                    style: tm.clientMainTextStyle.copyWith(
                       fontSize: 24.0,
                       color: tm.mainColor,
                       fontWeight: FontWeight.bold,
@@ -433,7 +433,8 @@ class _ConnexionTileState extends State<_ConnexionTile> {
           'Svp, valider votre adresse courriel; vous serez automatiquement '
           'redirigé\u00b7e vers le train par la suite.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
+          style: tm.clientMainTextStyle
+              .copyWith(color: tm.mainColor, fontSize: tm.textSize)),
     );
   }
 
@@ -450,7 +451,8 @@ class _ConnexionTileState extends State<_ConnexionTile> {
         Text(
             'Dernière chose avant de partir, quel est le nom de votre équipe de cheminot\u00b7te\u00b7s?',
             textAlign: TextAlign.center,
-            style: TextStyle(color: tm.mainColor, fontSize: tm.textSize)),
+            style: tm.clientMainTextStyle
+                .copyWith(color: tm.mainColor, fontSize: tm.textSize)),
         const SizedBox(height: 24.0),
         SizedBox(
           width: 400,

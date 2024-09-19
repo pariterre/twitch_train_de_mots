@@ -59,7 +59,8 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
             child: SizedBox(
               width: double.infinity,
               child: Text('Configuration de\nTrain de mots',
-                  style: TextStyle(color: tm.textColor, fontSize: 24)),
+                  style: tm.clientMainTextStyle
+                      .copyWith(color: tm.textColor, fontSize: 24)),
             ),
           ),
           Expanded(

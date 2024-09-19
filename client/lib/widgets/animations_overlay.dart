@@ -144,6 +144,7 @@ class _ASolutionWasStolen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 243, 157, 151);
 
     return Container(
@@ -159,7 +160,7 @@ class _ASolutionWasStolen extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             '${solution.foundBy.name} a volé le mot de ${solution.stolenFrom.name}',
-            style: const TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
           const SizedBox(width: 10),
@@ -192,7 +193,7 @@ class _ANewGoldenSolutionAppeared extends StatelessWidget {
             'Une étoile au Nord apparaît\n'
             'Attrapez-la pour multiplier vos points!',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: tm.solutionIsGoldenLight),
@@ -212,6 +213,7 @@ class _AStealerWasPardoned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 237, 243, 151);
 
     late final String text;
@@ -238,7 +240,7 @@ class _AStealerWasPardoned extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             text,
-            style: const TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
           const SizedBox(width: 10),
@@ -254,28 +256,30 @@ class _AllSolutionsFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 23, 99, 18),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(20),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, color: Colors.amber, size: 32),
-          SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
           Text(
             'Toutes les solutions ont été trouvées!\n'
             'Un boost supplémentaire a été accordé!',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 157, 243, 151)),
+                color: const Color.fromARGB(255, 157, 243, 151)),
           ),
-          SizedBox(width: 10),
-          Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );
@@ -289,6 +293,8 @@ class _TrainGotBoosted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 23, 99, 18),
@@ -304,10 +310,10 @@ class _TrainGotBoosted extends StatelessWidget {
             boostRemaining > 0
                 ? 'Plus que $boostRemaining boost${boostRemaining > 1 ? 's' : ''} avant la prochaine accélération!'
                 : 'Le Petit Train du Nord file à toute vitesse!',
-            style: const TextStyle(
+            style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 157, 243, 151)),
+                color: const Color.fromARGB(255, 157, 243, 151)),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: Colors.amber, size: 32),
