@@ -17,12 +17,15 @@ class TwitchManager {
   ///
   /// Interface reference to the TwitchFrontendManager.
   tm.TwitchFrontendManager? _frontendManager;
+  final bool useLocalEbs;
 
   ///
   /// Initialize the TwitchManager
-  static Future<void> initialize({bool useMocker = false}) async => useMocker
-      ? _instance = TwitchManagerMock()
-      : _instance = TwitchManager._();
+  static Future<void> initialize(
+          {bool useMocker = false, bool useLocalEbs = false}) async =>
+      useMocker
+          ? _instance = TwitchManagerMock(useLocalEbs: useLocalEbs)
+          : _instance = TwitchManager._(useLocalEbs: useLocalEbs);
 
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
@@ -98,15 +101,18 @@ class TwitchManager {
     return _instance!;
   }
 
-  TwitchManager._() {
+  TwitchManager._({required this.useLocalEbs}) {
     _callTwitchFrontendManagerFactory();
   }
 
   Future<void> _callTwitchFrontendManagerFactory() async {
     _frontendManager = await tm.TwitchFrontendManager.factory(
       appInfo: tm.TwitchFrontendInfo(
-          appName: 'Train de mots',
-          ebsUri: Uri.parse('http://localhost:3010/frontend')),
+        appName: 'Train de mots',
+        ebsUri: Uri.parse(useLocalEbs
+            ? 'http://localhost:3010/frontend'
+            : 'https://twitchserver.pariterre.net:3010/frontend'),
+      ),
       isTwitchUserIdRequired: true,
       onHasConnected: _onFinishedInitializing,
     );
@@ -175,7 +181,7 @@ class TwitchManager {
 }
 
 class TwitchManagerMock extends TwitchManager {
-  TwitchManagerMock() : super._() {
+  TwitchManagerMock({required super.useLocalEbs}) : super._() {
     _logger.info('WARNING: Using TwitchManagerMock');
     _onFinishedInitializing();
   }
