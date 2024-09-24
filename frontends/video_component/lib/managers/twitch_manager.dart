@@ -204,7 +204,7 @@ class TwitchManagerMock extends TwitchManager {
               round: 1,
               pardonRemaining: 1,
               pardonners: [userId],
-              boostRemaining: 0,
+              boostRemaining: 1,
               boostStillNeeded: 0,
               boosters: [],
             )));

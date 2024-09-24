@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _textSizeDefault = 20.0;
@@ -46,10 +45,13 @@ class ThemeManager {
     _save();
   }
 
-  late final clientMainTextStyle =
-      GoogleFonts.almendraSc(color: textColor, fontSize: textSize);
-  late final textFrontendSc =
-      GoogleFonts.almendraSc(color: textColor, fontSize: textSize);
+  late final clientMainTextStyle = TextStyle().copyWith(
+      fontFamily: 'BaskervvilleSC', color: textColor, fontSize: textSize);
+  late final textFrontendSc = TextStyle().copyWith(
+      fontFamily: 'BaskervvilleSC',
+      fontFeatures: [FontFeature.enable('smcp')],
+      color: textColor,
+      fontSize: textSize);
 
   final titleSize = 32.0;
 

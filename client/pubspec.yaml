@@ -50,3 +50,7 @@ flutter:
     - assets/sounds/TrainLostStation.mp3
     - assets/sounds/TrainReachedStation.mp3
     
+  fonts:
+    - family: BaskervvilleSC
+      fonts:
+        - asset: packages/common/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf

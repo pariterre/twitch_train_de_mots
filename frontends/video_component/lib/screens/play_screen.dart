@@ -95,7 +95,7 @@ class _PardonRequestState extends State<_PardonRequest> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Padonner..',
+          'Pardonner',
           style: tm.textFrontendSc,
         ),
         const SizedBox(height: 8),
@@ -164,7 +164,7 @@ class _BoostRequestState extends State<_BoostRequest> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Booster le train!',
+          'Booster le train',
           style: tm.textFrontendSc,
         ),
         const SizedBox(height: 8),

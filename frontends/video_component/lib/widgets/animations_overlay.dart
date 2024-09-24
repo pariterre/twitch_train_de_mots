@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
@@ -90,6 +91,7 @@ class _StealerWasPardoned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 237, 243, 151);
     const text = 'Vous avez pardonné!';
 
@@ -99,18 +101,18 @@ class _StealerWasPardoned extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(20),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, color: textColor, size: 32),
-          SizedBox(width: 10),
+          const Icon(Icons.star, color: textColor, size: 32),
+          const SizedBox(width: 10),
           Text(
             text,
-            style: TextStyle(
+            style: tm.textFrontendSc.copyWith(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
-          SizedBox(width: 10),
-          Icon(Icons.star, color: textColor, size: 32),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: textColor, size: 32),
         ],
       ),
     );
@@ -122,26 +124,28 @@ class _TrainGotBoosted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 23, 99, 18),
         borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(20),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, color: Colors.amber, size: 32),
-          SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
           Text(
             'Vous avez boosté le train!',
-            style: TextStyle(
+            style: tm.textFrontendSc.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 157, 243, 151)),
+                color: const Color.fromARGB(255, 157, 243, 151)),
           ),
-          SizedBox(width: 10),
-          Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );
