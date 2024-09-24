@@ -1,0 +1,7 @@
+# Configuration file to create a conda environment with the name train_de_mots
+name: train_de_mots
+channels:
+- conda-forge
+dependencies:
+- pyopenssl
+

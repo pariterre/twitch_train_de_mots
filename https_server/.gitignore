@@ -1,0 +1,6 @@
+# Ignore the certificate directory
+certs/
+
+# Igore the symlink to the built folders
+configuration
+video_component
