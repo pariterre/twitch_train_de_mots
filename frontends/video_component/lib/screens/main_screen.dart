@@ -35,13 +35,15 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return SizedBox(
       width: (TwitchManager.instance is TwitchManagerMock) ? 320 : null,
-      height: (TwitchManager.instance is TwitchManagerMock) ? 300 : null,
+      height: (TwitchManager.instance is TwitchManagerMock) ? 320 : null,
       child: Background(
-        backgroundLayer: Image.asset(
-          'assets/images/train.png',
-          height: MediaQuery.of(context).size.height,
-          opacity: const AlwaysStoppedAnimation(0.05),
-          fit: BoxFit.cover,
+        backgroundLayer: Opacity(
+          opacity: 0.05,
+          child: Image.asset(
+            'assets/images/train.png',
+            height: MediaQuery.of(context).size.height,
+            fit: BoxFit.cover,
+          ),
         ),
         child: GameManager.instance.isRoundRunning
             ? const PlayScreen()
