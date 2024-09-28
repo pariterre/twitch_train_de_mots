@@ -26,6 +26,8 @@ class GameManager extends TwitchEbsManagerAbstract {
     boostRemaining: 0,
     boostStillNeeded: 0,
     boosters: [],
+    canAttemptTheBigHeist: false,
+    isAttemptingTheBigHeist: false,
   );
   SimplifiedGameState get gameState => _gameState;
   set gameState(SimplifiedGameState value) {
@@ -140,6 +142,22 @@ class GameManager extends TwitchEbsManagerAbstract {
     return isSuccess;
   }
 
+  ///
+  /// Handle a message from the frontend to launch fireworks
+  Future<bool> _frontendRequestedFireworks(int userId) async {
+    _logger.info('Resquesting to launch fireworks');
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        from: MessageFrom.ebsIsolated,
+        to: MessageTo.app,
+        type: MessageTypes.get,
+        data: {
+          'type': ToAppMessages.fireworksRequest.name,
+          'player_name': userIdToLogin[userId] ?? 'Anonyme'
+        }));
+    return response.isSuccess ?? false;
+  }
+
   @override
   Future<void> handlePutRequest(MessageProtocol message) async =>
       await _handleRequest(message);
@@ -230,12 +248,16 @@ class GameManager extends TwitchEbsManagerAbstract {
               type: MessageTypes.response,
               isSuccess: true,
               data: {'game_state': gameState.serialize()}));
+          break;
+
         case ToAppMessages.pardonRequest:
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
               to: MessageTo.frontend,
               type: MessageTypes.response,
               isSuccess: await _frontendRequestedToPardon(userId)));
+          break;
+
         case ToAppMessages.boostRequest:
           final isSuccess = await _frontendRequestedBoosted(userId);
           communicator.sendReponse(message.copyWith(
@@ -243,6 +265,45 @@ class GameManager extends TwitchEbsManagerAbstract {
               to: MessageTo.frontend,
               type: MessageTypes.response,
               isSuccess: isSuccess));
+          break;
+
+        case ToAppMessages.fireworksRequest:
+          // This is expected to be from bits transaction, so check if the transaction is
+          // present (if it is, it is already validated)
+          if (message.transaction == null) {
+            throw 'Bits transaction not found';
+          }
+
+          final isSuccess = await _frontendRequestedFireworks(userId);
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
+          break;
+
+        case ToAppMessages.attemptTheBigHeist:
+          // This is expected to be from bits transaction, so check if the transaction is
+          // present (if it is, it is already validated)
+          if (message.transaction == null) {
+            throw 'Bits transaction not found';
+          }
+
+          final playerName = userIdToLogin[userId] ?? 'Anonyme';
+          final response = await communicator.sendQuestion(MessageProtocol(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.app,
+              type: MessageTypes.get,
+              data: {
+                'type': ToAppMessages.attemptTheBigHeist.name,
+                'player_name': playerName
+              }));
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebsIsolated,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: response.isSuccess ?? false));
+          break;
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());
