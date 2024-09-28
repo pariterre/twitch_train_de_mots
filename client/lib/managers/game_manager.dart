@@ -604,8 +604,8 @@ class GameManager {
       return false;
     }
 
-    _isAttemptingTheBigHeist = true;
     _canAttemptTheBigHeist = false;
+    _isAttemptingTheBigHeist = true;
     onAttemptingTheBigHeist.notifyListeners();
 
     _logger.info('Big heist is attempted');
@@ -626,6 +626,7 @@ class GameManager {
     _remainingPardons = cm.numberOfPardons;
     _remainingBoosts = cm.numberOfBoosts;
 
+    // We can never attempt the big heist at the start
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
 

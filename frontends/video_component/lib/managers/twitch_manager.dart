@@ -17,6 +17,15 @@ class TwitchManager {
   ///
   /// Interface reference to the TwitchFrontendManager.
   tm.TwitchFrontendManager? _frontendManager;
+  tm.TwitchFrontendManager get frontendManager {
+    if (_frontendManager == null) {
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
+    }
+
+    return _frontendManager!;
+  }
+
   final bool useLocalEbs;
 
   ///
@@ -74,6 +83,19 @@ class TwitchManager {
     return response.isSuccess ?? false;
   }
 
+  Future<bool> _redeemBitsTransaction(
+      tm.BitsTransactionObject transaction) async {
+    final response =
+        await _sendMessageToApp(ToAppMessages.bitsRedeemed, transaction)
+            .timeout(const Duration(seconds: 5),
+                onTimeout: () => MessageProtocol(
+                    from: MessageFrom.ebsIsolated,
+                    to: MessageTo.frontend,
+                    type: MessageTypes.response,
+                    isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
   ///
   /// Callback to know when the TwitchManager has connected to the Twitch
   /// backend services.
@@ -107,20 +129,24 @@ class TwitchManager {
 
   Future<void> _callTwitchFrontendManagerFactory() async {
     _frontendManager = await tm.TwitchFrontendManager.factory(
-      appInfo: tm.TwitchFrontendInfo(
-        appName: 'Train de mots',
-        ebsUri: Uri.parse(useLocalEbs
-            ? 'http://localhost:3010/frontend'
-            : 'https://twitchserver.pariterre.net:3010/frontend'),
-      ),
-      isTwitchUserIdRequired: true,
-      onHasConnected: _onFinishedInitializing,
-    );
+        appInfo: tm.TwitchFrontendInfo(
+          appName: 'Train de mots',
+          ebsUri: Uri.parse(useLocalEbs
+              ? 'http://localhost:3010/frontend'
+              : 'https://twitchserver.pariterre.net:3010/frontend'),
+        ),
+        isTwitchUserIdRequired: true);
+
+    await _onFinishedInitializing();
+
     _frontendManager!.onMessageReceived.listen(_onPubSubMessageReceived);
     _frontendManager!.onStreamerHasConnected
         .listen(GameManager.instance.startGame);
     _frontendManager!.onStreamerHasDisconnected
         .listen(GameManager.instance.stopGame);
+
+    _frontendManager!.bits.onTransactionCompleted
+        .listen(_onBitsTransactionCompleted);
 
     _logger.info('TwitchFrontendManager is ready');
 
@@ -151,6 +177,13 @@ class TwitchManager {
     }
   }
 
+  Future<void> _onBitsTransactionCompleted(
+      tm.BitsTransactionObject transaction) async {
+    _logger.info('Bits transaction completed');
+    _logger.info('Transaction: ${transaction.toJson()}');
+    _redeemBitsTransaction(transaction);
+  }
+
   Future<void> _requestGameStatus() async {
     final response = await _sendMessageToApp(ToAppMessages.gameStateRequest);
     final isSuccess = response.isSuccess ?? false;
@@ -166,17 +199,20 @@ class TwitchManager {
 
   ///
   /// Send a message to the App based on the [type] of message.
-  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request) async {
+  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request,
+      [tm.BitsTransactionObject? transaction]) async {
     if (!isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
     }
 
-    return await _frontendManager!.sendMessageToApp(MessageProtocol(
-        from: MessageFrom.frontend,
-        to: MessageTo.app,
-        type: MessageTypes.get,
-        data: {'type': request.name}));
+    return await _frontendManager!.sendMessageToApp(
+        MessageProtocol(
+            from: MessageFrom.frontend,
+            to: MessageTo.app,
+            type: MessageTypes.get,
+            data: {'type': request.name}),
+        transaction: transaction);
   }
 }
 
@@ -200,13 +236,15 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 1))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
-              status: GameStatus.roundStarted,
+              status: GameStatus.roundPreparing,
               round: 1,
               pardonRemaining: 1,
               pardonners: [userId],
               boostRemaining: 1,
               boostStillNeeded: 0,
               boosters: [],
+              canAttemptTheBigHeist: false,
+              isAttemptingTheBigHeist: false,
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -220,7 +258,8 @@ class TwitchManagerMock extends TwitchManager {
   String get userId => 'U0123456789';
 
   @override
-  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request) async {
+  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request,
+      [tm.BitsTransactionObject? transaction]) async {
     switch (request) {
       case ToAppMessages.pardonRequest:
         return MessageProtocol(
@@ -242,15 +281,28 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SimplifiedGameState(
-                status: GameStatus.roundStarted,
+                status: GameStatus.initializing,
                 round: 1,
                 pardonRemaining: 1,
                 pardonners: [],
                 boostRemaining: 0,
                 boostStillNeeded: 0,
                 boosters: [],
+                canAttemptTheBigHeist: false,
+                isAttemptingTheBigHeist: false,
               ).serialize(),
             })));
+      case ToAppMessages.fireworksRequest:
+      case ToAppMessages.attemptTheBigHeist:
+        throw Exception('These are bits transactions and should only be called '
+            'with the method _redeemBitsTransaction');
+
+      case ToAppMessages.bitsRedeemed:
+        return MessageProtocol(
+            from: MessageFrom.app,
+            to: MessageTo.frontend,
+            type: MessageTypes.response,
+            isSuccess: true);
     }
   }
 }

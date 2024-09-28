@@ -1,5 +1,6 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
+import 'package:common/widgets/growing_widget.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
@@ -10,7 +11,6 @@ import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/round_success.dart';
 import 'package:train_de_mots/models/success_level.dart';
-import 'package:train_de_mots/widgets/growing_widget.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
@@ -142,7 +142,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
   void _toggleCanClick(Map<String, dynamic> info) {
     bool isCongratulating = (info['is_congratulating'] as bool?) ?? false;
-    setState(() => _canClick = !isCongratulating);
+    if (mounted) setState(() => _canClick = !isCongratulating);
   }
 
   void _refresh() => setState(() {});

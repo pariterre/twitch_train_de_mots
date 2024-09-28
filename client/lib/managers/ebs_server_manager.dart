@@ -53,6 +53,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onSolutionWasStolen.addListener(_sendGameStateToEbsWithParameter);
     gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
     gm.onAttemptingTheBigHeist.addListener(_sendGameStateToEbs);
+
+    _sendGameStateToEbs();
   }
 
   ///
@@ -158,6 +160,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.gameStateRequest:
           _sendGameStateToEbs();
           break;
+
         case ToAppMessages.pardonRequest:
           final playerName = message.data!['player_name'] as String;
           final player = gm.players.firstWhereOrAdd(playerName);
@@ -168,6 +171,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               type: MessageTypes.response,
               isSuccess: gm.pardonLastStealer(pardonner: player)));
           break;
+
         case ToAppMessages.boostRequest:
           final playerName = message.data!['player_name'] as String;
           final player = gm.players.firstWhereOrAdd(playerName);
@@ -178,6 +182,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               type: MessageTypes.response,
               isSuccess: gm.boostTrain(player: player)));
           break;
+
         case ToAppMessages.fireworksRequest:
           final playerName = message.data!['player_name'] as String;
           sendResponseToEbs(message.copyWith(
@@ -188,6 +193,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
           gm.onCongratulationFireworks.notifyListenersWithParameter(
               {'player_name': playerName, 'is_congratulating': true});
           break;
+
         case ToAppMessages.attemptTheBigHeist:
           sendResponseToEbs(message.copyWith(
               from: MessageFrom.app,
@@ -195,6 +201,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               type: MessageTypes.response,
               isSuccess: gm.requestTheBigHeist()));
           break;
+
+        case ToAppMessages.bitsRedeemed:
+          throw UnimplementedError(
+              'Bits redeemed should be handled by the EBS and rerouted properly');
       }
     } catch (e) {
       _logger.severe('Error while handling message from EBS: $e');

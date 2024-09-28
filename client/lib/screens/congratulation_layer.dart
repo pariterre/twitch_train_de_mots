@@ -75,7 +75,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     setState(() => _isFiring = true);
 
     _congratulationMessageController.triggerAnimation(_CongratulationMessage(
-        congratulerName: info['player_name'] ?? 'Anonyme'));
+        congratulerName: info['player_name'] ?? 'Anonymous'));
 
     Random random = Random();
     for (int i = 0; i < widget.maxFireworksCount; i++) {

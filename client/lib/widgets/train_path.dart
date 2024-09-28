@@ -1,8 +1,8 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/widgets/fireworks.dart';
-import 'package:train_de_mots/widgets/growing_widget.dart';
 
 class TrainPathController {
   int _nbSteps = 1;

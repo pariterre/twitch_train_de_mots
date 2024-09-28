@@ -17,6 +17,11 @@ class GameManager {
   /// Callback to know when a round has started or ended
   int get currentRound => _gameState.round;
   bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
+  int _previousRound = -1;
+  int get previousRound => _previousRound;
+
+  bool _hasPlayedAtLeastOneRound = false;
+  bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
 
   ///
   /// Flag to indicate if the game has started
@@ -28,16 +33,23 @@ class GameManager {
     boostRemaining: 0,
     boostStillNeeded: 0,
     boosters: [],
+    canAttemptTheBigHeist: false,
+    isAttemptingTheBigHeist: false,
   );
 
   void updateGameState(SimplifiedGameState newGameState) {
     if (_gameState.status != newGameState.status) {
       _gameState.status = newGameState.status;
+      if (_gameState.status == GameStatus.roundStarted ||
+          _gameState.round > 0) {
+        _hasPlayedAtLeastOneRound = true;
+      }
       onGameStatusUpdated.notifyListeners();
       _logger.info('Game status changed to ${_gameState.status}');
     }
 
     if (_gameState.round != newGameState.round) {
+      _previousRound = _gameState.round;
       _gameState.round = newGameState.round;
       _logger.info('Round changed to ${newGameState.round}');
     }
@@ -63,6 +75,22 @@ class GameManager {
     if (_gameState.boosters != newGameState.boosters) {
       _gameState.boosters = newGameState.boosters;
       _logger.info('Boosters changed to ${newGameState.boosters}');
+    }
+
+    if (_gameState.canAttemptTheBigHeist !=
+        newGameState.canAttemptTheBigHeist) {
+      _gameState.canAttemptTheBigHeist = newGameState.canAttemptTheBigHeist;
+      onGameStatusUpdated.notifyListeners();
+      _logger.info(
+          'Can attempt the big heist changed to ${newGameState.canAttemptTheBigHeist}');
+    }
+
+    if (_gameState.isAttemptingTheBigHeist !=
+        newGameState.isAttemptingTheBigHeist) {
+      _gameState.isAttemptingTheBigHeist = newGameState.isAttemptingTheBigHeist;
+      onAttemptingTheBigHeist.notifyListeners();
+      _logger.info(
+          'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
     }
   }
 
@@ -107,4 +135,9 @@ class GameManager {
   }
 
   List<String> get boosters => List.unmodifiable(_gameState.boosters);
+
+  ///
+  /// Big heist management
+  bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
+  final onAttemptingTheBigHeist = CustomCallback();
 }

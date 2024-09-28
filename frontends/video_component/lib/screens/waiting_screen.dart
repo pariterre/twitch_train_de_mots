@@ -1,5 +1,6 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
@@ -19,12 +20,14 @@ class _WaitingScreenState extends State<WaitingScreen> {
 
     final gm = GameManager.instance;
     gm.onGameStatusUpdated.addListener(_refresh);
+    gm.onAttemptingTheBigHeist.addListener(_refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
     gm.onGameStatusUpdated.removeListener(_refresh);
+    gm.onAttemptingTheBigHeist.removeListener(_refresh);
 
     super.dispose();
   }
@@ -65,13 +68,72 @@ class _WaitingScreenState extends State<WaitingScreen> {
                 width: (TwitchManager.instance is TwitchManagerMock)
                     ? 320
                     : MediaQuery.of(context).size.width,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Text(
-                    textToShow,
-                    textAlign: TextAlign.left,
-                    style: tm.textFrontendSc,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      textToShow,
+                      textAlign: TextAlign.left,
+                      style: tm.textFrontendSc,
+                    ),
+                    if (gm.status != GameStatus.uninitialized)
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 10),
+                          if (gm.canAttemptTheBigHeist)
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.white.withAlpha(50),
+                              ),
+                              child: GrowingWidget(
+                                growingFactor: 1.02,
+                                duration: const Duration(milliseconds: 2000),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Un train est immobilisé sur les rails. '
+                                      'Tenter un braquage pour doubler vos stations!',
+                                      style: tm.textFrontendSc,
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    ElevatedButton(
+                                        onPressed: () async {
+                                          TwitchManager
+                                              .instance.frontendManager.bits
+                                              .useBits('big_heist');
+                                        },
+                                        child: const Text(
+                                            'Frapper le Grand Coup!')),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          if (!gm.canAttemptTheBigHeist &&
+                              gm.previousRound >= 10)
+                            Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                Text(
+                                    'Félicitez vos collègues cheminot\u00b7e\u00b7s '
+                                    'avec un feux d\'artifice!',
+                                    style: tm.textFrontendSc),
+                                const SizedBox(height: 8.0),
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      TwitchManager
+                                          .instance.frontendManager.bits
+                                          .useBits('celebrate');
+                                    },
+                                    child: const Text('Feux d\'artifice!')),
+                              ],
+                            ),
+                        ],
+                      )
+                  ],
                 ),
               )),
         )

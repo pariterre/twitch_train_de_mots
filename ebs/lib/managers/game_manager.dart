@@ -142,22 +142,6 @@ class GameManager extends TwitchEbsManagerAbstract {
     return isSuccess;
   }
 
-  ///
-  /// Handle a message from the frontend to launch fireworks
-  Future<bool> _frontendRequestedFireworks(int userId) async {
-    _logger.info('Resquesting to launch fireworks');
-
-    final response = await communicator.sendQuestion(MessageProtocol(
-        from: MessageFrom.ebsIsolated,
-        to: MessageTo.app,
-        type: MessageTypes.get,
-        data: {
-          'type': ToAppMessages.fireworksRequest.name,
-          'player_name': userIdToLogin[userId] ?? 'Anonyme'
-        }));
-    return response.isSuccess ?? false;
-  }
-
   @override
   Future<void> handlePutRequest(MessageProtocol message) async =>
       await _handleRequest(message);
@@ -268,42 +252,40 @@ class GameManager extends TwitchEbsManagerAbstract {
           break;
 
         case ToAppMessages.fireworksRequest:
-          // This is expected to be from bits transaction, so check if the transaction is
-          // present (if it is, it is already validated)
-          if (message.transaction == null) {
-            throw 'Bits transaction not found';
-          }
-
-          final isSuccess = await _frontendRequestedFireworks(userId);
-          communicator.sendReponse(message.copyWith(
-              from: MessageFrom.ebsIsolated,
-              to: MessageTo.frontend,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-          break;
-
         case ToAppMessages.attemptTheBigHeist:
-          // This is expected to be from bits transaction, so check if the transaction is
-          // present (if it is, it is already validated)
-          if (message.transaction == null) {
-            throw 'Bits transaction not found';
+          throw 'Request is supposed to come from bit transaction';
+
+        case ToAppMessages.bitsRedeemed:
+          // This is expected to be from bits transaction
+          final transaction = extractTransactionReceipt(message);
+          if (transaction == null) throw 'Bits transaction not found';
+
+          // Get the sku of the product
+          final playerName = message.transaction!.displayName;
+          final sku = Sku.fromString(transaction.product.sku);
+
+          late ToAppMessages type;
+          switch (sku) {
+            case Sku.celebrate:
+              type = ToAppMessages.fireworksRequest;
+              break;
+
+            case Sku.bigHeist:
+              type = ToAppMessages.attemptTheBigHeist;
+              break;
           }
 
-          final playerName = userIdToLogin[userId] ?? 'Anonyme';
           final response = await communicator.sendQuestion(MessageProtocol(
               from: MessageFrom.ebsIsolated,
               to: MessageTo.app,
               type: MessageTypes.get,
-              data: {
-                'type': ToAppMessages.attemptTheBigHeist.name,
-                'player_name': playerName
-              }));
+              data: {'type': type.name, 'player_name': playerName}));
+
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
               to: MessageTo.frontend,
               type: MessageTypes.response,
               isSuccess: response.isSuccess ?? false));
-          break;
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());
