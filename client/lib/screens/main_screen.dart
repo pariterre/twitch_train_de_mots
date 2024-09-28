@@ -8,6 +8,7 @@ import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
+import 'package:train_de_mots/screens/congratulation_layer.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
 import 'package:train_de_mots/screens/splash_screen.dart';
 import 'package:train_de_mots/widgets/configuration_drawer.dart';
@@ -135,6 +136,7 @@ class _MainScreenState extends State<MainScreen> {
                             if (gm.gameStatus == GameStatus.roundPreparing ||
                                 gm.gameStatus == GameStatus.roundReady)
                               const BetweenRoundsOverlay(),
+                            const CongratulationLayer(),
                           ],
                         ),
                   Builder(builder: (context) {

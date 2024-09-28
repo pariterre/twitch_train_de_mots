@@ -148,11 +148,13 @@ class _HeaderState extends State<_Header> {
 
     _previousScore = 0;
     _trainPath.nbSteps = gm.problem?.maximumPossibleScore ?? 1;
-    _trainPath.hallMarks = [
-      gm.pointsToObtain(SuccessLevel.oneStar),
-      gm.pointsToObtain(SuccessLevel.twoStars),
-      gm.pointsToObtain(SuccessLevel.threeStars),
-    ];
+    _trainPath.hallMarks = gm.isAttemptingTheBigHeist
+        ? [gm.pointsToObtain(SuccessLevel.threeStars)]
+        : [
+            gm.pointsToObtain(SuccessLevel.oneStar),
+            gm.pointsToObtain(SuccessLevel.twoStars),
+            gm.pointsToObtain(SuccessLevel.threeStars),
+          ];
   }
 
   @override

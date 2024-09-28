@@ -50,6 +50,24 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
       bouncyScale: 1.2,
       maxScale: 1.4,
       maxOpacity: 0.9);
+  final _bigHeistSuccessController = BouncyContainerController(
+      bounceCount: 4,
+      easingInDuration: 600,
+      bouncingDuration: 1000,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.1,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
+  final _bigHeistFailedController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 4000,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.1,
+      maxScale: 1.2,
+      maxOpacity: 0.9);
 
   @override
   void initState() {
@@ -61,6 +79,8 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     gm.onStealerPardoned.addListener(_showStealerWasPardoned);
     gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
+    gm.onBigHeistSuccess.addListener(_showBigHeistSuccess);
+    gm.onBigHeistFailed.addListener(_showBigHeistFailed);
   }
 
   @override
@@ -77,6 +97,8 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     gm.onStealerPardoned.removeListener(_showStealerWasPardoned);
     gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
     gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
+    gm.onBigHeistSuccess.removeListener(_showBigHeistSuccess);
+    gm.onBigHeistFailed.removeListener(_showBigHeistFailed);
 
     super.dispose();
   }
@@ -101,6 +123,14 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   void _showTrainGotBoosted(int boostRemaining) {
     _trainGotBoostedController
         .triggerAnimation(_TrainGotBoosted(boostRemaining: boostRemaining));
+  }
+
+  void _showBigHeistSuccess() {
+    _bigHeistSuccessController.triggerAnimation(const _BigHeistSuccess());
+  }
+
+  void _showBigHeistFailed() {
+    _bigHeistFailedController.triggerAnimation(const _BigHeistFailed());
   }
 
   @override
@@ -130,6 +160,14 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
             child: BouncyContainer(controller: _trainGotBoostedController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _bigHeistSuccessController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _bigHeistFailedController),
           ),
         ],
       ),
@@ -317,6 +355,74 @@ class _TrainGotBoosted extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _BigHeistSuccess extends StatelessWidget {
+  const _BigHeistSuccess();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez braqué le train avec succès!\n'
+            'Le Petit Train de Nord s\'envole pour 6 stations!',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _BigHeistFailed extends StatelessWidget {
+  const _BigHeistFailed();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 23, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 10),
+          Text(
+            'Vous vous êtes faits prendre en plein braquage\n'
+            'Votre voyage au Nord s\'arrête maintenant...',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 243, 157, 151)),
+          ),
+          const SizedBox(width: 10),
         ],
       ),
     );

@@ -95,6 +95,11 @@ class GameManager {
     return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
   }
 
+  bool _canAttemptTheBigHeist = false;
+  bool get canAttemptTheBigHeist => _canAttemptTheBigHeist;
+  bool _isAttemptingTheBigHeist = false;
+  bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -191,9 +196,14 @@ class GameManager {
   final onStealerPardoned = CustomCallback<Function(WordSolution)>();
   final onNewPardonGranted = CustomCallback<VoidCallback>();
   final onTrainGotBoosted = CustomCallback<Function(int)>();
+  final onAttemptingTheBigHeist = CustomCallback<VoidCallback>();
+  final onBigHeistSuccess = CustomCallback<VoidCallback>();
+  final onBigHeistFailed = CustomCallback<VoidCallback>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
   final onShowcaseSolutionsRequest = CustomCallback<VoidCallback>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
+  final onCongratulationFireworks =
+      CustomCallback<Function(Map<String, dynamic>)>();
   Future<void> Function(String)? onShowMessage;
 
   /// -------- ///
@@ -404,6 +414,9 @@ class GameManager {
     _boostStartedAt = null;
     _requestedBoost.clear();
 
+    // We can only attempt the big heist during the pause
+    _canAttemptTheBigHeist = false;
+
     _logger.info('Values set at the start of the round');
   }
 
@@ -584,6 +597,21 @@ class GameManager {
     return true;
   }
 
+  bool requestTheBigHeist() {
+    _logger.info('Requesting the big heist...');
+    if (!_canAttemptTheBigHeist) {
+      _logger.warning('Big heist cannot be attempted');
+      return false;
+    }
+
+    _isAttemptingTheBigHeist = true;
+    _canAttemptTheBigHeist = false;
+    onAttemptingTheBigHeist.notifyListeners();
+
+    _logger.info('Big heist is attempted');
+    return true;
+  }
+
   ///
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
@@ -597,6 +625,9 @@ class GameManager {
 
     _remainingPardons = cm.numberOfPardons;
     _remainingBoosts = cm.numberOfBoosts;
+
+    _canAttemptTheBigHeist = false;
+    _isAttemptingTheBigHeist = false;
 
     players.clear();
 
@@ -754,10 +785,14 @@ class GameManager {
     // if the request was made
     // if all the words have been found
     // if the timer has past the timer + the grace period
+    // if we are attempting the big heist and it is a success
     final cm = ConfigurationManager.instance;
     if (_forceEndTheRound ||
         _currentProblem!.areAllSolutionsFound ||
-        (timeRemaining! + cm.postRoundGracePeriodDuration.inSeconds <= 0)) {
+        (timeRemaining! + cm.postRoundGracePeriodDuration.inSeconds <= 0) ||
+        (_isAttemptingTheBigHeist &&
+            _numberOfStarObtained(problem!.teamScore) ==
+                SuccessLevel.bigHeist)) {
       _logger.fine('Round is over');
       return true;
     } else {
@@ -784,6 +819,14 @@ class GameManager {
     _roundDuration = null;
     _roundStartedAt = null;
     _boostStartedAt = null;
+    if (_isAttemptingTheBigHeist) {
+      if (_successLevel == SuccessLevel.bigHeist) {
+        onBigHeistSuccess.notifyListeners();
+      } else {
+        onBigHeistFailed.notifyListeners();
+      }
+    }
+    _isAttemptingTheBigHeist = false;
 
     if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
@@ -796,6 +839,13 @@ class GameManager {
       _roundSuccesses.add(RoundSuccess.noSteal);
       _remainingPardons += 1;
       onNewPardonGranted.notifyListeners();
+    }
+
+    _canAttemptTheBigHeist = false;
+    if (_successLevel != SuccessLevel.failed) {
+      if (_random.nextDouble() < _currentDifficulty.bigHeistProbability) {
+        _canAttemptTheBigHeist = true;
+      }
     }
 
     _showCaseAnswers(playSound: true);
@@ -851,14 +901,16 @@ class GameManager {
   SuccessLevel _numberOfStarObtained(int score) {
     if (problem == null) return SuccessLevel.failed;
 
-    if (score < pointsToObtain(SuccessLevel.oneStar)) {
-      return SuccessLevel.failed;
-    } else if (score < pointsToObtain(SuccessLevel.twoStars)) {
-      return SuccessLevel.oneStar;
-    } else if (score < pointsToObtain(SuccessLevel.threeStars)) {
+    if (score >= pointsToObtain(SuccessLevel.threeStars)) {
+      return _isAttemptingTheBigHeist
+          ? SuccessLevel.bigHeist
+          : SuccessLevel.threeStars;
+    } else if (score >= pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.twoStars;
+    } else if (score >= pointsToObtain(SuccessLevel.oneStar)) {
+      return SuccessLevel.oneStar;
     } else {
-      return SuccessLevel.threeStars;
+      return SuccessLevel.failed;
     }
   }
 
@@ -870,6 +922,7 @@ class GameManager {
       case SuccessLevel.twoStars:
         return (maxScore * _currentDifficulty.thresholdFactorTwoStars).toInt();
       case SuccessLevel.threeStars:
+      case SuccessLevel.bigHeist:
         return (maxScore * _currentDifficulty.thresholdFactorThreeStars)
             .toInt();
       case SuccessLevel.failed:

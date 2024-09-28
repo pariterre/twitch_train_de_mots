@@ -11,6 +11,9 @@ class SimplifiedGameState {
   int boostStillNeeded;
   List<String> boosters;
 
+  bool canAttemptTheBigHeist;
+  bool isAttemptingTheBigHeist;
+
   SimplifiedGameState({
     required this.status,
     required this.round,
@@ -19,6 +22,8 @@ class SimplifiedGameState {
     required this.boostRemaining,
     required this.boostStillNeeded,
     required this.boosters,
+    required this.canAttemptTheBigHeist,
+    required this.isAttemptingTheBigHeist,
   });
 
   SimplifiedGameState copyWith({
@@ -29,6 +34,8 @@ class SimplifiedGameState {
     int? boostRemaining,
     int? boostStillNeeded,
     List<String>? boosters,
+    bool? canAttemptTheBigHeist,
+    bool? isAttemptingTheBigHeist,
   }) =>
       SimplifiedGameState(
         status: status ??= this.status,
@@ -38,6 +45,10 @@ class SimplifiedGameState {
         boostRemaining: boostRemaining ??= this.boostRemaining,
         boostStillNeeded: boostStillNeeded ??= this.boostStillNeeded,
         boosters: boosters ??= this.boosters,
+        canAttemptTheBigHeist: canAttemptTheBigHeist ??=
+            this.canAttemptTheBigHeist,
+        isAttemptingTheBigHeist: isAttemptingTheBigHeist ??=
+            this.isAttemptingTheBigHeist,
       );
 
   Map<String, dynamic> serialize() {
@@ -49,6 +60,8 @@ class SimplifiedGameState {
       'boost_remaining': boostRemaining,
       'boost_still_needed': boostStillNeeded,
       'boosters': boosters,
+      'can_attempt_the_big_heist': canAttemptTheBigHeist,
+      'is_attempting_the_big_heist': isAttemptingTheBigHeist,
     };
   }
 
@@ -61,6 +74,8 @@ class SimplifiedGameState {
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
       boosters: (data['boosters'] as List).cast<String>(),
+      canAttemptTheBigHeist: data['can_attempt_the_big_heist'] as bool,
+      isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
     );
   }
 }

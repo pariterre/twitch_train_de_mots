@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/models/exceptions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
@@ -71,6 +73,9 @@ class SoundManager {
     gm.onRoundIsOver.addListener(instance._onRoundIsOver);
     gm.onSolutionWasStolen.addListener(instance._onSolutionStolen);
     gm.onGoldenSolutionAppeared.addListener(instance._onGoldenSolutionAppeared);
+    gm.onAttemptingTheBigHeist.addListener(instance._onAttemptingTheBigHeist);
+    gm.onBigHeistSuccess.addListener(instance._onTheBigHeistSuccess);
+    gm.onBigHeistFailed.addListener(instance._onTheBigHeistFailed);
 
     final cm = ConfigurationManager.instance;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
@@ -151,5 +156,22 @@ class SoundManager {
 
   Future<void> playTrainLostStation() async {
     _playSoundEffect('assets/sounds/TrainLostStation.mp3');
+  }
+
+  Future<void> playFireworks() async {
+    final fileNumber = Random().nextInt(6) + 1;
+    _playSoundEffect('assets/sounds/Fireworks$fileNumber.mp3');
+  }
+
+  Future<void> _onAttemptingTheBigHeist() async {
+    _playSoundEffect('assets/sounds/TheBigHeist.mp3');
+  }
+
+  Future<void> _onTheBigHeistSuccess() async {
+    _playSoundEffect('assets/sounds/BigHeistSuccess.mp3');
+  }
+
+  Future<void> _onTheBigHeistFailed() async {
+    _playSoundEffect('assets/sounds/BigHeistFailed.mp3');
   }
 }

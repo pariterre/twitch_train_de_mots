@@ -532,6 +532,7 @@ class ConfigurationManager {
         thresholdFactorThreeStars: 0.75,
         hasUselessLetter: false,
         hasHiddenLetter: false,
+        bigHeistProbability: 0,
       );
     } else if (level < 6) {
       // Levels 4, 5 and 6
@@ -549,6 +550,7 @@ class ConfigurationManager {
             'haute importance!',
         hasUselessLetter: false,
         hasHiddenLetter: false,
+        bigHeistProbability: 0,
       );
     } else if (level < 9) {
       // Levels 7, 8 and 9
@@ -567,6 +569,7 @@ class ConfigurationManager {
         hasUselessLetter: true,
         revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: false,
+        bigHeistProbability: 0,
       );
     } else if (level < 12) {
       // Levels 10, 11 and 12
@@ -574,7 +577,7 @@ class ConfigurationManager {
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
-        nbLettersMaxToDraw: 12,
+        nbLettersMaxToDraw: 10,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -587,6 +590,7 @@ class ConfigurationManager {
         revealUselessLetterAtTimeLeft: 30,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
+        bigHeistProbability: 0,
       );
     } else if (level < 15) {
       // Levels 13, 14 and 15
@@ -595,9 +599,9 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
-        thresholdFactorOneStar: 0.65,
-        thresholdFactorTwoStars: 0.75,
-        thresholdFactorThreeStars: 0.9,
+        thresholdFactorOneStar: 0.55,
+        thresholdFactorTwoStars: 0.70,
+        thresholdFactorThreeStars: 0.85,
         message:
             'Encore une fois, toutes mes félicitations, cheminot\u00b7e\u00b7s! '
             'Vous avez emmené le Petit Train du Nord où nul autre n\'a osé aller, enfin depuis longtemps!\n'
@@ -607,6 +611,7 @@ class ConfigurationManager {
         revealUselessLetterAtTimeLeft: 15,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
+        bigHeistProbability: 0.3,
       );
     } else if (level < 18) {
       // Levels 16, 17 and 18
@@ -628,6 +633,7 @@ class ConfigurationManager {
         revealUselessLetterAtTimeLeft: 15,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
+        bigHeistProbability: 0.3,
       );
     } else if (level < 21) {
       // Levels 19, 20 and 21
@@ -646,6 +652,7 @@ class ConfigurationManager {
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 30,
+        bigHeistProbability: 0.5,
       );
     } else if (level < 24) {
       // Levels 22, 23 and 24
@@ -665,6 +672,7 @@ class ConfigurationManager {
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 15,
+        bigHeistProbability: 0.5,
       );
     } else if (level < 27) {
       // Levels 25, 26 and 27
@@ -680,6 +688,7 @@ class ConfigurationManager {
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: 15,
+        bigHeistProbability: 0.75,
       );
     } else {
       // Levels 28 and above
@@ -699,6 +708,7 @@ class ConfigurationManager {
         hasUselessLetter: true,
         hasHiddenLetter: true,
         revealHiddenLetterAtTimeLeft: -1,
+        bigHeistProbability: 0.9,
       );
     }
   }

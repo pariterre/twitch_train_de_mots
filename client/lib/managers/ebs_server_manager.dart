@@ -52,6 +52,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onStealerPardoned.addListener(_sendGameStateToEbsWithParameter);
     gm.onSolutionWasStolen.addListener(_sendGameStateToEbsWithParameter);
     gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
+    gm.onAttemptingTheBigHeist.addListener(_sendGameStateToEbs);
   }
 
   ///
@@ -64,6 +65,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onStealerPardoned.removeListener(_sendGameStateToEbsWithParameter);
     gm.onSolutionWasStolen.removeListener(_sendGameStateToEbsWithParameter);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onAttemptingTheBigHeist.removeListener(_sendGameStateToEbs);
   }
 
   ///
@@ -136,6 +138,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
             boostRemaining: gm.remainingBoosts,
             boostStillNeeded: gm.numberOfBoostStillNeeded,
             boosters: gm.requestedBoost.map((e) => e.name).toList(),
+            canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
+            isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
           ).serialize(),
         }));
   }
@@ -149,14 +153,15 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   Future<void> handleGetRequest(MessageProtocol message) async {
     try {
       final gm = GameManager.instance;
-      final playerName = message.data!['player_name'] as String;
-      final player = gm.players.firstWhereOrAdd(playerName);
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:
           _sendGameStateToEbs();
           break;
         case ToAppMessages.pardonRequest:
+          final playerName = message.data!['player_name'] as String;
+          final player = gm.players.firstWhereOrAdd(playerName);
+
           sendMessageToEbs(message.copyWith(
               from: MessageFrom.app,
               to: MessageTo.ebsIsolated,
@@ -164,11 +169,31 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               isSuccess: gm.pardonLastStealer(pardonner: player)));
           break;
         case ToAppMessages.boostRequest:
+          final playerName = message.data!['player_name'] as String;
+          final player = gm.players.firstWhereOrAdd(playerName);
+
           sendResponseToEbs(message.copyWith(
               from: MessageFrom.app,
               to: MessageTo.ebsIsolated,
               type: MessageTypes.response,
               isSuccess: gm.boostTrain(player: player)));
+          break;
+        case ToAppMessages.fireworksRequest:
+          final playerName = message.data!['player_name'] as String;
+          sendResponseToEbs(message.copyWith(
+              from: MessageFrom.app,
+              to: MessageTo.ebsIsolated,
+              type: MessageTypes.response,
+              isSuccess: true));
+          gm.onCongratulationFireworks.notifyListenersWithParameter(
+              {'player_name': playerName, 'is_congratulating': true});
+          break;
+        case ToAppMessages.attemptTheBigHeist:
+          sendResponseToEbs(message.copyWith(
+              from: MessageFrom.app,
+              to: MessageTo.ebsIsolated,
+              type: MessageTypes.response,
+              isSuccess: gm.requestTheBigHeist()));
           break;
       }
     } catch (e) {

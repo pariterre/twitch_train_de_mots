@@ -1,9 +1,11 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/round_success.dart';
@@ -19,12 +21,23 @@ class BetweenRoundsOverlay extends StatefulWidget {
 }
 
 class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
+  final _attemptingTheBigHeist = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 900,
+      bouncingDuration: 6000,
+      easingOutDuration: 600,
+      minScale: 0.95,
+      bouncyScale: 1.0,
+      maxScale: 1.0,
+      maxOpacity: 0.99);
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
     gm.onRoundIsOver.addListener(_refresh);
+    gm.onAttemptingTheBigHeist.addListener(_showAttemptingTheBigHeist);
   }
 
   @override
@@ -33,9 +46,15 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
 
     final gm = GameManager.instance;
     gm.onRoundIsOver.removeListener(_refresh);
+    gm.onAttemptingTheBigHeist.removeListener(_showAttemptingTheBigHeist);
+    _attemptingTheBigHeist.dispose();
   }
 
   void _refresh(_) => setState(() {});
+
+  void _showAttemptingTheBigHeist() {
+    _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +100,10 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                     const SizedBox(height: 24.0),
                   ],
                 ),
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.13,
+                  child: BouncyContainer(controller: _attemptingTheBigHeist),
+                ),
               ],
             ),
           ),
@@ -98,12 +121,15 @@ class _ContinueSection extends StatefulWidget {
 }
 
 class _ContinueSectionState extends State<_ContinueSection> {
+  bool _canClick = true;
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
     gm.onClockTicked.addListener(_refresh);
+    gm.onCongratulationFireworks.addListener(_toggleCanClick);
   }
 
   @override
@@ -112,6 +138,11 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     final gm = GameManager.instance;
     gm.onClockTicked.removeListener(_refresh);
+  }
+
+  void _toggleCanClick(Map<String, dynamic> info) {
+    bool isCongratulating = (info['is_congratulating'] as bool?) ?? false;
+    setState(() => _canClick = !isCongratulating);
   }
 
   void _refresh() => setState(() {});
@@ -171,15 +202,36 @@ class _ContinueSectionState extends State<_ContinueSection> {
           children: [
             if (gm.hasPlayedAtLeastOnce)
               ThemedElevatedButton(
-                onPressed: gm.requestShowCaseAnswers,
+                onPressed: _canClick ? gm.requestShowCaseAnswers : null,
                 buttonText: 'Revoir les réponses',
               ),
             const SizedBox(width: 24),
             ThemedElevatedButton(
-                onPressed: gm.isNextProblemReady
+                onPressed: _canClick && gm.isNextProblemReady
                     ? () => gm.requestStartNewRound()
                     : null,
                 buttonText: buttonText),
+            if (MocksConfiguration.showDebugOptions)
+              Row(
+                children: [
+                  const SizedBox(width: 24),
+                  ThemedElevatedButton(
+                      onPressed: _canClick
+                          ? () => gm.onCongratulationFireworks
+                                  .notifyListenersWithParameter({
+                                'is_congratulating': true,
+                                'player_name': 'Anynome'
+                              })
+                          : null,
+                      buttonText: 'BOOM!'),
+                  const SizedBox(width: 24),
+                  ThemedElevatedButton(
+                      onPressed: _canClick && gm.canAttemptTheBigHeist
+                          ? () => gm.requestTheBigHeist()
+                          : null,
+                      buttonText: 'Le grand coup')
+                ],
+              )
           ],
         ),
         const SizedBox(height: 12),
@@ -975,6 +1027,38 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
               Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
             ]),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttemptingTheBigHeist extends StatelessWidget {
+  const _AttemptingTheBigHeist();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 65, 14),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 10),
+          Text(
+            'Un\u00b7e cheminot\u00b7e a orchestré un Grand Coup! Braquez le train\n'
+            'en chemin pour un quitte ou double et parcourir six stations d\'un coup!',
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 255, 210, 133)),
+          ),
+          const SizedBox(width: 10),
         ],
       ),
     );

@@ -4,7 +4,9 @@ enum SuccessLevel {
   failed,
   oneStar,
   twoStars,
-  threeStars;
+  threeStars,
+  bigHeist,
+  ;
 
   int toInt() {
     final cm = ConfigurationManager.instance;
@@ -18,6 +20,8 @@ enum SuccessLevel {
         return cm.oneStationMaxPerRound ? 1 : 2;
       case SuccessLevel.threeStars:
         return cm.oneStationMaxPerRound ? 1 : 3;
+      case SuccessLevel.bigHeist:
+        return cm.oneStationMaxPerRound ? 1 : 6;
     }
   }
 }

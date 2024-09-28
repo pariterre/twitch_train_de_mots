@@ -9,6 +9,8 @@ class Difficulty {
   final bool hasHiddenLetter;
   final int revealHiddenLetterAtTimeLeft;
 
+  final double bigHeistProbability;
+
   final int nbLettersOfShortestWord;
   final int nbLettersMinToDraw;
   final int nbLettersMaxToDraw;
@@ -27,5 +29,6 @@ class Difficulty {
     this.revealUselessLetterAtTimeLeft = -1,
     required this.hasHiddenLetter,
     this.revealHiddenLetterAtTimeLeft = -1,
+    required this.bigHeistProbability,
   });
 }

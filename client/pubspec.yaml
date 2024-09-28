@@ -49,6 +49,15 @@ flutter:
     - assets/sounds/TheSwindler.mp3
     - assets/sounds/TrainLostStation.mp3
     - assets/sounds/TrainReachedStation.mp3
+    - assets/sounds/Fireworks1.mp3
+    - assets/sounds/Fireworks2.mp3
+    - assets/sounds/Fireworks3.mp3
+    - assets/sounds/Fireworks4.mp3
+    - assets/sounds/Fireworks5.mp3
+    - assets/sounds/Fireworks6.mp3
+    - assets/sounds/TheBigHeist.mp3
+    - assets/sounds/BigHeistSuccess.mp3
+    - assets/sounds/BigHeistFailed.mp3
     
   fonts:
     - family: BaskervvilleSC

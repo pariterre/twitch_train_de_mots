@@ -16,6 +16,7 @@ class FireworksController {
     this.isHuge = false,
     this.minColor = const Color.fromARGB(185, 0, 155, 0),
     this.maxColor = const Color.fromARGB(185, 255, 255, 50),
+    this.explodeOnTap = true,
   });
 
   void trigger() {
@@ -29,6 +30,8 @@ class FireworksController {
   void dispose() {
     _explode = null;
   }
+
+  bool explodeOnTap;
 
   Color get color {
     final rand = Random();
@@ -150,7 +153,9 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
     widget.controller._explode = _explode;
 
     return GestureDetector(
-      onTap: () => _explode(widget.controller.isHuge, isReversed: false),
+      onTap: widget.controller.explodeOnTap
+          ? () => _explode(widget.controller.isHuge, isReversed: false)
+          : null,
       child: LayoutBuilder(
         builder: (context, constraints) {
           _constraints = constraints;
