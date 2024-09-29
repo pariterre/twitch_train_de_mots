@@ -150,13 +150,20 @@ class GameManager extends TwitchEbsManagerAbstract {
   Future<void> handleGetRequest(MessageProtocol message) async =>
       await _handleRequest(message);
 
-  Future<void> _handleRequest(MessageProtocol message) async {
+  @override
+  Future<void> handleBitsTransaction(MessageProtocol message,
+      ExtractedTransactionReceipt transactionReceipt) async {
+    await _handleRequest(message, transactionReceipt);
+  }
+
+  Future<void> _handleRequest(MessageProtocol message,
+      [ExtractedTransactionReceipt? transactionReceipt]) async {
     switch (message.from) {
       case MessageFrom.app:
         await _handleMessageFromApp(message);
         break;
       case MessageFrom.frontend:
-        await _handleMessageFromFrontend(message);
+        await _handleMessageFromFrontend(message, transactionReceipt);
         break;
       case MessageFrom.ebsMain:
       case MessageFrom.ebsIsolated:
@@ -210,7 +217,8 @@ class GameManager extends TwitchEbsManagerAbstract {
     }
   }
 
-  Future<void> _handleMessageFromFrontend(MessageProtocol message) async {
+  Future<void> _handleMessageFromFrontend(MessageProtocol message,
+      ExtractedTransactionReceipt? transactionReceipt) async {
     // Helper function to send a response to the frontend
     late final int userId;
     try {
@@ -257,12 +265,11 @@ class GameManager extends TwitchEbsManagerAbstract {
 
         case ToAppMessages.bitsRedeemed:
           // This is expected to be from bits transaction
-          final transaction = extractTransactionReceipt(message);
-          if (transaction == null) throw 'Bits transaction not found';
+          if (transactionReceipt == null) throw 'Bits transaction not found';
 
           // Get the sku of the product
           final playerName = message.transaction!.displayName;
-          final sku = Sku.fromString(transaction.product.sku);
+          final sku = Sku.fromString(transactionReceipt.product.sku);
 
           late ToAppMessages type;
           switch (sku) {
