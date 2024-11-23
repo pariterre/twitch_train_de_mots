@@ -2,6 +2,7 @@ import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/main_screen.dart';
+import 'package:frontend/widgets/opaque_on_hover.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -23,15 +24,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: FutureBuilder(
-            future: TwitchManager.instance.onInitialized,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        backgroundColor: Colors.transparent,
+        body: OpaqueOnHover(
+          opacityOut: 0.05,
+          child: FutureBuilder(
+              future: TwitchManager.instance.onInitialized,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              return const MainScreen();
-            }),
+                return const MainScreen();
+              }),
+        ),
       ),
     );
   }
