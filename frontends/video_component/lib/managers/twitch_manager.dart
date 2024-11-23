@@ -135,7 +135,7 @@ class TwitchManager {
               ? 'http://localhost:3010/frontend'
               : 'https://twitchserver.pariterre.net:3010/frontend'),
         ),
-        isTwitchUserIdRequired: false);
+        isTwitchUserIdRequired: true);
 
     await _onFinishedInitializing();
 
