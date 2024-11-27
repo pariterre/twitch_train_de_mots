@@ -51,6 +51,18 @@ class TwitchManager {
     return _frontendManager!.authenticator.opaqueUserId;
   }
 
+  bool get userHasGrantedIdAccess =>
+      _frontendManager?.authenticator.userId != null;
+
+  void requestIdShare() {
+    if (_frontendManager == null) {
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
+    }
+
+    _frontendManager!.authenticator.requestIdShare();
+  }
+
   ///
   /// Post a request to pardon the stealer. No confirmation is received from
   /// the EBS. If the request is successful, the stealer is pardoned and a message
@@ -262,6 +274,14 @@ class TwitchManagerMock extends TwitchManager {
 
   @override
   String get userId => 'U0123456789';
+
+  @override
+  bool get userHasGrantedIdAccess => true;
+
+  @override
+  void requestIdShare() {
+    _logger.info('Requesting ID share');
+  }
 
   @override
   Future<MessageProtocol> _sendMessageToApp(ToAppMessages request,

@@ -2,7 +2,7 @@ import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/main_screen.dart';
-import 'package:frontend/widgets/opaque_on_hover.dart';
+import 'package:frontend/screens/non_authorized_screen.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -17,26 +17,41 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  void _reloadOnConnection() {
+    TwitchManager.instance.frontendManager.authenticator.onHasConnected
+        .cancel(_reloadOnConnection);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.transparent,
-        body: OpaqueOnHover(
-          opacityOut: 0.05,
-          child: FutureBuilder(
-              future: TwitchManager.instance.onInitialized,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        body: FutureBuilder(
+            future: TwitchManager.instance.onInitialized,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                return const MainScreen();
-              }),
-        ),
+              if (!TwitchManager.instance.userHasGrantedIdAccess) {
+                TwitchManager
+                    .instance.frontendManager.authenticator.onHasConnected
+                    .listen(_reloadOnConnection);
+                return const NonAuthorizedScreen();
+              }
+
+              return const MainScreen();
+            }),
       ),
     );
   }
