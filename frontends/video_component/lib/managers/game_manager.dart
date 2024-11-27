@@ -28,6 +28,7 @@ class GameManager {
   final _gameState = SimplifiedGameState(
     status: GameStatus.uninitialized,
     round: 0,
+    letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
     boostRemaining: 0,
@@ -52,6 +53,12 @@ class GameManager {
       _previousRound = _gameState.round;
       _gameState.round = newGameState.round;
       _logger.info('Round changed to ${newGameState.round}');
+    }
+
+    if (_gameState.letterProblem != newGameState.letterProblem) {
+      _gameState.letterProblem = newGameState.letterProblem;
+      _logger.info('Letter problem changed');
+      onLetterProblemChanged.notifyListeners();
     }
 
     if (_gameState.pardonners != newGameState.pardonners) {
@@ -109,6 +116,11 @@ class GameManager {
     _logger.info('Stopping the current game');
     updateGameState(_gameState.copyWith(status: GameStatus.uninitialized));
   }
+
+  ///
+  /// Callback to know when the letters were changed
+  final onLetterProblemChanged = CustomCallback();
+  SimplifiedLetterProblem? get problem => _gameState.letterProblem;
 
   ///
   /// Stealer and pardonner management

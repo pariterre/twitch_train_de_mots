@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
+import 'package:common/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/models/player.dart';
-import 'package:train_de_mots/models/valuable_letter.dart';
 
 class WordSolution {
   final String word;

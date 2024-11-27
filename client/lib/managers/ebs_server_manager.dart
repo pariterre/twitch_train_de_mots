@@ -53,6 +53,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onSolutionWasStolen.addListener(_sendGameStateToEbsWithParameter);
     gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
     gm.onAttemptingTheBigHeist.addListener(_sendGameStateToEbs);
+    gm.onScrablingLetters.addListener(_sendGameStateToEbs);
+    gm.onRevealUselessLetter.addListener(_sendGameStateToEbs);
+    gm.onRevealHiddenLetter.addListener(_sendGameStateToEbs);
 
     _sendGameStateToEbs();
   }
@@ -68,6 +71,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onSolutionWasStolen.removeListener(_sendGameStateToEbsWithParameter);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
     gm.onAttemptingTheBigHeist.removeListener(_sendGameStateToEbs);
+    gm.onScrablingLetters.removeListener(_sendGameStateToEbs);
+    gm.onRevealUselessLetter.removeListener(_sendGameStateToEbs);
+    gm.onRevealHiddenLetter.removeListener(_sendGameStateToEbs);
   }
 
   ///
@@ -135,6 +141,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
           'game_state': SimplifiedGameState(
             status: gm.gameStatus,
             round: gm.roundCount,
+            letterProblem: gm.simplifiedProblem,
             pardonRemaining: gm.remainingPardon,
             pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
             boostRemaining: gm.remainingBoosts,

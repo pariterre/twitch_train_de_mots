@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/configuration_manager.dart';
@@ -63,6 +64,14 @@ class GameManager {
   bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
 
   LetterProblem? get problem => _currentProblem;
+  SimplifiedLetterProblem? get simplifiedProblem => SimplifiedLetterProblem(
+        letters: problem!.letters,
+        scrambleIndices: problem!.scrambleIndices,
+        revealedUselessLetterIndex:
+            isUselessLetterRevealed ? uselessLetterIndex : -1,
+        hiddenLetterIndex: hiddenLetterIndex,
+        shouldHideHiddenLetter: hasHiddenLetter,
+      );
   SuccessLevel _successLevel = SuccessLevel.failed;
   final List<RoundSuccess> _roundSuccesses = [];
   List<RoundSuccess> get roundSuccesses => _roundSuccesses;

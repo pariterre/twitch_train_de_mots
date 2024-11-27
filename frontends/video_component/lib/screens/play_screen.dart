@@ -1,4 +1,5 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
@@ -21,22 +22,64 @@ class PlayScreen extends StatelessWidget {
               titleText: 'Le train est en route!\n'
                   'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
           Center(
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(
-                  child: Transform.scale(
-                      scale: 0.8, child: const _PardonRequest()),
+                const SizedBox(height: 20),
+                const _LetterDisplayer(),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Transform.scale(
+                          scale: 0.8, child: const _PardonRequest()),
+                    ),
+                    Flexible(
+                        child: Transform.scale(
+                            scale: 0.8, child: const _BoostRequest())),
+                  ],
                 ),
-                Flexible(
-                    child: Transform.scale(
-                        scale: 0.8, child: const _BoostRequest())),
               ],
             ),
           ),
           const AnimationOverlay(),
         ],
       ),
+    );
+  }
+}
+
+class _LetterDisplayer extends StatefulWidget {
+  const _LetterDisplayer();
+
+  @override
+  State<_LetterDisplayer> createState() => _LetterDisplayerState();
+}
+
+class _LetterDisplayerState extends State<_LetterDisplayer> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onLetterProblemChanged.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onLetterProblemChanged.removeListener(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    return LetterDisplayerCommon(
+      letterProblem: GameManager.instance.problem!,
+      sizeFactor:
+          0.5 - (GameManager.instance.problem!.letters.length - 6) * 0.05,
     );
   }
 }
