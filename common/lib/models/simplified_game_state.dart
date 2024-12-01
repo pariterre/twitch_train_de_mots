@@ -164,12 +164,8 @@ class SimplifiedGameState {
       status: GameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
       timeRemaining: Duration(milliseconds: data['time_remaining'] as int),
-      newCooldowns:
-          (data['new_cooldowns'] as Map<String, dynamic>).map((key, value) {
-        print('key: $key, value: $value');
-
-        return MapEntry(key, Duration(milliseconds: value as int));
-      }),
+      newCooldowns: (data['new_cooldowns'] as Map<String, dynamic>).map(
+          (key, value) => MapEntry(key, Duration(milliseconds: value as int))),
       letterProblem: data['letterProblem'] == null
           ? null
           : SimplifiedLetterProblem.deserialize(data['letterProblem']!),

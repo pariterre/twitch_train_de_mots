@@ -66,8 +66,7 @@ class GameManager {
 
     if (!mapEquality(_gameState.newCooldowns, newGameState.newCooldowns)) {
       _gameState.newCooldowns = newGameState.newCooldowns;
-      _logger.info(
-          'New solution founders changed to ${newGameState.newCooldowns.keys}');
+      _logger.info('New solution founders');
       onNewCooldowns.notifyListeners();
     }
 

@@ -250,15 +250,15 @@ class _CooldownClockState extends State<_CooldownClock> {
   }
 
   void _showCooldown() {
-    _logger.info(
-        'Testing if the player has a cooldown (if ${TwitchManager.instance.userId} '
-        'is in the cooldowns (${GameManager.instance.newCooldowns.keys}))');
     final cooldowns = GameManager.instance.newCooldowns;
     if (!cooldowns.keys.contains(TwitchManager.instance.userId)) return;
-    _logger.info('The player has a cooldown');
+    _logger.info('Showing the player cooldown');
 
     _cooldownDuration = cooldowns[TwitchManager.instance.userId]!;
     _cooldownRemaining = _cooldownDuration;
+
+    // Subtract one second to account for time already passed
+    _cooldownRemaining -= const Duration(seconds: 1);
 
     // Start a countdown that triggers a refresh every second
     Future.doWhile(() async {
