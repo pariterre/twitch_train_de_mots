@@ -80,11 +80,13 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
 
   @override
   Widget build(BuildContext context) {
-    return LetterDisplayerCommon(
-      letterProblem: GameManager.instance.problem!,
-      sizeFactor:
-          0.5 - (GameManager.instance.problem!.letters.length - 6) * 0.05,
-    );
+    return GameManager.instance.problem == null
+        ? Container()
+        : LetterDisplayerCommon(
+            letterProblem: GameManager.instance.problem!,
+            sizeFactor:
+                0.5 - (GameManager.instance.problem!.letters.length - 6) * 0.05,
+          );
   }
 }
 
@@ -264,6 +266,9 @@ class _CooldownClockState extends State<_CooldownClock> {
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
       _cooldownRemaining -= const Duration(seconds: 1);
+      if (!mounted) {
+        return false;
+      }
       setState(() {});
       return _cooldownRemaining >= Duration.zero;
     });

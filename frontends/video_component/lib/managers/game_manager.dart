@@ -47,6 +47,11 @@ class GameManager {
       if (_gameState.status == GameStatus.roundStarted ||
           _gameState.round > 0) {
         _hasPlayedAtLeastOneRound = true;
+        _gameState.newCooldowns.clear();
+        _gameState.pardonners.clear();
+        onPardonnersChanged.notifyListeners();
+        _gameState.boosters.clear();
+        onBoostAvailabilityChanged.notifyListeners();
       }
       onGameStatusUpdated.notifyListeners();
       _logger.info('Game status changed to ${_gameState.status}');
@@ -64,7 +69,7 @@ class GameManager {
     //   _logger.info('Time remaining changed to ${newGameState.timeRemaining}');
     // }
 
-    if (!mapEquality(_gameState.newCooldowns, newGameState.newCooldowns)) {
+    if (newGameState.newCooldowns.isNotEmpty) {
       _gameState.newCooldowns = newGameState.newCooldowns;
       _logger.info('New solution founders');
       onNewCooldowns.notifyListeners();
