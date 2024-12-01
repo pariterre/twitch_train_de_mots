@@ -55,6 +55,13 @@ class GameManager {
   late Difficulty _currentDifficulty =
       ConfigurationManager.instance.difficulty(0);
 
+  Duration cooldownDuration({required Player player}) {
+    final cm = ConfigurationManager.instance;
+    return Duration(
+        seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
+            cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
+  }
+
   int _scramblingLetterTimer = 0;
 
   LetterProblem? _currentProblem;
@@ -64,14 +71,16 @@ class GameManager {
   bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
 
   LetterProblem? get problem => _currentProblem;
-  SimplifiedLetterProblem? get simplifiedProblem => SimplifiedLetterProblem(
-        letters: problem!.letters,
-        scrambleIndices: problem!.scrambleIndices,
-        revealedUselessLetterIndex:
-            isUselessLetterRevealed ? uselessLetterIndex : -1,
-        hiddenLetterIndex: hiddenLetterIndex,
-        shouldHideHiddenLetter: hasHiddenLetter,
-      );
+  SimplifiedLetterProblem? get simplifiedProblem => problem == null
+      ? null
+      : SimplifiedLetterProblem(
+          letters: problem!.letters,
+          scrambleIndices: problem!.scrambleIndices,
+          revealedUselessLetterIndex:
+              isUselessLetterRevealed ? uselessLetterIndex : -1,
+          hiddenLetterIndex: hiddenLetterIndex,
+          shouldHideHiddenLetter: hasHiddenLetter,
+        );
   SuccessLevel _successLevel = SuccessLevel.failed;
   final List<RoundSuccess> _roundSuccesses = [];
   List<RoundSuccess> get roundSuccesses => _roundSuccesses;
@@ -516,10 +525,7 @@ class GameManager {
 
     player.score += solution.value;
 
-    final cooldownDuration = Duration(
-        seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
-            cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
-    player.startCooldown(duration: cooldownDuration);
+    player.startCooldown(duration: cooldownDuration(player: player));
 
     // Call the listeners of solution found
     onSolutionFound.notifyListenersWithParameter(solution);

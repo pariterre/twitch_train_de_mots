@@ -1,6 +1,7 @@
 import 'package:common/models/custom_callback.dart';
-import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/helpers.dart';
+import 'package:common/models/simplified_game_state.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -28,6 +29,8 @@ class GameManager {
   final _gameState = SimplifiedGameState(
     status: GameStatus.uninitialized,
     round: 0,
+    timeRemaining: Duration.zero,
+    newCooldowns: {},
     letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
@@ -55,13 +58,26 @@ class GameManager {
       _logger.info('Round changed to ${newGameState.round}');
     }
 
+    // This is for future use
+    // if (_gameState.timeRemaining != newGameState.timeRemaining) {
+    //   _gameState.timeRemaining = newGameState.timeRemaining;
+    //   _logger.info('Time remaining changed to ${newGameState.timeRemaining}');
+    // }
+
+    if (!mapEquality(_gameState.newCooldowns, newGameState.newCooldowns)) {
+      _gameState.newCooldowns = newGameState.newCooldowns;
+      _logger.info(
+          'New solution founders changed to ${newGameState.newCooldowns.keys}');
+      onNewCooldowns.notifyListeners();
+    }
+
     if (_gameState.letterProblem != newGameState.letterProblem) {
       _gameState.letterProblem = newGameState.letterProblem;
       _logger.info('Letter problem changed');
       onLetterProblemChanged.notifyListeners();
     }
 
-    if (_gameState.pardonners != newGameState.pardonners) {
+    if (!listEquality(_gameState.pardonners, newGameState.pardonners)) {
       _gameState.pardonners = newGameState.pardonners;
       _logger.info('Pardonners changed to ${newGameState.pardonners}');
       onPardonnersChanged.notifyListeners();
@@ -79,7 +95,7 @@ class GameManager {
           'Boost still needed changed to ${newGameState.boostStillNeeded}');
     }
 
-    if (_gameState.boosters != newGameState.boosters) {
+    if (!listEquality(_gameState.boosters, newGameState.boosters)) {
       _gameState.boosters = newGameState.boosters;
       _logger.info('Boosters changed to ${newGameState.boosters}');
     }
@@ -116,6 +132,12 @@ class GameManager {
     _logger.info('Stopping the current game');
     updateGameState(_gameState.copyWith(status: GameStatus.uninitialized));
   }
+
+  ///
+  /// Callback to know when a solution was found
+  final onNewCooldowns = CustomCallback();
+  Map<String, Duration> get newCooldowns =>
+      Map.unmodifiable(_gameState.newCooldowns);
 
   ///
   /// Callback to know when the letters were changed

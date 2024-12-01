@@ -1,4 +1,5 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/clock.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,8 @@ class PlayScreen extends StatelessWidget {
                             scale: 0.8, child: const _BoostRequest())),
                   ],
                 ),
+                const SizedBox(height: 10),
+                const _CooldownClock(),
               ],
             ),
           ),
@@ -138,10 +141,7 @@ class _PardonRequestState extends State<_PardonRequest> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'Pardonner',
-          style: tm.textFrontendSc,
-        ),
+        Text('Pardonner', style: tm.textFrontendSc),
         const SizedBox(height: 8),
         ThemedElevatedButton(
           onPressed: _canPlayerPardon ? _onPardonPressed : null,
@@ -217,6 +217,82 @@ class _BoostRequestState extends State<_BoostRequest> {
           buttonText: 'Boost',
         ),
       ],
+    );
+  }
+}
+
+class _CooldownClock extends StatefulWidget {
+  const _CooldownClock();
+
+  @override
+  State<_CooldownClock> createState() => _CooldownClockState();
+}
+
+class _CooldownClockState extends State<_CooldownClock> {
+  Duration _cooldownDuration = Duration.zero;
+  Duration _cooldownRemaining = const Duration(seconds: -1);
+
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onNewCooldowns.addListener(_showCooldown);
+
+    _showCooldown();
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onNewCooldowns.removeListener(_showCooldown);
+    super.dispose();
+  }
+
+  void _showCooldown() {
+    _logger.info(
+        'Testing if the player has a cooldown (if ${TwitchManager.instance.userId} '
+        'is in the cooldowns (${GameManager.instance.newCooldowns.keys}))');
+    final cooldowns = GameManager.instance.newCooldowns;
+    if (!cooldowns.keys.contains(TwitchManager.instance.userId)) return;
+    _logger.info('The player has a cooldown');
+
+    _cooldownDuration = cooldowns[TwitchManager.instance.userId]!;
+    _cooldownRemaining = _cooldownDuration;
+
+    // Start a countdown that triggers a refresh every second
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      _cooldownRemaining -= const Duration(seconds: 1);
+      setState(() {});
+      return _cooldownRemaining >= Duration.zero;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Visibility(
+      visible: _cooldownRemaining >= Duration.zero,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Petite pause', style: tm.textFrontendSc),
+          const SizedBox(width: 16),
+          SizedBox(
+              width: 20,
+              height: 20,
+              child: Clock(
+                timeRemaining: _cooldownRemaining,
+                maxDuration: _cooldownDuration,
+                borderWidth: 3,
+              )),
+        ],
+      ),
     );
   }
 }

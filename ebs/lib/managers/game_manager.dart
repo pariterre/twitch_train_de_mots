@@ -21,6 +21,8 @@ class GameManager extends TwitchEbsManagerAbstract {
   SimplifiedGameState _gameState = SimplifiedGameState(
     status: GameStatus.initializing,
     round: 0,
+    timeRemaining: Duration.zero,
+    newCooldowns: {},
     letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
@@ -33,6 +35,14 @@ class GameManager extends TwitchEbsManagerAbstract {
   SimplifiedGameState get gameState => _gameState;
   set gameState(SimplifiedGameState value) {
     _gameState = value;
+
+    // Convert the cooldowns from login to opaque id
+    for (final key in _gameState.newCooldowns.keys.toList()) {
+      final userId = loginToUserId[key] ?? -1;
+      _gameState.newCooldowns[userIdToOpaqueId[userId] ?? ''] =
+          _gameState.newCooldowns[key]!;
+      _gameState.newCooldowns.remove(key);
+    }
 
     // Convert the pardonners from login to opaque id
     for (int i = 0; i < _gameState.pardonners.length; i++) {

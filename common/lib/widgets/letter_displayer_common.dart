@@ -16,7 +16,7 @@ class LetterDisplayerCommon extends StatefulWidget {
   final double sizeFactor;
 
   @override
-  _LetterDisplayerCommonState createState() => _LetterDisplayerCommonState();
+  State<LetterDisplayerCommon> createState() => _LetterDisplayerCommonState();
 }
 
 class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {

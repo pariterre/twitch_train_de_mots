@@ -5,11 +5,15 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/models/word_solution.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('EbsServerManager');
 
 class EbsServerManager extends TwitchAppManagerAbstract {
+  SimplifiedGameState? _simplifiedStateToSend;
+  Map<String, Duration> _cooldowns = {};
+
   // Singleton
   static EbsServerManager get instance {
     if (_instance == null) {
@@ -47,16 +51,21 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   void listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
     final gm = GameManager.instance;
-    gm.onRoundStarted.addListener(_sendGameStateToEbs);
+    gm.onRoundStarted.addListener(_prepareGameStateToSendToEbs);
     gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
     gm.onStealerPardoned.addListener(_sendGameStateToEbsWithParameter);
-    gm.onSolutionWasStolen.addListener(_sendGameStateToEbsWithParameter);
+    gm.onSolutionFound.addListener(_addCooldown);
+    gm.onSolutionWasStolen.addListener(_addCooldown);
     gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
-    gm.onAttemptingTheBigHeist.addListener(_sendGameStateToEbs);
-    gm.onScrablingLetters.addListener(_sendGameStateToEbs);
-    gm.onRevealUselessLetter.addListener(_sendGameStateToEbs);
-    gm.onRevealHiddenLetter.addListener(_sendGameStateToEbs);
+    gm.onAttemptingTheBigHeist.addListener(_prepareGameStateToSendToEbs);
+    gm.onScrablingLetters.addListener(_prepareGameStateToSendToEbs);
+    gm.onRevealUselessLetter.addListener(_prepareGameStateToSendToEbs);
+    gm.onRevealHiddenLetter.addListener(_prepareGameStateToSendToEbs);
 
+    // Check if we need to send something to the EBS server at each tick
+    gm.onClockTicked.addListener(_sendGameStateToEbs);
+
+    _prepareGameStateToSendToEbs();
     _sendGameStateToEbs();
   }
 
@@ -65,15 +74,17 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   /// EBS server.
   void disposeListeners() {
     final gm = GameManager.instance;
-    gm.onRoundStarted.removeListener(_sendGameStateToEbs);
+    gm.onRoundStarted.removeListener(_prepareGameStateToSendToEbs);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
     gm.onStealerPardoned.removeListener(_sendGameStateToEbsWithParameter);
-    gm.onSolutionWasStolen.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onSolutionFound.removeListener(_addCooldown);
+    gm.onSolutionWasStolen.removeListener(_addCooldown);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
-    gm.onAttemptingTheBigHeist.removeListener(_sendGameStateToEbs);
-    gm.onScrablingLetters.removeListener(_sendGameStateToEbs);
-    gm.onRevealUselessLetter.removeListener(_sendGameStateToEbs);
-    gm.onRevealHiddenLetter.removeListener(_sendGameStateToEbs);
+    gm.onAttemptingTheBigHeist.removeListener(_prepareGameStateToSendToEbs);
+    gm.onScrablingLetters.removeListener(_prepareGameStateToSendToEbs);
+    gm.onRevealUselessLetter.removeListener(_prepareGameStateToSendToEbs);
+    gm.onRevealHiddenLetter.removeListener(_prepareGameStateToSendToEbs);
+    gm.onClockTicked.removeListener(_sendGameStateToEbs);
   }
 
   ///
@@ -123,40 +134,53 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     return (problem as MessageProtocol).data!['letter_problem'];
   }
 
-  ///
-  /// Send a message to the EBS server to notify that a new round has started
-  Future<void> _sendGameStateToEbs([MessageProtocol? previousMessage]) async {
-    final type =
-        previousMessage == null ? MessageTypes.put : MessageTypes.response;
-    previousMessage ??= MessageProtocol(
-        from: MessageFrom.app, to: MessageTo.frontend, type: type);
+  Future<void> _addCooldown(WordSolution solution) async {
+    _cooldowns[solution.foundBy.name] = solution.foundBy.cooldownDuration;
+    _prepareGameStateToSendToEbs();
+  }
 
+  ///
+  /// Send a message to the EBS server to notify that the state of the game has
+  /// changed.
+  Future<void> _prepareGameStateToSendToEbs() async {
     final gm = GameManager.instance;
-    sendMessageToEbs(previousMessage.copyWith(
+
+    _simplifiedStateToSend ??= SimplifiedGameState(
+      status: gm.gameStatus,
+      round: gm.roundCount,
+      timeRemaining: Duration(seconds: gm.timeRemaining ?? 0),
+      newCooldowns: _cooldowns,
+      letterProblem: gm.simplifiedProblem,
+      pardonRemaining: gm.remainingPardon,
+      pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
+      boostRemaining: gm.remainingBoosts,
+      boostStillNeeded: gm.numberOfBoostStillNeeded,
+      boosters: gm.requestedBoost.map((e) => e.name).toList(),
+      canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
+      isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
+    );
+  }
+
+  Future<void> _sendGameStateToEbs() async {
+    if (_simplifiedStateToSend == null) return;
+
+    sendMessageToEbs(MessageProtocol(
         from: MessageFrom.app,
         to: MessageTo.frontend,
-        type: type,
+        type: MessageTypes.put,
         data: {
           'type': ToFrontendMessages.gameState.name,
-          'game_state': SimplifiedGameState(
-            status: gm.gameStatus,
-            round: gm.roundCount,
-            letterProblem: gm.simplifiedProblem,
-            pardonRemaining: gm.remainingPardon,
-            pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
-            boostRemaining: gm.remainingBoosts,
-            boostStillNeeded: gm.numberOfBoostStillNeeded,
-            boosters: gm.requestedBoost.map((e) => e.name).toList(),
-            canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
-            isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-          ).serialize(),
+          'game_state': _simplifiedStateToSend!.serialize(),
         }));
+
+    _simplifiedStateToSend = null;
+    _cooldowns = {};
   }
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
   Future<void> _sendGameStateToEbsWithParameter(_) async =>
-      _sendGameStateToEbs();
+      _prepareGameStateToSendToEbs();
 
   @override
   Future<void> handleGetRequest(MessageProtocol message) async {
@@ -165,7 +189,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:
-          _sendGameStateToEbs();
+          _prepareGameStateToSendToEbs();
           break;
 
         case ToAppMessages.pardonRequest:

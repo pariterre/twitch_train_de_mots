@@ -1,4 +1,5 @@
 import 'package:common/models/game_status.dart';
+import 'package:common/models/helpers.dart';
 
 class SimplifiedLetterProblem {
   final List<String> letters;
@@ -54,21 +55,33 @@ class SimplifiedLetterProblem {
 
   ///
   /// Is equal to another [SimplifiedLetterProblem]
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
     return other is SimplifiedLetterProblem &&
-        other.letters == letters &&
-        other.scrambleIndices == scrambleIndices &&
+        listEquality(letters, other.letters) &&
+        listEquality(scrambleIndices, other.scrambleIndices) &&
         other.revealedUselessLetterIndex == revealedUselessLetterIndex &&
         other.hiddenLetterIndex == hiddenLetterIndex &&
         other.shouldHideHiddenLetter == shouldHideHiddenLetter;
   }
+
+  @override
+  int get hashCode =>
+      letters.hashCode ^
+      scrambleIndices.hashCode ^
+      revealedUselessLetterIndex.hashCode ^
+      hiddenLetterIndex.hashCode ^
+      shouldHideHiddenLetter.hashCode;
 }
 
 class SimplifiedGameState {
   GameStatus status;
   int round;
+  Duration timeRemaining;
+
+  Map<String, Duration> newCooldowns;
 
   int pardonRemaining;
   List<String> pardonners;
@@ -85,6 +98,8 @@ class SimplifiedGameState {
   SimplifiedGameState({
     required this.status,
     required this.round,
+    required this.timeRemaining,
+    required this.newCooldowns,
     required this.letterProblem,
     required this.pardonRemaining,
     required this.pardonners,
@@ -98,6 +113,8 @@ class SimplifiedGameState {
   SimplifiedGameState copyWith({
     GameStatus? status,
     int? round,
+    Duration? timeRemaining,
+    Map<String, Duration>? newCooldowns,
     SimplifiedLetterProblem? letterProblem,
     int? pardonRemaining,
     List<String>? pardonners,
@@ -110,6 +127,8 @@ class SimplifiedGameState {
       SimplifiedGameState(
         status: status ??= this.status,
         round: round ??= this.round,
+        timeRemaining: timeRemaining ??= this.timeRemaining,
+        newCooldowns: newCooldowns ??= this.newCooldowns,
         letterProblem: letterProblem ??= this.letterProblem,
         pardonRemaining: pardonRemaining ??= this.pardonRemaining,
         pardonners: pardonners ??= this.pardonners,
@@ -126,6 +145,9 @@ class SimplifiedGameState {
     return {
       'game_status': status.index,
       'round': round,
+      'time_remaining': timeRemaining.inMilliseconds,
+      'new_cooldowns':
+          newCooldowns.map((key, value) => MapEntry(key, value.inMilliseconds)),
       'letterProblem': letterProblem?.serialize(),
       'pardon_remaining': pardonRemaining,
       'pardonners': pardonners,
@@ -141,6 +163,13 @@ class SimplifiedGameState {
     return SimplifiedGameState(
       status: GameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
+      timeRemaining: Duration(milliseconds: data['time_remaining'] as int),
+      newCooldowns:
+          (data['new_cooldowns'] as Map<String, dynamic>).map((key, value) {
+        print('key: $key, value: $value');
+
+        return MapEntry(key, Duration(milliseconds: value as int));
+      }),
       letterProblem: data['letterProblem'] == null
           ? null
           : SimplifiedLetterProblem.deserialize(data['letterProblem']!),

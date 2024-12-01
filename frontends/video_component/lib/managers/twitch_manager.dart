@@ -172,7 +172,7 @@ class TwitchManager {
     try {
       switch (ToFrontendMessages.values.byName(message.data!['type'])) {
         case ToFrontendMessages.gameState:
-          _logger.info('Round started by streamer');
+          _logger.info('Update from game state received');
 
           GameManager.instance.updateGameState(
               SimplifiedGameState.deserialize(message.data!['game_state']));
@@ -250,6 +250,8 @@ class TwitchManagerMock extends TwitchManager {
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
               status: GameStatus.roundStarted,
               round: 1,
+              timeRemaining: const Duration(seconds: 83),
+              newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
@@ -309,6 +311,8 @@ class TwitchManagerMock extends TwitchManager {
               'game_state': SimplifiedGameState(
                 status: GameStatus.initializing,
                 round: 1,
+                timeRemaining: const Duration(seconds: 83),
+                newCooldowns: {userId: const Duration(seconds: 5)},
                 letterProblem: SimplifiedLetterProblem(
                     letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                     scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
