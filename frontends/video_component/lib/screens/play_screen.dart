@@ -61,6 +61,8 @@ class _LetterDisplayer extends StatefulWidget {
 }
 
 class _LetterDisplayerState extends State<_LetterDisplayer> {
+  final _letterDisplayerController = LetterDisplayerController();
+
   @override
   void initState() {
     super.initState();
@@ -82,11 +84,16 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
   Widget build(BuildContext context) {
     return GameManager.instance.problem == null
         ? Container()
-        : LetterDisplayerCommon(
-            letterProblem: GameManager.instance.problem!,
-            sizeFactor:
-                0.5 - (GameManager.instance.problem!.letters.length - 6) * 0.05,
-          );
+        : LayoutBuilder(builder: (context, constraints) {
+            _letterDisplayerController.sizeFactor =
+                GameManager.instance.problem!.letters.length *
+                    (constraints.maxWidth / 10900);
+
+            return LetterDisplayerCommon(
+              controller: _letterDisplayerController,
+              letterProblem: GameManager.instance.problem!,
+            );
+          });
   }
 }
 

@@ -3,53 +3,96 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/valuable_letter.dart';
 import 'package:flutter/material.dart';
 
+class LetterDisplayerController {
+  late double _sizeFactor;
+
+  LetterDisplayerController({double sizeFactor = 1.0}) {
+    sizeFactor = sizeFactor;
+  }
+
+  late double _letterWidth;
+  late double _letterHeight;
+  late double _letterPadding;
+
+  late double _letterSize;
+  late double _numberSize;
+
+  set sizeFactor(double value) {
+    _sizeFactor = value;
+
+    _letterWidth = 80 * _sizeFactor;
+    _letterHeight = 90 * _sizeFactor;
+    _letterPadding = 4 * _sizeFactor;
+
+    _letterSize = 46 * _sizeFactor;
+    _numberSize = 26 * _sizeFactor;
+
+    if (_state != null) _state!.refresh();
+  }
+
+  _LetterDisplayerCommonState? _state;
+}
+
 class LetterDisplayerCommon extends StatefulWidget {
   const LetterDisplayerCommon({
     super.key,
+    this.controller,
     required this.letterProblem,
     this.onLetterBuilder,
-    this.sizeFactor = 1.0,
   });
 
+  final LetterDisplayerController? controller;
   final SimplifiedLetterProblem letterProblem;
   final Widget Function(int)? onLetterBuilder;
-  final double sizeFactor;
 
   @override
   State<LetterDisplayerCommon> createState() => _LetterDisplayerCommonState();
 }
 
 class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
-  late final double _letterWidth = 80 * widget.sizeFactor;
-  late final double _letterHeight = 90 * widget.sizeFactor;
-  late final double _letterPadding = 4 * widget.sizeFactor;
+  late final LetterDisplayerController _controller;
 
-  late final double _letterSize = 46 * widget.sizeFactor;
-  late final double _numberSize = 26 * widget.sizeFactor;
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = widget.controller ?? LetterDisplayerController();
+    _controller._state = this;
+  }
+
+  @override
+  void dispose() {
+    _controller._state = null;
+
+    super.dispose();
+  }
+
+  void refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     final lp = widget.letterProblem;
 
-    final displayerWidth = _letterWidth * lp.letters.length +
-        2 * _letterPadding * (lp.letters.length);
+    final displayerWidth = _controller._letterWidth * lp.letters.length +
+        2 * _controller._letterPadding * (lp.letters.length);
 
     return SizedBox(
       width: displayerWidth,
-      height: _letterHeight * 1.2,
+      height: _controller._letterHeight * 1.2,
       child: Stack(alignment: Alignment.center, children: [
         for (var index in lp.letters.asMap().keys)
           AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
-              left: (_letterWidth + 2 * _letterPadding) *
-                  lp.scrambleIndices[index],
+              left:
+                  (_controller._letterWidth + 2 * _controller._letterPadding) *
+                      lp.scrambleIndices[index],
               child: _Letter(
                 letter: lp.letters[index],
-                width: _letterWidth,
-                height: _letterHeight,
-                letterSize: _letterSize,
-                numberSize: _numberSize,
+                width: _controller._letterWidth,
+                height: _controller._letterHeight,
+                letterSize: _controller._letterSize,
+                numberSize: _controller._numberSize,
                 uselessIsRevealed: index == lp.revealedUselessLetterIndex,
                 isAHiddenLetter: index == lp.hiddenLetterIndex,
                 isHidden:
@@ -59,11 +102,12 @@ class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
           AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,
-              left: (_letterWidth + 2 * _letterPadding) *
-                  lp.scrambleIndices[index],
+              left:
+                  (_controller._letterWidth + 2 * _controller._letterPadding) *
+                      lp.scrambleIndices[index],
               child: SizedBox(
-                width: _letterWidth,
-                height: _letterHeight,
+                width: _controller._letterWidth,
+                height: _controller._letterHeight,
                 child: widget.onLetterBuilder != null
                     ? widget.onLetterBuilder!(index)
                     : null,
