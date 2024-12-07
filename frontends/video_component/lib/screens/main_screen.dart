@@ -1,10 +1,7 @@
-import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
-import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/play_screen.dart';
 import 'package:frontend/screens/waiting_screen.dart';
-import 'package:frontend/widgets/opaque_on_hover.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -34,26 +31,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return OpaqueOnHover(
-      opacityMin: GameManager.instance.isRoundRunning ? 0.1 : 0.5,
-      opacityMax: 1.0,
-      child: SizedBox(
-        width: (TwitchManager.instance is TwitchManagerMock) ? 320 : null,
-        height: (TwitchManager.instance is TwitchManagerMock) ? 320 : null,
-        child: Background(
-          backgroundLayer: Opacity(
-            opacity: 0.05,
-            child: Image.asset(
-              'assets/images/train.png',
-              height: MediaQuery.of(context).size.height,
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: GameManager.instance.isRoundRunning
-              ? const PlayScreen()
-              : const WaitingScreen(),
-        ),
-      ),
-    );
+    return GameManager.instance.isRoundRunning
+        ? const PlayScreen()
+        : const WaitingScreen();
   }
 }

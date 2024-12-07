@@ -1,8 +1,11 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/main_screen.dart';
 import 'package:frontend/screens/non_authorized_screen.dart';
+import 'package:frontend/widgets/main_window.dart';
+import 'package:frontend/widgets/opaque_on_hover.dart';
 import 'package:logging/logging.dart';
 
 void main() async {
@@ -10,15 +13,17 @@ void main() async {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
   });
-  await TwitchManager.initialize(useMocker: false, useLocalEbs: false);
+  await TwitchManager.initialize(useMocker: true, useLocalEbs: false);
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
-  runApp(const MyApp());
+  runApp(const MyApp(isFullScreen: false));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.isFullScreen});
+
+  final bool isFullScreen;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -36,22 +41,31 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.transparent,
-        body: FutureBuilder(
-            future: TwitchManager.instance.onInitialized,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        body: OpaqueOnHover(
+          opacityMin: GameManager.instance.isRoundRunning ? 0.1 : 0.5,
+          opacityMax: 1.0,
+          child: MainWindow(
+            initialSize: (widget.isFullScreen) ? null : const Size(320, 320),
+            child: FutureBuilder(
+                future: TwitchManager.instance.onInitialized,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              if (!TwitchManager.instance.userHasGrantedIdAccess) {
-                TwitchManager
-                    .instance.frontendManager.authenticator.onHasConnected
-                    .listen(_reloadOnConnection);
-                return const NonAuthorizedScreen();
-              }
+                  if (!TwitchManager.instance.userHasGrantedIdAccess) {
+                    if (TwitchManager.instance is! TwitchManagerMock) {
+                      TwitchManager
+                          .instance.frontendManager.authenticator.onHasConnected
+                          .listen(_reloadOnConnection);
+                    }
+                    return const NonAuthorizedScreen();
+                  }
 
-              return const MainScreen();
-            }),
+                  return const MainScreen();
+                }),
+          ),
+        ),
       ),
     );
   }
