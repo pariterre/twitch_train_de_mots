@@ -44,15 +44,16 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case GameStatus.uninitialized:
         textToShow = 'Bien le bonjour cheminot\u00b7e,\n'
             '\n'
-            'Nous sommes en attente de votre cheminot\u00b7e en chef, veuillez patienter...';
+            'Nous sommes en attente de votre cheminot\u00b7e\n'
+            'en chef, veuillez patienter...';
         break;
       case GameStatus.initializing:
       case GameStatus.roundStarted:
       case GameStatus.roundPreparing:
       case GameStatus.roundReady:
       case GameStatus.revealAnswers:
-        textToShow =
-            'Votre cheminot\u00b7e en chef est\nprêt\u00b7e pour le grand départ vers le Nord!\n'
+        textToShow = 'Votre cheminot\u00b7e en chef est\n'
+            'prêt\u00b7e pour le grand départ vers le Nord!\n'
             '\n'
             'Prochain arrêt: Station ${gm.currentRound + 1}';
         break;

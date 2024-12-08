@@ -13,5 +13,5 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
-  runApp(const MainExtension(isFullScreen: true));
+  runApp(const MainExtension(isFullScreen: true, hideIfUninitialized: false));
 }
