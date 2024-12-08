@@ -3,10 +3,10 @@ import 'package:common/widgets/clock.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/managers/game_manager.dart';
-import 'package:frontend/managers/twitch_manager.dart';
-import 'package:frontend/widgets/animations_overlay.dart';
-import 'package:frontend/widgets/header.dart';
+import 'package:frontend_common/managers/game_manager.dart';
+import 'package:frontend_common/managers/twitch_manager.dart';
+import 'package:frontend_common/widgets/animations_overlay.dart';
+import 'package:frontend_common/widgets/header.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('PlayScreen');

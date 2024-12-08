@@ -5,11 +5,37 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Game client",
+            "request": "launch",
+            "type": "dart",
+            "program": "client/lib/main.dart",
+            "args": ["--web-browser-flag=--disable-web-security"],
+        },
+        {
+            "name": "Game client (with local server)",
+            "request": "launch",
+            "type": "dart",
+            "program": "client/lib/main.dart",
+            "args": ["--web-browser-flag=--disable-web-security"],
+            "preLaunchTask": "Run Dart Server",
+        },
+        {
             "name": "Frontend video component",
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
             "program": "frontends/video_component/lib/main.dart",
+            "args": [
+                "--web-renderer",
+                "html",
+            ]
+        },
+        {
+            "name": "Frontend video overlay",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "program": "frontends/video_overlay/lib/main.dart",
             "args": [
                 "--web-renderer",
                 "html",

@@ -2,7 +2,7 @@ import 'package:common/models/custom_callback.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 import 'package:common/models/simplified_game_state.dart';
-import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('GameManager');

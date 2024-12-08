@@ -3,6 +3,12 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/valuable_letter.dart';
 import 'package:flutter/material.dart';
 
+const double _baseLetterWidth = 80;
+const double _baseLetterHeight = 90;
+const double _baseLetterPadding = 4;
+const double _baseLetterSize = 46;
+const double _baseNumberSize = 26;
+
 class LetterDisplayerCommon extends StatefulWidget {
   const LetterDisplayerCommon({
     super.key,
@@ -13,6 +19,10 @@ class LetterDisplayerCommon extends StatefulWidget {
   final SimplifiedLetterProblem letterProblem;
   final Widget Function(int)? letterBuilder;
 
+  static double baseWidth(int letterCount) =>
+      _baseLetterWidth * letterCount +
+      2 * _baseLetterPadding * (letterCount + 1);
+
   @override
   State<LetterDisplayerCommon> createState() => _LetterDisplayerCommonState();
 }
@@ -20,27 +30,20 @@ class LetterDisplayerCommon extends StatefulWidget {
 class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
   double _sizeFactor = 1.0;
 
-  final double _baseLetterWidth = 80;
   double get _letterWidth => _baseLetterWidth * _sizeFactor;
-  final double _baseLetterHeight = 90;
   double get _letterHeight => _baseLetterHeight * _sizeFactor;
-  final double _baseLetterPadding = 4;
   double get _letterPadding => _baseLetterPadding * _sizeFactor;
 
-  final double _baseLetterSize = 46;
   double get _letterSize => _baseLetterSize * _sizeFactor;
-  final double _baseNumberSize = 26;
   double get _numberSize => _baseNumberSize * _sizeFactor;
 
   @override
   Widget build(BuildContext context) {
     final lp = widget.letterProblem;
 
-    final displayerWidth = _baseLetterWidth * lp.letters.length +
-        2 * _baseLetterPadding * (lp.letters.length + 1);
-
     return LayoutBuilder(builder: (context, constraints) {
-      _sizeFactor = constraints.maxWidth / displayerWidth;
+      _sizeFactor = constraints.maxWidth /
+          LetterDisplayerCommon.baseWidth(lp.letters.length);
 
       return SizedBox(
         height: _letterHeight * 1.2,

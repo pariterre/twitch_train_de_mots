@@ -90,10 +90,14 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     if (gm.problem == null) return Container();
 
-    return LetterDisplayerCommon(
-      letterProblem: gm.simplifiedProblem!,
-      letterBuilder: (index) =>
-          Fireworks(controller: _fireworksControllers[index]),
+    return SizedBox(
+      width:
+          LetterDisplayerCommon.baseWidth(gm.simplifiedProblem!.letters.length),
+      child: LetterDisplayerCommon(
+        letterProblem: gm.simplifiedProblem!,
+        letterBuilder: (index) =>
+            Fireworks(controller: _fireworksControllers[index]),
+      ),
     );
   }
 }

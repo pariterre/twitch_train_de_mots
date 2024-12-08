@@ -1,7 +1,7 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/managers/game_manager.dart';
+import 'package:frontend_common/managers/game_manager.dart';
 
 class AnimationOverlay extends StatefulWidget {
   const AnimationOverlay({super.key});

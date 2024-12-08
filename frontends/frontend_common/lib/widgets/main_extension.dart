@@ -1,13 +1,13 @@
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/managers/game_manager.dart';
-import 'package:frontend/managers/twitch_manager.dart';
-import 'package:frontend/screens/dragging_screen.dart';
-import 'package:frontend/screens/non_authorized_screen.dart';
-import 'package:frontend/screens/play_screen.dart';
-import 'package:frontend/screens/waiting_screen.dart';
-import 'package:frontend/widgets/opaque_on_hover.dart';
-import 'package:frontend/widgets/resized_box.dart';
+import 'package:frontend_common/managers/game_manager.dart';
+import 'package:frontend_common/managers/twitch_manager.dart';
+import 'package:frontend_common/screens/dragging_screen.dart';
+import 'package:frontend_common/screens/non_authorized_screen.dart';
+import 'package:frontend_common/screens/play_screen.dart';
+import 'package:frontend_common/screens/waiting_screen.dart';
+import 'package:frontend_common/widgets/opaque_on_hover.dart';
+import 'package:frontend_common/widgets/resized_box.dart';
 
 class MainExtension extends StatefulWidget {
   const MainExtension({super.key, required this.isFullScreen});

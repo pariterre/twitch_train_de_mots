@@ -1,5 +1,5 @@
-name: video_component
-description: "Implementation of the video_component of the frontend"
+name: video_overlay
+description: "Implementation of the video_overlay of the frontend"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 

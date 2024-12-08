@@ -5,15 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "video_component",
+            "name": "Video component",
             "request": "launch",
             "type": "dart",
+            "program": "video_component/lib/main.dart",
             "flutterMode": "debug",
             "args": [
                 "--web-renderer",
                 "html",
             ]
         },
-        
+        {
+            "name": "Video overlay",
+            "request": "launch",
+            "type": "dart",
+            "program": "video_overlay/lib/main.dart",
+            "flutterMode": "debug",
+            "args": [
+                "--web-renderer",
+                "html",
+            ]
+        },
     ]
 }
