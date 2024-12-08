@@ -92,7 +92,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     return LetterDisplayerCommon(
       letterProblem: gm.simplifiedProblem!,
-      onLetterBuilder: (index) =>
+      letterBuilder: (index) =>
           Fireworks(controller: _fireworksControllers[index]),
     );
   }

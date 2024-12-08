@@ -3,117 +3,81 @@ import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/valuable_letter.dart';
 import 'package:flutter/material.dart';
 
-class LetterDisplayerController {
-  late double _sizeFactor;
-
-  LetterDisplayerController({double sizeFactor = 1.0}) {
-    sizeFactor = sizeFactor;
-  }
-
-  late double _letterWidth;
-  late double _letterHeight;
-  late double _letterPadding;
-
-  late double _letterSize;
-  late double _numberSize;
-
-  set sizeFactor(double value) {
-    _sizeFactor = value;
-
-    _letterWidth = 80 * _sizeFactor;
-    _letterHeight = 90 * _sizeFactor;
-    _letterPadding = 4 * _sizeFactor;
-
-    _letterSize = 46 * _sizeFactor;
-    _numberSize = 26 * _sizeFactor;
-
-    if (_state != null) _state!.refresh();
-  }
-
-  _LetterDisplayerCommonState? _state;
-}
-
 class LetterDisplayerCommon extends StatefulWidget {
   const LetterDisplayerCommon({
     super.key,
-    this.controller,
     required this.letterProblem,
-    this.onLetterBuilder,
+    this.letterBuilder,
   });
 
-  final LetterDisplayerController? controller;
   final SimplifiedLetterProblem letterProblem;
-  final Widget Function(int)? onLetterBuilder;
+  final Widget Function(int)? letterBuilder;
 
   @override
   State<LetterDisplayerCommon> createState() => _LetterDisplayerCommonState();
 }
 
 class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
-  late final LetterDisplayerController _controller;
+  double _sizeFactor = 1.0;
 
-  @override
-  void initState() {
-    super.initState();
+  final double _baseLetterWidth = 80;
+  double get _letterWidth => _baseLetterWidth * _sizeFactor;
+  final double _baseLetterHeight = 90;
+  double get _letterHeight => _baseLetterHeight * _sizeFactor;
+  final double _baseLetterPadding = 4;
+  double get _letterPadding => _baseLetterPadding * _sizeFactor;
 
-    _controller = widget.controller ?? LetterDisplayerController();
-    _controller._state = this;
-  }
-
-  @override
-  void dispose() {
-    _controller._state = null;
-
-    super.dispose();
-  }
-
-  void refresh() => setState(() {});
+  final double _baseLetterSize = 46;
+  double get _letterSize => _baseLetterSize * _sizeFactor;
+  final double _baseNumberSize = 26;
+  double get _numberSize => _baseNumberSize * _sizeFactor;
 
   @override
   Widget build(BuildContext context) {
     final lp = widget.letterProblem;
 
-    final displayerWidth = _controller._letterWidth * lp.letters.length +
-        2 * _controller._letterPadding * (lp.letters.length);
+    final displayerWidth = _baseLetterWidth * lp.letters.length +
+        2 * _baseLetterPadding * (lp.letters.length + 1);
 
-    return SizedBox(
-      width: displayerWidth,
-      height: _controller._letterHeight * 1.2,
-      child: Stack(alignment: Alignment.center, children: [
-        for (var index in lp.letters.asMap().keys)
-          AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              left:
-                  (_controller._letterWidth + 2 * _controller._letterPadding) *
-                      lp.scrambleIndices[index],
-              child: _Letter(
-                letter: lp.letters[index],
-                width: _controller._letterWidth,
-                height: _controller._letterHeight,
-                letterSize: _controller._letterSize,
-                numberSize: _controller._numberSize,
-                uselessIsRevealed: index == lp.revealedUselessLetterIndex,
-                isAHiddenLetter: index == lp.hiddenLetterIndex,
-                isHidden:
-                    index == lp.hiddenLetterIndex && lp.shouldHideHiddenLetter,
-              )),
-        for (var index in lp.letters.asMap().keys)
-          AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              left:
-                  (_controller._letterWidth + 2 * _controller._letterPadding) *
-                      lp.scrambleIndices[index],
-              child: SizedBox(
-                width: _controller._letterWidth,
-                height: _controller._letterHeight,
-                child: widget.onLetterBuilder != null
-                    ? widget.onLetterBuilder!(index)
-                    : null,
-              )),
-      ]),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      _sizeFactor = constraints.maxWidth / displayerWidth;
+
+      return SizedBox(
+        height: _letterHeight * 1.2,
+        child: Stack(alignment: Alignment.center, children: [
+          for (var index in lp.letters.asMap().keys)
+            AnimatedPositioned(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                left: (_letterWidth + 2 * _letterPadding) *
+                    lp.scrambleIndices[index],
+                child: _Letter(
+                  letter: lp.letters[index],
+                  width: _letterWidth,
+                  height: _letterHeight,
+                  letterSize: _letterSize,
+                  numberSize: _numberSize,
+                  uselessIsRevealed: index == lp.revealedUselessLetterIndex,
+                  isAHiddenLetter: index == lp.hiddenLetterIndex,
+                  isHidden: index == lp.hiddenLetterIndex &&
+                      lp.shouldHideHiddenLetter,
+                )),
+          for (var index in lp.letters.asMap().keys)
+            AnimatedPositioned(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                left: (_letterWidth + 2 * _letterPadding) *
+                    lp.scrambleIndices[index],
+                child: SizedBox(
+                  width: _letterWidth,
+                  height: _letterHeight,
+                  child: widget.letterBuilder != null
+                      ? widget.letterBuilder!(index)
+                      : null,
+                )),
+        ]),
+      );
+    });
   }
 }
 
