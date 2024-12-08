@@ -249,7 +249,7 @@ class TwitchManagerMock extends TwitchManager {
     Future.delayed(const Duration(seconds: 1))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
               status: GameStatus.roundStarted,
-              round: 1,
+              round: 11,
               timeRemaining: const Duration(seconds: 83),
               newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
@@ -264,7 +264,7 @@ class TwitchManagerMock extends TwitchManager {
               boostStillNeeded: 0,
               boosters: [],
               canAttemptTheBigHeist: false,
-              isAttemptingTheBigHeist: false,
+              isAttemptingTheBigHeist: true,
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon

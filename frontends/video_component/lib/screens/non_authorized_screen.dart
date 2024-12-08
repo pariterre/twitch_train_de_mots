@@ -11,33 +11,36 @@ class NonAuthorizedScreen extends StatelessWidget {
     final tm = ThemeManager.instance;
 
     return Stack(
+      alignment: Alignment.topCenter,
       children: [
-        const Header(titleText: 'Le Train de mots'),
+        const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Header(titleText: 'Le Train de mots!')),
         Center(
-          child: Transform.scale(
-              scale: 0.8,
-              child: SizedBox(
-                width: (TwitchManager.instance is TwitchManagerMock)
-                    ? 320
-                    : MediaQuery.of(context).size.width,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Bonjour cheminot\u00b7e,\n'
-                      'Afin de profiter d\'embarquer dans le train, vous '
-                      'devez autoriser l\'accès à votre identifiant Twitch.',
-                      textAlign: TextAlign.left,
-                      style: tm.textFrontendSc,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                        onPressed: () =>
-                            TwitchManager.instance.requestIdShare(),
-                        child: const Text('Ouvrir l\'autorisation')),
-                  ],
-                ),
-              )),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Bonjour cheminot\u00b7e,\n'
+                    'Afin de profiter d\'embarquer\n'
+                    'dans le train, vous devez\n'
+                    'autoriser l\'accès à votre\n'
+                    'identifiant Twitch.',
+                    textAlign: TextAlign.left,
+                    style: tm.textFrontendSc,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                      onPressed: () => TwitchManager.instance.requestIdShare(),
+                      child: const Text('Ouvrir l\'autorisation')),
+                ],
+              ),
+            ),
+          ),
         )
       ],
     );

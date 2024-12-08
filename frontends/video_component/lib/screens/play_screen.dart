@@ -16,39 +16,49 @@ class PlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Stack(
-        children: [
-          Header(
+    return Stack(
+      alignment: Alignment.topCenter,
+      children: [
+        FittedBox(
+          fit: BoxFit.contain,
+          child: Header(
               titleText: 'Le train est en route!\n'
                   'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 40),
-                const _LetterDisplayer(),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Transform.scale(
-                          scale: 0.8, child: const _PardonRequest()),
-                    ),
-                    Flexible(
-                        child: Transform.scale(
-                            scale: 0.8, child: const _BoostRequest())),
-                  ],
+        ),
+        LayoutBuilder(builder: (context, constraints) {
+          return Center(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: SizedBox(
+                width: 350,
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      left: 20.0, right: 20.0, bottom: 20.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      SizedBox(
+                          width: constraints.maxWidth,
+                          child: const _LetterDisplayer()),
+                      const SizedBox(height: 10),
+                      const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _PardonRequest(),
+                          _BoostRequest(),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      const _CooldownClock(),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 10),
-                const _CooldownClock(),
-              ],
+              ),
             ),
-          ),
-          const AnimationOverlay(),
-        ],
-      ),
+          );
+        }),
+        const FittedBox(fit: BoxFit.scaleDown, child: AnimationOverlay()),
+      ],
     );
   }
 }
@@ -82,11 +92,7 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
   Widget build(BuildContext context) {
     return GameManager.instance.problem == null
         ? Container()
-        : Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: LetterDisplayerCommon(
-                letterProblem: GameManager.instance.problem!),
-          );
+        : LetterDisplayerCommon(letterProblem: GameManager.instance.problem!);
   }
 }
 
@@ -140,16 +146,19 @@ class _PardonRequestState extends State<_PardonRequest> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('Pardonner', style: tm.textFrontendSc),
-        const SizedBox(height: 8),
-        ThemedElevatedButton(
-          onPressed: _canPlayerPardon ? _onPardonPressed : null,
-          buttonText: 'Pardon',
-        ),
-      ],
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Pardonner', style: tm.textFrontendSc),
+          const SizedBox(height: 8),
+          ThemedElevatedButton(
+            onPressed: _canPlayerPardon ? _onPardonPressed : null,
+            buttonText: 'Pardon',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -206,19 +215,22 @@ class _BoostRequestState extends State<_BoostRequest> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Booster le train',
-          style: tm.textFrontendSc,
-        ),
-        const SizedBox(height: 8),
-        ThemedElevatedButton(
-          onPressed: _canPlayerBoost ? _onBoostPressed : null,
-          buttonText: 'Boost',
-        ),
-      ],
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Booster le train',
+            style: tm.textFrontendSc,
+          ),
+          const SizedBox(height: 8),
+          ThemedElevatedButton(
+            onPressed: _canPlayerBoost ? _onBoostPressed : null,
+            buttonText: 'Boost',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -278,26 +290,30 @@ class _CooldownClockState extends State<_CooldownClock> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Visibility(
-      visible: _cooldownRemaining >= Duration.zero,
-      maintainSize: true,
-      maintainAnimation: true,
-      maintainState: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Petite pause', style: tm.textFrontendSc),
-          const SizedBox(width: 16),
-          SizedBox(
-              width: 20,
-              height: 20,
-              child: Clock(
-                timeRemaining: _cooldownRemaining,
-                maxDuration: _cooldownDuration,
-                borderWidth: 3,
-              )),
-        ],
-      ),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      return Visibility(
+        visible: _cooldownRemaining >= Duration.zero,
+        maintainSize: true,
+        maintainAnimation: true,
+        maintainState: true,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FittedBox(
+                fit: BoxFit.fitWidth,
+                child: Text('Petite pause', style: tm.textFrontendSc)),
+            const SizedBox(width: 16),
+            SizedBox(
+                width: 20,
+                height: 20,
+                child: Clock(
+                  timeRemaining: _cooldownRemaining,
+                  maxDuration: _cooldownDuration,
+                  borderWidth: 3,
+                )),
+          ],
+        ),
+      );
+    });
   }
 }

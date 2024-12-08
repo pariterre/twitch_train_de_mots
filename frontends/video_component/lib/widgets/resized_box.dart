@@ -5,34 +5,129 @@ class ResizedBox extends StatefulWidget {
   const ResizedBox({
     super.key,
     required this.borderWidth,
+    this.decoration = const BoxDecoration(color: Colors.transparent),
     required this.initialTop,
     required this.initialLeft,
     required this.initialWidth,
     required this.initialHeight,
-    this.draggingChild,
+    this.minTop,
+    this.minLeft,
+    this.minWidth,
+    this.minHeight,
+    this.maxTop,
+    this.maxLeft,
+    this.maxWidth,
+    this.maxHeight,
     required this.child,
+    this.draggingChild,
+    this.preserveAspectRatio = false,
   });
 
   final double borderWidth;
+  final Decoration decoration;
 
   final double initialTop;
   final double initialLeft;
   final double initialWidth;
   final double initialHeight;
 
-  final Widget? draggingChild;
+  final double? minTop;
+  final double? minLeft;
+  final double? minWidth;
+  final double? minHeight;
+
+  final double? maxTop;
+  final double? maxLeft;
+  final double? maxWidth;
+  final double? maxHeight;
+
   final Widget child;
+  final Widget? draggingChild;
+
+  final bool preserveAspectRatio;
 
   @override
   State<ResizedBox> createState() => _ResizedBoxState();
 }
 
 class _ResizedBoxState extends State<ResizedBox> {
-  late double height = widget.initialHeight;
-  late double width = widget.initialWidth;
+  late double _height = widget.initialHeight;
+  double get height => _height;
+  set height(double value) {
+    if (widget.minHeight != null && value < widget.minHeight!) {
+      value = widget.minHeight!;
+    }
+    if (widget.maxHeight != null && value > widget.maxHeight!) {
+      value = widget.maxHeight!;
+    }
 
-  late double top = widget.initialTop;
-  late double left = widget.initialLeft;
+    if (widget.preserveAspectRatio) {
+      final aspectRatio = widget.initialWidth / widget.initialHeight;
+      _width = value * aspectRatio;
+
+      if (widget.minWidth != null && width < widget.minWidth!) {
+        _width = widget.minWidth!;
+        value = width / aspectRatio;
+      }
+      if (widget.maxWidth != null && width > widget.maxWidth!) {
+        _width = widget.maxWidth!;
+        value = width / aspectRatio;
+      }
+    }
+
+    _height = value;
+  }
+
+  late double _width = widget.initialWidth;
+  double get width => _width;
+  set width(double value) {
+    if (widget.minWidth != null && value < widget.minWidth!) {
+      value = widget.minWidth!;
+    }
+    if (widget.maxWidth != null && value > widget.maxWidth!) {
+      value = widget.maxWidth!;
+    }
+
+    if (widget.preserveAspectRatio) {
+      final aspectRatio = widget.initialWidth / widget.initialHeight;
+      _height = value / aspectRatio;
+
+      if (widget.minHeight != null && height < widget.minHeight!) {
+        _height = widget.minHeight!;
+        value = height * aspectRatio;
+      }
+      if (widget.maxHeight != null && height > widget.maxHeight!) {
+        _height = widget.maxHeight!;
+        value = height * aspectRatio;
+      }
+    }
+
+    _width = value;
+  }
+
+  late double _top = widget.initialTop;
+  double get top => _top;
+  set top(double value) {
+    if (widget.minTop != null && value < widget.minTop!) {
+      value = widget.minTop!;
+    }
+    if (widget.maxTop != null && value > widget.maxTop!) {
+      value = widget.maxTop!;
+    }
+    _top = value;
+  }
+
+  late double _left = widget.initialLeft;
+  double get left => _left;
+  set left(double value) {
+    if (widget.minLeft != null && value < widget.minLeft!) {
+      value = widget.minLeft!;
+    }
+    if (widget.maxLeft != null && value > widget.maxLeft!) {
+      value = widget.maxLeft!;
+    }
+    _left = value;
+  }
 
   void _onDragWindow(newLeft, newTop) {
     setState(() {
@@ -42,24 +137,41 @@ class _ResizedBoxState extends State<ResizedBox> {
   }
 
   void _onDragTopLeft(dx, dy) {
-    final newHeight = height - dy;
-    final newWidth = width - dx;
+    final newHeight = height - dy > 0 ? height - dy : 0.0;
+    final newWidth = width - dx > 0 ? width - dx : 0.0;
 
     setState(() {
-      height = newHeight > 0 ? newHeight : 0;
-      width = newWidth > 0 ? newWidth : 0;
+      if (widget.preserveAspectRatio) {
+        if (newWidth == width) {
+          height = newHeight;
+        } else {
+          width = newWidth;
+        }
+      } else {
+        height = newHeight;
+        width = newWidth;
+      }
+
       top = top + dy;
       left = left + dx;
     });
   }
 
   void _onDragBottomRight(dx, dy) {
-    final newHeight = height + dy;
-    final newWidth = width + dx;
+    final newHeight = height + dy > 0 ? height + dy : 0.0;
+    final newWidth = width + dx > 0 ? width + dx : 0.0;
 
     setState(() {
-      height = newHeight > 0 ? newHeight : 0;
-      width = newWidth > 0 ? newWidth : 0;
+      if (widget.preserveAspectRatio) {
+        if (newWidth == width) {
+          height = newHeight;
+        } else {
+          width = newWidth;
+        }
+      } else {
+        height = newHeight;
+        width = newWidth;
+      }
     });
   }
 
@@ -94,16 +206,6 @@ class _ResizedBoxState extends State<ResizedBox> {
                   SizedBox(width: width, height: height, child: widget.child),
             ),
           ),
-          // top left
-          Positioned(
-            top: topEdge,
-            left: leftEdge,
-            child: _ManipulatingBorder(
-              direction: _Direction.diagonalLeft,
-              onDrag: _onDragTopLeft,
-              borderWidth: borderWidth,
-            ),
-          ),
           // top middle
           Positioned(
             top: topEdge,
@@ -113,19 +215,7 @@ class _ResizedBoxState extends State<ResizedBox> {
               direction: _Direction.vertical,
               onDrag: (double x, double y) => _onDragTopLeft(0, y),
               borderWidth: borderWidth,
-            ),
-          ),
-          // top right
-          Positioned(
-            top: topEdge,
-            right: rightEdge,
-            child: _ManipulatingBorder(
-              direction: _Direction.diagonalRight,
-              onDrag: (x, y) {
-                _onDragTopLeft(0, y);
-                _onDragBottomRight(x, 0);
-              },
-              borderWidth: borderWidth,
+              decoration: widget.decoration,
             ),
           ),
           // center right
@@ -137,16 +227,7 @@ class _ResizedBoxState extends State<ResizedBox> {
               direction: _Direction.horizontal,
               onDrag: (double x, double y) => _onDragBottomRight(x, 0),
               borderWidth: borderWidth,
-            ),
-          ),
-          // bottom right
-          Positioned(
-            bottom: bottomEdge,
-            right: rightEdge,
-            child: _ManipulatingBorder(
-              direction: _Direction.diagonalLeft,
-              onDrag: _onDragBottomRight,
-              borderWidth: borderWidth,
+              decoration: widget.decoration,
             ),
           ),
           // bottom center
@@ -158,6 +239,56 @@ class _ResizedBoxState extends State<ResizedBox> {
               direction: _Direction.vertical,
               onDrag: (double x, double y) => _onDragBottomRight(0, y),
               borderWidth: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // top left
+          Positioned(
+            top: topEdge,
+            left: leftEdge,
+            child: _ManipulatingBorder(
+              direction: _Direction.diagonalLeft,
+              onDrag: _onDragTopLeft,
+              borderWidth: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // left center
+          Positioned(
+            top: topEdge + borderWidth,
+            left: left,
+            bottom: bottomEdge + borderWidth,
+            child: _ManipulatingBorder(
+              direction: _Direction.horizontal,
+              onDrag: (double x, double y) => _onDragTopLeft(x, 0),
+              borderWidth: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+
+          // top right
+          Positioned(
+            top: topEdge,
+            right: rightEdge,
+            child: _ManipulatingBorder(
+              direction: _Direction.diagonalRight,
+              onDrag: (x, y) {
+                _onDragTopLeft(0, y);
+                _onDragBottomRight(x, 0);
+              },
+              borderWidth: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // bottom right
+          Positioned(
+            bottom: bottomEdge,
+            right: rightEdge,
+            child: _ManipulatingBorder(
+              direction: _Direction.diagonalLeft,
+              onDrag: _onDragBottomRight,
+              borderWidth: borderWidth,
+              decoration: widget.decoration,
             ),
           ),
           // bottom left
@@ -171,17 +302,7 @@ class _ResizedBoxState extends State<ResizedBox> {
                 _onDragBottomRight(0, y);
               },
               borderWidth: borderWidth,
-            ),
-          ),
-          // left center
-          Positioned(
-            top: topEdge + borderWidth,
-            left: left,
-            bottom: bottomEdge + borderWidth,
-            child: _ManipulatingBorder(
-              direction: _Direction.horizontal,
-              onDrag: (double x, double y) => _onDragTopLeft(x, 0),
-              borderWidth: borderWidth,
+              decoration: widget.decoration,
             ),
           ),
         ],
@@ -214,14 +335,17 @@ enum _Direction {
 }
 
 class _ManipulatingBorder extends StatefulWidget {
-  const _ManipulatingBorder(
-      {required this.onDrag,
-      required this.direction,
-      required this.borderWidth});
+  const _ManipulatingBorder({
+    required this.onDrag,
+    required this.direction,
+    required this.borderWidth,
+    required this.decoration,
+  });
 
   final Function onDrag;
   final _Direction direction;
   final double borderWidth;
+  final Decoration decoration;
 
   @override
   _ManipulatingBorderState createState() => _ManipulatingBorderState();
@@ -256,7 +380,7 @@ class _ManipulatingBorderState extends State<_ManipulatingBorder> {
         child: Container(
           width: widget.borderWidth,
           height: widget.borderWidth,
-          decoration: const BoxDecoration(color: Colors.transparent),
+          decoration: widget.decoration,
         ),
       ),
     );

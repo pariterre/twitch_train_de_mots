@@ -65,23 +65,21 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.065,
-            child: Transform.scale(
-                scale: 0.5,
-                child: BouncyContainer(controller: _pardonedController)),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.065,
-            child: Transform.scale(
-                scale: 0.5,
-                child: BouncyContainer(controller: _trainGotBoostedController)),
-          ),
-        ],
-      ),
+      child: LayoutBuilder(builder: (context, constraints) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: constraints.maxHeight * 0.165,
+              child: BouncyContainer(controller: _pardonedController),
+            ),
+            Positioned(
+              top: constraints.maxHeight * 0.165,
+              child: BouncyContainer(controller: _trainGotBoostedController),
+            ),
+          ],
+        );
+      }),
     );
   }
 }

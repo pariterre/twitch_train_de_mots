@@ -52,90 +52,90 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case GameStatus.roundReady:
       case GameStatus.revealAnswers:
         textToShow =
-            'Votre cheminot\u00b7e en chef est prêt\u00b7e pour le grand départ vers le Nord!\n'
+            'Votre cheminot\u00b7e en chef est\nprêt\u00b7e pour le grand départ vers le Nord!\n'
             '\n'
             'Prochain arrêt: Station ${gm.currentRound + 1}';
         break;
     }
 
     return Stack(
+      alignment: Alignment.topCenter,
       children: [
-        const Header(titleText: 'Le Train de mots'),
+        const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Header(titleText: 'Le Train de mots!')),
         Center(
-          child: Transform.scale(
-              scale: 0.8,
-              child: SizedBox(
-                width: (TwitchManager.instance is TwitchManagerMock)
-                    ? 320
-                    : MediaQuery.of(context).size.width,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      textToShow,
-                      textAlign: TextAlign.left,
-                      style: tm.textFrontendSc,
-                    ),
-                    if (gm.status != GameStatus.uninitialized)
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 10),
-                          if (gm.canAttemptTheBigHeist)
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.white.withAlpha(50),
-                              ),
-                              child: GrowingWidget(
-                                growingFactor: 1.02,
-                                duration: const Duration(milliseconds: 2000),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Un train est immobilisé sur les rails. '
-                                      'Tenter un braquage pour doubler vos stations!',
-                                      style: tm.textFrontendSc,
-                                    ),
-                                    const SizedBox(height: 8.0),
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          TwitchManager
-                                              .instance.frontendManager.bits
-                                              .useBits('big_heist');
-                                        },
-                                        child: const Text(
-                                            'Frapper le Grand Coup!')),
-                                  ],
-                                ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    textToShow,
+                    textAlign: TextAlign.left,
+                    style: tm.textFrontendSc,
+                  ),
+                  if (gm.status != GameStatus.uninitialized)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 10),
+                        if (gm.canAttemptTheBigHeist)
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.white.withAlpha(50),
+                            ),
+                            child: GrowingWidget(
+                              growingFactor: 1.02,
+                              duration: const Duration(milliseconds: 2000),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Un train est immobilisé sur les rails.\n'
+                                    'Tenter un braquage pour doubler\nvos stations!',
+                                    style: tm.textFrontendSc,
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  ElevatedButton(
+                                      onPressed: () async {
+                                        TwitchManager
+                                            .instance.frontendManager.bits
+                                            .useBits('big_heist');
+                                      },
+                                      child:
+                                          const Text('Frapper le Grand Coup!')),
+                                ],
                               ),
                             ),
-                          if (!gm.canAttemptTheBigHeist &&
-                              gm.previousRound >= 10)
-                            Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                Text(
-                                    'Félicitez vos collègues cheminot\u00b7e\u00b7s '
-                                    'avec un feux d\'artifice!',
-                                    style: tm.textFrontendSc),
-                                const SizedBox(height: 8.0),
-                                ElevatedButton(
-                                    onPressed: () async {
-                                      TwitchManager
-                                          .instance.frontendManager.bits
-                                          .useBits('celebrate');
-                                    },
-                                    child: const Text('Feux d\'artifice!')),
-                              ],
-                            ),
-                        ],
-                      )
-                  ],
-                ),
-              )),
+                          ),
+                        if (!gm.canAttemptTheBigHeist && gm.previousRound >= 10)
+                          Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Text(
+                                  'Félicitez vos collègues cheminot\u00b7e\u00b7s '
+                                  'avec un feux d\'artifice!',
+                                  style: tm.textFrontendSc),
+                              const SizedBox(height: 8.0),
+                              ElevatedButton(
+                                  onPressed: () async {
+                                    TwitchManager.instance.frontendManager.bits
+                                        .useBits('celebrate');
+                                  },
+                                  child: const Text('Feux d\'artifice!')),
+                            ],
+                          ),
+                      ],
+                    )
+                ],
+              ),
+            ),
+          ),
         )
       ],
     );
