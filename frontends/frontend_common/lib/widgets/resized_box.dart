@@ -5,6 +5,7 @@ class ResizedBox extends StatefulWidget {
   const ResizedBox({
     super.key,
     required this.borderWidth,
+    this.draggableBorderWidth = 10.0,
     this.decoration = const BoxDecoration(color: Colors.transparent),
     required this.initialTop,
     required this.initialLeft,
@@ -23,6 +24,7 @@ class ResizedBox extends StatefulWidget {
     this.preserveAspectRatio = false,
   });
 
+  final double draggableBorderWidth;
   final double borderWidth;
   final Decoration decoration;
 
@@ -183,12 +185,20 @@ class _ResizedBoxState extends State<ResizedBox> {
     final bottomEdge = MediaQuery.of(context).size.height - (top + height);
 
     final borderWidth = widget.borderWidth;
+    final draggableBorderWidth = widget.draggableBorderWidth;
+
+    // Strategy :
+    // We draw first the main window
+    // Then all the non interactable borders, since the corners are irrelevant
+    // for the non interactable borders, we draw them from the borders
+    // finally the interactable borders
 
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
       child: Stack(
         children: <Widget>[
+          // Main window
           Positioned(
             top: topEdge,
             left: leftEdge,
@@ -206,103 +216,134 @@ class _ResizedBoxState extends State<ResizedBox> {
                   SizedBox(width: width, height: height, child: widget.child),
             ),
           ),
-          // top middle
+          // NON INTERACTABLE - top
           Positioned(
-            top: topEdge,
-            left: leftEdge + borderWidth,
-            right: rightEdge + borderWidth,
+            top: topEdge - borderWidth / 2,
+            left: leftEdge - borderWidth / 2,
+            right: rightEdge - borderWidth / 2,
+            child: Container(
+              height: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // NON INTERACTABLE - right
+          Positioned(
+            top: topEdge - borderWidth / 2,
+            bottom: bottomEdge - borderWidth / 2,
+            right: rightEdge - borderWidth / 2,
+            child: Container(
+              width: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // NON INTERACTABLE - left
+          Positioned(
+            top: topEdge - borderWidth / 2,
+            bottom: bottomEdge - borderWidth / 2,
+            left: leftEdge - borderWidth / 2,
+            child: Container(
+              width: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // NON INTERACTABLE - bottom
+          Positioned(
+            bottom: bottomEdge - borderWidth / 2,
+            left: leftEdge - borderWidth / 2,
+            right: rightEdge - borderWidth / 2,
+            child: Container(
+              height: borderWidth,
+              decoration: widget.decoration,
+            ),
+          ),
+          // INTERACTABLE - top middle
+          Positioned(
+            top: topEdge - draggableBorderWidth / 2,
+            left: leftEdge + draggableBorderWidth / 2,
+            right: rightEdge + draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.vertical,
               onDrag: (double x, double y) => _onDragTopLeft(0, y),
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-          // center right
+          // INTERACTABLE - center right
           Positioned(
-            top: topEdge + borderWidth,
-            bottom: bottomEdge + borderWidth,
-            left: left + width - borderWidth,
+            top: topEdge + draggableBorderWidth / 2,
+            bottom: bottomEdge + draggableBorderWidth / 2,
+            left: left + width - draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.horizontal,
               onDrag: (double x, double y) => _onDragBottomRight(x, 0),
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-          // bottom center
+          // INTERACTABLE - bottom center
           Positioned(
-            bottom: bottomEdge,
-            left: leftEdge + borderWidth,
-            right: rightEdge + borderWidth,
+            bottom: bottomEdge - draggableBorderWidth / 2,
+            left: leftEdge + draggableBorderWidth / 2,
+            right: rightEdge + draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.vertical,
               onDrag: (double x, double y) => _onDragBottomRight(0, y),
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-          // top left
+          // INTERACTABLE - left center
           Positioned(
-            top: topEdge,
-            left: leftEdge,
-            child: _ManipulatingBorder(
-              direction: _Direction.diagonalLeft,
-              onDrag: _onDragTopLeft,
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
-            ),
-          ),
-          // left center
-          Positioned(
-            top: topEdge + borderWidth,
-            left: left,
-            bottom: bottomEdge + borderWidth,
+            top: topEdge + draggableBorderWidth / 2,
+            left: left - draggableBorderWidth / 2,
+            bottom: bottomEdge + draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.horizontal,
               onDrag: (double x, double y) => _onDragTopLeft(x, 0),
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-
-          // top right
+          // INTERACTABLE - top right
           Positioned(
-            top: topEdge,
-            right: rightEdge,
+            top: topEdge - draggableBorderWidth / 2,
+            right: rightEdge - draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.diagonalRight,
               onDrag: (x, y) {
                 _onDragTopLeft(0, y);
                 _onDragBottomRight(x, 0);
               },
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-          // bottom right
+          // INTERACTABLE - bottom right
           Positioned(
-            bottom: bottomEdge,
-            right: rightEdge,
+            bottom: bottomEdge - draggableBorderWidth / 2,
+            right: rightEdge - draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.diagonalLeft,
               onDrag: _onDragBottomRight,
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
             ),
           ),
-          // bottom left
+          // INTERACTABLE - bottom left
           Positioned(
-            bottom: bottomEdge,
-            left: leftEdge,
+            bottom: bottomEdge - draggableBorderWidth / 2,
+            left: leftEdge - draggableBorderWidth / 2,
             child: _ManipulatingBorder(
               direction: _Direction.diagonalRight,
               onDrag: (x, y) {
                 _onDragTopLeft(x, 0);
                 _onDragBottomRight(0, y);
               },
-              borderWidth: borderWidth,
-              decoration: widget.decoration,
+              borderWidth: draggableBorderWidth,
+            ),
+          ),
+          // INTERACTABLE - top left
+          Positioned(
+            top: topEdge - draggableBorderWidth / 2,
+            left: leftEdge - draggableBorderWidth / 2,
+            child: _ManipulatingBorder(
+              direction: _Direction.diagonalLeft,
+              onDrag: _onDragTopLeft,
+              borderWidth: draggableBorderWidth,
             ),
           ),
         ],
@@ -339,13 +380,11 @@ class _ManipulatingBorder extends StatefulWidget {
     required this.onDrag,
     required this.direction,
     required this.borderWidth,
-    required this.decoration,
   });
 
   final Function onDrag;
   final _Direction direction;
   final double borderWidth;
-  final Decoration decoration;
 
   @override
   _ManipulatingBorderState createState() => _ManipulatingBorderState();
@@ -380,7 +419,7 @@ class _ManipulatingBorderState extends State<_ManipulatingBorder> {
         child: Container(
           width: widget.borderWidth,
           height: widget.borderWidth,
-          decoration: widget.decoration,
+          decoration: const BoxDecoration(color: Colors.transparent),
         ),
       ),
     );
