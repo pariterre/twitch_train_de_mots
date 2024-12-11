@@ -627,6 +627,26 @@ class GameManager {
     return true;
   }
 
+  Future<bool> requestChangeOfLane() async {
+    _logger.info('Requesting the change of lane...');
+
+    if (_gameStatus != GameStatus.roundStarted) {
+      _logger.warning('Cannot change lane at this time');
+      return false;
+    }
+
+    // Perform a huge scramble of the letters
+    for (int i = 0; i < problem!.letters.length * 4; i++) {
+      if (i % problem!.letters.length == 0) {
+        onScrablingLetters.notifyListeners();
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      problem!.scrambleLetters();
+    }
+
+    return true;
+  }
+
   ///
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
@@ -959,6 +979,7 @@ class GameManagerMock extends GameManager {
     int? roundCount,
     SuccessLevel? successLevel,
     bool shouldAttemptTheBigHeist = false,
+    bool shouldChangeLane = false,
   }) async {
     if (GameManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -998,6 +1019,11 @@ class GameManagerMock extends GameManager {
     if (shouldAttemptTheBigHeist) {
       GameManager._instance!._canAttemptTheBigHeist = true;
       GameManager._instance!.requestTheBigHeist();
+    }
+
+    if (shouldChangeLane) {
+      Future.delayed(const Duration(seconds: 15))
+          .then((_) => GameManager._instance!.requestChangeOfLane());
     }
 
     if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
