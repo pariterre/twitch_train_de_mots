@@ -88,7 +88,8 @@ class MocksConfiguration {
         Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')..score = 350,
       ],
       roundCount: 10,
-      successLevel: SuccessLevel.failed,
+      successLevel: SuccessLevel.oneStar,
+      shouldAttemptTheBigHeist: true,
     );
   }
 

@@ -917,10 +917,12 @@ class GameManager {
   SuccessLevel _numberOfStarObtained(int score) {
     if (problem == null) return SuccessLevel.failed;
 
-    if (score >= pointsToObtain(SuccessLevel.threeStars)) {
-      return _isAttemptingTheBigHeist
+    if (_isAttemptingTheBigHeist) {
+      return score >= pointsToObtain(SuccessLevel.threeStars)
           ? SuccessLevel.bigHeist
-          : SuccessLevel.threeStars;
+          : SuccessLevel.failed;
+    } else if (score >= pointsToObtain(SuccessLevel.threeStars)) {
+      return SuccessLevel.threeStars;
     } else if (score >= pointsToObtain(SuccessLevel.twoStars)) {
       return SuccessLevel.twoStars;
     } else if (score >= pointsToObtain(SuccessLevel.oneStar)) {
@@ -956,6 +958,7 @@ class GameManagerMock extends GameManager {
     List<Player>? players,
     int? roundCount,
     SuccessLevel? successLevel,
+    bool shouldAttemptTheBigHeist = false,
   }) async {
     if (GameManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -990,6 +993,11 @@ class GameManagerMock extends GameManager {
 
       Future.delayed(const Duration(seconds: 1)).then((value) =>
           GameManager._instance!.onNextProblemReady.notifyListeners());
+    }
+
+    if (shouldAttemptTheBigHeist) {
+      GameManager._instance!._canAttemptTheBigHeist = true;
+      GameManager._instance!.requestTheBigHeist();
     }
 
     if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
