@@ -34,28 +34,50 @@ class _WaitingScreenState extends State<WaitingScreen> {
 
   void _refresh() => setState(() {});
 
+  Widget _starWidget(bool isSuccess) => Icon(Icons.star,
+      color: isSuccess ? Colors.amber : Colors.grey,
+      size: 30.0,
+      shadows: [Shadow(color: Colors.grey.shade500, blurRadius: 15.0)]);
+
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
-    late final String textToShow;
+    late final String mainText;
+    late final bool showStar;
     switch (gm.status) {
       case GameStatus.uninitialized:
-        textToShow = 'Bien le bonjour cheminot\u00b7e,\n'
+        mainText = 'Bien le bonjour cheminot\u00b7e!\n'
             '\n'
-            'Nous sommes en attente de votre cheminot\u00b7e\n'
-            'en chef, veuillez patienter...';
+            'Nous sommes en attente de\n'
+            'votre cheminot\u00b7e en chef,\n'
+            'veuillez patienter...';
+        showStar = false;
         break;
       case GameStatus.initializing:
+        mainText = 'Votre cheminot\u00b7e en chef est\n'
+            'prêt\u00b7e pour le grand départ!\n'
+            '\n'
+            'Nous attendons son signal pour\n'
+            'lancer le Petit Train du Nord';
+        showStar = false;
+        break;
       case GameStatus.roundStarted:
       case GameStatus.roundPreparing:
       case GameStatus.roundReady:
       case GameStatus.revealAnswers:
-        textToShow = 'Votre cheminot\u00b7e en chef est\n'
-            'prêt\u00b7e pour le grand départ vers le Nord!\n'
-            '\n'
-            'Prochain arrêt: Station ${gm.currentRound + 1}';
+        mainText = gm.isRoundSuccess
+            ? 'Bravo, cheminot\u00b7e\u00b7s,\n'
+                'vous avancez bien!\n'
+                '\n'
+                'Prochaine station ${gm.currentRound + 1}'
+            : 'Malheur, cheminot\u00b7e\u00b7s!\n'
+                'Votre aventure vers le\n'
+                'Nord se termine ici...!\n'
+                '\n'
+                'Dernière station ${gm.currentRound}';
+        showStar = true;
         break;
     }
 
@@ -69,14 +91,28 @@ class _WaitingScreenState extends State<WaitingScreen> {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding:
+                  const EdgeInsets.only(left: 20.0, top: 30.0, right: 20.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    textToShow,
-                    textAlign: TextAlign.left,
-                    style: tm.textFrontendSc,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (showStar)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: _starWidget(gm.isRoundSuccess),
+                        ),
+                      Text(mainText,
+                          textAlign: TextAlign.left, style: tm.textFrontendSc),
+                      if (showStar)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: _starWidget(gm.isRoundSuccess),
+                        ),
+                    ],
                   ),
                   if (gm.status != GameStatus.uninitialized)
                     Column(
@@ -97,8 +133,9 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Un train est immobilisé sur les rails.\n'
-                                    'Tenter un braquage pour doubler\nvos stations!',
+                                    'Un train est immobilisé sur les\n'
+                                    'rails. Tenter un braquage pour\n'
+                                    'doubler vos stations!',
                                     style: tm.textFrontendSc,
                                   ),
                                   const SizedBox(height: 8.0),
@@ -114,22 +151,27 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
-                        if (!gm.canAttemptTheBigHeist && gm.previousRound >= 10)
-                          Column(
-                            children: [
-                              const SizedBox(height: 10),
-                              Text(
-                                  'Félicitez vos collègues cheminot\u00b7e\u00b7s '
-                                  'avec un feux d\'artifice!',
-                                  style: tm.textFrontendSc),
-                              const SizedBox(height: 8.0),
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    TwitchManager.instance.frontendManager.bits
-                                        .useBits('celebrate');
-                                  },
-                                  child: const Text('Feux d\'artifice!')),
-                            ],
+                        if (!gm.canAttemptTheBigHeist && gm.currentRound >= 10)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Félicitez vos collègues\n'
+                                  'cheminot\u00b7e\u00b7s avec un',
+                                  style: tm.textFrontendSc,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8.0),
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      TwitchManager
+                                          .instance.frontendManager.bits
+                                          .useBits('celebrate');
+                                    },
+                                    child: const Text('Feux d\'artifice!')),
+                              ],
+                            ),
                           ),
                       ],
                     )

@@ -79,6 +79,7 @@ class SimplifiedLetterProblem {
 class SimplifiedGameState {
   GameStatus status;
   int round;
+  bool isRoundSuccess;
   Duration timeRemaining;
 
   Map<String, Duration> newCooldowns;
@@ -98,6 +99,7 @@ class SimplifiedGameState {
   SimplifiedGameState({
     required this.status,
     required this.round,
+    required this.isRoundSuccess,
     required this.timeRemaining,
     required this.newCooldowns,
     required this.letterProblem,
@@ -113,6 +115,7 @@ class SimplifiedGameState {
   SimplifiedGameState copyWith({
     GameStatus? status,
     int? round,
+    bool? isRoundSuccess,
     Duration? timeRemaining,
     Map<String, Duration>? newCooldowns,
     SimplifiedLetterProblem? letterProblem,
@@ -127,6 +130,7 @@ class SimplifiedGameState {
       SimplifiedGameState(
         status: status ??= this.status,
         round: round ??= this.round,
+        isRoundSuccess: isRoundSuccess ??= this.isRoundSuccess,
         timeRemaining: timeRemaining ??= this.timeRemaining,
         newCooldowns: newCooldowns ??= this.newCooldowns,
         letterProblem: letterProblem ??= this.letterProblem,
@@ -145,6 +149,7 @@ class SimplifiedGameState {
     return {
       'game_status': status.index,
       'round': round,
+      'is_round_success': isRoundSuccess,
       'time_remaining': timeRemaining.inMilliseconds,
       'new_cooldowns':
           newCooldowns.map((key, value) => MapEntry(key, value.inMilliseconds)),
@@ -163,6 +168,7 @@ class SimplifiedGameState {
     return SimplifiedGameState(
       status: GameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
+      isRoundSuccess: data['is_round_success'] as bool,
       timeRemaining: Duration(milliseconds: data['time_remaining'] as int),
       newCooldowns: (data['new_cooldowns'] as Map<String, dynamic>).map(
           (key, value) => MapEntry(key, Duration(milliseconds: value as int))),

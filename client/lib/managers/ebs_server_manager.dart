@@ -148,6 +148,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     _simplifiedStateToSend ??= SimplifiedGameState(
       status: gm.gameStatus,
       round: gm.roundCount,
+      isRoundSuccess: gm.successLevel.toInt() > 0,
       timeRemaining: Duration(seconds: gm.timeRemaining ?? 0),
       newCooldowns: _cooldowns,
       letterProblem: gm.simplifiedProblem,

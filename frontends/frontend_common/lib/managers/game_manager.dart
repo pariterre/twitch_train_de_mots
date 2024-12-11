@@ -18,8 +18,7 @@ class GameManager {
   /// Callback to know when a round has started or ended
   int get currentRound => _gameState.round;
   bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
-  int _previousRound = -1;
-  int get previousRound => _previousRound;
+  bool get isRoundSuccess => _gameState.isRoundSuccess;
 
   bool _hasPlayedAtLeastOneRound = false;
   bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
@@ -29,6 +28,7 @@ class GameManager {
   final _gameState = SimplifiedGameState(
     status: GameStatus.uninitialized,
     round: 0,
+    isRoundSuccess: false,
     timeRemaining: Duration.zero,
     newCooldowns: {},
     letterProblem: null,
@@ -58,8 +58,8 @@ class GameManager {
     }
 
     if (_gameState.round != newGameState.round) {
-      _previousRound = _gameState.round;
       _gameState.round = newGameState.round;
+      _gameState.isRoundSuccess = newGameState.isRoundSuccess;
       _logger.info('Round changed to ${newGameState.round}');
     }
 

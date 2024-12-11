@@ -21,6 +21,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   SimplifiedGameState _gameState = SimplifiedGameState(
     status: GameStatus.initializing,
     round: 0,
+    isRoundSuccess: false,
     timeRemaining: Duration.zero,
     newCooldowns: {},
     letterProblem: null,

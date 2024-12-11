@@ -248,8 +248,9 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 1))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
-              status: GameStatus.roundStarted,
+              status: GameStatus.roundPreparing,
               round: 11,
+              isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 83),
               newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
@@ -309,8 +310,9 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SimplifiedGameState(
-                status: GameStatus.initializing,
+                status: GameStatus.uninitialized,
                 round: 1,
+                isRoundSuccess: false,
                 timeRemaining: const Duration(seconds: 83),
                 newCooldowns: {userId: const Duration(seconds: 5)},
                 letterProblem: SimplifiedLetterProblem(
