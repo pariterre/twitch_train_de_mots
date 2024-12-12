@@ -89,7 +89,8 @@ class MocksConfiguration {
       ],
       roundCount: 10,
       successLevel: SuccessLevel.oneStar,
-      shouldAttemptTheBigHeist: true,
+      shouldAttemptTheBigHeist: false,
+      shouldChangeLane: true,
     );
   }
 

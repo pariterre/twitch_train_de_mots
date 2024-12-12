@@ -57,6 +57,7 @@ flutter:
     - assets/sounds/TheBigHeist.mp3
     - assets/sounds/BigHeistSuccess.mp3
     - assets/sounds/BigHeistFailed.mp3
+    - assets/sounds/ChangingLane.mp3
     
   fonts:
     - family: BaskervvilleSC

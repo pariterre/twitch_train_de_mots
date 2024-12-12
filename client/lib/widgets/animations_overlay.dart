@@ -68,6 +68,15 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
       bouncyScale: 1.1,
       maxScale: 1.2,
       maxOpacity: 0.9);
+  final _changeLaneController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1000,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
 
   @override
   void initState() {
@@ -81,6 +90,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
     gm.onBigHeistSuccess.addListener(_showBigHeistSuccess);
     gm.onBigHeistFailed.addListener(_showBigHeistFailed);
+    gm.onChangingLane.addListener(_showChangeLane);
   }
 
   @override
@@ -90,6 +100,9 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _newGoldenController.dispose();
     _allSolutionFoundController.dispose();
     _trainGotBoostedController.dispose();
+    _bigHeistSuccessController.dispose();
+    _bigHeistFailedController.dispose();
+    _changeLaneController.dispose();
 
     final gm = GameManager.instance;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
@@ -99,6 +112,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
     gm.onBigHeistSuccess.removeListener(_showBigHeistSuccess);
     gm.onBigHeistFailed.removeListener(_showBigHeistFailed);
+    gm.onChangingLane.removeListener(_showChangeLane);
 
     super.dispose();
   }
@@ -131,6 +145,10 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 
   void _showBigHeistFailed() {
     _bigHeistFailedController.triggerAnimation(const _BigHeistFailed());
+  }
+
+  void _showChangeLane() {
+    _changeLaneController.triggerAnimation(const _ChangeLane());
   }
 
   @override
@@ -168,6 +186,10 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
             child: BouncyContainer(controller: _bigHeistFailedController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.13,
+            child: BouncyContainer(controller: _changeLaneController),
           ),
         ],
       ),
@@ -423,6 +445,40 @@ class _BigHeistFailed extends StatelessWidget {
                 color: const Color.fromARGB(255, 243, 157, 151)),
           ),
           const SizedBox(width: 10),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChangeLane extends StatelessWidget {
+  const _ChangeLane();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Changement de voie! Accrochez-vous!',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );

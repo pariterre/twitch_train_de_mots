@@ -234,6 +234,14 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               isSuccess: gm.requestTheBigHeist()));
           break;
 
+        case ToAppMessages.changeLaneRequest:
+          sendResponseToEbs(message.copyWith(
+              from: MessageFrom.app,
+              to: MessageTo.ebsIsolated,
+              type: MessageTypes.response,
+              isSuccess: gm.requestChangeOfLane()));
+          break;
+
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(
               'Bits redeemed should be handled by the EBS and rerouted properly');

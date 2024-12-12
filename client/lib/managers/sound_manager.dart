@@ -76,6 +76,7 @@ class SoundManager {
     gm.onAttemptingTheBigHeist.addListener(instance._onAttemptingTheBigHeist);
     gm.onBigHeistSuccess.addListener(instance._onTheBigHeistSuccess);
     gm.onBigHeistFailed.addListener(instance._onTheBigHeistFailed);
+    gm.onChangingLane.addListener(instance._onChangingLane);
 
     final cm = ConfigurationManager.instance;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
@@ -173,5 +174,9 @@ class SoundManager {
 
   Future<void> _onTheBigHeistFailed() async {
     _playSoundEffect('assets/sounds/BigHeistFailed.mp3');
+  }
+
+  Future<void> _onChangingLane() async {
+    _playSoundEffect('assets/sounds/ChangingLane.mp3');
   }
 }

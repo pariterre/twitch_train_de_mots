@@ -217,6 +217,7 @@ class GameManager {
   final onAttemptingTheBigHeist = CustomCallback<VoidCallback>();
   final onBigHeistSuccess = CustomCallback<VoidCallback>();
   final onBigHeistFailed = CustomCallback<VoidCallback>();
+  final onChangingLane = CustomCallback<VoidCallback>();
   final onAllSolutionsFound = CustomCallback<VoidCallback>();
   final onShowcaseSolutionsRequest = CustomCallback<VoidCallback>();
   final onPlayerUpdate = CustomCallback<VoidCallback>();
@@ -627,7 +628,7 @@ class GameManager {
     return true;
   }
 
-  Future<bool> requestChangeOfLane() async {
+  bool requestChangeOfLane() {
     _logger.info('Requesting the change of lane...');
 
     if (_gameStatus != GameStatus.roundStarted) {
@@ -635,16 +636,24 @@ class GameManager {
       return false;
     }
 
+    _performChangeOfLane();
+    return true;
+  }
+
+  Future<void> _performChangeOfLane() async {
     // Perform a huge scramble of the letters
+    bool hasNotified = false;
     for (int i = 0; i < problem!.letters.length * 4; i++) {
       if (i % problem!.letters.length == 0) {
+        if (!hasNotified) {
+          onChangingLane.notifyListeners();
+          hasNotified = true;
+        }
         onScrablingLetters.notifyListeners();
         await Future.delayed(const Duration(milliseconds: 500));
       }
       problem!.scrambleLetters();
     }
-
-    return true;
   }
 
   ///
