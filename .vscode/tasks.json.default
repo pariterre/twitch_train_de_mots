@@ -14,8 +14,8 @@
         }, 
         "options": {
           "env": {
-                "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "7GDDsO3XXNMNZDX9lDp0TQ0wpRPYfOJ1MEOZulLGnyE=",
-                "TRAIN_DE_MOTS_EXTENSION_SECRET": "oiwqp612khdw6o640f2lpn98ab6mp7",
+                "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
+                "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
             }
         }
       }
