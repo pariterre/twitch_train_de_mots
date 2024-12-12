@@ -26,11 +26,13 @@ class PlayScreen extends StatelessWidget {
                   'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
         ),
         LayoutBuilder(builder: (context, constraints) {
+          final tm = ThemeManager.instance;
+
           return Center(
             child: FittedBox(
               fit: BoxFit.contain,
               child: SizedBox(
-                width: 350,
+                width: 380,
                 child: Padding(
                   padding: const EdgeInsets.only(
                       left: 20.0, right: 20.0, bottom: 20.0),
@@ -41,11 +43,37 @@ class PlayScreen extends StatelessWidget {
                           width: constraints.maxWidth,
                           child: const _LetterDisplayer()),
                       const SizedBox(height: 10),
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _PardonRequest(),
-                          _BoostRequest(),
+                          Text('Aides du contrôleur :',
+                              style: tm.textFrontendSc),
+                          const SizedBox(height: 4),
+                          const Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _PardonRequest(),
+                              SizedBox(width: 8),
+                              _BoostRequest(),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Soudoyer le contrôleur (bits) :',
+                              style: tm.textFrontendSc),
+                          const SizedBox(height: 4),
+                          const Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _ChangeLaneRequest(),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -144,20 +172,17 @@ class _PardonRequestState extends State<_PardonRequest> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
     return FittedBox(
       fit: BoxFit.fitWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Pardonner', style: tm.textFrontendSc),
-          const SizedBox(height: 8),
-          ThemedElevatedButton(
+      child: SizedBox(
+        height: 40,
+        child: FittedBox(
+          fit: BoxFit.fitHeight,
+          child: ThemedElevatedButton(
             onPressed: _canPlayerPardon ? _onPardonPressed : null,
             buttonText: 'Pardon',
           ),
-        ],
+        ),
       ),
     );
   }
@@ -213,23 +238,39 @@ class _BoostRequestState extends State<_BoostRequest> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
     return FittedBox(
       fit: BoxFit.fitWidth,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Booster le train',
-            style: tm.textFrontendSc,
-          ),
-          const SizedBox(height: 8),
-          ThemedElevatedButton(
+      child: SizedBox(
+        height: 40,
+        child: FittedBox(
+          fit: BoxFit.fitHeight,
+          child: ThemedElevatedButton(
             onPressed: _canPlayerBoost ? _onBoostPressed : null,
             buttonText: 'Boost',
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChangeLaneRequest extends StatelessWidget {
+  const _ChangeLaneRequest();
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: SizedBox(
+        height: 40,
+        child: FittedBox(
+          fit: BoxFit.fitHeight,
+          child: ThemedElevatedButton(
+            onPressed: () => TwitchManager.instance.frontendManager.bits
+                .useBits('change_lane'),
+            buttonText: 'Changer de voie',
+          ),
+        ),
       ),
     );
   }

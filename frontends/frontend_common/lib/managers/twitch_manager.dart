@@ -248,7 +248,7 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 1))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
-              status: GameStatus.roundPreparing,
+              status: GameStatus.roundStarted,
               round: 11,
               isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 83),
@@ -332,6 +332,7 @@ class TwitchManagerMock extends TwitchManager {
             })));
       case ToAppMessages.fireworksRequest:
       case ToAppMessages.attemptTheBigHeist:
+      case ToAppMessages.changeLaneRequest:
         throw Exception('These are bits transactions and should only be called '
             'with the method _redeemBitsTransaction');
 

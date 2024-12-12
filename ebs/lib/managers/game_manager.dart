@@ -273,6 +273,7 @@ class GameManager extends TwitchEbsManagerAbstract {
 
         case ToAppMessages.fireworksRequest:
         case ToAppMessages.attemptTheBigHeist:
+        case ToAppMessages.changeLaneRequest:
           throw 'Request is supposed to come from bit transaction';
 
         case ToAppMessages.bitsRedeemed:
@@ -291,6 +292,10 @@ class GameManager extends TwitchEbsManagerAbstract {
 
             case Sku.bigHeist:
               type = ToAppMessages.attemptTheBigHeist;
+              break;
+
+            case Sku.changeLane:
+              type = ToAppMessages.changeLaneRequest;
               break;
           }
 

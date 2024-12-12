@@ -9,6 +9,7 @@ enum ToAppMessages {
   bitsRedeemed,
   fireworksRequest,
   attemptTheBigHeist,
+  changeLaneRequest,
 }
 
 enum ToFrontendMessages {
@@ -19,7 +20,8 @@ enum ToFrontendMessages {
 
 enum Sku {
   celebrate,
-  bigHeist;
+  bigHeist,
+  changeLane;
 
   @override
   String toString() {
@@ -28,6 +30,8 @@ enum Sku {
         return 'celebrate';
       case Sku.bigHeist:
         return 'big_heist';
+      case Sku.changeLane:
+        return 'change_lane';
     }
   }
 
@@ -37,6 +41,8 @@ enum Sku {
         return Sku.celebrate;
       case 'big_heist':
         return Sku.bigHeist;
+      case 'change_lane':
+        return Sku.changeLane;
     }
   }
 }

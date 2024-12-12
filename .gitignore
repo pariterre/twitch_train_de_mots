@@ -1,3 +1,5 @@
 # Log files
 *.log
 
+
+.vscode/tasks.json
