@@ -257,6 +257,8 @@ class _BoostRequestState extends State<_BoostRequest> {
 class _ChangeLaneRequest extends StatelessWidget {
   const _ChangeLaneRequest();
 
+  void _onChangeLanePressed() async => await GameManager.instance.changeLane();
+
   @override
   Widget build(BuildContext context) {
     return FittedBox(
@@ -266,8 +268,7 @@ class _ChangeLaneRequest extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.fitHeight,
           child: ThemedElevatedButton(
-            onPressed: () => TwitchManager.instance.frontendManager.bits
-                .useBits('change_lane'),
+            onPressed: _onChangeLanePressed,
             buttonText: 'Changer de voie',
           ),
         ),

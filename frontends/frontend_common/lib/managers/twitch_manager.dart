@@ -95,6 +95,24 @@ class TwitchManager {
     return response.isSuccess ?? false;
   }
 
+  Future<bool> changeLane() async {
+    TwitchManager.instance.frontendManager.bits.useBits('change_lane');
+    // We cannot know if the transaction was successful, so we return true
+    return true;
+  }
+
+  Future<bool> attemptTheBigHeist() async {
+    TwitchManager.instance.frontendManager.bits.useBits('big_heist');
+    // We cannot know if the transaction was successful, so we return true
+    return true;
+  }
+
+  Future<bool> celebrate() async {
+    TwitchManager.instance.frontendManager.bits.useBits('celebrate');
+    // We cannot know if the transaction was successful, so we return true
+    return true;
+  }
+
   Future<bool> _redeemBitsTransaction(
       tm.BitsTransactionObject transaction) async {
     final response =
@@ -248,7 +266,7 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 1))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
-              status: GameStatus.roundStarted,
+              status: GameStatus.revealAnswers,
               round: 11,
               isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 83),
@@ -264,8 +282,8 @@ class TwitchManagerMock extends TwitchManager {
               boostRemaining: 1,
               boostStillNeeded: 0,
               boosters: [],
-              canAttemptTheBigHeist: false,
-              isAttemptingTheBigHeist: true,
+              canAttemptTheBigHeist: true,
+              isAttemptingTheBigHeist: false,
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -284,6 +302,49 @@ class TwitchManagerMock extends TwitchManager {
   @override
   void requestIdShare() {
     _logger.info('Requesting ID share');
+  }
+
+  @override
+  Future<bool> changeLane() async {
+    return true;
+  }
+
+  @override
+  Future<bool> attemptTheBigHeist() async {
+    _onPubSubMessageReceived(MessageProtocol(
+        from: MessageFrom.app,
+        to: MessageTo.frontend,
+        type: MessageTypes.response,
+        isSuccess: true,
+        data: jsonDecode(jsonEncode({
+          'type': ToFrontendMessages.gameState.name,
+          'game_state': SimplifiedGameState(
+            status: GameStatus.revealAnswers,
+            round: 11,
+            isRoundSuccess: true,
+            timeRemaining: const Duration(seconds: 83),
+            newCooldowns: {userId: const Duration(seconds: 5)},
+            letterProblem: SimplifiedLetterProblem(
+                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                revealedUselessLetterIndex: 9,
+                hiddenLetterIndex: 2,
+                shouldHideHiddenLetter: true),
+            pardonRemaining: 1,
+            pardonners: [userId],
+            boostRemaining: 1,
+            boostStillNeeded: 0,
+            boosters: [],
+            canAttemptTheBigHeist: false,
+            isAttemptingTheBigHeist: true,
+          ).serialize(),
+        }))));
+    return true;
+  }
+
+  @override
+  Future<bool> celebrate() async {
+    return true;
   }
 
   @override

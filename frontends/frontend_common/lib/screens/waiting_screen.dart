@@ -140,18 +140,36 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                   ),
                                   const SizedBox(height: 8.0),
                                   ElevatedButton(
-                                      onPressed: () async {
-                                        TwitchManager
-                                            .instance.frontendManager.bits
-                                            .useBits('big_heist');
-                                      },
+                                      onPressed: TwitchManager
+                                          .instance.attemptTheBigHeist,
                                       child:
                                           const Text('Frapper le Grand Coup!')),
                                 ],
                               ),
                             ),
                           ),
-                        if (!gm.canAttemptTheBigHeist && gm.currentRound >= 10)
+                        if (gm.isAttemptingTheBigHeist)
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.white.withAlpha(50),
+                            ),
+                            child: GrowingWidget(
+                              growingFactor: 1.02,
+                              duration: const Duration(milliseconds: 2000),
+                              child: Text(
+                                'Un des cheminot·e·s\n'
+                                'a préparé un braquage!\n'
+                                'Bonne chance, et ne\n'
+                                'vous faites pas attraper!',
+                                style: tm.textFrontendSc,
+                              ),
+                            ),
+                          ),
+                        if (!gm.canAttemptTheBigHeist &&
+                            !gm.isAttemptingTheBigHeist &&
+                            gm.currentRound >= 10)
                           Padding(
                             padding: const EdgeInsets.only(top: 20.0),
                             child: Column(
@@ -164,11 +182,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                 ),
                                 const SizedBox(height: 8.0),
                                 ElevatedButton(
-                                    onPressed: () async {
-                                      TwitchManager
-                                          .instance.frontendManager.bits
-                                          .useBits('celebrate');
-                                    },
+                                    onPressed: TwitchManager.instance.celebrate,
                                     child: const Text('Feux d\'artifice!')),
                               ],
                             ),

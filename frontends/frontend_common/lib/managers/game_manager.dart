@@ -175,7 +175,17 @@ class GameManager {
   List<String> get boosters => List.unmodifiable(_gameState.boosters);
 
   ///
+  /// Boost availability
+  final onChangeLaneGranted = CustomCallback<Function(bool)>();
+  Future<bool> changeLane() async {
+    final isSuccess = await TwitchManager.instance.changeLane();
+    onChangeLaneGranted.notifyListenersWithParameter(isSuccess);
+    return isSuccess;
+  }
+
+  ///
   /// Big heist management
   bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
+  bool get isAttemptingTheBigHeist => _gameState.isAttemptingTheBigHeist;
   final onAttemptingTheBigHeist = CustomCallback();
 }
