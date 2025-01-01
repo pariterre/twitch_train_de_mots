@@ -383,4 +383,42 @@ const List<ReleaseNotes> releaseNotes = [
               'trouvés simultanément'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.3.0',
+    codeName: 'Les Wagons du Nord',
+    notes:
+        'Chemino\u00b7t\u00b7e\u00b7s, il s\'est passé tant depuis le dernier télégramme! '
+        'Je ne pourrai tout vous résumer ici sans vous perdre complètement... Mais le plus '
+        'important est que le train s\'est agrandi, il a subit une extension! Je dirais même '
+        'plus, je dirais qu\'il a maintenant une Extension Twitch! Tous les détails de '
+        'l\'extension dans \'onglet Extensions Twitch.',
+    features: [
+      FeatureNotes(
+          description:
+              'Création d\'une interface de jeu pour les chemino\u00b7t\u00b7e\u00b7s '
+              'sous la forme d\'une extension Twitch. Une fois activée, vos chemino\u00b7t\u00b7e\u00b7s '
+              'seront en mesure de voir le jeu directement sur leur écran, supprimant '
+              'le retard dû à la diffusion.'),
+      FeatureNotes(
+          description:
+              'Il est possible, via un échange de bits, de faire apparaitre '
+              'des feux d\'artifices à durant les pauses afin de se féliciter du chemin parcouru'),
+      FeatureNotes(
+        description:
+            'Il est possible, via un échange de bits, de \u00ab Frapper le Grand Coup \u00bb. '
+            'Ceci consiste en un quitte ou double où vous devez absolument atteindre la '
+            'troisième station pour en parcourir six d\'un coup. Un échec résulte '
+            'cependant en la fin de votre voyage vers le Nord...',
+        userWhoRequested: 'NghtmrTV',
+        urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
+      ),
+      FeatureNotes(
+        description:
+            'On a également effacé l\'ardoise en ce début de l\'an 2025. Le tableau des '
+            'chemino\u00b7t\u00b7e\u00b7s a été remis à zéro!',
+        userWhoRequested: 'AlchimisteDesMots',
+        urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots',
+      ),
+    ],
+  ),
 ];

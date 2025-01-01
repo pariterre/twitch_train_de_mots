@@ -202,7 +202,7 @@ class DatabaseManager {
   CollectionReference<Map<String, dynamic>> get _teamResultsCollection =>
       FirebaseFirestore.instance
           .collection('results')
-          .doc('v1.0.1')
+          .doc('v1.0.2')
           .collection('teams');
 
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
@@ -211,7 +211,7 @@ class DatabaseManager {
   CollectionReference<Map<String, dynamic>> get _wordProblemCollection =>
       FirebaseFirestore.instance
           .collection('results')
-          .doc('v1.0.1')
+          .doc('v1.0.2')
           .collection('letterProblems');
 
   static const String bestStationKey = 'bestStation';

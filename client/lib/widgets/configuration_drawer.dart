@@ -93,6 +93,15 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                     ),
                     const Divider(),
                     ListTile(
+                      leading: const Icon(Icons.extension,
+                          color: Color.fromARGB(255, 100, 65, 165)),
+                      title: const Text('Extension Twitch'),
+                      onTap: () {
+                        _connectExtension(context);
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
                       leading: const Icon(Icons.settings_applications_sharp),
                       title: const Text('Configuration avancée'),
                       onTap: () {
@@ -388,6 +397,40 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
       onChanged: (value) => tm.textSize = value,
     );
   }
+}
+
+void _connectExtension(BuildContext context) async {
+  await showDialog(
+    context: context,
+    builder: (ctx) => ParchmentDialog(
+        title: 'Extension Twitch',
+        height: 550,
+        width: 500,
+        content: const Text(
+            'L\'extension Twitch embelli grandement votre Voyage vers le Nord!\n'
+            '\n'
+            'Premièrement, celle-ci affiche les lettres à trouver directement sur l\'écran '
+            'des cheminot\u00b7e\u00b7s. Cet affichage est synchrone avec le jeu, effaçant '
+            'le retard occasionné par la diffusion. De plus, toutes les interactions '
+            'des cheminot\u00b7e\u00b7s, commes les boosts ou les pardons, sont '
+            'directement cliquable sur l\'extension.\n'
+            '\n'
+            'Des options d\'échanges de bits sont également disponibles pour une '
+            'expérience encore plus originale pour les cheminot\u00b7e\u00b7s, '
+            'permettant en même temps de monétiser votre chaîne.\n'
+            '\n'
+            'Pour une expérience optimale, vous êtes invité\u00b7e\u00b7s à choisir l\'option '
+            '\u00ab overlay \u00bb lorsque vous activez l\'extension. Cette option crée une '
+            'fenêtre déplaçable et redimensionnable directement sur l\'écran de vos cheminot\u00b7e\u00b7s.'),
+        onAccept: () {
+          launchUrl(Uri.parse(
+              'https://dashboard.twitch.tv/extensions/539pzk7h6vavyzmklwy6msq6k3068x-0.1.0'));
+          Navigator.pop(ctx);
+        },
+        acceptButtonTitle: 'Aller à l\'extension',
+        onCancel: () => Navigator.pop(ctx),
+        cancelButtonTitle: 'Fermer'),
+  );
 }
 
 void _showGameDevConfiguration(BuildContext context) async {
