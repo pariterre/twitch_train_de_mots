@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
@@ -12,13 +14,20 @@ class GameManager {
   /// Prepare the singleton
   static final _instance = GameManager._();
   static GameManager get instance => _instance;
-  GameManager._();
+  GameManager._() {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      _gameState.timeRemaining -= const Duration(seconds: 1);
+      onGameTicked.notifyListeners();
+    });
+  }
 
   ///
   /// Callback to know when a round has started or ended
   int get currentRound => _gameState.round;
   bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
   bool get isRoundSuccess => _gameState.isRoundSuccess;
+
+  Duration get timeRemaining => _gameState.timeRemaining;
 
   bool _hasPlayedAtLeastOneRound = false;
   bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
@@ -66,11 +75,10 @@ class GameManager {
       _logger.info('Round changed to ${newGameState.round}');
     }
 
-    // This is for future use
-    // if (_gameState.timeRemaining != newGameState.timeRemaining) {
-    //   _gameState.timeRemaining = newGameState.timeRemaining;
-    //   _logger.info('Time remaining changed to ${newGameState.timeRemaining}');
-    // }
+    if (_gameState.timeRemaining != newGameState.timeRemaining) {
+      _gameState.timeRemaining = newGameState.timeRemaining;
+      _logger.info('Time remaining changed to ${newGameState.timeRemaining}');
+    }
 
     if (newGameState.newCooldowns.isNotEmpty) {
       _gameState.newCooldowns = newGameState.newCooldowns;
@@ -130,6 +138,10 @@ class GameManager {
       onGameStatusUpdated.notifyListeners();
     }
   }
+
+  ///
+  /// Callback for each tick
+  final onGameTicked = CustomCallback();
 
   ///
   /// Callback to know when the game has started

@@ -38,7 +38,9 @@ class PlayScreen extends StatelessWidget {
                       left: 20.0, right: 20.0, bottom: 20.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 90),
+                      const _TimeDisplayer(),
+                      const SizedBox(height: 10),
                       SizedBox(
                           width: constraints.maxWidth,
                           child: const _LetterDisplayer()),
@@ -88,6 +90,45 @@ class PlayScreen extends StatelessWidget {
         const FittedBox(fit: BoxFit.scaleDown, child: AnimationOverlay()),
       ],
     );
+  }
+}
+
+class _TimeDisplayer extends StatefulWidget {
+  const _TimeDisplayer();
+
+  @override
+  State<_TimeDisplayer> createState() => _TimeDisplayerState();
+}
+
+class _TimeDisplayerState extends State<_TimeDisplayer> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onGameTicked.addListener(refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onGameTicked.removeListener(refresh);
+
+    super.dispose();
+  }
+
+  void refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
+
+    return Text(
+        gm.timeRemaining.inSeconds > 0
+            ? 'Temps restant ${gm.timeRemaining.inSeconds}'
+            : 'Arrivée en gare',
+        style: tm.textFrontendSc);
   }
 }
 

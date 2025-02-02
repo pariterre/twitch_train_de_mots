@@ -266,10 +266,33 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 3))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
-              status: GameStatus.revealAnswers,
+              status: GameStatus.roundStarted,
               round: 11,
               isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 83),
+              newCooldowns: {userId: const Duration(seconds: 5)},
+              letterProblem: SimplifiedLetterProblem(
+                  letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                  scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                  revealedUselessLetterIndex: 9,
+                  hiddenLetterIndex: 2,
+                  shouldHideHiddenLetter: true),
+              pardonRemaining: 1,
+              pardonners: [userId],
+              boostRemaining: 1,
+              boostStillNeeded: 0,
+              boosters: [],
+              canAttemptTheBigHeist: true,
+              isAttemptingTheBigHeist: false,
+              configuration: SimplifiedConfiguration(hideExtension: false),
+            )));
+
+    Future.delayed(const Duration(seconds: 8))
+        .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
+              status: GameStatus.roundStarted,
+              round: 11,
+              isRoundSuccess: true,
+              timeRemaining: const Duration(seconds: 3),
               newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],

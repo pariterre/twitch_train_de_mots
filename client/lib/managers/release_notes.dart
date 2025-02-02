@@ -435,6 +435,8 @@ const List<ReleaseNotes> releaseNotes = [
               'l\'extension du Train de mots avec un simple clique dans les options du '
               'jeu.'),
       FeatureNotes(
+          description: 'L\'extension affiche maintenant le temps restant!'),
+      FeatureNotes(
           description:
               'Le tableau des chemino\u00b7t\u00b7e\u00b7s a été déplacé afin de cesser '
               'de cacher le jeu. Je suis désolé à la personne qui m\'a proposé ce changement, '
