@@ -421,4 +421,25 @@ const List<ReleaseNotes> releaseNotes = [
       ),
     ],
   ),
+  ReleaseNotes(
+    version: '1.3.1',
+    codeName: 'Le Train fantôme',
+    notes:
+        'Le Train du Nord anime vos parties, mais était un peu envahissant avec '
+        'son extension en overlay qui ne partait jamais! Il est maintenant possible '
+        'de fantomiser l\'extension.',
+    features: [
+      FeatureNotes(
+          description:
+              'L\'animateur\u00b7trice est maintenant en mesure d\'afficher ou cacher '
+              'l\extension du Train de mots avec un simple clique dans les options du '
+              'jeu.'),
+      FeatureNotes(
+          description:
+              'Le tableau des chemino\u00b7t\u00b7e\u00b7s a été déplacé afin de cesser '
+              'de cacher le jeu. Je suis désolé à la personne qui m\'a proposé ce changement, '
+              'je n\'ai plus souvenir qui cela était. Si c\'est vous, vous pouvez m\'écrire '
+              'et j\'ajouterai votre pseudo dans cette note!'),
+    ],
+  )
 ];
