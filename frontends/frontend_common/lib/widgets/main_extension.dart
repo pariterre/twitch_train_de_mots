@@ -11,20 +11,23 @@ import 'package:frontend_common/widgets/opaque_on_hover.dart';
 import 'package:frontend_common/widgets/resized_box.dart';
 
 class MainExtension extends StatefulWidget {
-  const MainExtension(
-      {super.key,
-      required this.isFullScreen,
-      required this.hideIfUninitialized});
+  const MainExtension({
+    super.key,
+    required this.isFullScreen,
+    required this.alwaysOpaque,
+    required this.streamerCanHide,
+  });
 
   final bool isFullScreen;
-  final bool hideIfUninitialized;
+  final bool alwaysOpaque;
+  final bool streamerCanHide;
 
   @override
   State<MainExtension> createState() => _MainExtensionState();
 }
 
 class _MainExtensionState extends State<MainExtension> {
-  late bool _shouldHide = widget.hideIfUninitialized;
+  late bool _shouldHide = widget.streamerCanHide;
 
   void _reloadOnConnection() {
     TwitchManager.instance.frontendManager.authenticator.onHasConnected
@@ -50,7 +53,7 @@ class _MainExtensionState extends State<MainExtension> {
     final shouldHide = GameManager.instance.status == GameStatus.uninitialized;
 
     // Check for the nothing-to-do cases
-    if (shouldHide && _shouldHide || !shouldHide && !_shouldHide) return;
+    if (shouldHide == _shouldHide) return;
 
     setState(() {
       _shouldHide = shouldHide;
@@ -59,41 +62,43 @@ class _MainExtensionState extends State<MainExtension> {
 
   @override
   Widget build(BuildContext context) {
+    final mainWidget = _MainWindow(
+      initialSize: (widget.isFullScreen)
+          ? null
+          : Size(MediaQuery.of(context).size.width * 0.2,
+              MediaQuery.of(context).size.width * 0.22),
+      child: FutureBuilder(
+          future: TwitchManager.instance.onInitialized,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!TwitchManager.instance.userHasGrantedIdAccess) {
+              if (TwitchManager.instance is! TwitchManagerMock) {
+                TwitchManager
+                    .instance.frontendManager.authenticator.onHasConnected
+                    .listen(_reloadOnConnection);
+              }
+              return const NonAuthorizedScreen();
+            }
+
+            return const _MainScreen();
+          }),
+    );
+
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.transparent,
-        body: widget.hideIfUninitialized && _shouldHide
+        body: widget.streamerCanHide && _shouldHide
             ? null
-            : OpaqueOnHover(
-                opacityMin: GameManager.instance.isRoundRunning ? 0.1 : 0.5,
-                opacityMax: 1.0,
-                child: _MainWindow(
-                  initialSize: (widget.isFullScreen)
-                      ? null
-                      : Size(MediaQuery.of(context).size.width * 0.2,
-                          MediaQuery.of(context).size.width * 0.22),
-                  child: FutureBuilder(
-                      future: TwitchManager.instance.onInitialized,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-
-                        if (!TwitchManager.instance.userHasGrantedIdAccess) {
-                          if (TwitchManager.instance is! TwitchManagerMock) {
-                            TwitchManager.instance.frontendManager.authenticator
-                                .onHasConnected
-                                .listen(_reloadOnConnection);
-                          }
-                          return const NonAuthorizedScreen();
-                        }
-
-                        return const _MainScreen();
-                      }),
-                ),
-              ),
+            : widget.alwaysOpaque
+                ? mainWidget
+                : OpaqueOnHover(
+                    opacityMin: GameManager.instance.isRoundRunning ? 0.1 : 0.5,
+                    opacityMax: 1.0,
+                    child: mainWidget,
+                  ),
       ),
     );
   }

@@ -13,5 +13,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeManager.initialize();
 
-  runApp(const MainExtension(isFullScreen: false, hideIfUninitialized: true));
+  runApp(const MainExtension(
+    isFullScreen: false,
+    alwaysOpaque: true,
+    streamerCanHide: true,
+  ));
 }
