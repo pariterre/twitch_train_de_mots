@@ -1,6 +1,32 @@
 import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 
+class SimplifiedConfiguration {
+  final bool hideExtension;
+
+  SimplifiedConfiguration({
+    required this.hideExtension,
+  });
+
+  SimplifiedConfiguration copyWith({
+    bool? hideExtension,
+  }) {
+    return SimplifiedConfiguration(
+        hideExtension: hideExtension ?? this.hideExtension);
+  }
+
+  Map<String, dynamic> serialize() {
+    return {
+      'hide_extension': hideExtension,
+    };
+  }
+
+  static SimplifiedConfiguration deserialize(Map<String, dynamic> data) =>
+      SimplifiedConfiguration(
+        hideExtension: data['hide_extension'] as bool,
+      );
+}
+
 class SimplifiedLetterProblem {
   final List<String> letters;
   final List<int> scrambleIndices;
@@ -24,13 +50,13 @@ class SimplifiedLetterProblem {
     bool? shouldHideHiddenLetter,
   }) =>
       SimplifiedLetterProblem(
-        letters: letters ??= this.letters,
-        scrambleIndices: scrambleIndices ??= this.scrambleIndices,
-        revealedUselessLetterIndex: revealedUselessLetterIndex ??=
-            this.revealedUselessLetterIndex,
-        hiddenLetterIndex: hiddenLetterIndex ??= this.hiddenLetterIndex,
-        shouldHideHiddenLetter: shouldHideHiddenLetter ??=
-            this.shouldHideHiddenLetter,
+        letters: letters ?? this.letters,
+        scrambleIndices: scrambleIndices ?? this.scrambleIndices,
+        revealedUselessLetterIndex:
+            revealedUselessLetterIndex ?? this.revealedUselessLetterIndex,
+        hiddenLetterIndex: hiddenLetterIndex ?? this.hiddenLetterIndex,
+        shouldHideHiddenLetter:
+            shouldHideHiddenLetter ?? this.shouldHideHiddenLetter,
       );
 
   Map<String, dynamic> serialize() {
@@ -96,6 +122,8 @@ class SimplifiedGameState {
 
   SimplifiedLetterProblem? letterProblem;
 
+  SimplifiedConfiguration configuration;
+
   SimplifiedGameState({
     required this.status,
     required this.round,
@@ -110,6 +138,7 @@ class SimplifiedGameState {
     required this.boosters,
     required this.canAttemptTheBigHeist,
     required this.isAttemptingTheBigHeist,
+    required this.configuration,
   });
 
   SimplifiedGameState copyWith({
@@ -126,23 +155,25 @@ class SimplifiedGameState {
     List<String>? boosters,
     bool? canAttemptTheBigHeist,
     bool? isAttemptingTheBigHeist,
+    SimplifiedConfiguration? configuration,
   }) =>
       SimplifiedGameState(
-        status: status ??= this.status,
-        round: round ??= this.round,
-        isRoundSuccess: isRoundSuccess ??= this.isRoundSuccess,
-        timeRemaining: timeRemaining ??= this.timeRemaining,
-        newCooldowns: newCooldowns ??= this.newCooldowns,
-        letterProblem: letterProblem ??= this.letterProblem,
-        pardonRemaining: pardonRemaining ??= this.pardonRemaining,
-        pardonners: pardonners ??= this.pardonners,
-        boostRemaining: boostRemaining ??= this.boostRemaining,
-        boostStillNeeded: boostStillNeeded ??= this.boostStillNeeded,
-        boosters: boosters ??= this.boosters,
-        canAttemptTheBigHeist: canAttemptTheBigHeist ??=
-            this.canAttemptTheBigHeist,
-        isAttemptingTheBigHeist: isAttemptingTheBigHeist ??=
-            this.isAttemptingTheBigHeist,
+        status: status ?? this.status,
+        round: round ?? this.round,
+        isRoundSuccess: isRoundSuccess ?? this.isRoundSuccess,
+        timeRemaining: timeRemaining ?? this.timeRemaining,
+        newCooldowns: newCooldowns ?? this.newCooldowns,
+        letterProblem: letterProblem ?? this.letterProblem,
+        pardonRemaining: pardonRemaining ?? this.pardonRemaining,
+        pardonners: pardonners ?? this.pardonners,
+        boostRemaining: boostRemaining ?? this.boostRemaining,
+        boostStillNeeded: boostStillNeeded ?? this.boostStillNeeded,
+        boosters: boosters ?? this.boosters,
+        canAttemptTheBigHeist:
+            canAttemptTheBigHeist ?? this.canAttemptTheBigHeist,
+        isAttemptingTheBigHeist:
+            isAttemptingTheBigHeist ?? this.isAttemptingTheBigHeist,
+        configuration: configuration ?? this.configuration,
       );
 
   Map<String, dynamic> serialize() {
@@ -161,6 +192,7 @@ class SimplifiedGameState {
       'boosters': boosters,
       'can_attempt_the_big_heist': canAttemptTheBigHeist,
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
+      'configuration': configuration.serialize(),
     };
   }
 
@@ -182,6 +214,7 @@ class SimplifiedGameState {
       boosters: (data['boosters'] as List).cast<String>(),
       canAttemptTheBigHeist: data['can_attempt_the_big_heist'] as bool,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
+      configuration: SimplifiedConfiguration.deserialize(data['configuration']),
     );
   }
 }

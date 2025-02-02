@@ -39,6 +39,7 @@ class GameManager {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
+    configuration: SimplifiedConfiguration(hideExtension: false),
   );
 
   void updateGameState(SimplifiedGameState newGameState) {

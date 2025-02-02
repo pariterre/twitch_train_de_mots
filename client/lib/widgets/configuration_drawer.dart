@@ -210,6 +210,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   @override
   Widget build(BuildContext context) {
     final cm = ConfigurationManager.instance;
+    final tm = ThemeManager.instance;
+
+    final subtitleStyle = tm.clientMainTextStyle
+        .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
 
     return ParchmentDialog(
         title: 'Configuration du jeu',
@@ -221,56 +225,55 @@ class _GameConfigurationState extends State<_GameConfiguration> {
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('Options du jeu', style: subtitleStyle),
+                _BooleanInputField(
+                    label:
+                        'Relancer automatiquement les manches\n(effectif à la prochaine pause)',
+                    value: cm.autoplay,
+                    onChanged: (value) => cm.autoplay = value),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                    label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
+                    value: cm.showLeaderBoard,
+                    onChanged: (value) => cm.showLeaderBoard = value),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                    label:
+                        'Cacher l\'extension\n(sans effet si l\'extension overlay n\'est pas activée)',
+                    value: cm.hideExtension,
+                    onChanged: (value) => cm.hideExtension = value),
+                const SizedBox(height: 12),
+                if (cm.useDebugOptions)
+                  _BooleanInputField(
+                      label: 'Montrer les réponses au survol\nde la souris',
+                      value: cm.showAnswersTooltip,
+                      onChanged: (value) => cm.showAnswersTooltip = value),
+                const SizedBox(height: 12),
+                Text('Volumes', style: subtitleStyle),
+                _SliderInputField(
+                  label: 'Volume de la musique',
+                  value: cm.musicVolume,
+                  onChanged: (value) => cm.musicVolume = value,
+                  thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
+                ),
+                const SizedBox(height: 12),
+                _SliderInputField(
+                  label: 'Volume des sons',
+                  value: cm.soundVolume,
+                  onChanged: (value) => cm.soundVolume = value,
+                  onChangedEnd: (value) =>
+                      cm.onSoundVolumeChanged.notifyListeners(),
+                  thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
+                ),
+                const SizedBox(height: 12),
+                Text('Thème visuel', style: subtitleStyle),
                 const _ColorPickerInputField(
                     label: 'Choisir la couleur du thème'),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: 400,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const _FontSizePickerInputField(
-                          label: 'Choisir la taille du thème'),
-                      const SizedBox(height: 12),
-                      _SliderInputField(
-                        label: 'Volume de la musique',
-                        value: cm.musicVolume,
-                        onChanged: (value) => cm.musicVolume = value,
-                        thumbLabel: '${(cm.musicVolume * 100).toInt()}%',
-                      ),
-                      const SizedBox(height: 12),
-                      _SliderInputField(
-                        label: 'Volume des sons',
-                        value: cm.soundVolume,
-                        onChanged: (value) => cm.soundVolume = value,
-                        onChangedEnd: (value) =>
-                            cm.onSoundVolumeChanged.notifyListeners(),
-                        thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
-                      ),
-                      const SizedBox(height: 12),
-                      _BooleanInputField(
-                          label:
-                              'Afficher le tableau des cheminot\u00b7e\u00b7s',
-                          value: cm.showLeaderBoard,
-                          onChanged: (value) => cm.showLeaderBoard = value),
-                      const SizedBox(height: 12),
-                      _BooleanInputField(
-                          label:
-                              'Relancer automatiquement\n(effectif à la prochaine pause)',
-                          value: cm.autoplay,
-                          onChanged: (value) => cm.autoplay = value),
-                      const SizedBox(height: 12),
-                      if (cm.useDebugOptions)
-                        _BooleanInputField(
-                            label:
-                                'Montrer les réponses au survol\nde la souris',
-                            value: cm.showAnswersTooltip,
-                            onChanged: (value) =>
-                                cm.showAnswersTooltip = value),
-                    ],
-                  ),
-                ),
+                const _FontSizePickerInputField(
+                    label: 'Choisir la taille du thème'),
                 const SizedBox(height: 12),
               ],
             ),

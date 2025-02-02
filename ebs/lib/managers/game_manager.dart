@@ -32,6 +32,7 @@ class GameManager extends TwitchEbsManagerAbstract {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
+    configuration: SimplifiedConfiguration(hideExtension: false),
   );
   SimplifiedGameState get gameState => _gameState;
   set gameState(SimplifiedGameState value) {

@@ -284,6 +284,7 @@ class TwitchManagerMock extends TwitchManager {
               boosters: [],
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
+              configuration: SimplifiedConfiguration(hideExtension: false),
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -337,6 +338,7 @@ class TwitchManagerMock extends TwitchManager {
             boosters: [],
             canAttemptTheBigHeist: false,
             isAttemptingTheBigHeist: true,
+            configuration: SimplifiedConfiguration(hideExtension: false),
           ).serialize(),
         }))));
     return true;
@@ -389,6 +391,7 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
+                configuration: SimplifiedConfiguration(hideExtension: false),
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:

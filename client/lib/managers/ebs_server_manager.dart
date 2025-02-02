@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
+import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
 import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/models/word_solution.dart';
@@ -52,15 +53,18 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     // Connect the listeners to the GameManager
     final gm = GameManager.instance;
     gm.onRoundStarted.addListener(_prepareGameStateToSendToEbs);
-    gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
-    gm.onStealerPardoned.addListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.addListener(_prepareGameStateToSendToEbsWithParameter);
+    gm.onStealerPardoned.addListener(_prepareGameStateToSendToEbsWithParameter);
     gm.onSolutionFound.addListener(_addCooldown);
     gm.onSolutionWasStolen.addListener(_addCooldown);
-    gm.onRoundIsOver.addListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.addListener(_prepareGameStateToSendToEbsWithParameter);
     gm.onAttemptingTheBigHeist.addListener(_prepareGameStateToSendToEbs);
     gm.onScrablingLetters.addListener(_prepareGameStateToSendToEbs);
     gm.onRevealUselessLetter.addListener(_prepareGameStateToSendToEbs);
     gm.onRevealHiddenLetter.addListener(_prepareGameStateToSendToEbs);
+
+    final cm = ConfigurationManager.instance;
+    cm.onHideExtensionChanged.addListener(_prepareGameStateToSendToEbs);
 
     // Check if we need to send something to the EBS server at each tick
     gm.onClockTicked.addListener(_sendGameStateToEbs);
@@ -75,16 +79,20 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   void disposeListeners() {
     final gm = GameManager.instance;
     gm.onRoundStarted.removeListener(_prepareGameStateToSendToEbs);
-    gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
-    gm.onStealerPardoned.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.removeListener(_prepareGameStateToSendToEbsWithParameter);
+    gm.onStealerPardoned
+        .removeListener(_prepareGameStateToSendToEbsWithParameter);
     gm.onSolutionFound.removeListener(_addCooldown);
     gm.onSolutionWasStolen.removeListener(_addCooldown);
-    gm.onRoundIsOver.removeListener(_sendGameStateToEbsWithParameter);
+    gm.onRoundIsOver.removeListener(_prepareGameStateToSendToEbsWithParameter);
     gm.onAttemptingTheBigHeist.removeListener(_prepareGameStateToSendToEbs);
     gm.onScrablingLetters.removeListener(_prepareGameStateToSendToEbs);
     gm.onRevealUselessLetter.removeListener(_prepareGameStateToSendToEbs);
     gm.onRevealHiddenLetter.removeListener(_prepareGameStateToSendToEbs);
     gm.onClockTicked.removeListener(_sendGameStateToEbs);
+
+    final cm = ConfigurationManager.instance;
+    cm.onHideExtensionChanged.removeListener(_prepareGameStateToSendToEbs);
   }
 
   ///
@@ -143,6 +151,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   /// Send a message to the EBS server to notify that the state of the game has
   /// changed.
   Future<void> _prepareGameStateToSendToEbs() async {
+    final cm = ConfigurationManager.instance;
     final gm = GameManager.instance;
 
     _simplifiedStateToSend ??= SimplifiedGameState(
@@ -159,6 +168,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
+      configuration: SimplifiedConfiguration(hideExtension: cm.hideExtension),
     );
   }
 
@@ -180,7 +190,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
-  Future<void> _sendGameStateToEbsWithParameter(_) async =>
+  Future<void> _prepareGameStateToSendToEbsWithParameter(_) async =>
       _prepareGameStateToSendToEbs();
 
   @override

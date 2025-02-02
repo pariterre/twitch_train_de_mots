@@ -48,6 +48,8 @@ const _numberOfBoostRequestsNeededDefault = 3;
 const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
+const _hideExtensionDefault = false;
+
 final _logger = Logger('ConfigurationManager');
 
 class ConfigurationManager {
@@ -87,6 +89,10 @@ class ConfigurationManager {
   final onChanged = CustomCallback();
   final onGameMusicVolumeChanged = CustomCallback();
   final onSoundVolumeChanged = CustomCallback();
+
+  ///
+  /// Connect to callback to get notified when hide extension is changed
+  final onHideExtensionChanged = CustomCallback();
 
   ///
   /// The current algorithm used to generate the problems
@@ -325,6 +331,14 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
+  bool _hideExtension = _hideExtensionDefault;
+  bool get hideExtension => _hideExtension;
+  set hideExtension(bool value) {
+    _hideExtension = value;
+    onHideExtensionChanged.notifyListeners();
+    _saveConfiguration();
+  }
+
   //// LISTEN TO GAME MANAGER ////
   void _listenToGameManagerEvents() {
     final gm = GameManager.instance;
@@ -369,6 +383,7 @@ class ConfigurationManager {
         'numberOfBoostRequestsNeeded': numberOfBoostRequestsNeeded,
         'musicVolume': musicVolume,
         'soundVolume': soundVolume,
+        'hideExtension': hideExtension,
       };
 
   ///
@@ -451,6 +466,8 @@ class ConfigurationManager {
       _musicVolume = map['musicVolume'] ?? _musicVolumeDefault;
       _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
 
+      _hideExtension = map['hideExtension'] ?? _hideExtensionDefault;
+
       _tellGameManagerToRepickProblem();
     }
 
@@ -475,6 +492,8 @@ class ConfigurationManager {
 
       _musicVolume = _musicVolumeDefault;
       _soundVolume = _soundVolumeDefault;
+
+      _hideExtension = _hideExtensionDefault;
 
       ThemeManager.instance.reset();
     }
