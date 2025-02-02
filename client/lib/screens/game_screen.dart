@@ -54,6 +54,12 @@ class _GameScreenState extends State<GameScreen> {
         : TwitchManager.instance.debugOverlay(
             child: const Stack(
             children: [
+              Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 50.0),
+                    child: LeaderBoard(),
+                  )),
               SizedBox(
                 width: double.infinity,
                 child: Column(
@@ -75,7 +81,6 @@ class _GameScreenState extends State<GameScreen> {
                   ],
                 ),
               ),
-              Align(alignment: Alignment.topRight, child: LeaderBoard()),
               AnimationOverlay(),
             ],
           ));
