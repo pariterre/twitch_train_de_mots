@@ -23,6 +23,8 @@ class GameManager {
   bool _hasPlayedAtLeastOneRound = false;
   bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
 
+  bool get shouldHideExtension => _gameState.configuration.hideExtension;
+
   ///
   /// Flag to indicate if the game has started
   final _gameState = SimplifiedGameState(
@@ -119,6 +121,13 @@ class GameManager {
       onAttemptingTheBigHeist.notifyListeners();
       _logger.info(
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
+    }
+
+    if (_gameState.configuration.hideExtension !=
+        newGameState.configuration.hideExtension) {
+      _gameState.configuration.hideExtension =
+          newGameState.configuration.hideExtension;
+      onGameStatusUpdated.notifyListeners();
     }
   }
 

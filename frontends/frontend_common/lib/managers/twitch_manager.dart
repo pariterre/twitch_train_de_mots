@@ -264,7 +264,7 @@ class TwitchManagerMock extends TwitchManager {
     _requestGameStatus();
 
     // Uncomment the next line to simulate that the user can pardon in 1 second
-    Future.delayed(const Duration(seconds: 1))
+    Future.delayed(const Duration(seconds: 3))
         .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
               status: GameStatus.revealAnswers,
               round: 11,

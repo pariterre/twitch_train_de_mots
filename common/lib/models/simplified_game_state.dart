@@ -2,7 +2,7 @@ import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 
 class SimplifiedConfiguration {
-  final bool hideExtension;
+  bool hideExtension;
 
   SimplifiedConfiguration({
     required this.hideExtension,

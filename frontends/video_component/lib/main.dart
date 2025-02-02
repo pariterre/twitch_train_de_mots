@@ -16,6 +16,6 @@ void main() async {
   runApp(const MainExtension(
     isFullScreen: true,
     alwaysOpaque: false,
-    streamerCanHide: false,
+    canBeHidden: false,
   ));
 }

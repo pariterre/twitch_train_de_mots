@@ -432,7 +432,7 @@ const List<ReleaseNotes> releaseNotes = [
       FeatureNotes(
           description:
               'L\'animateur\u00b7trice est maintenant en mesure d\'afficher ou cacher '
-              'l\extension du Train de mots avec un simple clique dans les options du '
+              'l\'extension du Train de mots avec un simple clique dans les options du '
               'jeu.'),
       FeatureNotes(
           description:

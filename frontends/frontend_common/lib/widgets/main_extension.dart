@@ -15,19 +15,19 @@ class MainExtension extends StatefulWidget {
     super.key,
     required this.isFullScreen,
     required this.alwaysOpaque,
-    required this.streamerCanHide,
+    required this.canBeHidden,
   });
 
   final bool isFullScreen;
   final bool alwaysOpaque;
-  final bool streamerCanHide;
+  final bool canBeHidden;
 
   @override
   State<MainExtension> createState() => _MainExtensionState();
 }
 
 class _MainExtensionState extends State<MainExtension> {
-  late bool _shouldHide = widget.streamerCanHide;
+  late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
     TwitchManager.instance.frontendManager.authenticator.onHasConnected
@@ -50,7 +50,9 @@ class _MainExtensionState extends State<MainExtension> {
   }
 
   void _toggleVisibility() {
-    final shouldHide = GameManager.instance.status == GameStatus.uninitialized;
+    final gm = GameManager.instance;
+    final shouldHide =
+        gm.status == GameStatus.uninitialized || gm.shouldHideExtension;
 
     // Check for the nothing-to-do cases
     if (shouldHide == _shouldHide) return;
@@ -90,7 +92,7 @@ class _MainExtensionState extends State<MainExtension> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.transparent,
-        body: widget.streamerCanHide && _shouldHide
+        body: widget.canBeHidden && _shouldHide
             ? null
             : widget.alwaysOpaque
                 ? mainWidget
