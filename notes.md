@@ -6,6 +6,7 @@
     - I've decided to keep this bug because it reduces the number of robberies
 - Show that the user hasn't provided their credentials instead of showing the game if they haven't provided their credentials
 - Fixed showing to wrong position in leaderboard when beating own score
+- Fixed train continuing to move after the game has ended
 
 # Features
 ## To do

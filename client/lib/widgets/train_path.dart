@@ -18,6 +18,10 @@ class TrainPathController {
   }
 
   set hallMarks(List<int> hallMarks) {
+    nextMoves.clear();
+    _controller?.animateTo(1, duration: Duration.zero);
+    _isMoving = false;
+
     _hallMarks.clear();
     _hallMarks.addAll(hallMarks);
 
@@ -47,7 +51,7 @@ class TrainPathController {
   bool _isStationary = false;
   List<double> steps = [];
 
-  late AnimationController _controller;
+  AnimationController? _controller;
   late Animation<double> _animation;
   final List<FireworksController> _fireworksControllers = [];
 
@@ -80,8 +84,13 @@ class TrainPathController {
     if (_isMoving) return;
 
     _isMoving = true;
-    while (nextMoves.isNotEmpty) {
-      await nextMoves.removeAt(0)();
+    try {
+      while (nextMoves.isNotEmpty) {
+        final performNext = nextMoves.removeAt(0);
+        await performNext();
+      }
+    } catch (e) {
+      // Do nothing, this may happen when the train is reset (race condition)
     }
     _isMoving = false;
   }
@@ -96,7 +105,7 @@ class TrainPathController {
     }
 
     _reversed = false;
-    await _controller.forward(from: 0.0);
+    await _controller?.forward(from: 0.0);
     if (_hallMarks.contains(_currentStep)) {
       _fireworksControllers[_hallMarks.indexOf(_currentStep)].trigger();
       SoundManager.instance.playTrainReachedStation();
@@ -114,7 +123,7 @@ class TrainPathController {
     }
 
     _reversed = true;
-    await _controller.reverse(from: 1.0);
+    await _controller?.reverse(from: 1.0);
     if (_hallMarks.contains(_currentStep + 1)) {
       _fireworksControllers[_hallMarks.indexOf(_currentStep + 1)]
           .triggerReversed();
@@ -124,7 +133,7 @@ class TrainPathController {
   }
 
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
   }
 
   void _initialize(
@@ -134,10 +143,10 @@ class TrainPathController {
     _controller = AnimationController(
         vsync: provider, duration: Duration(milliseconds: millisecondsPerStep));
     _animation = CurvedAnimation(
-      parent: _controller,
+      parent: _controller!,
       curve: Curves.linear,
     );
-    _controller.animateTo(1, duration: Duration.zero);
+    _controller?.animateTo(1, duration: Duration.zero);
 
     _refreshCallback = refreshCallback;
   }
