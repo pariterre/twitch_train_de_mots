@@ -281,13 +281,15 @@ class DatabaseManager {
     });
 
     // Update the cache results
-    // TODO: Do we need to sort the cache after updating it?
     final index = _teamResultsCache!.indexWhere((e) => e.name == team.name);
     if (index >= 0) {
       _teamResultsCache![index] = team;
     } else {
       _teamResultsCache!.add(team);
     }
+    // Sort the cache in the case current team did better
+    _teamResultsCache!.sort((a, b) => b.bestStation.compareTo(a.bestStation));
+
     _logger.info('Sent the results of team ${team.name}');
   }
 
