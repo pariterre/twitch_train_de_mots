@@ -49,12 +49,12 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
       textStyle = tm.buttonTextStyle;
     }
     if (widget.onPressed == null) {
-      final redGray = (textStyle.color!.red * 1.5).toInt().clamp(200, 245);
-      final greenGray = (textStyle.color!.green * 1.5).toInt().clamp(200, 245);
-      final blueGray = (textStyle.color!.blue * 1.5).toInt().clamp(200, 245);
+      final redGray = (textStyle.color!.r * 1.5).clamp(0.78, 0.96);
+      final greenGray = (textStyle.color!.g * 1.5).clamp(0.78, 0.96);
+      final blueGray = (textStyle.color!.b * 1.5).clamp(0.78, 0.96);
       textStyle = textStyle.copyWith(
-          color: Color(
-              0xFF000000 + redGray * 256 * 256 + greenGray * 256 + blueGray));
+          color: Color.from(
+              red: redGray, green: greenGray, blue: blueGray, alpha: 1.0));
     }
 
     return DecoratedBox(
@@ -62,7 +62,7 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               spreadRadius: 4,
               offset: const Offset(3, 3),

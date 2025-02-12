@@ -242,7 +242,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     return Container(
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10.0),
-          color: Colors.white.withOpacity(0.95)),
+          color: Colors.white.withValues(alpha: 0.95)),
       width: 650,
       child: Form(
         key: _credidentialsFormKey,

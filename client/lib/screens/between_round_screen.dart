@@ -67,7 +67,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
         gradient: RadialGradient(
           colors: [
             Colors.transparent,
-            Colors.black.withOpacity(0.4),
+            Colors.black.withValues(alpha: 0.4),
           ],
           stops: const [0.4, 1.0],
           center: Alignment.center,
@@ -920,7 +920,7 @@ class _BackgroundState extends State<_Background> {
             borderRadius: BorderRadius.circular(20.0),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 spreadRadius: 3,
                 blurRadius: 2,
                 offset: const Offset(3, 3),

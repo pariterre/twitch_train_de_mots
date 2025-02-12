@@ -35,15 +35,14 @@ class FireworksController {
 
   Color get color {
     final rand = Random();
-    final alpha =
-        minColor.alpha + rand.nextInt(maxColor.alpha - minColor.alpha + 1);
-    final red = minColor.red + rand.nextInt(maxColor.red - minColor.red + 1);
-    final green =
-        minColor.green + rand.nextInt(maxColor.green - minColor.green + 1);
-    final blue =
-        minColor.blue + rand.nextInt(maxColor.blue - minColor.blue + 1);
+    double randomBetween(double min, double max) =>
+        min + rand.nextDouble() * (max - min);
 
-    return Color.fromARGB(alpha, red, green, blue);
+    return Color.from(
+        red: randomBetween(minColor.r, maxColor.r),
+        green: randomBetween(minColor.g, maxColor.g),
+        blue: randomBetween(minColor.b, maxColor.b),
+        alpha: randomBetween(minColor.a, maxColor.a));
   }
 
   Function(bool isHuge, {bool isReversed})? _explode;

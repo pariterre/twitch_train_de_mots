@@ -85,7 +85,9 @@ class LetterProblem {
 
         // If we cut too much, we have to start over
         if (solutions.length < config.nbSolutions.min ||
-            candidateLetters.length < config.lengthLongestSolution.min) break;
+            candidateLetters.length < config.lengthLongestSolution.min) {
+          break;
+        }
 
         // Otherwise, drop one of the letters that is not in any of the longest
         // words
@@ -278,7 +280,9 @@ class LetterProblem {
 
         // If we cut too much, we have to start over
         if (solutions.length < config.nbSolutions.min ||
-            candidateLetters.length < config.lengthLongestSolution.min) break;
+            candidateLetters.length < config.lengthLongestSolution.min) {
+          break;
+        }
 
         // Otherwise, drop one of the letters that is not in any of the longest
         // words

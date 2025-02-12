@@ -401,7 +401,7 @@ class _SolutionTileState extends State<_SolutionTile> {
         border: Border.all(color: Colors.black),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 3.0,
             spreadRadius: 0.0,
             offset: const Offset(5.0, 5.0),

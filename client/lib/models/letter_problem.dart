@@ -243,7 +243,9 @@ class ProblemGenerator {
 
         // If we cut too much, we have to start over
         if (subWords.length < minimumNbOfWords ||
-            candidateLetters.length < minLetters) break;
+            candidateLetters.length < minLetters) {
+          break;
+        }
 
         // Otherwise, drop one of the letters that is not in any of the longest
         // words
@@ -480,7 +482,9 @@ class ProblemGenerator {
 
         // If we cut too much, we have to start over
         if (subWords.length < minimumNbOfWords ||
-            candidateLetters.length < minLetters) break;
+            candidateLetters.length < minLetters) {
+          break;
+        }
 
         // Otherwise, drop one of the letters that is not in any of the longest
         // words

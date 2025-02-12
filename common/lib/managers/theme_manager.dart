@@ -4,8 +4,10 @@ import 'dart:math';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+final _logger = Logger('ConfigurationManager');
 const _textSizeDefault = 20.0;
 const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);
 
@@ -70,17 +72,17 @@ class ThemeManager {
   late Color _backgroundColorLight;
   Color get backgroundColorLight => _backgroundColorLight;
   void _updateBackgroundColors() {
-    final darkRed = min(mainColor.red, 100);
-    final darkGreen = min(mainColor.green, 100);
-    final darkBlue = min(mainColor.blue, 100);
+    final darkRed = min(mainColor.r, 0.39);
+    final darkGreen = min(mainColor.g, 0.39);
+    final darkBlue = min(mainColor.b, 0.39);
     _backgroundColorDark =
-        Color(0xFF000000 + darkRed * 0x10000 + darkGreen * 0x100 + darkBlue);
+        Color.from(red: darkRed, green: darkGreen, blue: darkBlue, alpha: 1.0);
 
-    final red = max(mainColor.red, 150);
-    final green = max(mainColor.green, 150);
-    final blue = max(mainColor.blue, 150);
+    final red = max(mainColor.r, 0.58);
+    final green = max(mainColor.g, 0.58);
+    final blue = max(mainColor.b, 0.58);
     _backgroundColorLight =
-        Color(0xFF000000 + red * 0x10000 + green * 0x100 + blue);
+        Color.from(red: red, green: green, blue: blue, alpha: 1.0);
   }
 
   final solutionUnsolvedColorLight = Colors.green[200];
@@ -130,6 +132,7 @@ class ThemeManager {
   );
 
   void _save() async {
+    _logger.info('Saving custom scheme');
     onChanged.notifyListeners();
 
     final prefs = await SharedPreferences.getInstance();
@@ -137,6 +140,8 @@ class ThemeManager {
   }
 
   void _load() async {
+    _logger.info('Loading custom scheme');
+
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString('customScheme');
     if (data != null) {
@@ -144,13 +149,32 @@ class ThemeManager {
       _textSize = map['textSize'] ?? _textSizeDefault;
       _updateLeaderTextSizes();
 
-      _mainColor = Color(map['mainColor'] ?? _mainColorDefault.value);
+      if (map['mainColor'] == null) {
+        _mainColor = _mainColorDefault;
+      } else {
+        if (map['mainColor'] is int) {
+          _mainColor = Color(map['mainColor']);
+        } else if (map['mainColor'] is Map) {
+          _mainColor = Color.from(
+            red: map['mainColor']['r'],
+            green: map['mainColor']['g'],
+            blue: map['mainColor']['b'],
+            alpha: map['mainColor']['a'],
+          );
+        } else {
+          _logger.warning('Invalid mainColor format: ${map['mainColor']}, '
+              'using default value');
+          _mainColor = _mainColorDefault;
+        }
+      }
+
       _updateBackgroundColors();
     }
     onChanged.notifyListeners();
   }
 
   void reset() {
+    _logger.info('Resetting custom scheme');
     _textSize = _textSizeDefault;
     _mainColor = _mainColorDefault;
 
@@ -160,6 +184,11 @@ class ThemeManager {
 
   Map<String, dynamic> serialize() => {
         'textSize': _textSize,
-        'mainColor': _mainColor.value,
+        'mainColor': {
+          'r': _mainColor.r,
+          'g': _mainColor.g,
+          'b': _mainColor.b,
+          'a': _mainColor.a
+        }
       };
 }
