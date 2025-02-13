@@ -7,6 +7,7 @@ class Player {
   final String name;
 
   int score = 0;
+  int starsCollected = 0;
 
   void addToStealCount() {
     _roundStealCount++;
@@ -85,7 +86,7 @@ class Players extends DelegatingList<Player> {
 
   ///
   /// Get the players with the best score
-  List<Player> get bestPlayers {
+  List<Player> get bestPlayersByScore {
     final bestScore = this.bestScore;
     return _players.where((element) => element.score == bestScore).toList();
   }
@@ -93,6 +94,20 @@ class Players extends DelegatingList<Player> {
   ///
   /// Get the best score
   int get bestScore => fold(0, (int prev, Player e) => max(prev, e.score));
+
+  ///
+  /// Get the players with the best score
+  List<Player> get bestPlayersByStars {
+    final bestStars = this.bestStars;
+    return _players
+        .where((element) => element.starsCollected == bestStars)
+        .toList();
+  }
+
+  ///
+  /// Get the best stars
+  int get bestStars =>
+      fold(0, (int prev, Player e) => max(prev, e.starsCollected));
 
   ///
   /// Get the biggest stealers

@@ -270,17 +270,22 @@ class _LeaderBoard extends StatelessWidget {
       required Players players}) {
     // Define some aliases
     final biggestStealers = players.biggestStealers;
-    final mvpPlayers = team.mvpPlayers.map((e) => e.name);
+    final mvpScore = team.mvpScore.map((e) => e.name);
+    final mvpStars = team.mvpStars.map((e) => e.name);
 
     // Check some feats of the player
     final isBiggestStealer = biggestStealers.contains(player);
-    final isMvpPlayer = mvpPlayers.contains(player.name);
+    final isMvpScore = mvpScore.contains(player.name);
+    final isMvpStars = mvpStars.contains(player.name);
 
     // Define the color to use
-    if (isMvpPlayer) {
+    // TODO : Check the colors for the current game
+    if (isMvpScore) {
       return _winnerColor;
     } else if (isBiggestStealer) {
       return _stealerColor;
+    } else if (isMvpStars) {
+      return _winnerColor;
     } else {
       return null;
     }
@@ -299,13 +304,29 @@ class _LeaderBoard extends StatelessWidget {
     }
   }
 
-  Color? _highlightBestPlayerColor({required PlayerResult player}) {
+  Color? _highlightBestOverallScoreColor({required PlayerResult player}) {
     final dm = DatabaseManager.instance;
     final gm = GameManager.instance;
 
-    final bestPlayers = gm.players.bestPlayers;
+    final bestPlayers = gm.players.bestPlayersByScore;
     final shouldHighlight = bestPlayers
-            .any((e) => (e.name == player.name && e.score == player.score)) ||
+            .any((e) => (e.name == player.name && e.score == player.value)) ||
+        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
+
+    if (shouldHighlight) {
+      return _winnerColor;
+    } else {
+      return null;
+    }
+  }
+
+  Color? _highlightBestOverallStarsColor({required PlayerResult player}) {
+    final dm = DatabaseManager.instance;
+    final gm = GameManager.instance;
+
+    final bestPlayers = gm.players.bestPlayersByStars;
+    final shouldHighlight = bestPlayers.any((e) =>
+            (e.name == player.name && e.starsCollected == player.value)) ||
         (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
 
     if (shouldHighlight) {
@@ -321,7 +342,7 @@ class _LeaderBoard extends StatelessWidget {
       required Players players}) {
     // Define some aliases
     final biggestStealers = players.biggestStealers;
-    final mvpPlayers = teamResult.mvpPlayers.map((e) => e.name);
+    final mvpPlayers = teamResult.mvpScore.map((e) => e.name);
 
     // Check some feats of the player
     final isBiggestStealer = biggestStealers.contains(player);
@@ -351,15 +372,16 @@ class _LeaderBoard extends StatelessWidget {
       return Center(child: _buildTitleTile('Aucun joueur n\'a joué'));
     }
 
-    final nbHighestScore = players.bestPlayers.length;
+    final nbHighestScore = players.bestPlayersByScore.length;
 
     const scoreWidth = 80.0;
     const spacer = 20.0;
     const stealWidth = 60.0;
-    final nameWidth = width - (stealWidth + scoreWidth + spacer);
+    final nameWidth =
+        width - (stealWidth + scoreWidth + spacer + scoreWidth + spacer);
 
     return FutureBuilder(
-        future: DatabaseManager.instance.getCurrentTeamResults(),
+        future: DatabaseManager.instance.getCurrentTeamResult(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -472,6 +494,33 @@ class _LeaderBoard extends StatelessWidget {
                           },
                         ).toList()),
                       ),
+                      const SizedBox(width: spacer),
+                      SizedBox(
+                        width: scoreWidth,
+                        child: Column(
+                            children: players.asMap().keys.map(
+                          (index) {
+                            final player = players[index];
+                            final highlightColor = _highlightBestScoreColor(
+                                player: player, players: players, team: team);
+
+                            return Column(children: [
+                              if (index == 0) _buildTitleTile('Étoiles'),
+                              _buildScoreTile(
+                                  score: player.starsCollected,
+                                  highlightColor: highlightColor),
+                              if (players.length > nbHighestScore &&
+                                  index + 1 == nbHighestScore)
+                                Column(
+                                  children: [
+                                    const SizedBox(height: 12.0),
+                                    _buildTitleTile('')
+                                  ],
+                                )
+                            ]);
+                          },
+                        ).toList()),
+                      )
                     ],
                   ),
                 ],
@@ -556,14 +605,16 @@ class _LeaderBoard extends StatelessWidget {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
-    final bestPlayers = gm.players.bestPlayers;
+    final bestPlayers = gm.players.bestPlayersByScore;
 
     const scoreWidth = 80.0;
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
         future: DatabaseManager.instance.getBestPlayers(
-            top: 50, mvpPlayers: gm.hasPlayedAtLeastOnce ? bestPlayers : null),
+            top: 50,
+            mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
+            mvpType: MvpType.score),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -598,7 +649,7 @@ class _LeaderBoard extends StatelessWidget {
                           (player) => _buildNamedTile(
                             '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
                             highlightColor:
-                                _highlightBestPlayerColor(player: player),
+                                _highlightBestOverallScoreColor(player: player),
                             prefixText: '${player.rank}.',
                             width: nameWidth,
                           ),
@@ -612,9 +663,85 @@ class _LeaderBoard extends StatelessWidget {
                           _buildTitleTile('Score'),
                           ...players.map(
                             (player) => _buildScoreTile(
-                              score: player.score,
-                              highlightColor:
-                                  _highlightBestPlayerColor(player: player),
+                              score: player.value,
+                              highlightColor: _highlightBestOverallScoreColor(
+                                  player: player),
+                            ),
+                          )
+                        ]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  Widget _builBestPlayersLeaderboardStars({required double width}) {
+    final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
+
+    final bestPlayers = gm.players.bestPlayersByStars;
+
+    const starsWidth = 80.0;
+    final nameWidth = width - starsWidth;
+
+    return FutureBuilder(
+        future: DatabaseManager.instance.getBestPlayers(
+            top: 50,
+            mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
+            mvpType: MvpType.stars),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return SizedBox(
+              width: 80,
+              height: 80,
+              child:
+                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
+            );
+          }
+
+          final players = snapshot.data as List<PlayerResult>;
+
+          if (players.isEmpty) {
+            return Center(
+                child:
+                    _buildTitleTile('Aucun\u00b7e cheminot\u00b7e n\'a joué'));
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTitleTile(
+                            'Meilleur\u00b7e\u00b7s cueilleurs\u00b7ses'),
+                        ...players.map(
+                          (player) => _buildNamedTile(
+                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
+                            highlightColor:
+                                _highlightBestOverallStarsColor(player: player),
+                            prefixText: '${player.rank}.',
+                            width: nameWidth,
+                          ),
+                        ),
+                      ]),
+                  SizedBox(
+                    width: starsWidth,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _buildTitleTile('Étoiles'),
+                          ...players.map(
+                            (player) => _buildScoreTile(
+                              score: player.value,
+                              highlightColor: _highlightBestOverallStarsColor(
+                                  player: player),
                             ),
                           )
                         ]),
@@ -637,7 +764,7 @@ class _LeaderBoard extends StatelessWidget {
             Expanded(
               child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: _buildGameScore(width: 500)),
+                  child: _buildGameScore(width: 600)),
             ),
           if ((gm.successLevel == SuccessLevel.failed &&
                   gm.isAllowedToSendResults) ||
@@ -653,11 +780,15 @@ class _LeaderBoard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _buildTeamLeaderboardScore(width: 450),
+                        _buildTeamLeaderboardScore(width: 300),
                         const SizedBox(width: 12.0),
                         const VerticalDivider(thickness: 4),
                         const SizedBox(width: 12.0),
-                        _builBestPlayersLeaderboardScore(width: 450),
+                        _builBestPlayersLeaderboardScore(width: 300),
+                        const SizedBox(width: 12.0),
+                        const VerticalDivider(thickness: 4),
+                        const SizedBox(width: 12.0),
+                        _builBestPlayersLeaderboardStars(width: 300),
                       ],
                     ),
                   ),
@@ -698,7 +829,7 @@ class _LeaderBoard extends StatelessWidget {
       width: width,
       child: Padding(
         padding: EdgeInsets.only(
-            top: 8.0, bottom: 8.0, left: prefixText == null ? 10 : 50),
+            top: 8.0, bottom: 8.0, left: prefixText == null ? 10 : 20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

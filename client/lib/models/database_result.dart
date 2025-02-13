@@ -21,7 +21,8 @@ abstract class DatabaseResult {
 
 class TeamResult extends DatabaseResult {
   final int bestStation;
-  final List<PlayerResult> mvpPlayers;
+  final List<PlayerResult> mvpScore;
+  final List<PlayerResult> mvpStars;
 
   @override
   int get value => bestStation;
@@ -29,15 +30,27 @@ class TeamResult extends DatabaseResult {
   TeamResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
       : bestStation =
             doc.exists ? (doc.data()?[DatabaseManager.bestStationKey]) : -1,
-        mvpPlayers = doc.exists
-            ? (((doc.data()?[DatabaseManager.mvpPlayersKey])?[
+        mvpScore = doc.exists
+            ? (((doc.data()?[DatabaseManager.mvpScoreKey])?[
                             DatabaseManager.mvpPlayersNameKey] as List?)
                         ?.map((name) => PlayerResult(
                             name: name,
                             teamName:
                                 doc.data()?[DatabaseManager.teamNameKey] ?? '',
-                            score: doc.data()?[DatabaseManager.mvpPlayersKey]
-                                ?[DatabaseManager.mvpPlayersScoreKey])))
+                            value: doc.data()?[DatabaseManager.mvpScoreKey]
+                                ?[DatabaseManager.mvpPlayersValueKey])))
+                    ?.toList() ??
+                []
+            : [],
+        mvpStars = doc.exists
+            ? (((doc.data()?[DatabaseManager.mvpStarsKey])?[
+                            DatabaseManager.mvpPlayersNameKey] as List?)
+                        ?.map((name) => PlayerResult(
+                            name: name,
+                            teamName:
+                                doc.data()?[DatabaseManager.teamNameKey] ?? '',
+                            value: doc.data()?[DatabaseManager.mvpStarsKey]
+                                ?[DatabaseManager.mvpPlayersValueKey])))
                     ?.toList() ??
                 []
             : [],
@@ -46,16 +59,19 @@ class TeamResult extends DatabaseResult {
   TeamResult({
     required super.name,
     required this.bestStation,
-    List<PlayerResult>? mvpPlayers,
-  }) : mvpPlayers = mvpPlayers ?? [];
+    List<PlayerResult>? mvpScore,
+    List<PlayerResult>? mvpStars,
+  })  : mvpScore = mvpScore ?? [],
+        mvpStars = mvpStars ?? [];
 }
 
 class PlayerResult extends DatabaseResult {
   final String teamName;
-  final int score;
+  final int _value;
   @override
-  int get value => score;
+  int get value => _value;
 
   PlayerResult(
-      {required super.name, required this.teamName, required this.score});
+      {required super.name, required this.teamName, required int value})
+      : _value = value;
 }

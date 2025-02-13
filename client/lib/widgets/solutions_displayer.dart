@@ -46,9 +46,9 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     // It is okay to do that once at the beginning of each round since the best
     // players can only change when a new game is started anyway.
     final dm = DatabaseManager.instance;
-    final team = await dm.getCurrentTeamResults();
+    final team = await dm.getCurrentTeamResult();
     _mvpPlayers.clear();
-    _mvpPlayers.addAll(team.mvpPlayers.map((e) => e.name));
+    _mvpPlayers.addAll(team.mvpScore.map((e) => e.name));
   }
 
   @override

@@ -70,9 +70,12 @@ class MocksConfiguration {
       gameStatus: GameStatus.roundPreparing,
       problem: letterProblemMock,
       players: [
-        Player(name: 'Player 1')..score = 100,
+        Player(name: 'Player 1')
+          ..score = 100
+          ..starsCollected = 1,
         Player(name: 'Player 2')
           ..score = 200
+          ..starsCollected = 2
           ..addToStealCount(),
         Player(name: 'Player 3')..score = 300,
         Player(name: 'Player 4')..score = 150,
@@ -88,7 +91,7 @@ class MocksConfiguration {
         Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')..score = 350,
       ],
       roundCount: 10,
-      successLevel: SuccessLevel.oneStar,
+      successLevel: SuccessLevel.failed,
       shouldAttemptTheBigHeist: false,
       shouldChangeLane: true,
     );
@@ -113,7 +116,7 @@ class MocksConfiguration {
         'Les Bruns': 0,
         'Les Bleuets': 4,
       },
-      dummyBestPlayerResults: {
+      dummyBestPlayerScore: {
         'Player 1': (300, 'Les Verts'),
         'Player 2': (250, 'Les Oranges'),
         'Player 3': (600, 'Les Roses'),
@@ -123,6 +126,17 @@ class MocksConfiguration {
         'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
         'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
         'Viewer3': (2, 'Les Bleuets'),
+      },
+      dummyBestPlayerStars: {
+        'Player 1': (3, 'Les Verts'),
+        'Player 2': (2, 'Les Oranges'),
+        'Player 3': (5, 'Les Roses'),
+        'Player 4': (10, 'Les Jaunes'),
+        'Player 5': (5, 'Les Blancs'),
+        'Player 6': (2, 'Les Bleus'),
+        'PlayerWithAVeryVeryVeryLongName': (0, 'Les Noirs'),
+        'AnotherPlayerWithAVeryVeryVeryLongName': (1, 'Les Rouges'),
+        'Viewer3': (1, 'Les Bleuets'),
       },
     );
   }

@@ -16,6 +16,8 @@ import 'package:train_de_mots/models/player.dart';
 
 final _logger = Logger('DatabaseManager');
 
+enum MvpType { score, stars }
+
 class DatabaseManager {
   /// Declare the singleton
   static DatabaseManager get instance {
@@ -216,9 +218,10 @@ class DatabaseManager {
 
   static const String bestStationKey = 'bestStation';
   static const String teamNameKey = 'teamName';
-  static const String mvpPlayersKey = 'bestPlayers';
+  static const String mvpScoreKey = 'bestPlayers';
+  static const String mvpStarsKey = 'bestStars';
   static const String mvpPlayersNameKey = 'names';
-  static const String mvpPlayersScoreKey = 'score';
+  static const String mvpPlayersValueKey = 'score';
 
   ///
   /// Returns the name of the current team
@@ -241,10 +244,14 @@ class DatabaseManager {
 
   ///
   /// Returns all the scores for all the mvp players
-  Future<List<PlayerResult>> _getAllMvpPlayersResult() async {
+  Future<List<PlayerResult>> _getAllMvpPlayersResult(
+      {required MvpType mvpType}) async {
     _logger.info('Fetching all the mvp players results...');
     final mvpPlayers = (await _getTeamsResults())
-        .map((e) => e.mvpPlayers)
+        .map((e) => switch (mvpType) {
+              MvpType.score => e.mvpScore,
+              MvpType.stars => e.mvpStars
+            })
         .expand((e) => e)
         .toList();
     mvpPlayers.sort((a, b) => b.value.compareTo(a.value));
@@ -272,12 +279,18 @@ class DatabaseManager {
         .set({
       teamNameKey: team.name,
       bestStationKey: team.bestStation,
-      mvpPlayersKey: team.mvpPlayers.isEmpty
+      mvpScoreKey: team.mvpScore.isEmpty
           ? null
           : {
-              mvpPlayersNameKey: team.mvpPlayers.map((e) => e.name).toList(),
-              mvpPlayersScoreKey: team.mvpPlayers.first.score
-            }
+              mvpPlayersNameKey: team.mvpScore.map((e) => e.name).toList(),
+              mvpPlayersValueKey: team.mvpScore.first.value,
+            },
+      mvpStarsKey: team.mvpStars.isEmpty
+          ? null
+          : {
+              mvpPlayersNameKey: team.mvpStars.map((e) => e.name).toList(),
+              mvpPlayersValueKey: team.mvpStars.first.value,
+            },
     });
 
     // Update the cache results
@@ -301,40 +314,77 @@ class DatabaseManager {
   /// Simple mutex to wait for data to be sent before fetching
   bool _isSendingData = false;
 
+  void _updateTeamResultsMvp({
+    required TeamResult teamResults,
+    required List<Player> currentMvp,
+    required List<PlayerResult> previousMvp,
+    required MvpType mvpType,
+  }) {
+    final previousBestValue =
+        previousMvp.isEmpty ? -1 : previousMvp.first.value;
+    final currentBestValue = currentMvp.isEmpty
+        ? -1
+        : switch (mvpType) {
+            MvpType.score => currentMvp.first.score,
+            MvpType.stars => currentMvp.first.starsCollected
+          };
+
+    // Set the mvp score or stars for the team
+    final mvp = switch (mvpType) {
+      MvpType.score => teamResults.mvpScore,
+      MvpType.stars => teamResults.mvpStars
+    };
+    if (currentBestValue >= previousBestValue) {
+      mvp.addAll(currentMvp
+          .map((e) => PlayerResult(
+              name: e.name,
+              value: switch (mvpType) {
+                MvpType.score => currentMvp.first.score,
+                MvpType.stars => currentMvp.first.starsCollected
+              },
+              teamName: teamName))
+          .toList());
+    }
+    if (previousBestValue >= currentBestValue) {
+      final currentMvpNames = mvp.map((e) => e.name);
+      mvp.addAll(previousMvp.where((e) => !currentMvpNames.contains(e.name)));
+    }
+  }
+
   ///
   /// Send a new score to the database
-  Future<void> sendResults(
-      {required int stationReached, required List<Player> mvpPlayers}) async {
+  Future<void> sendResults({
+    required int stationReached,
+    required List<Player> mvpScore,
+    required List<Player> mvpStars,
+  }) async {
     _logger.info('Sending results to the database...');
     _isSendingData = true;
 
-    // Get the previous result for this team to see if we need to update it
+    // Construct the TeamResult without mvp score and stars
     final previousTeamResult = await _getResultsOf(teamName: teamName);
-    final List<PlayerResult> previousBestPlayers =
-        previousTeamResult == null ? [] : [...previousTeamResult.mvpPlayers];
-    final previousBestScore =
-        previousBestPlayers.isEmpty ? -1 : previousBestPlayers.first.score;
-    final currentBestScore = mvpPlayers.isEmpty ? -1 : mvpPlayers.first.score;
-
-    // Construct the TeamResult without mvp players
-    previousTeamResult?.mvpPlayers.clear();
+    final previousMvpScore =
+        List<PlayerResult>.of(previousTeamResult?.mvpScore ?? []);
+    final previousMvpStars =
+        List<PlayerResult>.of(previousTeamResult?.mvpStars ?? []);
+    previousTeamResult?.mvpScore.clear();
+    previousTeamResult?.mvpStars.clear();
     final teamResults =
         previousTeamResult == null || stationReached > previousTeamResult.value
             ? TeamResult(name: teamName, bestStation: stationReached)
             : previousTeamResult;
 
-    // Set the mvp players for the team
-    if (currentBestScore >= previousBestScore) {
-      teamResults.mvpPlayers.addAll(mvpPlayers
-          .map((e) =>
-              PlayerResult(name: e.name, score: e.score, teamName: teamName))
-          .toList());
-    }
-    if (previousBestScore >= currentBestScore) {
-      final currentMvpNames = teamResults.mvpPlayers.map((e) => e.name);
-      teamResults.mvpPlayers.addAll(
-          previousBestPlayers.where((e) => !currentMvpNames.contains(e.name)));
-    }
+    // Set the mvp score and stars for the team
+    _updateTeamResultsMvp(
+        teamResults: teamResults,
+        currentMvp: mvpScore,
+        previousMvp: previousMvpScore,
+        mvpType: MvpType.score);
+    _updateTeamResultsMvp(
+        teamResults: teamResults,
+        currentMvp: mvpStars,
+        previousMvp: previousMvpStars,
+        mvpType: MvpType.stars);
 
     await _putTeamResults(team: teamResults);
 
@@ -342,7 +392,7 @@ class DatabaseManager {
     _logger.info('Sent results to the database');
   }
 
-  Future<TeamResult> getCurrentTeamResults() async {
+  Future<TeamResult> getCurrentTeamResult() async {
     _logger.info('Fetching the results of team $teamName...');
     final results = await _getResultsOf(teamName: teamName) ??
         TeamResult(name: teamName, bestStation: -1);
@@ -387,23 +437,29 @@ class DatabaseManager {
   }
 
   ///
-  /// Returns the [top] mvp players accross all the teams. The [mvpPlayers]
+  /// Returns the [top] mvp player by score or stars accross all the teams. The [mvp]
   /// is added to the list. If the players are not in the top, they are added at
   /// the bottom. If they are in the top, they are added at their rank.
   Future<List<PlayerResult>> getBestPlayers(
-      {required int top, required List<Player>? mvpPlayers}) async {
-    _logger.info('Fetching the best players...');
+      {required int top,
+      required List<Player>? mvp,
+      required MvpType mvpType}) async {
+    _logger.info('Fetching the best players by ${mvpType.name}...');
 
     while (_isSendingData) {
       await Future.delayed(const Duration(milliseconds: 50));
     }
-    final out = await _getAllMvpPlayersResult();
+    final out = await _getAllMvpPlayersResult(mvpType: mvpType);
 
     // Add the current results if necessary (only the best one were fetched)
-    if (mvpPlayers != null) {
-      for (final mvpPlayer in mvpPlayers) {
+    if (mvp != null) {
+      for (final mvpPlayer in mvp) {
+        final value = switch (mvpType) {
+          MvpType.score => mvpPlayer.score,
+          MvpType.stars => mvpPlayer.starsCollected
+        };
         final currentResult = PlayerResult(
-            name: mvpPlayer.name, score: mvpPlayer.score, teamName: teamName);
+            name: mvpPlayer.name, value: value, teamName: teamName);
         _insertResultInList(currentResult, out);
       }
     }
@@ -411,16 +467,18 @@ class DatabaseManager {
     _computeRanks(out);
 
     // If our score did not get to the top, add it at the bottom
-    if (mvpPlayers == null) {
+    if (mvp == null) {
       return out.sublist(0, min(top, out.length));
     } else {
-      for (final mvpPlayer in mvpPlayers) {
+      for (final mvpPlayer in mvp) {
+        final value = switch (mvpType) {
+          MvpType.score => mvpPlayer.score,
+          MvpType.stars => mvpPlayer.starsCollected
+        };
         _limitNumberOfResults(
             top,
             PlayerResult(
-                name: mvpPlayer.name,
-                score: mvpPlayer.score,
-                teamName: teamName),
+                name: mvpPlayer.name, value: value, teamName: teamName),
             out);
       }
     }
@@ -512,7 +570,8 @@ class DatabaseManagerMock extends DatabaseManager {
   String _dummyTeamName = 'Les Bleuets';
   String _dummyPassword = '123456';
   Map<String, int> _dummyBestStationsResults = {};
-  Map<String, (int, String)> _dummyBestPlayersResults = {};
+  Map<String, (int, String)> _dummyBestPlayersScore = {};
+  Map<String, (int, String)> _dummyBestPlayersStars = {};
 
   DatabaseManagerMock._internal() : super._internal();
 
@@ -523,7 +582,8 @@ class DatabaseManagerMock extends DatabaseManager {
     String? dummyTeamName,
     String? dummyPassword,
     Map<String, int>? dummyBestStationResults,
-    Map<String, (int, String)>? dummyBestPlayerResults,
+    Map<String, (int, String)>? dummyBestPlayerScore,
+    Map<String, (int, String)>? dummyBestPlayerStars,
   }) async {
     if (DatabaseManager._instance != null) {
       throw ManagerAlreadyInitializedException(
@@ -540,8 +600,10 @@ class DatabaseManagerMock extends DatabaseManager {
     mock._dummyPassword = dummyPassword ?? mock._dummyPassword;
     mock._dummyBestStationsResults =
         dummyBestStationResults ?? mock._dummyBestStationsResults;
-    mock._dummyBestPlayersResults =
-        dummyBestPlayerResults ?? mock._dummyBestPlayersResults;
+    mock._dummyBestPlayersScore =
+        dummyBestPlayerScore ?? mock._dummyBestPlayersScore;
+    mock._dummyBestPlayersStars =
+        dummyBestPlayerStars ?? mock._dummyBestPlayersStars;
   }
 
   ///////////////////////
@@ -635,20 +697,31 @@ class DatabaseManagerMock extends DatabaseManager {
         .toList();
     out.sort((a, b) => b.bestStation.compareTo(a.bestStation));
 
-    final players = await _getAllMvpPlayersResult();
+    final scores = await _getAllMvpPlayersResult(mvpType: MvpType.score);
     for (final team in out) {
-      team.mvpPlayers.addAll(players.where((e) => e.teamName == team.name));
+      team.mvpScore.addAll(scores.where((e) => e.teamName == team.name));
+    }
+
+    final stars = await _getAllMvpPlayersResult(mvpType: MvpType.stars);
+    for (final team in out) {
+      team.mvpStars.addAll(stars.where((e) => e.teamName == team.name));
     }
 
     return out;
   }
 
   @override
-  Future<List<PlayerResult>> _getAllMvpPlayersResult() async {
-    final out = _dummyBestPlayersResults.entries.map((e) {
-      return PlayerResult(name: e.key, score: e.value.$1, teamName: e.value.$2);
+  Future<List<PlayerResult>> _getAllMvpPlayersResult(
+      {required MvpType mvpType}) async {
+    final mvp = switch (mvpType) {
+      MvpType.score => _dummyBestPlayersScore,
+      MvpType.stars => _dummyBestPlayersStars
+    };
+
+    final out = mvp.entries.map((e) {
+      return PlayerResult(name: e.key, value: e.value.$1, teamName: e.value.$2);
     }).toList();
-    out.sort((a, b) => b.score.compareTo(a.score));
+    out.sort((a, b) => b.value.compareTo(a.value));
 
     return out;
   }
@@ -656,23 +729,34 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   Future<TeamResult> _getResultsOf({required String teamName}) async {
     final station = _dummyBestStationsResults[teamName] ?? 0;
-    final mvpPlayersOfTeam = _dummyBestPlayersResults.entries
+    final mvpScoreOfTeam = _dummyBestPlayersScore.entries
         .where((e) => e.value.$2 == teamName)
         .map((e) =>
-            PlayerResult(name: e.key, score: e.value.$1, teamName: teamName))
+            PlayerResult(name: e.key, value: e.value.$1, teamName: teamName))
+        .toList();
+    final mvpStarsOfTeam = _dummyBestPlayersStars.entries
+        .where((e) => e.value.$2 == teamName)
+        .map((e) =>
+            PlayerResult(name: e.key, value: e.value.$1, teamName: teamName))
         .toList();
 
     return TeamResult(
-        name: teamName, bestStation: station, mvpPlayers: mvpPlayersOfTeam);
+        name: teamName,
+        bestStation: station,
+        mvpScore: mvpScoreOfTeam,
+        mvpStars: mvpStarsOfTeam);
   }
 
   @override
   Future<void> _putTeamResults({required TeamResult team}) async {
     _dummyBestStationsResults[team.name] = team.bestStation;
-    _dummyBestPlayersResults.removeWhere((key, value) => value.$2 == team.name);
-    _dummyBestPlayersResults.addAll({
-      for (final player in team.mvpPlayers)
-        player.name: (player.score, team.name)
+    _dummyBestPlayersScore.removeWhere((key, value) => value.$2 == team.name);
+    _dummyBestPlayersScore.addAll({
+      for (final player in team.mvpScore) player.name: (player.value, team.name)
+    });
+    _dummyBestPlayersStars.removeWhere((key, value) => value.$2 == team.name);
+    _dummyBestPlayersStars.addAll({
+      for (final player in team.mvpStars) player.name: (player.value, team.name)
     });
   }
 

@@ -525,6 +525,7 @@ class GameManager {
     }
 
     player.score += solution.value;
+    if (solution.isGolden) player.starsCollected++;
 
     player.startCooldown(duration: cooldownDuration(player: player));
 
@@ -904,7 +905,9 @@ class GameManager {
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
       DatabaseManager.instance.sendResults(
-          stationReached: roundCount, mvpPlayers: players.bestPlayers);
+          stationReached: roundCount,
+          mvpScore: players.bestPlayersByScore,
+          mvpStars: players.bestPlayersByStars);
     }
 
     _logger.info('Round ended');
