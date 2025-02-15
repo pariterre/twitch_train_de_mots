@@ -261,31 +261,24 @@ class _ContinueSectionState extends State<_ContinueSection> {
 class _LeaderBoard extends StatelessWidget {
   const _LeaderBoard();
 
-  final Color _winnerColor = Colors.amber;
-  final Color _stealerColor = const Color.fromARGB(255, 255, 200, 200);
-
   Color? _highlightBestScoreColor(
       {required Player player,
       required TeamResult team,
       required Players players}) {
-    // Define some aliases
-    final biggestStealers = players.biggestStealers;
-    final mvpScore = team.mvpScore.map((e) => e.name);
-    final mvpStars = team.mvpStars.map((e) => e.name);
+    final tm = ThemeManager.instance;
 
     // Check some feats of the player
-    final isBiggestStealer = biggestStealers.contains(player);
-    final isMvpScore = mvpScore.contains(player.name);
-    final isMvpStars = mvpStars.contains(player.name);
+    final hasBestScore = players.bestPlayersByScore.contains(player);
+    final hasMostStars = players.bestPlayersByStars.contains(player);
+    final isBiggestStealer = players.biggestStealers.contains(player);
 
     // Define the color to use
-    // TODO : Check the colors for the current game
-    if (isMvpScore) {
-      return _winnerColor;
+    if (hasBestScore) {
+      return tm.leaderBoardBestScoreColor;
+    } else if (hasMostStars) {
+      return tm.leaderBoardBestSartsColor;
     } else if (isBiggestStealer) {
-      return _stealerColor;
-    } else if (isMvpStars) {
-      return _winnerColor;
+      return tm.leaderBoardBiggestStealerColor;
     } else {
       return null;
     }
@@ -294,11 +287,12 @@ class _LeaderBoard extends StatelessWidget {
   Color? _highlightBestTeamColor({required TeamResult team}) {
     final dm = DatabaseManager.instance;
     final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
 
     final shouldHighlight = team.name == dm.teamName &&
         (team.bestStation == gm.roundCount || !gm.hasPlayedAtLeastOnce);
     if (shouldHighlight) {
-      return _winnerColor;
+      return tm.leaderBoardBestScoreColor;
     } else {
       return null;
     }
@@ -307,6 +301,7 @@ class _LeaderBoard extends StatelessWidget {
   Color? _highlightBestOverallScoreColor({required PlayerResult player}) {
     final dm = DatabaseManager.instance;
     final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
 
     final bestPlayers = gm.players.bestPlayersByScore;
     final shouldHighlight = bestPlayers
@@ -314,7 +309,7 @@ class _LeaderBoard extends StatelessWidget {
         (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
 
     if (shouldHighlight) {
-      return _winnerColor;
+      return tm.leaderBoardBestScoreColor;
     } else {
       return null;
     }
@@ -323,6 +318,7 @@ class _LeaderBoard extends StatelessWidget {
   Color? _highlightBestOverallStarsColor({required PlayerResult player}) {
     final dm = DatabaseManager.instance;
     final gm = GameManager.instance;
+    final tm = ThemeManager.instance;
 
     final bestPlayers = gm.players.bestPlayersByStars;
     final shouldHighlight = bestPlayers.any((e) =>
@@ -330,7 +326,7 @@ class _LeaderBoard extends StatelessWidget {
         (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
 
     if (shouldHighlight) {
-      return _winnerColor;
+      return tm.leaderBoardBestScoreColor;
     } else {
       return null;
     }
@@ -340,25 +336,30 @@ class _LeaderBoard extends StatelessWidget {
       {required Player player,
       required TeamResult teamResult,
       required Players players}) {
-    // Define some aliases
-    final biggestStealers = players.biggestStealers;
-    final mvpPlayers = teamResult.mvpScore.map((e) => e.name);
+    final tm = ThemeManager.instance;
 
     // Check some feats of the player
-    final isBiggestStealer = biggestStealers.contains(player);
-    final isMvpPlayer = mvpPlayers.contains(player.name);
+    final hasBestScore = players.bestPlayersByScore.contains(player);
+    final hasMostStars = players.bestPlayersByStars.contains(player);
+    final isBiggestStealer = players.biggestStealers.contains(player);
 
     // Define the icon to use
-    if (isMvpPlayer) {
-      return const GrowingWidget(
+    if (hasBestScore) {
+      return GrowingWidget(
           growingFactor: 0.9,
           duration: Duration(milliseconds: 1000),
-          child: Icon(Icons.emoji_events, color: Colors.amber));
-    } else if (isBiggestStealer) {
-      return const GrowingWidget(
+          child: Icon(Icons.emoji_events, color: tm.leaderBoardBestScoreColor));
+    } else if (hasMostStars) {
+      return GrowingWidget(
           growingFactor: 0.93,
           duration: Duration(milliseconds: 500),
-          child: Icon(Icons.local_police, color: Colors.red));
+          child: Icon(Icons.star, color: tm.leaderBoardBestSartsColor));
+    } else if (isBiggestStealer) {
+      return GrowingWidget(
+          growingFactor: 0.93,
+          duration: Duration(milliseconds: 500),
+          child: Icon(Icons.local_police,
+              color: tm.leaderBoardBiggestStealerColor));
     } else {
       return null;
     }
@@ -773,7 +774,7 @@ class _LeaderBoard extends StatelessWidget {
               child: Column(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 75),
+                    padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
                     child: Divider(thickness: 4),
                   ),
                   Expanded(
@@ -782,11 +783,11 @@ class _LeaderBoard extends StatelessWidget {
                       children: [
                         _buildTeamLeaderboardScore(width: 300),
                         const SizedBox(width: 12.0),
-                        const VerticalDivider(thickness: 4),
+                        const VerticalDivider(thickness: 1),
                         const SizedBox(width: 12.0),
                         _builBestPlayersLeaderboardScore(width: 300),
                         const SizedBox(width: 12.0),
-                        const VerticalDivider(thickness: 4),
+                        const VerticalDivider(thickness: 1),
                         const SizedBox(width: 12.0),
                         _builBestPlayersLeaderboardStars(width: 300),
                       ],

@@ -82,13 +82,18 @@ class MocksConfiguration {
         Player(name: 'Player 5')
           ..score = 250
           ..addToStealCount()
+          ..addToStealCount()
           ..addToStealCount(),
         Player(name: 'Player 6')..score = 350,
         Player(name: 'PlayerWithAVeryVeryVeryLongName')
           ..score = 400
           ..addToStealCount()
           ..addToStealCount(),
-        Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')..score = 350,
+        Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
+          ..addToStealCount()
+          ..addToStealCount()
+          ..addToStealCount()
+          ..score = 350,
       ],
       roundCount: 10,
       successLevel: SuccessLevel.failed,
@@ -117,26 +122,26 @@ class MocksConfiguration {
         'Les Bleuets': 4,
       },
       dummyBestPlayerScore: {
-        'Player 1': (300, 'Les Verts'),
-        'Player 2': (250, 'Les Oranges'),
-        'Player 3': (600, 'Les Roses'),
-        'Player 4': (500, 'Les Jaunes'),
-        'Player 5': (600, 'Les Blancs'),
-        'Player 6': (250, 'Les Bleus'),
+        'Viewer 1': (300, 'Les Verts'),
+        'Viewer 2': (250, 'Les Oranges'),
+        'Viewer 3': (600, 'Les Roses'),
+        'Viewer 4': (500, 'Les Jaunes'),
+        'Viewer 5': (600, 'Les Blancs'),
+        'Viewer 6': (250, 'Les Bleuets'),
         'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
         'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
-        'Viewer3': (2, 'Les Bleuets'),
+        'Player 3': (2, 'Les Bleuets'),
       },
       dummyBestPlayerStars: {
-        'Player 1': (3, 'Les Verts'),
-        'Player 2': (2, 'Les Oranges'),
-        'Player 3': (5, 'Les Roses'),
-        'Player 4': (10, 'Les Jaunes'),
-        'Player 5': (5, 'Les Blancs'),
-        'Player 6': (2, 'Les Bleus'),
+        'Viewer 1': (3, 'Les Verts'),
+        'Viewer 2': (2, 'Les Oranges'),
+        'Viewer 3': (5, 'Les Roses'),
+        'Viewer 4': (10, 'Les Jaunes'),
+        'Viewer 5': (5, 'Les Blancs'),
+        'Viewer 6': (2, 'Les Bleus'),
         'PlayerWithAVeryVeryVeryLongName': (0, 'Les Noirs'),
         'AnotherPlayerWithAVeryVeryVeryLongName': (1, 'Les Rouges'),
-        'Viewer3': (1, 'Les Bleuets'),
+        'Player 3': (1, 'Les Bleuets'),
       },
     );
   }

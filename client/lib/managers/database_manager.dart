@@ -199,12 +199,14 @@ class DatabaseManager {
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
 
+  final _currentDatabaseVersion = 'v1.0.2';
+
   ///
   /// Returns the collection of results
   CollectionReference<Map<String, dynamic>> get _teamResultsCollection =>
       FirebaseFirestore.instance
           .collection('results')
-          .doc('v1.0.2')
+          .doc(_currentDatabaseVersion)
           .collection('teams');
 
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
@@ -213,7 +215,7 @@ class DatabaseManager {
   CollectionReference<Map<String, dynamic>> get _wordProblemCollection =>
       FirebaseFirestore.instance
           .collection('results')
-          .doc('v1.0.2')
+          .doc(_currentDatabaseVersion)
           .collection('letterProblems');
 
   static const String bestStationKey = 'bestStation';

@@ -49,8 +49,9 @@ class TwitchManager {
         builder: (context) => TwitchAppAuthenticationDialog(
               isMockActive: _isMockActive,
               debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
-              onConnexionEstablished: (manager) =>
-                  Navigator.of(context).pop(manager),
+              onConnexionEstablished: (manager) {
+                if (context.mounted) Navigator.of(context).pop(manager);
+              },
               appInfo: _appInfo,
               reload: reloadIfPossible,
             ));

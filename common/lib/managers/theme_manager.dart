@@ -108,6 +108,12 @@ class ThemeManager {
   final hiddenLetterColorLight = const Color.fromARGB(255, 111, 221, 255);
   final hiddenLetterColorDark = const Color.fromARGB(255, 0, 137, 201);
 
+  final leaderBoardBestScoreColor = Colors.amber;
+  late final leaderBoardBestSartsColor =
+      const Color.fromARGB(255, 230, 217, 181);
+  final leaderBoardBiggestStealerColor =
+      const Color.fromARGB(255, 255, 200, 200);
+
   double _leaderTitleSize = 26.0;
   double get leaderTitleSize => _leaderTitleSize;
   double _leaderTextSize = 20.0;
