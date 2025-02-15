@@ -443,5 +443,28 @@ const List<ReleaseNotes> releaseNotes = [
               'je n\'ai plus souvenir qui cela était. Si c\'est vous, vous pouvez m\'écrire '
               'et j\'ajouterai votre pseudo dans cette note!'),
     ],
+  ),
+  ReleaseNotes(
+    version: '1.3.2',
+    codeName: 'La cueilleuse d\'étoiles',
+    notes:
+        'Depuis longtemps le Train de Mots cueille les étoiles durant son voyage, '
+        'mais les meilleur\u00b7e\u00b7s cueilleurs\u00b7ses étaient ignoré\u00b7e\u00b7! '
+        'Cette époque est révolue! Les étoiles sont maintenant affichées dans le tableau '
+        'des chemino\u00b7t\u00b7e\u00b7s!',
+    features: [
+      FeatureNotes(
+          description:
+              'Ajout des étoiles cueillies par les chemino\u00b7t\u00b7e\u00b7s dans le tableau '
+              'des chemino\u00b7t\u00b7e\u00b7s'),
+      FeatureNotes(
+          description:
+              'Le bogue où un meilleur score était affiché à la mauvaise '
+              'position a été réglé.'),
+      FeatureNotes(
+          description:
+              'Le bogue où le train ne continuait indéfiniment si la prochaine manche '
+              'était lancée trop rapidement a été réglé.'),
+    ],
   )
 ];
