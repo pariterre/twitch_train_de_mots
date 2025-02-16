@@ -2,6 +2,7 @@ import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 
 class SimplifiedConfiguration {
+  // TODO : Rename to showExtension at the next frontend update
   bool hideExtension;
 
   SimplifiedConfiguration({

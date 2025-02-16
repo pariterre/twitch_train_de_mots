@@ -241,9 +241,9 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                 const SizedBox(height: 12),
                 _BooleanInputField(
                     label:
-                        'Cacher l\'extension\n(sans effet si l\'extension overlay n\'est pas activée)',
-                    value: cm.hideExtension,
-                    onChanged: (value) => cm.hideExtension = value),
+                        'Afficher l\'extension\n(sans effet si l\'extension overlay n\'est pas activée)',
+                    value: cm.showExtension,
+                    onChanged: (value) => cm.showExtension = value),
                 const SizedBox(height: 12),
                 if (cm.useDebugOptions)
                   _BooleanInputField(

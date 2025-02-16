@@ -64,7 +64,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onRevealHiddenLetter.addListener(_prepareGameStateToSendToEbs);
 
     final cm = ConfigurationManager.instance;
-    cm.onHideExtensionChanged.addListener(_prepareGameStateToSendToEbs);
+    cm.onShowExtensionChanged.addListener(_prepareGameStateToSendToEbs);
 
     // Check if we need to send something to the EBS server at each tick
     gm.onClockTicked.addListener(_sendGameStateToEbs);
@@ -92,7 +92,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onClockTicked.removeListener(_sendGameStateToEbs);
 
     final cm = ConfigurationManager.instance;
-    cm.onHideExtensionChanged.removeListener(_prepareGameStateToSendToEbs);
+    cm.onShowExtensionChanged.removeListener(_prepareGameStateToSendToEbs);
   }
 
   ///
@@ -168,7 +168,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      configuration: SimplifiedConfiguration(hideExtension: cm.hideExtension),
+      configuration: SimplifiedConfiguration(hideExtension: !cm.showExtension),
     );
   }
 
