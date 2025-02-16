@@ -12,12 +12,22 @@
             "args": ["--web-browser-flag=--disable-web-security"],
         },
         {
-            "name": "Game client (with local server)",
+            "name": "Game client (with local EBS)",
             "request": "launch",
             "type": "dart",
             "program": "client/lib/main.dart",
             "args": ["--web-browser-flag=--disable-web-security"],
             "preLaunchTask": "Run Dart Server",
+        },
+        {
+            "name": "EBS",
+            "request": "launch",
+            "type": "dart",
+            "program": "ebs/bin/train_de_mots_ebs.dart",
+            "env": {
+                "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
+                "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE",
+            },
         },
         {
             "name": "Frontend video component",
