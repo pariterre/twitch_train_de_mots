@@ -177,7 +177,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
     sendMessageToEbs(MessageProtocol(
         from: MessageFrom.app,
-        to: MessageTo.frontend,
+        to: MessageTo.pubsub,
         type: MessageTypes.put,
         data: {
           'type': ToFrontendMessages.gameState.name,

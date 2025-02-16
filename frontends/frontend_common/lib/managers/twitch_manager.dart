@@ -337,7 +337,7 @@ class TwitchManagerMock extends TwitchManager {
   Future<bool> attemptTheBigHeist() async {
     _onPubSubMessageReceived(MessageProtocol(
         from: MessageFrom.app,
-        to: MessageTo.frontend,
+        to: MessageTo.pubsub,
         type: MessageTypes.response,
         isSuccess: true,
         data: jsonDecode(jsonEncode({
@@ -379,19 +379,19 @@ class TwitchManagerMock extends TwitchManager {
       case ToAppMessages.pardonRequest:
         return MessageProtocol(
             from: MessageFrom.app,
-            to: MessageTo.frontend,
+            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: _acceptPardon);
       case ToAppMessages.boostRequest:
         return MessageProtocol(
             from: MessageFrom.app,
-            to: MessageTo.frontend,
+            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: _acceptBoost);
       case ToAppMessages.gameStateRequest:
         return MessageProtocol(
             from: MessageFrom.app,
-            to: MessageTo.frontend,
+            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
@@ -426,7 +426,7 @@ class TwitchManagerMock extends TwitchManager {
       case ToAppMessages.bitsRedeemed:
         return MessageProtocol(
             from: MessageFrom.app,
-            to: MessageTo.frontend,
+            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: true);
     }

@@ -77,12 +77,12 @@ class GameManager extends TwitchEbsManagerAbstract {
     TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
   }
 
-  Future<void> _sendGameStateToFrontend() async {
+  Future<void> _sendGameStateToPubsub() async {
     _logger.info('Sending game state to frontend');
 
     communicator.sendMessage(MessageProtocol(
         from: MessageFrom.ebsIsolated,
-        to: MessageTo.frontend,
+        to: MessageTo.pubsub,
         type: MessageTypes.put,
         data: {
           'type': ToFrontendMessages.gameState.name,
@@ -202,12 +202,12 @@ class GameManager extends TwitchEbsManagerAbstract {
               break;
           }
           break;
-        case MessageTo.frontend:
+        case MessageTo.pubsub:
           switch (ToFrontendMessages.values.byName(message.data!['type'])) {
             case ToFrontendMessages.gameState:
               gameState = SimplifiedGameState.deserialize(
                   message.data!['game_state'] as Map<String, dynamic>);
-              _sendGameStateToFrontend();
+              _sendGameStateToPubsub();
               break;
             case ToFrontendMessages.pardonResponse:
               break;
@@ -215,6 +215,7 @@ class GameManager extends TwitchEbsManagerAbstract {
               break;
           }
           break;
+        case MessageTo.frontend:
         case MessageTo.app:
         case MessageTo.generic:
         case MessageTo.ebsMain:
@@ -249,7 +250,7 @@ class GameManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.gameStateRequest:
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
-              to: MessageTo.frontend,
+              to: MessageTo.pubsub,
               type: MessageTypes.response,
               isSuccess: true,
               data: {'game_state': gameState.serialize()}));
@@ -258,7 +259,7 @@ class GameManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.pardonRequest:
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
-              to: MessageTo.frontend,
+              to: MessageTo.pubsub,
               type: MessageTypes.response,
               isSuccess: await _frontendRequestedToPardon(userId)));
           break;
@@ -267,7 +268,7 @@ class GameManager extends TwitchEbsManagerAbstract {
           final isSuccess = await _frontendRequestedBoosted(userId);
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
-              to: MessageTo.frontend,
+              to: MessageTo.pubsub,
               type: MessageTypes.response,
               isSuccess: isSuccess));
           break;
@@ -308,7 +309,7 @@ class GameManager extends TwitchEbsManagerAbstract {
 
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebsIsolated,
-              to: MessageTo.frontend,
+              to: MessageTo.pubsub,
               type: MessageTypes.response,
               isSuccess: response.isSuccess ?? false));
       }
