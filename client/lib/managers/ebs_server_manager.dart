@@ -133,13 +133,13 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       ),
     );
 
-    final problem = await response.timeout(maxSearchingTime, onTimeout: () {
+    final message = await response.timeout(maxSearchingTime, onTimeout: () {
       _logger
           .severe('Failed to get a new letter problem from EBS server in time');
       throw TimeoutException('Failed to get a new letter problem in time');
     });
 
-    return (problem as MessageProtocol).data!['letter_problem'];
+    return message.data!['letter_problem'];
   }
 
   Future<void> _addCooldown(WordSolution solution) async {

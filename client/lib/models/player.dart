@@ -99,6 +99,8 @@ class Players extends DelegatingList<Player> {
   /// Get the players with the best score
   List<Player> get bestPlayersByStars {
     final bestStars = this.bestStars;
+    if (bestStars == 0) return [];
+
     return _players
         .where((element) => element.starsCollected == bestStars)
         .toList();

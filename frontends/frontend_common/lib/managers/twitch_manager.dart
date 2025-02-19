@@ -162,16 +162,18 @@ class TwitchManager {
         appInfo: tm.TwitchFrontendInfo(
           appName: 'Train de mots',
           ebsUri: Uri.parse(useLocalEbs
-              ? 'http://localhost:3010/frontend'
-              : 'https://twitchserver.pariterre.net:3010/frontend'),
+              ? 'http://localhost:3010'
+              : 'https://twitchserver.pariterre.net:3010'),
         ),
         isTwitchUserIdRequired: true);
 
     await _onFinishedInitializing();
 
     _frontendManager!.onMessageReceived.listen(_onPubSubMessageReceived);
-    _frontendManager!.onStreamerHasConnected
-        .listen(GameManager.instance.startGame);
+    _frontendManager!.onStreamerHasConnected.listen(() {
+      GameManager.instance.startGame();
+      _requestGameStatus();
+    });
     _frontendManager!.onStreamerHasDisconnected
         .listen(GameManager.instance.stopGame);
 
@@ -179,11 +181,6 @@ class TwitchManager {
         .listen(_onBitsTransactionCompleted);
 
     _logger.info('TwitchFrontendManager is ready');
-
-    // Try to get the game status. This will fail if the game has not started yet
-    // but it is not a problem, the game will send a message to the frontend when
-    // it is ready.
-    await _requestGameStatus();
   }
 
   Future<void> _onPubSubMessageReceived(MessageProtocol message) async {
