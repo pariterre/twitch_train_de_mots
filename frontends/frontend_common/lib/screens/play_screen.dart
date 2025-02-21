@@ -354,9 +354,6 @@ class _CooldownClockState extends State<_CooldownClock> {
     _cooldownDuration = cooldowns[TwitchManager.instance.userId]!;
     _cooldownRemaining = _cooldownDuration;
 
-    // Subtract one second to account for time already passed
-    _cooldownRemaining -= const Duration(seconds: 1);
-
     // Start a countdown that triggers a refresh every second
     Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));

@@ -2,29 +2,28 @@ import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 
 class SimplifiedConfiguration {
-  // TODO : Rename to showExtension at the next frontend update
-  bool hideExtension;
+  bool showExtension;
 
   SimplifiedConfiguration({
-    required this.hideExtension,
+    required this.showExtension,
   });
 
   SimplifiedConfiguration copyWith({
-    bool? hideExtension,
+    bool? showExtension,
   }) {
     return SimplifiedConfiguration(
-        hideExtension: hideExtension ?? this.hideExtension);
+        showExtension: showExtension ?? this.showExtension);
   }
 
   Map<String, dynamic> serialize() {
     return {
-      'hide_extension': hideExtension,
+      'show_extension': showExtension,
     };
   }
 
   static SimplifiedConfiguration deserialize(Map<String, dynamic> data) =>
       SimplifiedConfiguration(
-        hideExtension: data['hide_extension'] as bool,
+        showExtension: data['show_extension'] as bool,
       );
 }
 

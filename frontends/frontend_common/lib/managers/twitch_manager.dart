@@ -71,8 +71,8 @@ class TwitchManager {
     final response = await _sendMessageToApp(ToAppMessages.pardonRequest)
         .timeout(const Duration(seconds: 5),
             onTimeout: () => MessageProtocol(
-                from: MessageFrom.ebsIsolated,
                 to: MessageTo.frontend,
+                from: MessageFrom.ebs,
                 type: MessageTypes.response,
                 isSuccess: false));
     return response.isSuccess ?? false;
@@ -87,8 +87,8 @@ class TwitchManager {
         await _sendMessageToApp(ToAppMessages.boostRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => MessageProtocol(
-          from: MessageFrom.ebsIsolated,
           to: MessageTo.frontend,
+          from: MessageFrom.ebs,
           type: MessageTypes.response,
           isSuccess: false),
     );
@@ -119,8 +119,8 @@ class TwitchManager {
         await _sendMessageToApp(ToAppMessages.bitsRedeemed, transaction)
             .timeout(const Duration(seconds: 5),
                 onTimeout: () => MessageProtocol(
-                    from: MessageFrom.ebsIsolated,
                     to: MessageTo.frontend,
+                    from: MessageFrom.ebs,
                     type: MessageTypes.response,
                     isSuccess: false));
     return response.isSuccess ?? false;
@@ -162,8 +162,8 @@ class TwitchManager {
         appInfo: tm.TwitchFrontendInfo(
           appName: 'Train de mots',
           ebsUri: Uri.parse(useLocalEbs
-              ? 'http://localhost:3010'
-              : 'https://twitchserver.pariterre.net:3010'),
+              ? 'ws://localhost:3010'
+              : 'wss://twitchserver.pariterre.net:3010'),
         ),
         isTwitchUserIdRequired: true);
 
@@ -212,7 +212,13 @@ class TwitchManager {
   }
 
   Future<void> _requestGameStatus() async {
-    final response = await _sendMessageToApp(ToAppMessages.gameStateRequest);
+    final response = await _sendMessageToApp(ToAppMessages.gameStateRequest)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => MessageProtocol(
+                to: MessageTo.frontend,
+                from: MessageFrom.ebs,
+                type: MessageTypes.response,
+                isSuccess: false));
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
       _logger.info('Cannot get game status');
@@ -235,8 +241,8 @@ class TwitchManager {
 
     return await _frontendManager!.sendMessageToApp(
         MessageProtocol(
-            from: MessageFrom.frontend,
             to: MessageTo.app,
+            from: MessageFrom.frontend,
             type: MessageTypes.get,
             data: {'type': request.name}),
         transaction: transaction);
@@ -281,7 +287,7 @@ class TwitchManagerMock extends TwitchManager {
               boosters: [],
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
-              configuration: SimplifiedConfiguration(hideExtension: false),
+              configuration: SimplifiedConfiguration(showExtension: true),
             )));
 
     Future.delayed(const Duration(seconds: 8))
@@ -304,7 +310,7 @@ class TwitchManagerMock extends TwitchManager {
               boosters: [],
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
-              configuration: SimplifiedConfiguration(hideExtension: false),
+              configuration: SimplifiedConfiguration(showExtension: true),
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -333,8 +339,8 @@ class TwitchManagerMock extends TwitchManager {
   @override
   Future<bool> attemptTheBigHeist() async {
     _onPubSubMessageReceived(MessageProtocol(
+        to: MessageTo.frontend,
         from: MessageFrom.app,
-        to: MessageTo.pubsub,
         type: MessageTypes.response,
         isSuccess: true,
         data: jsonDecode(jsonEncode({
@@ -358,7 +364,7 @@ class TwitchManagerMock extends TwitchManager {
             boosters: [],
             canAttemptTheBigHeist: false,
             isAttemptingTheBigHeist: true,
-            configuration: SimplifiedConfiguration(hideExtension: false),
+            configuration: SimplifiedConfiguration(showExtension: true),
           ).serialize(),
         }))));
     return true;
@@ -375,20 +381,20 @@ class TwitchManagerMock extends TwitchManager {
     switch (request) {
       case ToAppMessages.pardonRequest:
         return MessageProtocol(
+            to: MessageTo.frontend,
             from: MessageFrom.app,
-            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: _acceptPardon);
       case ToAppMessages.boostRequest:
         return MessageProtocol(
+            to: MessageTo.frontend,
             from: MessageFrom.app,
-            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: _acceptBoost);
       case ToAppMessages.gameStateRequest:
         return MessageProtocol(
+            to: MessageTo.frontend,
             from: MessageFrom.app,
-            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
@@ -411,7 +417,7 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
-                configuration: SimplifiedConfiguration(hideExtension: false),
+                configuration: SimplifiedConfiguration(showExtension: true),
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:
@@ -422,8 +428,8 @@ class TwitchManagerMock extends TwitchManager {
 
       case ToAppMessages.bitsRedeemed:
         return MessageProtocol(
+            to: MessageTo.frontend,
             from: MessageFrom.app,
-            to: MessageTo.pubsub,
             type: MessageTypes.response,
             isSuccess: true);
     }

@@ -52,7 +52,7 @@ class _MainExtensionState extends State<MainExtension> {
   void _toggleVisibility() {
     final gm = GameManager.instance;
     final shouldHide =
-        gm.status == GameStatus.uninitialized || gm.shouldHideExtension;
+        gm.status == GameStatus.uninitialized || !gm.shouldShowExtension;
 
     // Check for the nothing-to-do cases
     if (shouldHide == _shouldHide) return;
