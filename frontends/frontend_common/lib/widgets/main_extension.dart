@@ -123,8 +123,7 @@ class _MainWindow extends StatelessWidget {
             initialTop: MediaQuery.of(context).size.height * 0.5,
             minTop: 0,
             maxTop: MediaQuery.of(context).size.height - 50,
-            initialLeft:
-                MediaQuery.of(context).size.width - initialSize!.width - 20,
+            initialLeft: 20,
             minLeft: 0,
             maxLeft: MediaQuery.of(context).size.width - 50,
             initialWidth: initialSize!.width,

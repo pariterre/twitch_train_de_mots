@@ -25,6 +25,7 @@
 - Fixed the end screen when players have lost
 - Added the Change of lane feature that mixes up the letters
 - Add leaderboard for collected stars
+- Moved the overlay to the left of the screen when it appears
 
 # Word list
-- Add the word "ATOCA."
+- Add the word "ATOCA"
