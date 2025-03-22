@@ -275,11 +275,15 @@ class TwitchManagerMock extends TwitchManager {
               timeRemaining: const Duration(seconds: 83),
               newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
-                  letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                  scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                  revealedUselessLetterIndex: 9,
-                  hiddenLetterIndex: 2,
-                  shouldHideHiddenLetter: true),
+                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                revealedUselessLetterIndices: [9],
+                hiddenLetterStatuses: List.generate(
+                    10,
+                    (index) => index == 2
+                        ? HiddenLetterStatus.hidden
+                        : HiddenLetterStatus.normal),
+              ),
               pardonRemaining: 1,
               pardonners: [userId],
               boostRemaining: 1,
@@ -298,11 +302,15 @@ class TwitchManagerMock extends TwitchManager {
               timeRemaining: const Duration(seconds: 3),
               newCooldowns: {userId: const Duration(seconds: 5)},
               letterProblem: SimplifiedLetterProblem(
-                  letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                  scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                  revealedUselessLetterIndex: 9,
-                  hiddenLetterIndex: 2,
-                  shouldHideHiddenLetter: true),
+                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                revealedUselessLetterIndices: [9],
+                hiddenLetterStatuses: List.generate(
+                    10,
+                    (index) => index == 2
+                        ? HiddenLetterStatus.hidden
+                        : HiddenLetterStatus.normal),
+              ),
               pardonRemaining: 1,
               pardonners: [userId],
               boostRemaining: 1,
@@ -352,11 +360,15 @@ class TwitchManagerMock extends TwitchManager {
             timeRemaining: const Duration(seconds: 83),
             newCooldowns: {userId: const Duration(seconds: 5)},
             letterProblem: SimplifiedLetterProblem(
-                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                revealedUselessLetterIndex: 9,
-                hiddenLetterIndex: 2,
-                shouldHideHiddenLetter: true),
+              letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+              scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+              revealedUselessLetterIndices: [9],
+              hiddenLetterStatuses: List.generate(
+                  10,
+                  (index) => index == 2
+                      ? HiddenLetterStatus.hidden
+                      : HiddenLetterStatus.normal),
+            ),
             pardonRemaining: 1,
             pardonners: [userId],
             boostRemaining: 1,
@@ -405,11 +417,15 @@ class TwitchManagerMock extends TwitchManager {
                 timeRemaining: const Duration(seconds: 83),
                 newCooldowns: {userId: const Duration(seconds: 5)},
                 letterProblem: SimplifiedLetterProblem(
-                    letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                    scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                    revealedUselessLetterIndex: 9,
-                    hiddenLetterIndex: 2,
-                    shouldHideHiddenLetter: false),
+                  letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                  scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                  revealedUselessLetterIndices: [9],
+                  hiddenLetterStatuses: List.generate(
+                      10,
+                      (index) => index == 2
+                          ? HiddenLetterStatus.hidden
+                          : HiddenLetterStatus.normal),
+                ),
                 pardonRemaining: 1,
                 pardonners: [],
                 boostRemaining: 0,

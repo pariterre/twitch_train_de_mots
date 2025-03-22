@@ -1,9 +1,9 @@
 import 'dart:math';
 
+import 'package:common/managers/dictionary_manager.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_ebs/managers/words_manager.dart';
 import 'package:train_de_mots_ebs/models/problem_configuration.dart';
 import 'package:train_de_mots_ebs/models/range.dart';
 
@@ -64,14 +64,14 @@ class LetterProblem {
       }
 
       // Generate a first candidate set of letters
-      List<String> candidateLetters = WordsManager.generateRandomLetters(
+      List<String> candidateLetters = DictionaryManager.generateRandomLetters(
           nbLetters: config.lengthLongestSolution.max, useFrequency: false);
       Set<String> solutions;
       String? uselessLetter;
 
       do {
         // Find all the words that can be made from the candidate letters
-        solutions = WordsManager.findsWordsFromPermutations(
+        solutions = DictionaryManager.findsWordsFromPermutations(
             from: candidateLetters,
             nbLettersOfSmallestWords: config.lengthShortestSolution.max);
 
@@ -160,7 +160,7 @@ class LetterProblem {
 
       List<String> candidateLetters = [];
       Set<String> solutions =
-          WordsManager.wordsWithAtLeast(config.lengthShortestSolution.max);
+          DictionaryManager.wordsWithAtLeast(config.lengthShortestSolution.max);
       String? uselessLetter;
 
       String availableLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -200,7 +200,7 @@ class LetterProblem {
       solutions = {};
       if (config.lengthLongestSolution.contains(candidateLetters.length)) {
         // This takes time, only do it if the candidate is valid
-        solutions = WordsManager.findsWordsFromPermutations(
+        solutions = DictionaryManager.findsWordsFromPermutations(
             from: candidateLetters,
             nbLettersOfSmallestWords: config.lengthShortestSolution.max);
       }
@@ -247,7 +247,7 @@ class LetterProblem {
     _logger.info('Generating problem from random word...');
 
     final wordsToPickFrom =
-        WordsManager.wordsWithAtLeast(config.lengthLongestSolution.min)
+        DictionaryManager.wordsWithAtLeast(config.lengthLongestSolution.min)
             .where((e) => e.length <= config.lengthLongestSolution.max);
 
     final now = DateTime.now();
@@ -266,7 +266,7 @@ class LetterProblem {
 
       do {
         // Find all the words that can be made from the candidate letters
-        solutions = WordsManager.findsWordsFromPermutations(
+        solutions = DictionaryManager.findsWordsFromPermutations(
             from: candidateLetters,
             nbLettersOfSmallestWords: config.lengthShortestSolution.max);
 
@@ -441,7 +441,7 @@ String? _findUselessLetter(
     final newLetter =
         possibleLetters.removeAt(_random.nextInt(possibleLetters.length));
     final newLetters = [...letters, newLetter];
-    final newSolutions = WordsManager.findsWordsFromPermutations(
+    final newSolutions = DictionaryManager.findsWordsFromPermutations(
         from: newLetters, nbLettersOfSmallestWords: nbLettersInSmallestWord);
 
     if (newSolutions.length == nbSolutions) {

@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:common/models/french_words.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
 import 'package:train_de_mots/managers/ebs_server_manager.dart';
-import 'package:train_de_mots/models/french_words.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 

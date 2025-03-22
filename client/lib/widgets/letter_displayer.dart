@@ -1,8 +1,8 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/widgets/fireworks.dart';
 
 class LetterDisplayer extends StatefulWidget {
   const LetterDisplayer({super.key});

@@ -1,6 +1,12 @@
 import 'package:common/models/game_status.dart';
 import 'package:common/models/helpers.dart';
 
+enum HiddenLetterStatus {
+  normal,
+  hidden,
+  revealed,
+}
+
 class SimplifiedConfiguration {
   bool showExtension;
 
@@ -30,42 +36,38 @@ class SimplifiedConfiguration {
 class SimplifiedLetterProblem {
   final List<String> letters;
   final List<int> scrambleIndices;
-  final int revealedUselessLetterIndex;
-  final int hiddenLetterIndex;
-  final bool shouldHideHiddenLetter;
+  final List<int> revealedUselessLetterIndices;
+  final List<HiddenLetterStatus> hiddenLetterStatuses;
 
   SimplifiedLetterProblem({
     required this.letters,
     required this.scrambleIndices,
-    required this.revealedUselessLetterIndex,
-    required this.hiddenLetterIndex,
-    required this.shouldHideHiddenLetter,
+    required this.revealedUselessLetterIndices,
+    required this.hiddenLetterStatuses,
   });
 
   SimplifiedLetterProblem copyWith({
     List<String>? letters,
     List<int>? scrambleIndices,
-    int? revealedUselessLetterIndex,
-    int? hiddenLetterIndex,
+    List<int>? revealedUselessLetterIndices,
+    List<HiddenLetterStatus>? hiddenLetterStatuses,
     bool? shouldHideHiddenLetter,
   }) =>
       SimplifiedLetterProblem(
         letters: letters ?? this.letters,
         scrambleIndices: scrambleIndices ?? this.scrambleIndices,
-        revealedUselessLetterIndex:
-            revealedUselessLetterIndex ?? this.revealedUselessLetterIndex,
-        hiddenLetterIndex: hiddenLetterIndex ?? this.hiddenLetterIndex,
-        shouldHideHiddenLetter:
-            shouldHideHiddenLetter ?? this.shouldHideHiddenLetter,
+        revealedUselessLetterIndices:
+            revealedUselessLetterIndices ?? this.revealedUselessLetterIndices,
+        hiddenLetterStatuses: hiddenLetterStatuses ?? this.hiddenLetterStatuses,
       );
 
   Map<String, dynamic> serialize() {
     return {
       'letters': letters,
       'scramble_indices': scrambleIndices,
-      'revealed_useless_letter_index': revealedUselessLetterIndex,
-      'hidden_letter_index': hiddenLetterIndex,
-      'should_hide_hidden_letter': shouldHideHiddenLetter,
+      'revealed_useless_letter_indices': revealedUselessLetterIndices,
+      'hidden_letter_statuses':
+          hiddenLetterStatuses.map((e) => e.index).toList(growable: false),
     };
   }
 
@@ -73,9 +75,12 @@ class SimplifiedLetterProblem {
     return SimplifiedLetterProblem(
       letters: (data['letters'] as List).cast<String>(),
       scrambleIndices: (data['scramble_indices'] as List).cast<int>(),
-      revealedUselessLetterIndex: data['revealed_useless_letter_index'] as int,
-      hiddenLetterIndex: data['hidden_letter_index'] as int,
-      shouldHideHiddenLetter: data['should_hide_hidden_letter'] as bool,
+      revealedUselessLetterIndices:
+          (data['revealed_useless_letter_indices'] as List).cast<int>(),
+      hiddenLetterStatuses: (data['hidden_letter_statuses'] as List)
+          .cast<int>()
+          .map((e) => HiddenLetterStatus.values[e])
+          .toList(growable: false),
     );
   }
 
@@ -88,18 +93,17 @@ class SimplifiedLetterProblem {
     return other is SimplifiedLetterProblem &&
         listEquality(letters, other.letters) &&
         listEquality(scrambleIndices, other.scrambleIndices) &&
-        other.revealedUselessLetterIndex == revealedUselessLetterIndex &&
-        other.hiddenLetterIndex == hiddenLetterIndex &&
-        other.shouldHideHiddenLetter == shouldHideHiddenLetter;
+        listEquality(
+            revealedUselessLetterIndices, other.revealedUselessLetterIndices) &&
+        listEquality(hiddenLetterStatuses, other.hiddenLetterStatuses);
   }
 
   @override
   int get hashCode =>
       letters.hashCode ^
       scrambleIndices.hashCode ^
-      revealedUselessLetterIndex.hashCode ^
-      hiddenLetterIndex.hashCode ^
-      shouldHideHiddenLetter.hashCode;
+      revealedUselessLetterIndices.hashCode ^
+      hiddenLetterStatuses.hashCode;
 }
 
 class SimplifiedGameState {

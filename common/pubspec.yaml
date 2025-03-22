@@ -11,6 +11,7 @@ dependencies:
   logging: ^1.2.0
   shared_preferences: ^2.2.0
   collection: ^1.18.0
+  diacritic: ^0.1.4
 
 dev_dependencies:
   lints: ^3.0.0
