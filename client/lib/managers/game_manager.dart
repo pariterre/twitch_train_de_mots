@@ -71,23 +71,31 @@ class GameManager {
   bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
 
   LetterProblem? get problem => _currentProblem;
-  List<HiddenLetterStatus> get hiddenLetterStatuses => problem == null
+  List<LetterStatus> get uselessLetterStatuses => problem == null
+      ? []
+      : List.generate(
+          problem!.letters.length,
+          (i) => i == problem!.uselessLetterIndex
+              ? _isUselessLetterRevealed
+                  ? LetterStatus.revealed
+                  : LetterStatus.hidden
+              : LetterStatus.normal);
+  List<LetterStatus> get hiddenLetterStatuses => problem == null
       ? []
       : List.generate(
           problem!.letters.length,
           (i) => i == hiddenLetterIndex
               ? _isHiddenLetterRevealed
-                  ? HiddenLetterStatus.revealed
-                  : HiddenLetterStatus.hidden
-              : HiddenLetterStatus.normal);
+                  ? LetterStatus.revealed
+                  : LetterStatus.hidden
+              : LetterStatus.normal);
 
   SimplifiedLetterProblem? get simplifiedProblem => problem == null
       ? null
       : SimplifiedLetterProblem(
           letters: problem!.letters,
           scrambleIndices: problem!.scrambleIndices,
-          revealedUselessLetterIndices:
-              isUselessLetterRevealed ? [uselessLetterIndex] : [],
+          uselessLetterStatuses: uselessLetterStatuses,
           hiddenLetterStatuses: hiddenLetterStatuses,
         );
   SuccessLevel _successLevel = SuccessLevel.failed;

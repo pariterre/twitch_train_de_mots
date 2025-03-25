@@ -60,9 +60,8 @@ class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
                   height: _letterHeight,
                   letterSize: _letterSize,
                   numberSize: _numberSize,
-                  uselessIsRevealed:
-                      lp.revealedUselessLetterIndices.contains(index),
-                  hiddenLetterStatus: lp.hiddenLetterStatuses[index],
+                  uselessStatus: lp.uselessLetterStatuses[index],
+                  hiddenStatus: lp.hiddenLetterStatuses[index],
                 )),
           for (var index in lp.letters.asMap().keys)
             AnimatedPositioned(
@@ -90,8 +89,8 @@ class _Letter extends StatefulWidget {
     required this.height,
     required this.letterSize,
     required this.numberSize,
-    required this.uselessIsRevealed,
-    required this.hiddenLetterStatus,
+    required this.uselessStatus,
+    required this.hiddenStatus,
   });
 
   final String letter;
@@ -101,8 +100,8 @@ class _Letter extends StatefulWidget {
   final double letterSize;
   final double numberSize;
 
-  final bool uselessIsRevealed;
-  final HiddenLetterStatus hiddenLetterStatus;
+  final LetterStatus uselessStatus;
+  final LetterStatus hiddenStatus;
 
   @override
   State<_Letter> createState() => _LetterState();
@@ -142,26 +141,17 @@ class _LetterState extends State<_Letter> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: switch (widget.hiddenLetterStatus) {
-              HiddenLetterStatus.normal => [
-                  tm.letterColorLight,
-                  tm.letterColorDark
-                ],
-              HiddenLetterStatus.revealed => [
-                  tm.uselessLetterColorLight,
-                  tm.uselessLetterColorDark
-                ],
-              HiddenLetterStatus.hidden => [
-                  tm.hiddenLetterColorLight,
-                  tm.hiddenLetterColorDark
-                ],
-            },
+            colors: widget.uselessStatus == LetterStatus.revealed
+                ? [tm.uselessLetterColorLight, tm.uselessLetterColorDark]
+                : widget.hiddenStatus == LetterStatus.hidden
+                    ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
+                    : [tm.letterColorLight, tm.letterColorDark],
             stops: const [0, 0.4],
           ),
           border: Border.all(color: Colors.black),
           borderRadius: const BorderRadius.all(Radius.circular(5)),
         ),
-        child: widget.hiddenLetterStatus == HiddenLetterStatus.hidden
+        child: widget.hiddenStatus == LetterStatus.hidden
             ? null
             : Stack(
                 children: [

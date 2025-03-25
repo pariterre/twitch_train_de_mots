@@ -277,12 +277,14 @@ class TwitchManagerMock extends TwitchManager {
               letterProblem: SimplifiedLetterProblem(
                 letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                 scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                revealedUselessLetterIndices: [9],
+                uselessLetterStatuses: List.generate(
+                    10,
+                    (index) =>
+                        index == 9 ? LetterStatus.hidden : LetterStatus.normal),
                 hiddenLetterStatuses: List.generate(
                     10,
-                    (index) => index == 2
-                        ? HiddenLetterStatus.hidden
-                        : HiddenLetterStatus.normal),
+                    (index) =>
+                        index == 2 ? LetterStatus.hidden : LetterStatus.normal),
               ),
               pardonRemaining: 1,
               pardonners: [userId],
@@ -304,12 +306,14 @@ class TwitchManagerMock extends TwitchManager {
               letterProblem: SimplifiedLetterProblem(
                 letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                 scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                revealedUselessLetterIndices: [9],
+                uselessLetterStatuses: List.generate(
+                    10,
+                    (index) =>
+                        index == 9 ? LetterStatus.hidden : LetterStatus.normal),
                 hiddenLetterStatuses: List.generate(
                     10,
-                    (index) => index == 2
-                        ? HiddenLetterStatus.hidden
-                        : HiddenLetterStatus.normal),
+                    (index) =>
+                        index == 2 ? LetterStatus.hidden : LetterStatus.normal),
               ),
               pardonRemaining: 1,
               pardonners: [userId],
@@ -362,12 +366,14 @@ class TwitchManagerMock extends TwitchManager {
             letterProblem: SimplifiedLetterProblem(
               letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
               scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-              revealedUselessLetterIndices: [9],
+              uselessLetterStatuses: List.generate(
+                  10,
+                  (index) =>
+                      index == 9 ? LetterStatus.hidden : LetterStatus.normal),
               hiddenLetterStatuses: List.generate(
                   10,
-                  (index) => index == 2
-                      ? HiddenLetterStatus.hidden
-                      : HiddenLetterStatus.normal),
+                  (index) =>
+                      index == 2 ? LetterStatus.hidden : LetterStatus.normal),
             ),
             pardonRemaining: 1,
             pardonners: [userId],
@@ -419,12 +425,16 @@ class TwitchManagerMock extends TwitchManager {
                 letterProblem: SimplifiedLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                  revealedUselessLetterIndices: [9],
+                  uselessLetterStatuses: List.generate(
+                      10,
+                      (index) => index == 9
+                          ? LetterStatus.hidden
+                          : LetterStatus.normal),
                   hiddenLetterStatuses: List.generate(
                       10,
                       (index) => index == 2
-                          ? HiddenLetterStatus.hidden
-                          : HiddenLetterStatus.normal),
+                          ? LetterStatus.hidden
+                          : LetterStatus.normal),
                 ),
                 pardonRemaining: 1,
                 pardonners: [],
