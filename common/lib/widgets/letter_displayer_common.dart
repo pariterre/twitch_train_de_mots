@@ -143,9 +143,9 @@ class _LetterState extends State<_Letter> {
             end: Alignment.bottomRight,
             colors: widget.uselessStatus == LetterStatus.revealed
                 ? [tm.uselessLetterColorLight, tm.uselessLetterColorDark]
-                : widget.hiddenStatus == LetterStatus.hidden
-                    ? [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark]
-                    : [tm.letterColorLight, tm.letterColorDark],
+                : widget.hiddenStatus == LetterStatus.normal
+                    ? [tm.letterColorLight, tm.letterColorDark]
+                    : [tm.hiddenLetterColorLight, tm.hiddenLetterColorDark],
             stops: const [0, 0.4],
           ),
           border: Border.all(color: Colors.black),

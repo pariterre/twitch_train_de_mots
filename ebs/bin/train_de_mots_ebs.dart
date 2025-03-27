@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:train_de_mots_ebs/managers/game_manager.dart';
+import 'package:train_de_mots_ebs/managers/ebs_manager.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('TrainDeMotsEbs');
@@ -29,7 +29,7 @@ void main(List<String> arguments) async {
   startEbsServer(
       parameters: networkParameters,
       ebsInfo: getTwitchEbsInfo(),
-      twitchEbsManagerFactory: GameManager.spawn);
+      twitchEbsManagerFactory: EbsManager.spawn);
 }
 
 NetworkParameters _processNetworkArguments(List<String> arguments,

@@ -15,7 +15,7 @@ final _logger = Logger('GameManager');
 /// constantly waits for updates from the App, without proactively changing the
 /// game state. In that sense, it provides a communication channel between the
 /// App and the Frontends.
-class GameManager extends TwitchEbsManagerAbstract {
+class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SimplifiedGameState _gameState = SimplifiedGameState(
@@ -64,7 +64,7 @@ class GameManager extends TwitchEbsManagerAbstract {
   /// mechanism to keep the connexion alive. If it fails, the game is ended.
   /// [broadcasterId] the id of the broadcaster.
   /// [ebsInfo] the configuration of the EBS.
-  GameManager.spawn({
+  EbsManager.spawn({
     required int broadcasterId,
     required super.ebsInfo,
     required super.sendPort,

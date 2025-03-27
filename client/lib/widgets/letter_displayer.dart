@@ -89,12 +89,12 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     final gm = GameManager.instance;
 
     if (gm.problem == null) return Container();
+    final problem = gm.simplifiedProblem!;
 
     return SizedBox(
-      width:
-          LetterDisplayerCommon.baseWidth(gm.simplifiedProblem!.letters.length),
+      width: LetterDisplayerCommon.baseWidth(problem.letters.length),
       child: LetterDisplayerCommon(
-        letterProblem: gm.simplifiedProblem!,
+        letterProblem: problem,
         letterBuilder: (index) =>
             Fireworks(controller: _fireworksControllers[index]),
       ),

@@ -95,8 +95,8 @@ class MocksConfiguration {
           ..addToStealCount()
           ..score = 350,
       ],
-      roundCount: 10,
-      successLevel: SuccessLevel.failed,
+      roundCount: 14,
+      successLevel: SuccessLevel.threeStars,
       shouldAttemptTheBigHeist: false,
       shouldChangeLane: true,
     );

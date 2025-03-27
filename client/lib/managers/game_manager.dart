@@ -1031,6 +1031,8 @@ class GameManagerMock extends GameManager {
       GameManager._instance!._roundCount += successLevel.toInt();
       (GameManager._instance! as GameManagerMock)._successLevel = successLevel;
     }
+    GameManager._instance!._currentDifficulty = ConfigurationManager.instance
+        .difficulty(GameManager._instance!.roundCount);
 
     GameManager._instance!._initializeTrySolutionCallback();
     if (problem == null) {
