@@ -22,14 +22,14 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onNextProblemReady.addListener(_onNextProblemReady);
+    gm.onNextProblemReady.listen(_onNextProblemReady);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
     final dm = Managers.instance.database;
-    dm.onLoggedIn.addListener(_startSearchingForNextProblem);
-    dm.onLoggedOut.addListener(_refresh);
+    dm.onLoggedIn.listen(_startSearchingForNextProblem);
+    dm.onLoggedOut.listen(_refresh);
 
     if (dm.isLoggedIn) {
       WidgetsBinding.instance
@@ -44,14 +44,14 @@ class _SplashScreenState extends State<SplashScreen> {
     super.dispose();
 
     final gm = Managers.instance.train;
-    gm.onNextProblemReady.removeListener(_onNextProblemReady);
+    gm.onNextProblemReady.cancel(_onNextProblemReady);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     final dm = Managers.instance.database;
-    dm.onLoggedIn.removeListener(_startSearchingForNextProblem);
-    dm.onLoggedOut.removeListener(_refresh);
+    dm.onLoggedIn.cancel(_startSearchingForNextProblem);
+    dm.onLoggedOut.cancel(_refresh);
   }
 
   void _onNextProblemReady() {
@@ -172,10 +172,10 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     super.initState();
 
     final dm = Managers.instance.database;
-    dm.onLoggedIn.addListener(_refresh);
-    dm.onEmailVerified.addListener(_refresh);
-    dm.onTeamNameSet.addListener(_refresh);
-    dm.onLoggedOut.addListener(_refresh);
+    dm.onLoggedIn.listen(_refresh);
+    dm.onEmailVerified.listen(_refresh);
+    dm.onTeamNameSet.listen(_refresh);
+    dm.onLoggedOut.listen(_refresh);
   }
 
   @override
@@ -183,10 +183,10 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     super.dispose();
 
     final dm = Managers.instance.database;
-    dm.onLoggedIn.removeListener(_refresh);
-    dm.onEmailVerified.removeListener(_refresh);
-    dm.onTeamNameSet.removeListener(_refresh);
-    dm.onLoggedOut.removeListener(_refresh);
+    dm.onLoggedIn.cancel(_refresh);
+    dm.onEmailVerified.cancel(_refresh);
+    dm.onTeamNameSet.cancel(_refresh);
+    dm.onLoggedOut.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

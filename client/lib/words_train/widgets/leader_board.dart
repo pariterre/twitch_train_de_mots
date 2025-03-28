@@ -16,15 +16,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.addListener(_refresh);
-    gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardoned.addListener(_onSolutionFound);
+    gm.onRoundStarted.listen(_refresh);
+    gm.onSolutionFound.listen(_onSolutionFound);
+    gm.onStealerPardoned.listen(_onSolutionFound);
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.addListener(_refresh);
+    cm.onChanged.listen(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -32,15 +32,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
     super.dispose();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.removeListener(_refresh);
-    gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardoned.removeListener(_onSolutionFound);
+    gm.onRoundStarted.cancel(_refresh);
+    gm.onSolutionFound.cancel(_onSolutionFound);
+    gm.onStealerPardoned.cancel(_onSolutionFound);
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.removeListener(_refresh);
+    cm.onChanged.cancel(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

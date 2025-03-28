@@ -39,12 +39,12 @@ class _MainExtensionState extends State<MainExtension> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onGameStatusUpdated.addListener(_toggleVisibility);
+    GameManager.instance.onGameStatusUpdated.listen(_toggleVisibility);
   }
 
   @override
   void dispose() {
-    GameManager.instance.onGameStatusUpdated.removeListener(_toggleVisibility);
+    GameManager.instance.onGameStatusUpdated.cancel(_toggleVisibility);
 
     super.dispose();
   }
@@ -173,13 +173,13 @@ class _MainScreenState extends State<_MainScreen> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onGameStatusUpdated.addListener(_refresh);
+    gm.onGameStatusUpdated.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onGameStatusUpdated.removeListener(_refresh);
+    gm.onGameStatusUpdated.cancel(_refresh);
 
     super.dispose();
   }

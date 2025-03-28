@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:common/models/custom_callback.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +28,7 @@ class ThemeManager {
 
   ///
   /// Connect to callbacks to get notified when the configuration changes
-  final onChanged = CustomCallback();
+  final onChanged = GenericListener<Function()>();
 
   final textColor = Colors.white;
   double _textSize = _textSizeDefault;
@@ -131,7 +131,7 @@ class ThemeManager {
 
   Future<void> _save() async {
     _logger.info('Saving custom scheme');
-    onChanged.notifyListeners();
+    onChanged.notifyListeners((callback) => callback());
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('customScheme', jsonEncode(serialize()));
@@ -168,7 +168,7 @@ class ThemeManager {
 
       _updateBackgroundColors();
     }
-    onChanged.notifyListeners();
+    onChanged.notifyListeners((callback) => callback());
   }
 
   void reset() {

@@ -30,7 +30,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     while (true) {
       try {
         final tm = Managers.instance.twitch;
-        tm.onTwitchManagerHasConnected.addListener(_twitchManagerHasConnected);
+        tm.onTwitchManagerHasConnected.listen(_twitchManagerHasConnected);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -44,7 +44,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
   void _twitchManagerHasConnected() {
     Managers.instance.twitch.onTwitchManagerHasConnected
-        .removeListener(_twitchManagerHasConnected);
+        .cancel(_twitchManagerHasConnected);
 
     connect(Managers.instance.twitch.broadcasterId);
   }
@@ -52,22 +52,22 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   void _listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
     final gm = Managers.instance.train;
-    gm.onRoundStarted.addListener(_sendGameStateToEbs);
-    gm.onRoundIsOver.addListener(_sendGameStateToEbssWithParameter);
-    gm.onStealerPardoned.addListener(_sendGameStateToEbssWithParameter);
-    gm.onSolutionFound.addListener(_sendCooldownToEbs);
-    gm.onSolutionWasStolen.addListener(_sendCooldownToEbs);
-    gm.onRoundIsOver.addListener(_sendGameStateToEbssWithParameter);
-    gm.onAttemptingTheBigHeist.addListener(_sendGameStateToEbs);
-    gm.onScrablingLetters.addListener(_sendGameStateToEbs);
-    gm.onRevealUselessLetter.addListener(_sendGameStateToEbs);
-    gm.onRevealHiddenLetter.addListener(_sendGameStateToEbs);
+    gm.onRoundStarted.listen(_sendGameStateToEbs);
+    gm.onRoundIsOver.listen(_sendGameStateToEbssWithParameter);
+    gm.onStealerPardoned.listen(_sendGameStateToEbssWithParameter);
+    gm.onSolutionFound.listen(_sendCooldownToEbs);
+    gm.onSolutionWasStolen.listen(_sendCooldownToEbs);
+    gm.onRoundIsOver.listen(_sendGameStateToEbssWithParameter);
+    gm.onAttemptingTheBigHeist.listen(_sendGameStateToEbs);
+    gm.onScrablingLetters.listen(_sendGameStateToEbs);
+    gm.onRevealUselessLetter.listen(_sendGameStateToEbs);
+    gm.onRevealHiddenLetter.listen(_sendGameStateToEbs);
 
     final cm = Managers.instance.configuration;
-    cm.onShowExtensionChanged.addListener(_sendGameStateToEbs);
+    cm.onShowExtensionChanged.listen(_sendGameStateToEbs);
 
     // Check if we need to send something to the EBS server at each tick
-    //gm.onClockTicked.addListener(_sendGameStateToEbs);
+    //gm.onClockTicked.listen(_sendGameStateToEbs);
 
     _sendGameStateToEbs();
   }
@@ -77,20 +77,20 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   /// EBS server.
   void _disposeListeners() {
     final gm = Managers.instance.train;
-    gm.onRoundStarted.removeListener(_sendGameStateToEbs);
-    gm.onRoundIsOver.removeListener(_sendGameStateToEbssWithParameter);
-    gm.onStealerPardoned.removeListener(_sendGameStateToEbssWithParameter);
-    gm.onSolutionFound.removeListener(_sendCooldownToEbs);
-    gm.onSolutionWasStolen.removeListener(_sendCooldownToEbs);
-    gm.onRoundIsOver.removeListener(_sendGameStateToEbssWithParameter);
-    gm.onAttemptingTheBigHeist.removeListener(_sendGameStateToEbs);
-    gm.onScrablingLetters.removeListener(_sendGameStateToEbs);
-    gm.onRevealUselessLetter.removeListener(_sendGameStateToEbs);
-    gm.onRevealHiddenLetter.removeListener(_sendGameStateToEbs);
-    //gm.onClockTicked.removeListener(_sendGameStateToEbs);
+    gm.onRoundStarted.cancel(_sendGameStateToEbs);
+    gm.onRoundIsOver.cancel(_sendGameStateToEbssWithParameter);
+    gm.onStealerPardoned.cancel(_sendGameStateToEbssWithParameter);
+    gm.onSolutionFound.cancel(_sendCooldownToEbs);
+    gm.onSolutionWasStolen.cancel(_sendCooldownToEbs);
+    gm.onRoundIsOver.cancel(_sendGameStateToEbssWithParameter);
+    gm.onAttemptingTheBigHeist.cancel(_sendGameStateToEbs);
+    gm.onScrablingLetters.cancel(_sendGameStateToEbs);
+    gm.onRevealUselessLetter.cancel(_sendGameStateToEbs);
+    gm.onRevealHiddenLetter.cancel(_sendGameStateToEbs);
+    //gm.onClockTicked.cancel(_sendGameStateToEbs);
 
     final cm = Managers.instance.configuration;
-    cm.onShowExtensionChanged.removeListener(_sendGameStateToEbs);
+    cm.onShowExtensionChanged.cancel(_sendGameStateToEbs);
   }
 
   ///
@@ -235,8 +235,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               from: MessageFrom.app,
               type: MessageTypes.response,
               isSuccess: true));
-          gm.onCongratulationFireworks.notifyListenersWithParameter(
-              {'player_name': playerName, 'is_congratulating': true});
+          gm.onCongratulationFireworks.notifyListeners((callback) =>
+              callback({'player_name': playerName, 'is_congratulating': true}));
           break;
 
         case ToAppMessages.attemptTheBigHeist:

@@ -34,7 +34,7 @@ class _BackgroundState extends State<Background>
     setupAnimation();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.addListener(_resetAnimation);
+    tm.onChanged.listen(_resetAnimation);
   }
 
   @override
@@ -42,7 +42,7 @@ class _BackgroundState extends State<Background>
     _controller.dispose();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.removeListener(_resetAnimation);
+    tm.onChanged.cancel(_resetAnimation);
 
     super.dispose();
   }

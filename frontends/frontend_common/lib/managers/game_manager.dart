@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:common/models/custom_callback.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:common/models/helpers.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
@@ -17,7 +17,7 @@ class GameManager {
   GameManager._() {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       _gameState.timeRemaining -= const Duration(seconds: 1);
-      onGameTicked.notifyListeners();
+      onGameTicked.notifyListeners((callback) => callback());
     });
   }
 
@@ -61,11 +61,11 @@ class GameManager {
         _hasPlayedAtLeastOneRound = true;
         _gameState.newCooldowns.clear();
         _gameState.pardonners.clear();
-        onPardonnersChanged.notifyListeners();
+        onPardonnersChanged.notifyListeners((callback) => callback());
         _gameState.boosters.clear();
-        onBoostAvailabilityChanged.notifyListeners();
+        onBoostAvailabilityChanged.notifyListeners((callback) => callback());
       }
-      onGameStatusUpdated.notifyListeners();
+      onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info('Game status changed to ${_gameState.status}');
     }
 
@@ -83,25 +83,25 @@ class GameManager {
     if (newGameState.newCooldowns.isNotEmpty) {
       _gameState.newCooldowns = newGameState.newCooldowns;
       _logger.info('New solution founders');
-      onNewCooldowns.notifyListeners();
+      onNewCooldowns.notifyListeners((callback) => callback());
     }
 
     if (_gameState.letterProblem != newGameState.letterProblem) {
       _gameState.letterProblem = newGameState.letterProblem;
       _logger.info('Letter problem changed');
-      onLetterProblemChanged.notifyListeners();
+      onLetterProblemChanged.notifyListeners((callback) => callback());
     }
 
     if (!listEquality(_gameState.pardonners, newGameState.pardonners)) {
       _gameState.pardonners = newGameState.pardonners;
       _logger.info('Pardonners changed to ${newGameState.pardonners}');
-      onPardonnersChanged.notifyListeners();
+      onPardonnersChanged.notifyListeners((callback) => callback());
     }
 
     if (_gameState.boostRemaining != newGameState.boostRemaining) {
       _gameState.boostRemaining = newGameState.boostRemaining;
       _logger.info('Boost count changed to ${newGameState.boostRemaining}');
-      onBoostAvailabilityChanged.notifyListeners();
+      onBoostAvailabilityChanged.notifyListeners((callback) => callback());
     }
 
     if (_gameState.boostStillNeeded != newGameState.boostStillNeeded) {
@@ -118,7 +118,7 @@ class GameManager {
     if (_gameState.canAttemptTheBigHeist !=
         newGameState.canAttemptTheBigHeist) {
       _gameState.canAttemptTheBigHeist = newGameState.canAttemptTheBigHeist;
-      onGameStatusUpdated.notifyListeners();
+      onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info(
           'Can attempt the big heist changed to ${newGameState.canAttemptTheBigHeist}');
     }
@@ -126,7 +126,7 @@ class GameManager {
     if (_gameState.isAttemptingTheBigHeist !=
         newGameState.isAttemptingTheBigHeist) {
       _gameState.isAttemptingTheBigHeist = newGameState.isAttemptingTheBigHeist;
-      onAttemptingTheBigHeist.notifyListeners();
+      onAttemptingTheBigHeist.notifyListeners((callback) => callback());
       _logger.info(
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
     }
@@ -135,18 +135,18 @@ class GameManager {
         newGameState.configuration.showExtension) {
       _gameState.configuration.showExtension =
           newGameState.configuration.showExtension;
-      onGameStatusUpdated.notifyListeners();
+      onGameStatusUpdated.notifyListeners((callback) => callback());
     }
   }
 
   ///
   /// Callback for each tick
-  final onGameTicked = CustomCallback();
+  final onGameTicked = GenericListener<Function()>();
 
   ///
   /// Callback to know when the game has started
   GameStatus get status => _gameState.status;
-  final onGameStatusUpdated = CustomCallback();
+  final onGameStatusUpdated = GenericListener<Function()>();
   void startGame() {
     _logger.info('Starting a new game');
     updateGameState(_gameState.copyWith(status: GameStatus.initializing));
@@ -161,36 +161,36 @@ class GameManager {
 
   ///
   /// Callback to know when a solution was found
-  final onNewCooldowns = CustomCallback();
+  final onNewCooldowns = GenericListener<Function()>();
   Map<String, Duration> get newCooldowns =>
       Map.unmodifiable(_gameState.newCooldowns);
 
   ///
   /// Callback to know when the letters were changed
-  final onLetterProblemChanged = CustomCallback();
+  final onLetterProblemChanged = GenericListener<Function()>();
   SimplifiedLetterProblem? get problem => _gameState.letterProblem;
 
   ///
   /// Stealer and pardonner management
-  final onPardonnersChanged = CustomCallback();
+  final onPardonnersChanged = GenericListener<Function()>();
   List<String> get pardonners => List.unmodifiable(_gameState.pardonners);
 
-  final onPardonGranted = CustomCallback<Function(bool)>();
+  final onPardonGranted = GenericListener<Function(bool)>();
   Future<bool> pardonStealer() async {
     final isSuccess = await TwitchManager.instance.pardonStealer();
-    onPardonGranted.notifyListenersWithParameter(isSuccess);
+    onPardonGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
   }
 
   ///
   /// Boost availability
   int get boostCount => _gameState.boostRemaining;
-  final onBoostAvailabilityChanged = CustomCallback();
+  final onBoostAvailabilityChanged = GenericListener<Function()>();
 
-  final onBoostGranted = CustomCallback<Function(bool)>();
+  final onBoostGranted = GenericListener<Function(bool)>();
   Future<bool> boostTrain() async {
     final isSuccess = await TwitchManager.instance.boostTrain();
-    onBoostGranted.notifyListenersWithParameter(isSuccess);
+    onBoostGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
   }
 
@@ -198,10 +198,10 @@ class GameManager {
 
   ///
   /// Boost availability
-  final onChangeLaneGranted = CustomCallback<Function(bool)>();
+  final onChangeLaneGranted = GenericListener<Function(bool)>();
   Future<bool> changeLane() async {
     final isSuccess = await TwitchManager.instance.changeLane();
-    onChangeLaneGranted.notifyListenersWithParameter(isSuccess);
+    onChangeLaneGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
   }
 
@@ -209,5 +209,5 @@ class GameManager {
   /// Big heist management
   bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
   bool get isAttemptingTheBigHeist => _gameState.isAttemptingTheBigHeist;
-  final onAttemptingTheBigHeist = CustomCallback();
+  final onAttemptingTheBigHeist = GenericListener<Function()>();
 }

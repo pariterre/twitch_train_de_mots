@@ -18,13 +18,13 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onScrablingLetters.addListener(_refresh);
-    gm.onRevealUselessLetter.addListener(_onRevealUselessLetter);
-    gm.onRevealHiddenLetter.addListener(_onRevealHiddenLetter);
-    gm.onRoundStarted.addListener(_onRoundStarted);
+    gm.onScrablingLetters.listen(_refresh);
+    gm.onRevealUselessLetter.listen(_onRevealUselessLetter);
+    gm.onRevealHiddenLetter.listen(_onRevealHiddenLetter);
+    gm.onRoundStarted.listen(_onRoundStarted);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
     _reinitializeFireworks();
   }
@@ -32,13 +32,13 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onScrablingLetters.removeListener(_refresh);
-    gm.onRevealUselessLetter.removeListener(_onRevealUselessLetter);
-    gm.onRevealHiddenLetter.removeListener(_onRevealHiddenLetter);
-    gm.onRoundStarted.removeListener(_onRoundStarted);
+    gm.onScrablingLetters.cancel(_refresh);
+    gm.onRevealUselessLetter.cancel(_onRevealUselessLetter);
+    gm.onRevealHiddenLetter.cancel(_onRevealHiddenLetter);
+    gm.onRoundStarted.cancel(_onRoundStarted);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     for (var e in _fireworksControllers) {
       e.dispose();

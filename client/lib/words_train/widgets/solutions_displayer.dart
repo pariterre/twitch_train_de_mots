@@ -25,15 +25,15 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.addListener(_reinitializeFireworks);
-    gm.onRoundStarted.addListener(_fetchMvpPlayers);
-    gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardoned.addListener(_onPlayerWasPardoned);
-    gm.onPlayerUpdate.addListener(_refresh);
-    gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
+    gm.onRoundStarted.listen(_reinitializeFireworks);
+    gm.onRoundStarted.listen(_fetchMvpPlayers);
+    gm.onSolutionFound.listen(_onSolutionFound);
+    gm.onStealerPardoned.listen(_onPlayerWasPardoned);
+    gm.onPlayerUpdate.listen(_refresh);
+    gm.onGoldenSolutionAppeared.listen(_onGoldenSolutionAppeared);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
     _fetchMvpPlayers();
     _reinitializeFireworks();
@@ -51,15 +51,15 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onRoundStarted.removeListener(_reinitializeFireworks);
-    gm.onRoundStarted.removeListener(_fetchMvpPlayers);
-    gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardoned.removeListener(_onPlayerWasPardoned);
-    gm.onPlayerUpdate.removeListener(_refresh);
-    gm.onGoldenSolutionAppeared.removeListener(_onGoldenSolutionAppeared);
+    gm.onRoundStarted.cancel(_reinitializeFireworks);
+    gm.onRoundStarted.cancel(_fetchMvpPlayers);
+    gm.onSolutionFound.cancel(_onSolutionFound);
+    gm.onStealerPardoned.cancel(_onPlayerWasPardoned);
+    gm.onPlayerUpdate.cancel(_refresh);
+    gm.onGoldenSolutionAppeared.cancel(_onGoldenSolutionAppeared);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     _fireworksControllers.forEach((key, value) => value.dispose());
 
@@ -192,15 +192,15 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardoned.addListener(_onSolutionFound);
+    gm.onSolutionFound.listen(_onSolutionFound);
+    gm.onStealerPardoned.listen(_onSolutionFound);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardoned.removeListener(_onSolutionFound);
+    gm.onSolutionFound.cancel(_onSolutionFound);
+    gm.onStealerPardoned.cancel(_onSolutionFound);
 
     super.dispose();
   }
@@ -260,13 +260,13 @@ class _SolutionTileState extends State<_SolutionTile> {
     super.initState();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.addListener(_refresh);
+    cm.onChanged.listen(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
     final gm = Managers.instance.train;
-    gm.onRoundIsPreparing.addListener(_refresh);
+    gm.onRoundIsPreparing.listen(_refresh);
   }
 
   @override
@@ -274,13 +274,13 @@ class _SolutionTileState extends State<_SolutionTile> {
     super.dispose();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.removeListener(_refresh);
+    cm.onChanged.cancel(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     final gm = Managers.instance.train;
-    gm.onRoundIsPreparing.removeListener(_refresh);
+    gm.onRoundIsPreparing.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

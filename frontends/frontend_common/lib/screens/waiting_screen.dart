@@ -19,15 +19,15 @@ class _WaitingScreenState extends State<WaitingScreen> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onGameStatusUpdated.addListener(_refresh);
-    gm.onAttemptingTheBigHeist.addListener(_refresh);
+    gm.onGameStatusUpdated.listen(_refresh);
+    gm.onAttemptingTheBigHeist.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onGameStatusUpdated.removeListener(_refresh);
-    gm.onAttemptingTheBigHeist.removeListener(_refresh);
+    gm.onGameStatusUpdated.cancel(_refresh);
+    gm.onAttemptingTheBigHeist.cancel(_refresh);
 
     super.dispose();
   }

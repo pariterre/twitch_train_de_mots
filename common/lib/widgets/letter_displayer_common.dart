@@ -113,7 +113,7 @@ class _LetterState extends State<_Letter> {
     super.initState();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -121,7 +121,7 @@ class _LetterState extends State<_Letter> {
     super.dispose();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

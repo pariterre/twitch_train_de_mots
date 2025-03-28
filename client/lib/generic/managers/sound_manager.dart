@@ -59,21 +59,21 @@ class SoundManager {
     while (true) {
       try {
         final gm = Managers.instance.train;
-        gm.onGameIsInitializing.addListener(_manageGameMusic);
-        gm.onRoundStarted.addListener(_onRoundStarted);
-        gm.onSolutionFound.addListener(_onSolutionFound);
-        gm.onStealerPardoned.addListener(_onSolutionFound);
-        gm.onTrainGotBoosted.addListener(_onTrainGotBoosted);
-        gm.onScrablingLetters.addListener(_onLettersScrambled);
-        gm.onRevealUselessLetter.addListener(_onLettersScrambled);
-        gm.onRevealHiddenLetter.addListener(_onLettersScrambled);
-        gm.onRoundIsOver.addListener(_onRoundIsOver);
-        gm.onSolutionWasStolen.addListener(_onSolutionStolen);
-        gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
-        gm.onAttemptingTheBigHeist.addListener(_onAttemptingTheBigHeist);
-        gm.onBigHeistSuccess.addListener(_onTheBigHeistSuccess);
-        gm.onBigHeistFailed.addListener(_onTheBigHeistFailed);
-        gm.onChangingLane.addListener(_onChangingLane);
+        gm.onGameIsInitializing.listen(_manageGameMusic);
+        gm.onRoundStarted.listen(_onRoundStarted);
+        gm.onSolutionFound.listen(_onSolutionFound);
+        gm.onStealerPardoned.listen(_onSolutionFound);
+        gm.onTrainGotBoosted.listen(_onTrainGotBoosted);
+        gm.onScrablingLetters.listen(_onLettersScrambled);
+        gm.onRevealUselessLetter.listen(_onLettersScrambled);
+        gm.onRevealHiddenLetter.listen(_onLettersScrambled);
+        gm.onRoundIsOver.listen(_onRoundIsOver);
+        gm.onSolutionWasStolen.listen(_onSolutionStolen);
+        gm.onGoldenSolutionAppeared.listen(_onGoldenSolutionAppeared);
+        gm.onAttemptingTheBigHeist.listen(_onAttemptingTheBigHeist);
+        gm.onBigHeistSuccess.listen(_onTheBigHeistSuccess);
+        gm.onBigHeistFailed.listen(_onTheBigHeistFailed);
+        gm.onChangingLane.listen(_onChangingLane);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -84,8 +84,8 @@ class SoundManager {
     while (true) {
       try {
         final cm = Managers.instance.configuration;
-        cm.onGameMusicVolumeChanged.addListener(_manageGameMusic);
-        cm.onSoundVolumeChanged.addListener(_onLettersScrambled);
+        cm.onGameMusicVolumeChanged.listen(_manageGameMusic);
+        cm.onSoundVolumeChanged.listen(_onLettersScrambled);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized

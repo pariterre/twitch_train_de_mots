@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:common/models/custom_callback.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logging/logging.dart';
@@ -44,11 +44,11 @@ class DatabaseManager {
   //// AUTH RELATED FUNCTIONS ////
   ////////////////////////////////
 
-  final onEmailVerified = CustomCallback();
-  final onTeamNameSet = CustomCallback();
-  final onLoggedIn = CustomCallback();
-  final onFullyLoggedIn = CustomCallback();
-  final onLoggedOut = CustomCallback();
+  final onEmailVerified = GenericListener<Function()>();
+  final onTeamNameSet = GenericListener<Function()>();
+  final onLoggedIn = GenericListener<Function()>();
+  final onFullyLoggedIn = GenericListener<Function()>();
+  final onLoggedOut = GenericListener<Function()>();
 
   ///
   /// Create a new user with the given email and password
@@ -101,7 +101,7 @@ class DatabaseManager {
         .set({teamNameKey: FirebaseAuth.instance.currentUser!.displayName!});
 
     // Notify the listeners
-    onTeamNameSet.notifyListeners();
+    onTeamNameSet.notifyListeners((callback) => callback());
     _notifyIfFullyLoggedIn();
     _logger.config('Team name set');
   }
@@ -132,7 +132,7 @@ class DatabaseManager {
   Future<void> logOut() async {
     _logger.info('Logging out...');
     await FirebaseAuth.instance.signOut();
-    onLoggedOut.notifyListeners();
+    onLoggedOut.notifyListeners((callback) => callback());
     _logger.info('Logged out');
   }
 
@@ -141,13 +141,13 @@ class DatabaseManager {
     // because the UI needs to update
     _checkForEmailVerification();
 
-    onLoggedIn.notifyListeners();
+    onLoggedIn.notifyListeners((callback) => callback());
     _notifyIfFullyLoggedIn();
   }
 
   void _notifyIfFullyLoggedIn() {
     if (isEmailVerified && hasTeamName) {
-      onFullyLoggedIn.notifyListeners();
+      onFullyLoggedIn.notifyListeners((callback) => callback());
     }
   }
 
@@ -181,7 +181,7 @@ class DatabaseManager {
       }
     }
 
-    onEmailVerified.notifyListeners();
+    onEmailVerified.notifyListeners((callback) => callback());
     _notifyIfFullyLoggedIn();
     _logger.info('Email verified');
   }
@@ -636,7 +636,7 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   Future<void> logOut() async {
     _dummyIsSignedIn = false;
-    onLoggedOut.notifyListeners();
+    onLoggedOut.notifyListeners((callback) => callback());
   }
 
   @override
@@ -647,7 +647,7 @@ class DatabaseManagerMock extends DatabaseManager {
     }
 
     _emailIsVerified = true;
-    onEmailVerified.notifyListeners();
+    onEmailVerified.notifyListeners((callback) => callback());
     _notifyIfFullyLoggedIn();
   }
 
@@ -672,7 +672,7 @@ class DatabaseManagerMock extends DatabaseManager {
     }
 
     _dummyTeamName = name;
-    onTeamNameSet.notifyListeners();
+    onTeamNameSet.notifyListeners((callback) => callback());
     _notifyIfFullyLoggedIn();
   }
 

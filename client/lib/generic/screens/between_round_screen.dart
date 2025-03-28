@@ -34,8 +34,8 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundIsOver.addListener(_refresh);
-    gm.onAttemptingTheBigHeist.addListener(_showAttemptingTheBigHeist);
+    gm.onRoundIsOver.listen(_refresh);
+    gm.onAttemptingTheBigHeist.listen(_showAttemptingTheBigHeist);
   }
 
   @override
@@ -43,8 +43,8 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     super.dispose();
 
     final gm = Managers.instance.train;
-    gm.onRoundIsOver.removeListener(_refresh);
-    gm.onAttemptingTheBigHeist.removeListener(_showAttemptingTheBigHeist);
+    gm.onRoundIsOver.cancel(_refresh);
+    gm.onAttemptingTheBigHeist.cancel(_showAttemptingTheBigHeist);
     _attemptingTheBigHeist.dispose();
   }
 
@@ -126,8 +126,8 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onClockTicked.addListener(_refresh);
-    gm.onCongratulationFireworks.addListener(_toggleCanClick);
+    gm.onClockTicked.listen(_refresh);
+    gm.onCongratulationFireworks.listen(_toggleCanClick);
   }
 
   @override
@@ -135,7 +135,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.dispose();
 
     final gm = Managers.instance.train;
-    gm.onClockTicked.removeListener(_refresh);
+    gm.onClockTicked.cancel(_refresh);
   }
 
   void _toggleCanClick(Map<String, dynamic> info) {
@@ -215,11 +215,11 @@ class _ContinueSectionState extends State<_ContinueSection> {
                   const SizedBox(width: 24),
                   ThemedElevatedButton(
                       onPressed: _canClick
-                          ? () => gm.onCongratulationFireworks
-                                  .notifyListenersWithParameter({
-                                'is_congratulating': true,
-                                'player_name': 'Anynome'
-                              })
+                          ? () => gm.onCongratulationFireworks.notifyListeners(
+                              (callback) => callback({
+                                    'is_congratulating': true,
+                                    'player_name': 'Anynome'
+                                  }))
                           : null,
                       buttonText: 'BOOM!'),
                   const SizedBox(width: 24),
@@ -870,7 +870,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -878,7 +878,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -958,7 +958,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -966,7 +966,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -1022,7 +1022,7 @@ class _BackgroundState extends State<_Background> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -1030,7 +1030,7 @@ class _BackgroundState extends State<_Background> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -1093,7 +1093,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -1101,7 +1101,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

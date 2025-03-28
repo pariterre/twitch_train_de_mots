@@ -50,14 +50,12 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
           explodeOnTap: false));
     }
 
-    Managers.instance.train.onCongratulationFireworks
-        .addListener(_launchFireworks);
+    Managers.instance.train.onCongratulationFireworks.listen(_launchFireworks);
   }
 
   @override
   void dispose() {
-    Managers.instance.train.onCongratulationFireworks
-        .removeListener(_launchFireworks);
+    Managers.instance.train.onCongratulationFireworks.cancel(_launchFireworks);
     for (var e in _fireworksController) {
       e.dispose();
     }
@@ -97,8 +95,8 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     Future.delayed(widget.duration + const Duration(milliseconds: 6000))
         .then((_) => setState(() {
               _isFiring = false;
-              Managers.instance.train.onCongratulationFireworks
-                  .notifyListenersWithParameter({'is_congratulating': false});
+              Managers.instance.train.onCongratulationFireworks.notifyListeners(
+                  (callback) => callback({'is_congratulating': false}));
             }));
   }
 

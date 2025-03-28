@@ -1,6 +1,7 @@
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class AnimatedTextOverlay extends StatefulWidget {
@@ -11,6 +12,7 @@ class AnimatedTextOverlay extends StatefulWidget {
 }
 
 class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
+  // Words train messages
   final _stolenController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
   final _pardonedController = BouncyContainerController(
@@ -77,19 +79,45 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
       maxScale: 1.4,
       maxOpacity: 0.9);
 
+  // Treasure Seeker messages
+  final _treasureSeekerWrongWordController = BouncyContainerController(
+      minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
+  final _treasureSeekerFoundWordController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1500,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
+  final _treasureSeekerFailedController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 4000,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.1,
+      maxScale: 1.2,
+      maxOpacity: 0.9);
+
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
-    gm.onGoldenSolutionAppeared.addListener(_showNewGoldenSolutionAppeared);
-    gm.onStealerPardoned.addListener(_showStealerWasPardoned);
-    gm.onAllSolutionsFound.addListener(_showAllSolutionsFound);
-    gm.onTrainGotBoosted.addListener(_showTrainGotBoosted);
-    gm.onBigHeistSuccess.addListener(_showBigHeistSuccess);
-    gm.onBigHeistFailed.addListener(_showBigHeistFailed);
-    gm.onChangingLane.addListener(_showChangeLane);
+    gm.onSolutionWasStolen.listen(_showSolutionWasStolen);
+    gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
+    gm.onStealerPardoned.listen(_showStealerWasPardoned);
+    gm.onAllSolutionsFound.listen(_showAllSolutionsFound);
+    gm.onTrainGotBoosted.listen(_showTrainGotBoosted);
+    gm.onBigHeistSuccess.listen(_showBigHeistSuccess);
+    gm.onBigHeistFailed.listen(_showBigHeistFailed);
+    gm.onChangingLane.listen(_showChangeLane);
+
+    final tgm = TreasureSeekerGameManager.instance;
+    tgm.onTrySolution.listen(_treasureSeekerTrySolution);
+    tgm.onGameOver.listen(_treasureSeekerFailed);
   }
 
   @override
@@ -104,14 +132,18 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     _changeLaneController.dispose();
 
     final gm = Managers.instance.train;
-    gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
-    gm.onGoldenSolutionAppeared.removeListener(_showNewGoldenSolutionAppeared);
-    gm.onStealerPardoned.removeListener(_showStealerWasPardoned);
-    gm.onAllSolutionsFound.removeListener(_showAllSolutionsFound);
-    gm.onTrainGotBoosted.removeListener(_showTrainGotBoosted);
-    gm.onBigHeistSuccess.removeListener(_showBigHeistSuccess);
-    gm.onBigHeistFailed.removeListener(_showBigHeistFailed);
-    gm.onChangingLane.removeListener(_showChangeLane);
+    gm.onSolutionWasStolen.cancel(_showSolutionWasStolen);
+    gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
+    gm.onStealerPardoned.cancel(_showStealerWasPardoned);
+    gm.onAllSolutionsFound.cancel(_showAllSolutionsFound);
+    gm.onTrainGotBoosted.cancel(_showTrainGotBoosted);
+    gm.onBigHeistSuccess.cancel(_showBigHeistSuccess);
+    gm.onBigHeistFailed.cancel(_showBigHeistFailed);
+    gm.onChangingLane.cancel(_showChangeLane);
+
+    final tgm = TreasureSeekerGameManager.instance;
+    tgm.onTrySolution.cancel(_treasureSeekerTrySolution);
+    tgm.onGameOver.cancel(_treasureSeekerFailed);
 
     super.dispose();
   }
@@ -148,6 +180,23 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
 
   void _showChangeLane() {
     _changeLaneController.triggerAnimation(const _ChangeLane());
+  }
+
+  void _treasureSeekerTrySolution(String sender, String word, bool isSuccess) {
+    if (isSuccess) {
+      _treasureSeekerFoundWordController
+          .triggerAnimation(_TreasureSeekerFoundWord(sender, word));
+    } else {
+      _treasureSeekerWrongWordController
+          .triggerAnimation(_TreasureSeekerWrongWord(sender, word));
+    }
+  }
+
+  void _treasureSeekerFailed(bool hasWin) {
+    // Do not write anything if the game was won, as the try solution will
+    if (hasWin) return;
+    _treasureSeekerFailedController
+        .triggerAnimation(const _TreasureSeekerFailed());
   }
 
   @override
@@ -189,6 +238,20 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.13,
             child: BouncyContainer(controller: _changeLaneController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child:
+                BouncyContainer(controller: _treasureSeekerWrongWordController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child:
+                BouncyContainer(controller: _treasureSeekerFoundWordController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _treasureSeekerFailedController),
           ),
         ],
       ),
@@ -471,6 +534,112 @@ class _ChangeLane extends StatelessWidget {
           Text(
             'Changement de voie! Accrochez-vous!',
             textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TreasureSeekerFoundWord extends StatelessWidget {
+  const _TreasureSeekerFoundWord(this.sender, this.word);
+
+  final String sender;
+  final String word;
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = Managers.instance.theme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez gagné, $sender a trouvé la solution!',
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TreasureSeekerWrongWord extends StatelessWidget {
+  const _TreasureSeekerWrongWord(this.sender, this.word);
+
+  final String sender;
+  final String word;
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = Managers.instance.theme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            '$sender a proposé $word,\n mais ce n\'est pas la solution',
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TreasureSeekerFailed extends StatelessWidget {
+  const _TreasureSeekerFailed();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = Managers.instance.theme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous n\'avez pas trouvé le mot à temps...!\n'
+            'On retourne immédiatement au train...',
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

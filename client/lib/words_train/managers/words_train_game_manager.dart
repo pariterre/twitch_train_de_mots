@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:common/models/simplified_game_state.dart';
-import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
@@ -37,7 +36,7 @@ class WordsTrainGameManager {
     while (true) {
       try {
         final cm = Managers.instance.configuration;
-        cm.onChanged.addListener(_checkForInvalidRules);
+        cm.onChanged.listen(_checkForInvalidRules);
         break;
       } on ManagerNotInitializedException {
         // Wait and repeat
@@ -201,7 +200,7 @@ class WordsTrainGameManager {
     if (gameStatus == GameStatus.initializing) {
       _initializeCallbacks();
       _gameStatus = GameStatus.roundPreparing;
-      onRoundIsPreparing.notifyListeners();
+      onRoundIsPreparing.notifyListeners((callback) => callback());
     }
     if (_gameStatus != GameStatus.roundStarted) return;
     _forceEndTheRound = true;
@@ -229,30 +228,30 @@ class WordsTrainGameManager {
   /// --------- ///
 
   /// Callbacks for that tells listeners that the round is preparing
-  final onGameIsInitializing = CustomCallback<VoidCallback>();
-  final onRoundIsPreparing = CustomCallback<VoidCallback>();
-  final onNextProblemReady = CustomCallback<VoidCallback>();
-  final onRoundStarted = CustomCallback<VoidCallback>();
-  final onRoundIsOver = CustomCallback<Function(bool)>();
-  final onClockTicked = CustomCallback<VoidCallback>();
-  final onScrablingLetters = CustomCallback<VoidCallback>();
-  final onRevealUselessLetter = CustomCallback<VoidCallback>();
-  final onRevealHiddenLetter = CustomCallback<VoidCallback>();
-  final onSolutionFound = CustomCallback<Function(WordSolution)>();
-  final onSolutionWasStolen = CustomCallback<Function(WordSolution)>();
-  final onGoldenSolutionAppeared = CustomCallback<Function(WordSolution)>();
-  final onStealerPardoned = CustomCallback<Function(WordSolution)>();
-  final onNewPardonGranted = CustomCallback<VoidCallback>();
-  final onTrainGotBoosted = CustomCallback<Function(int)>();
-  final onAttemptingTheBigHeist = CustomCallback<VoidCallback>();
-  final onBigHeistSuccess = CustomCallback<VoidCallback>();
-  final onBigHeistFailed = CustomCallback<VoidCallback>();
-  final onChangingLane = CustomCallback<VoidCallback>();
-  final onAllSolutionsFound = CustomCallback<VoidCallback>();
-  final onShowcaseSolutionsRequest = CustomCallback<VoidCallback>();
-  final onPlayerUpdate = CustomCallback<VoidCallback>();
+  final onGameIsInitializing = GenericListener<Function()>();
+  final onRoundIsPreparing = GenericListener<Function()>();
+  final onNextProblemReady = GenericListener<Function()>();
+  final onRoundStarted = GenericListener<Function()>();
+  final onRoundIsOver = GenericListener<Function(bool)>();
+  final onClockTicked = GenericListener<Function()>();
+  final onScrablingLetters = GenericListener<Function()>();
+  final onRevealUselessLetter = GenericListener<Function()>();
+  final onRevealHiddenLetter = GenericListener<Function()>();
+  final onSolutionFound = GenericListener<Function(WordSolution)>();
+  final onSolutionWasStolen = GenericListener<Function(WordSolution)>();
+  final onGoldenSolutionAppeared = GenericListener<Function(WordSolution)>();
+  final onStealerPardoned = GenericListener<Function(WordSolution?)>();
+  final onNewPardonGranted = GenericListener<Function()>();
+  final onTrainGotBoosted = GenericListener<Function(int)>();
+  final onAttemptingTheBigHeist = GenericListener<Function()>();
+  final onBigHeistSuccess = GenericListener<Function()>();
+  final onBigHeistFailed = GenericListener<Function()>();
+  final onChangingLane = GenericListener<Function()>();
+  final onAllSolutionsFound = GenericListener<Function()>();
+  final onShowcaseSolutionsRequest = GenericListener<Function()>();
+  final onPlayerUpdate = GenericListener<Function()>();
   final onCongratulationFireworks =
-      CustomCallback<Function(Map<String, dynamic>)>();
+      GenericListener<Function(Map<String, dynamic>)>();
   Future<void> Function(String)? onShowMessage;
 
   /// -------- ///
@@ -341,7 +340,7 @@ class WordsTrainGameManager {
       }
     }
 
-    onNextProblemReady.notifyListeners();
+    onNextProblemReady.notifyListeners((callback) => callback());
     _nextProblem = problem;
     _isGeneratingProblem = false;
     _logger.info('Problem found for round $round');
@@ -350,7 +349,7 @@ class WordsTrainGameManager {
   void _initializeCallbacks() {
     _logger.info('Initializing callbacks...');
 
-    onGameIsInitializing.notifyListeners();
+    onGameIsInitializing.notifyListeners((callback) => callback());
     _initializeTrySolutionCallback();
     if (onShowMessage == null) {
       throw Exception('onShowMessage must be set before starting the game');
@@ -373,7 +372,7 @@ class WordsTrainGameManager {
       _logger.warning('Cannot start a new round at this time');
       return;
     }
-    onRoundIsPreparing.notifyListeners();
+    onRoundIsPreparing.notifyListeners((callback) => callback());
 
     // Wait for the problem to be generated
     while (_isGeneratingProblem) {
@@ -388,7 +387,7 @@ class WordsTrainGameManager {
     await _sendTelegramToPlayers();
     _gameStatus = GameStatus.roundStarted;
     _roundStartedAt = DateTime.now();
-    onRoundStarted.notifyListeners();
+    onRoundStarted.notifyListeners((callback) => callback());
 
     _logger.info('New round started');
   }
@@ -537,7 +536,7 @@ class WordsTrainGameManager {
     if (solution.isStolen) {
       solution.foundBy.addToStealCount();
       solution.stolenFrom.lastSolutionFound = null;
-      onSolutionWasStolen.notifyListenersWithParameter(solution);
+      onSolutionWasStolen.notifyListeners((callback) => callback(solution));
     }
 
     player.score += solution.value;
@@ -546,7 +545,7 @@ class WordsTrainGameManager {
     player.startCooldown(duration: cooldownDuration(player: player));
 
     // Call the listeners of solution found
-    onSolutionFound.notifyListenersWithParameter(solution);
+    onSolutionFound.notifyListeners((callback) => callback(solution));
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
@@ -570,7 +569,7 @@ class WordsTrainGameManager {
 
     if (_lastStolenSolution == null) {
       // Tell the players that there was no stealer to pardon
-      onStealerPardoned.notifyListenersWithParameter(null);
+      onStealerPardoned.notifyListeners((callback) => callback(null));
       _logger.warning('No stealer to pardon');
       return false;
     }
@@ -578,7 +577,7 @@ class WordsTrainGameManager {
 
     // Only the player who was stolen from can pardon the stealer
     if (solution.stolenFrom != pardonner) {
-      onStealerPardoned.notifyListenersWithParameter(solution);
+      onStealerPardoned.notifyListeners((callback) => callback(solution));
       _logger.warning('Player cannot pardon the stealer');
       return false;
     }
@@ -589,7 +588,7 @@ class WordsTrainGameManager {
     solution.pardonStealer();
     solution.foundBy.removeFromStealCount();
 
-    onStealerPardoned.notifyListenersWithParameter(solution);
+    onStealerPardoned.notifyListeners((callback) => callback(solution));
 
     _logger.info('Stealer (${solution.foundBy.name}) has been pardoned by '
         '${pardonner.name}');
@@ -624,7 +623,8 @@ class WordsTrainGameManager {
       _boostStartedAt = DateTime.now();
     }
 
-    onTrainGotBoosted.notifyListenersWithParameter(numberOfBoostStillNeeded);
+    onTrainGotBoosted
+        .notifyListeners((callback) => callback(numberOfBoostStillNeeded));
 
     _logger.info('Train has been boosted');
     return true;
@@ -639,7 +639,7 @@ class WordsTrainGameManager {
 
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = true;
-    onAttemptingTheBigHeist.notifyListeners();
+    onAttemptingTheBigHeist.notifyListeners((callback) => callback());
 
     _logger.info('Big heist is attempted');
     return true;
@@ -663,10 +663,10 @@ class WordsTrainGameManager {
     for (int i = 0; i < problem!.letters.length * 4; i++) {
       if (i % problem!.letters.length == 0) {
         if (!hasNotified) {
-          onChangingLane.notifyListeners();
+          onChangingLane.notifyListeners((callback) => callback());
           hasNotified = true;
         }
-        onScrablingLetters.notifyListeners();
+        onScrablingLetters.notifyListeners((callback) => callback());
         await Future.delayed(const Duration(milliseconds: 500));
       }
       problem!.scrambleLetters();
@@ -741,7 +741,7 @@ class WordsTrainGameManager {
   /// listeners if needed.
   Future<void> _tickingClock() async {
     _logger.fine('Tic...');
-    onClockTicked.notifyListeners();
+    onClockTicked.notifyListeners((callback) => callback());
 
     if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
       _logger.fine('The game is not running, so nothing more to do');
@@ -762,7 +762,7 @@ class WordsTrainGameManager {
       }
     }
     if (_hasAPlayerBeenUpdate) {
-      onPlayerUpdate.notifyListeners();
+      onPlayerUpdate.notifyListeners((callback) => callback());
       _hasAPlayerBeenUpdate = false;
     }
 
@@ -788,8 +788,8 @@ class WordsTrainGameManager {
       if (index != -1) {
         _currentProblem!.solutions[index].isGolden = true;
         _roundHasGoldenSolution = true;
-        onGoldenSolutionAppeared
-            .notifyListenersWithParameter(_currentProblem!.solutions[index]);
+        onGoldenSolutionAppeared.notifyListeners(
+            (callback) => callback(_currentProblem!.solutions[index]));
       }
     }
 
@@ -800,7 +800,7 @@ class WordsTrainGameManager {
       _logger.info('Scrambling letters...');
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
-      onScrablingLetters.notifyListeners();
+      onScrablingLetters.notifyListeners((callback) => callback());
     }
 
     // Manage useless letter
@@ -810,7 +810,7 @@ class WordsTrainGameManager {
         timeRemaining! <= _currentDifficulty.revealUselessLetterAtTimeLeft) {
       _logger.info('Revealing useless letter...');
       _isUselessLetterRevealed = true;
-      onRevealUselessLetter.notifyListeners();
+      onRevealUselessLetter.notifyListeners((callback) => callback());
     }
 
     // Manage hidden letter
@@ -820,7 +820,7 @@ class WordsTrainGameManager {
         timeRemaining! <= _currentDifficulty.revealHiddenLetterAtTimeLeft) {
       _logger.info('Revealing hidden letter...');
       _isHiddenLetterRevealed = true;
-      onRevealHiddenLetter.notifyListeners();
+      onRevealHiddenLetter.notifyListeners((callback) => callback());
     }
 
     // Manage boost of the train
@@ -883,9 +883,9 @@ class WordsTrainGameManager {
     _boostStartedAt = null;
     if (_isAttemptingTheBigHeist) {
       if (_successLevel == SuccessLevel.bigHeist) {
-        onBigHeistSuccess.notifyListeners();
+        onBigHeistSuccess.notifyListeners((callback) => callback());
       } else {
-        onBigHeistFailed.notifyListeners();
+        onBigHeistFailed.notifyListeners((callback) => callback());
       }
     }
     _isAttemptingTheBigHeist = false;
@@ -893,14 +893,14 @@ class WordsTrainGameManager {
     if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
       _remainingBoosts += 1;
-      onAllSolutionsFound.notifyListeners();
+      onAllSolutionsFound.notifyListeners((callback) => callback());
     }
 
     if (_currentProblem!.noSolutionWasStolenOrPardoned &&
         _successLevel != SuccessLevel.failed) {
       _roundSuccesses.add(RoundSuccess.noSteal);
       _remainingPardons += 1;
-      onNewPardonGranted.notifyListeners();
+      onNewPardonGranted.notifyListeners((callback) => callback());
     }
 
     _canAttemptTheBigHeist = false;
@@ -951,13 +951,13 @@ class WordsTrainGameManager {
 
     _gameStatus = GameStatus.revealAnswers;
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
-      onRoundIsPreparing.notifyListeners();
+      onRoundIsPreparing.notifyListeners((callback) => callback());
       _gameStatus = isNextProblemReady
           ? GameStatus.roundReady
           : GameStatus.roundPreparing;
     });
-    onRoundIsOver.notifyListenersWithParameter(playSound);
-    onShowcaseSolutionsRequest.notifyListeners();
+    onRoundIsOver.notifyListeners((callback) => callback(playSound));
+    onShowcaseSolutionsRequest.notifyListeners((callback) => callback());
 
     _logger.info('Answers are shown');
   }
@@ -1035,8 +1035,8 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _currentProblem = problem;
       _nextProblem = null;
 
-      Future.delayed(const Duration(seconds: 1))
-          .then((value) => onNextProblemReady.notifyListeners());
+      Future.delayed(const Duration(seconds: 1)).then((value) =>
+          onNextProblemReady.notifyListeners((callback) => callback()));
     }
 
     if (shouldAttemptTheBigHeist) {
@@ -1069,11 +1069,11 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
       // Make sure the game don't run if the player is not logged in
       final dm = Managers.instance.database;
-      dm.onLoggedOut.addListener(() => requestTerminateRound());
-      dm.onFullyLoggedIn.addListener(() {
+      dm.onLoggedOut.listen(() => requestTerminateRound());
+      dm.onFullyLoggedIn.listen(() {
         if (gameStatus != GameStatus.initializing) _startNewRound();
       });
     }
-    onGameIsInitializing.notifyListeners();
+    onGameIsInitializing.notifyListeners((callback) => callback());
   }
 }

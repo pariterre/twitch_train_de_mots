@@ -23,13 +23,13 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
     super.initState();
 
     final tm = ThemeManager.instance;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
   void dispose() {
     final tm = ThemeManager.instance;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     super.dispose();
   }

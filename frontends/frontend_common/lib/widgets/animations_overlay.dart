@@ -44,9 +44,9 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onPardonGranted.addListener(_showStealerWasPardoned);
-    gm.onBoostGranted.addListener(_showTrainGotBoosted);
-    gm.onChangeLaneGranted.addListener(_showChangeLane);
+    gm.onPardonGranted.listen(_showStealerWasPardoned);
+    gm.onBoostGranted.listen(_showTrainGotBoosted);
+    gm.onChangeLaneGranted.listen(_showChangeLane);
   }
 
   @override
@@ -55,9 +55,9 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _trainGotBoostedController.dispose();
 
     final gm = GameManager.instance;
-    gm.onPardonGranted.removeListener(_showStealerWasPardoned);
-    gm.onBoostGranted.removeListener(_showTrainGotBoosted);
-    gm.onChangeLaneGranted.removeListener(_showChangeLane);
+    gm.onPardonGranted.cancel(_showStealerWasPardoned);
+    gm.onBoostGranted.cancel(_showTrainGotBoosted);
+    gm.onChangeLaneGranted.cancel(_showChangeLane);
 
     super.dispose();
   }

@@ -1,4 +1,4 @@
-import 'package:common/models/custom_callback.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
@@ -8,8 +8,8 @@ import 'package:twitch_manager/twitch_utils.dart';
 final _logger = Logger('TwitchManager');
 
 class TwitchManager {
-  final onTwitchManagerHasConnected = CustomCallback();
-  final onTwitchManagerHasDisconnected = CustomCallback();
+  final onTwitchManagerHasConnected = GenericListener();
+  final onTwitchManagerHasDisconnected = GenericListener();
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -64,7 +64,7 @@ class TwitchManager {
 
     _manager = manager;
     _manager!.chat.onMessageReceived.listen(_onMessageReceived);
-    onTwitchManagerHasConnected.notifyListeners();
+    onTwitchManagerHasConnected.notifyListeners((callback) => callback());
 
     _logger.info('TwitchManager connected');
     return true;
@@ -78,7 +78,7 @@ class TwitchManager {
 
     _manager!.disconnect();
     _manager = null;
-    onTwitchManagerHasDisconnected.notifyListeners();
+    onTwitchManagerHasDisconnected.notifyListeners((callback) => callback());
 
     _logger.info('TwitchManager disconnected');
     return Future.value(true);

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:common/models/custom_callback.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
@@ -72,13 +72,13 @@ class ConfigurationManager {
 
   ///
   /// Connect to callbacks to get notified when the configuration changes
-  final onChanged = CustomCallback();
-  final onGameMusicVolumeChanged = CustomCallback();
-  final onSoundVolumeChanged = CustomCallback();
+  final onChanged = GenericListener<Function()>();
+  final onGameMusicVolumeChanged = GenericListener<Function()>();
+  final onSoundVolumeChanged = GenericListener<Function()>();
 
   ///
   /// Connect to callback to get notified when hide extension is changed
-  final onShowExtensionChanged = CustomCallback();
+  final onShowExtensionChanged = GenericListener();
 
   ///
   /// The current algorithm used to generate the problems
@@ -306,7 +306,7 @@ class ConfigurationManager {
   double get musicVolume => _musicVolume;
   set musicVolume(double value) {
     _musicVolume = value;
-    onGameMusicVolumeChanged.notifyListeners();
+    onGameMusicVolumeChanged.notifyListeners((callback) => callback());
     _saveConfiguration();
   }
 
@@ -321,7 +321,7 @@ class ConfigurationManager {
   bool get showExtension => _showExtension;
   set showExtension(bool value) {
     _showExtension = value;
-    onShowExtensionChanged.notifyListeners();
+    onShowExtensionChanged.notifyListeners((callback) => callback());
     _saveConfiguration();
   }
 
@@ -330,10 +330,10 @@ class ConfigurationManager {
     while (true) {
       try {
         final gm = Managers.instance.train;
-        gm.onRoundIsPreparing.addListener(_reactToGameManagerEvent);
-        gm.onNextProblemReady.addListener(_reactToGameManagerEvent);
-        gm.onRoundStarted.addListener(_reactToGameManagerEvent);
-        gm.onRoundIsOver.addListener(_reactToGameManagerEventWithParameter);
+        gm.onRoundIsPreparing.listen(_reactToGameManagerEvent);
+        gm.onNextProblemReady.listen(_reactToGameManagerEvent);
+        gm.onRoundStarted.listen(_reactToGameManagerEvent);
+        gm.onRoundIsOver.listen(_reactToGameManagerEventWithParameter);
         break;
       } on ManagerNotInitializedException {
         // Wait and repeat
@@ -345,8 +345,10 @@ class ConfigurationManager {
     _logger.config('ConfigurationManager is initialized');
   }
 
-  void _reactToGameManagerEvent() => onChanged.notifyListeners();
-  void _reactToGameManagerEventWithParameter(_) => onChanged.notifyListeners();
+  void _reactToGameManagerEvent() =>
+      onChanged.notifyListeners((callback) => callback());
+  void _reactToGameManagerEventWithParameter(_) =>
+      onChanged.notifyListeners((callback) => callback());
 
   //// LOAD AND SAVE ////
 
@@ -390,7 +392,7 @@ class ConfigurationManager {
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('gameConfiguration', jsonEncode(serialize()));
-    onChanged.notifyListeners();
+    onChanged.notifyListeners((callback) => callback());
 
     _logger.config('Configuration saved');
   }

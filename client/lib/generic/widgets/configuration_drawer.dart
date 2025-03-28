@@ -20,10 +20,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     super.initState();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.addListener(_refresh);
+    cm.onChanged.listen(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -31,10 +31,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     super.dispose();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.removeListener(_refresh);
+    cm.onChanged.cancel(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -184,10 +184,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     super.initState();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.addListener(_refresh);
+    cm.onChanged.listen(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -195,10 +195,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     super.dispose();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.removeListener(_refresh);
+    cm.onChanged.cancel(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -259,8 +259,8 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                   label: 'Volume des sons',
                   value: cm.soundVolume,
                   onChanged: (value) => cm.soundVolume = value,
-                  onChangedEnd: (value) =>
-                      cm.onSoundVolumeChanged.notifyListeners(),
+                  onChangedEnd: (value) => cm.onSoundVolumeChanged
+                      .notifyListeners((callback) => callback()),
                   thumbLabel: '${(cm.soundVolume * 100).toInt()}%',
                 ),
                 const SizedBox(height: 12),
@@ -309,7 +309,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -317,7 +317,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -359,7 +359,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -367,7 +367,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -476,7 +476,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
     super.initState();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.addListener(_refresh);
+    cm.onChanged.listen(_refresh);
   }
 
   @override
@@ -484,7 +484,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
     super.dispose();
 
     final cm = Managers.instance.configuration;
-    cm.onChanged.removeListener(_refresh);
+    cm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

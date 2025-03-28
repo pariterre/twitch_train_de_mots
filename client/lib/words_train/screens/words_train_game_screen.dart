@@ -25,9 +25,9 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     super.initState();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasConnected.addListener(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasConnected.listen(_refresh);
   }
 
   @override
@@ -35,10 +35,9 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     super.dispose();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasConnected
-        .removeListener(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasConnected.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
@@ -96,26 +95,26 @@ class _HeaderState extends State<_Header> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onSolutionFound.addListener(_onSolutionFound);
-    gm.onStealerPardoned.addListener(_onSolutionFound);
-    gm.onRoundStarted.addListener(_refresh);
-    gm.onRoundStarted.addListener(_setTrainPath);
+    gm.onSolutionFound.listen(_onSolutionFound);
+    gm.onStealerPardoned.listen(_onSolutionFound);
+    gm.onRoundStarted.listen(_refresh);
+    gm.onRoundStarted.listen(_setTrainPath);
     _setTrainPath();
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onSolutionFound.removeListener(_onSolutionFound);
-    gm.onStealerPardoned.removeListener(_onSolutionFound);
-    gm.onRoundStarted.removeListener(_refresh);
-    gm.onRoundStarted.removeListener(_setTrainPath);
+    gm.onSolutionFound.cancel(_onSolutionFound);
+    gm.onStealerPardoned.cancel(_onSolutionFound);
+    gm.onRoundStarted.cancel(_refresh);
+    gm.onRoundStarted.cancel(_setTrainPath);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     super.dispose();
   }
@@ -238,13 +237,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.addListener(_refresh);
-    gm.onNextProblemReady.addListener(_refresh);
-    gm.onClockTicked.addListener(_refresh);
-    gm.onRoundIsOver.addListener(_refreshWithParameter);
+    gm.onRoundStarted.listen(_refresh);
+    gm.onNextProblemReady.listen(_refresh);
+    gm.onClockTicked.listen(_refresh);
+    gm.onRoundIsOver.listen(_refreshWithParameter);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
   }
 
   @override
@@ -252,13 +251,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     super.dispose();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.removeListener(_refresh);
-    gm.onNextProblemReady.removeListener(_refresh);
-    gm.onClockTicked.removeListener(_refresh);
-    gm.onRoundIsOver.removeListener(_refreshWithParameter);
+    gm.onRoundStarted.cancel(_refresh);
+    gm.onNextProblemReady.cancel(_refresh);
+    gm.onClockTicked.cancel(_refresh);
+    gm.onRoundIsOver.cancel(_refreshWithParameter);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});

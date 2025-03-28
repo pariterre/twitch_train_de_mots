@@ -30,40 +30,40 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundIsPreparing.addListener(_refresh);
-    gm.onNextProblemReady.addListener(_refresh);
-    gm.onRoundStarted.addListener(_refresh);
+    gm.onRoundIsPreparing.listen(_refresh);
+    gm.onNextProblemReady.listen(_refresh);
+    gm.onRoundStarted.listen(_refresh);
     gm.onShowMessage = _showMessageDialog;
-    gm.onShowcaseSolutionsRequest.addListener(_refresh);
+    gm.onShowcaseSolutionsRequest.listen(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.addListener(_refresh);
+    tm.onChanged.listen(_refresh);
 
     final dm = Managers.instance.database;
-    dm.onFullyLoggedIn.addListener(_refresh);
-    dm.onLoggedOut.addListener(_refresh);
+    dm.onFullyLoggedIn.listen(_refresh);
+    dm.onLoggedOut.listen(_refresh);
 
     Managers.instance.twitch.onTwitchManagerHasDisconnected
-        .addListener(_reconnectedAfterDisconnect);
+        .listen(_reconnectedAfterDisconnect);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onRoundIsPreparing.removeListener(_refresh);
-    gm.onNextProblemReady.removeListener(_refresh);
-    gm.onRoundStarted.removeListener(_refresh);
-    gm.onShowcaseSolutionsRequest.removeListener(_refresh);
+    gm.onRoundIsPreparing.cancel(_refresh);
+    gm.onNextProblemReady.cancel(_refresh);
+    gm.onRoundStarted.cancel(_refresh);
+    gm.onShowcaseSolutionsRequest.cancel(_refresh);
 
     final tm = Managers.instance.theme;
-    tm.onChanged.removeListener(_refresh);
+    tm.onChanged.cancel(_refresh);
 
     final dm = Managers.instance.database;
-    dm.onFullyLoggedIn.removeListener(_refresh);
-    dm.onLoggedOut.removeListener(_refresh);
+    dm.onFullyLoggedIn.cancel(_refresh);
+    dm.onLoggedOut.cancel(_refresh);
 
     Managers.instance.twitch.onTwitchManagerHasDisconnected
-        .removeListener(_reconnectedAfterDisconnect);
+        .cancel(_reconnectedAfterDisconnect);
 
     super.dispose();
   }

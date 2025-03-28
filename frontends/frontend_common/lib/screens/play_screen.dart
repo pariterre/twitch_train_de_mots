@@ -106,13 +106,13 @@ class _TimeDisplayerState extends State<_TimeDisplayer> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onGameTicked.addListener(refresh);
+    gm.onGameTicked.listen(refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onGameTicked.removeListener(refresh);
+    gm.onGameTicked.cancel(refresh);
 
     super.dispose();
   }
@@ -145,13 +145,13 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onLetterProblemChanged.addListener(_refresh);
+    gm.onLetterProblemChanged.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onLetterProblemChanged.removeListener(_refresh);
+    gm.onLetterProblemChanged.cancel(_refresh);
     super.dispose();
   }
 
@@ -180,7 +180,7 @@ class _PardonRequestState extends State<_PardonRequest> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onPardonnersChanged.addListener(_updatePlayersWhoCanPardon);
+    gm.onPardonnersChanged.listen(_updatePlayersWhoCanPardon);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updatePlayersWhoCanPardon();
@@ -190,7 +190,7 @@ class _PardonRequestState extends State<_PardonRequest> {
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onPardonnersChanged.removeListener(_updatePlayersWhoCanPardon);
+    gm.onPardonnersChanged.cancel(_updatePlayersWhoCanPardon);
 
     super.dispose();
   }
@@ -244,7 +244,7 @@ class _BoostRequestState extends State<_BoostRequest> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onBoostAvailabilityChanged.addListener(_updateBoostAvailability);
+    gm.onBoostAvailabilityChanged.listen(_updateBoostAvailability);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateBoostAvailability();
@@ -254,7 +254,7 @@ class _BoostRequestState extends State<_BoostRequest> {
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onBoostAvailabilityChanged.removeListener(_updateBoostAvailability);
+    gm.onBoostAvailabilityChanged.cancel(_updateBoostAvailability);
 
     super.dispose();
   }
@@ -334,7 +334,7 @@ class _CooldownClockState extends State<_CooldownClock> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onNewCooldowns.addListener(_showCooldown);
+    gm.onNewCooldowns.listen(_showCooldown);
 
     _showCooldown();
   }
@@ -342,7 +342,7 @@ class _CooldownClockState extends State<_CooldownClock> {
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onNewCooldowns.removeListener(_showCooldown);
+    gm.onNewCooldowns.cancel(_showCooldown);
     super.dispose();
   }
 

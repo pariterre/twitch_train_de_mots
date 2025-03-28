@@ -55,21 +55,21 @@ class _PardonState extends State<_Pardon> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onNewPardonGranted.addListener(_refresh);
-    gm.onStealerPardoned.addListener(_onStealerPardoned);
-    gm.onSolutionWasStolen.addListener(_onSolutionWasStolen);
-    gm.onRoundIsOver.addListener(_resetCardInterfaced);
-    gm.onRoundStarted.addListener(_resetCard);
+    gm.onNewPardonGranted.listen(_refresh);
+    gm.onStealerPardoned.listen(_onStealerPardoned);
+    gm.onSolutionWasStolen.listen(_onSolutionWasStolen);
+    gm.onRoundIsOver.listen(_resetCardInterfaced);
+    gm.onRoundStarted.listen(_resetCard);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onNewPardonGranted.removeListener(_refresh);
-    gm.onStealerPardoned.removeListener(_onStealerPardoned);
-    gm.onSolutionWasStolen.removeListener(_onSolutionWasStolen);
-    gm.onRoundIsOver.removeListener(_resetCardInterfaced);
-    gm.onRoundStarted.removeListener(_resetCard);
+    gm.onNewPardonGranted.cancel(_refresh);
+    gm.onStealerPardoned.cancel(_onStealerPardoned);
+    gm.onSolutionWasStolen.cancel(_onSolutionWasStolen);
+    gm.onRoundIsOver.cancel(_resetCardInterfaced);
+    gm.onRoundStarted.cancel(_resetCard);
 
     super.dispose();
   }
@@ -133,15 +133,15 @@ class _BoostState extends State<_Boost> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onTrainGotBoosted.addListener(_refreshWithParameter);
-    gm.onClockTicked.addListener(_refresh);
+    gm.onTrainGotBoosted.listen(_refreshWithParameter);
+    gm.onClockTicked.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onTrainGotBoosted.removeListener(_refreshWithParameter);
-    gm.onClockTicked.removeListener(_refresh);
+    gm.onTrainGotBoosted.cancel(_refreshWithParameter);
+    gm.onClockTicked.cancel(_refresh);
 
     super.dispose();
   }
