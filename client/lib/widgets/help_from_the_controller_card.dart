@@ -1,6 +1,5 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 class HelpFromTheControllerCard extends StatelessWidget {
@@ -8,7 +7,7 @@ class HelpFromTheControllerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Card(
       color: tm.mainColor,
@@ -55,7 +54,7 @@ class _PardonState extends State<_Pardon> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onNewPardonGranted.addListener(_refresh);
     gm.onStealerPardoned.addListener(_onStealerPardoned);
     gm.onSolutionWasStolen.addListener(_onSolutionWasStolen);
@@ -65,7 +64,7 @@ class _PardonState extends State<_Pardon> {
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onNewPardonGranted.removeListener(_refresh);
     gm.onStealerPardoned.removeListener(_onStealerPardoned);
     gm.onSolutionWasStolen.removeListener(_onSolutionWasStolen);
@@ -96,8 +95,8 @@ class _PardonState extends State<_Pardon> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -133,14 +132,14 @@ class _BoostState extends State<_Boost> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onTrainGotBoosted.addListener(_refreshWithParameter);
     gm.onClockTicked.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onTrainGotBoosted.removeListener(_refreshWithParameter);
     gm.onClockTicked.removeListener(_refresh);
 
@@ -152,8 +151,8 @@ class _BoostState extends State<_Boost> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     return Row(
       mainAxisSize: MainAxisSize.max,

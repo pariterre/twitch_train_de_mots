@@ -1,7 +1,7 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 
 class TrainPathController {
@@ -237,7 +237,7 @@ class _Rail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return AnimatedBuilder(
         animation: controller._animation,

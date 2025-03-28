@@ -63,8 +63,8 @@ class DictionaryManager {
   // of exactly that amount of letters
   final Map<int, Set<String>> _words;
 
-  static final DictionaryManager _instance = DictionaryManager._internal();
-  DictionaryManager._internal()
+  static final DictionaryManager _instance = DictionaryManager._();
+  DictionaryManager._()
       : _words = {
           -1: frenchWords
               .where((e) => !e.contains('-'))

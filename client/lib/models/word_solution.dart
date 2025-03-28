@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:common/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/player.dart';
 
 class WordSolution {
@@ -20,7 +20,7 @@ class WordSolution {
     _foundAt = DateTime.now();
 
     // If the word was boosted, keep it, otherwise, check if the train is boosted
-    _isBoosted = _isBoosted || GameManager.instance.isTrainBoosted;
+    _isBoosted = _isBoosted || Managers.instance.train.isTrainBoosted;
   }
 
   bool _isPardoned = false;

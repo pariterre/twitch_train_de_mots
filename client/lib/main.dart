@@ -1,14 +1,9 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
-import 'package:train_de_mots/managers/sound_manager.dart';
-import 'package:train_de_mots/managers/ebs_server_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/main_screen.dart';
+import 'package:twitch_manager/twitch_app.dart';
 
 void main() async {
   Logger.root.level = Level.INFO;
@@ -21,37 +16,22 @@ void main() async {
 
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
-
-  if (MocksConfiguration.useDatabaseMock) {
-    await MocksConfiguration.initializeDatabaseMocks();
-  } else {
-    await DatabaseManager.initialize();
-  }
-
-  await ConfigurationManager.initialize();
-
-  if (MocksConfiguration.useGameManagerMock) {
-    await MocksConfiguration.initializeGameManagerMocks(
-        letterProblemMock: MocksConfiguration.useProblemMock
-            ? MocksConfiguration.letterProblemMock
-            : null);
-  } else {
-    await GameManager.initialize();
-  }
-
-  await Future.wait([
-    SoundManager.initialize(),
-    ThemeManager.initialize(),
-  ]);
-
-  MocksConfiguration.useTwitchManagerMock
-      ? TwitchManager.instance.initialize(useMock: true)
-      : TwitchManager.instance.initialize();
-
-  await EbsServerManager.initialize(
-      ebsUri: MocksConfiguration.useLocalEbs
-          ? Uri.parse('ws://localhost:3010')
-          : Uri.parse('wss://twitchserver.pariterre.net:3010'));
+  await Managers.initialize(
+    twtichAppInfo: TwitchAppInfo(
+        appName: 'Train de mots',
+        twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+        scope: const [
+          TwitchAppScope.chatRead,
+          TwitchAppScope.readFollowers,
+        ],
+        twitchRedirectUri: Uri.https(
+            'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+        authenticationServerUri:
+            Uri.https('twitchserver.pariterre.net:3000', 'token')),
+    ebsUri: MocksConfiguration.useLocalEbs
+        ? Uri.parse('ws://localhost:3010')
+        : Uri.parse('wss://twitchserver.pariterre.net:3010'),
+  );
 
   runApp(const MyApp());
 }

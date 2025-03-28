@@ -1,6 +1,6 @@
 import 'package:common/models/game_status.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/words_train_game_manager.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/success_level.dart';
@@ -64,46 +64,46 @@ class MocksConfiguration {
         WordSolution(word: 'repaaaac'),
       ]));
 
-  static Future<void> initializeGameManagerMocks(
-      {LetterProblemMock? letterProblemMock}) async {
-    GameManagerMock.initialize(
-      gameStatus: GameStatus.roundPreparing,
-      problem: letterProblemMock,
-      players: [
-        Player(name: 'Player 1')
-          ..score = 100
-          ..starsCollected = 1,
-        Player(name: 'Player 2')
-          ..score = 200
-          ..starsCollected = 2
-          ..addToStealCount(),
-        Player(name: 'Player 3')..score = 300,
-        Player(name: 'Player 4')..score = 150,
-        Player(name: 'Player 5')
-          ..score = 250
-          ..addToStealCount()
-          ..addToStealCount()
-          ..addToStealCount(),
-        Player(name: 'Player 6')..score = 350,
-        Player(name: 'PlayerWithAVeryVeryVeryLongName')
-          ..score = 400
-          ..addToStealCount()
-          ..addToStealCount(),
-        Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
-          ..addToStealCount()
-          ..addToStealCount()
-          ..addToStealCount()
-          ..score = 350,
-      ],
-      roundCount: 14,
-      successLevel: SuccessLevel.threeStars,
-      shouldAttemptTheBigHeist: false,
-      shouldChangeLane: true,
-    );
-  }
+  static Future<WordsTrainGameManagerMock>
+      getWordsTrainGameManagerMocked() async => WordsTrainGameManagerMock(
+            gameStatus: GameStatus.roundPreparing,
+            problem: MocksConfiguration.useProblemMock
+                ? MocksConfiguration.letterProblemMock
+                : null,
+            players: [
+              Player(name: 'Player 1')
+                ..score = 100
+                ..starsCollected = 1,
+              Player(name: 'Player 2')
+                ..score = 200
+                ..starsCollected = 2
+                ..addToStealCount(),
+              Player(name: 'Player 3')..score = 300,
+              Player(name: 'Player 4')..score = 150,
+              Player(name: 'Player 5')
+                ..score = 250
+                ..addToStealCount()
+                ..addToStealCount()
+                ..addToStealCount(),
+              Player(name: 'Player 6')..score = 350,
+              Player(name: 'PlayerWithAVeryVeryVeryLongName')
+                ..score = 400
+                ..addToStealCount()
+                ..addToStealCount(),
+              Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
+                ..addToStealCount()
+                ..addToStealCount()
+                ..addToStealCount()
+                ..score = 350,
+            ],
+            roundCount: 14,
+            successLevel: SuccessLevel.threeStars,
+            shouldAttemptTheBigHeist: false,
+            shouldChangeLane: true,
+          );
 
-  static Future<void> initializeDatabaseMocks() async {
-    DatabaseManagerMock.initialize(
+  static Future<DatabaseManagerMock> gedDatabaseMocked() async {
+    return await DatabaseManagerMock.factory(
       dummyIsSignedIn: true,
       emailIsVerified: true,
       dummyTeamName: 'Les Bleuets',

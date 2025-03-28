@@ -1,7 +1,6 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 class AnimationOverlay extends StatefulWidget {
@@ -82,7 +81,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionWasStolen.addListener(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.addListener(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.addListener(_showStealerWasPardoned);
@@ -104,7 +103,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _bigHeistFailedController.dispose();
     _changeLaneController.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionWasStolen.removeListener(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.removeListener(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.removeListener(_showStealerWasPardoned);
@@ -204,7 +203,7 @@ class _ASolutionWasStolen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     const textColor = Color.fromARGB(255, 243, 157, 151);
 
     return Container(
@@ -236,7 +235,7 @@ class _ANewGoldenSolutionAppeared extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(
@@ -273,7 +272,7 @@ class _AStealerWasPardoned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     const textColor = Color.fromARGB(255, 237, 243, 151);
 
     late final String text;
@@ -316,7 +315,7 @@ class _AllSolutionsFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(
@@ -353,7 +352,7 @@ class _TrainGotBoosted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(
@@ -388,7 +387,7 @@ class _BigHeistSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(
@@ -423,7 +422,7 @@ class _BigHeistFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(
@@ -456,7 +455,7 @@ class _ChangeLane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(

@@ -3,8 +3,7 @@ import 'dart:math';
 import 'package:common/models/exceptions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
@@ -24,7 +23,7 @@ class SoundManager {
 
   Future<void> _playSoundEffect(String source) async {
     _logger.info('Playing sound effect: $source...');
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     if (cm.soundVolume == 0) return;
 
@@ -48,20 +47,15 @@ class SoundManager {
   }
 
   static SoundManager? _instance;
-  SoundManager._internal();
+  SoundManager._();
 
   ///
   /// This method initializes the singleton and should be called before
   /// using the singleton.
-  static Future<void> initialize() async {
-    if (_instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'SoundManager should not be initialized twice');
-    }
+  static Future<SoundManager> factory() async {
+    final instance = SoundManager._();
 
-    SoundManager._instance = SoundManager._internal();
-
-    late final gm = GameManager.instance;
+    late final gm = Managers.instance.train;
     gm.onGameIsInitializing.addListener(instance._manageGameMusic);
     gm.onRoundStarted.addListener(instance._onRoundStarted);
     gm.onSolutionFound.addListener(instance._onSolutionFound);
@@ -78,12 +72,14 @@ class SoundManager {
     gm.onBigHeistFailed.addListener(instance._onTheBigHeistFailed);
     gm.onChangingLane.addListener(instance._onChangingLane);
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
     cm.onSoundVolumeChanged.addListener(instance._onLettersScrambled);
 
     await instance._gameMusic.setLoopMode(LoopMode.all);
     await instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
+
+    return instance;
   }
 
   Future<void> _manageGameMusic() async {
@@ -95,7 +91,7 @@ class SoundManager {
     }
 
     //  Set the volume
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     await _gameMusic.setVolume(cm.musicVolume);
 
     if (cm.musicVolume == 0) {
@@ -121,7 +117,7 @@ class SoundManager {
   Future<void> _onSolutionFound(WordSolution? solution) async {
     if (solution == null || solution.isStolen) return;
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
 
     if (solution.isGolden) {
       _playSoundEffect('assets/sounds/GoldenSolutionAppeared.mp3');

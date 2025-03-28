@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/models/custom_callback.dart';
-import 'package:common/models/exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,25 +12,14 @@ const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);
 
 class ThemeManager {
   // Declare the singleton
-  static ThemeManager? _instance;
-  ThemeManager._internal() {
-    _updateBackgroundColors();
-    _load();
-  }
-  static ThemeManager get instance {
-    if (_instance == null) {
-      throw ManagerNotInitializedException(
-          'ThemeManager must be initialized before being used');
-    }
-    return _instance!;
-  }
+  static final ThemeManager _instance = ThemeManager._();
+  static ThemeManager get instance => _instance;
+  ThemeManager._();
 
-  static Future<void> initialize() async {
-    if (_instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'ThemeManager should not be initialized twice');
-    }
-    ThemeManager._instance = ThemeManager._internal();
+  static Future<ThemeManager> factory() async {
+    instance._updateBackgroundColors();
+    await instance._load();
+    return instance;
   }
 
   ///
@@ -137,7 +125,7 @@ class ThemeManager {
     ),
   );
 
-  void _save() async {
+  Future<void> _save() async {
     _logger.info('Saving custom scheme');
     onChanged.notifyListeners();
 
@@ -145,7 +133,7 @@ class ThemeManager {
     prefs.setString('customScheme', jsonEncode(serialize()));
   }
 
-  void _load() async {
+  Future<void> _load() async {
     _logger.info('Loading custom scheme');
 
     final prefs = await SharedPreferences.getInstance();

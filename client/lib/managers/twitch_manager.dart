@@ -11,8 +11,8 @@ class TwitchManager {
   final onTwitchManagerHasConnected = CustomCallback();
   final onTwitchManagerHasDisconnected = CustomCallback();
 
-  void initialize({bool useMock = false}) {
-    _isMockActive = useMock;
+  static Future<TwitchManager> factory({required TwitchAppInfo appInfo}) async {
+    return TwitchManager._(appInfo: appInfo);
   }
 
   ///
@@ -47,12 +47,12 @@ class TwitchManager {
     final manager = await showDialog<TwitchAppManager>(
         context: context,
         builder: (context) => TwitchAppAuthenticationDialog(
-              isMockActive: _isMockActive,
+              useMocker: _useMocker,
               debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
               onConnexionEstablished: (manager) {
                 if (context.mounted) Navigator.of(context).pop(manager);
               },
-              appInfo: _appInfo,
+              appInfo: appInfo,
               reload: reloadIfPossible,
             ));
     if (manager == null) return false;
@@ -86,24 +86,12 @@ class TwitchManager {
 
   ///
   /// Declare the singleton
-  static final TwitchManager _instance = TwitchManager._internal();
-  TwitchManager._internal();
-  static TwitchManager get instance => _instance;
+  TwitchManager._({required this.appInfo});
 
   ///
   /// Twitch options
-  bool _isMockActive = false;
-  final _appInfo = TwitchAppInfo(
-      appName: 'Train de mots',
-      twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
-      scope: const [
-        TwitchAppScope.chatRead,
-        TwitchAppScope.readFollowers,
-      ],
-      twitchRedirectUri: Uri.https(
-          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-      authenticationServerUri:
-          Uri.https('twitchserver.pariterre.net:3000', 'token'));
+  bool _useMocker = false;
+  final TwitchAppInfo appInfo;
 
   ///
   /// Get the broadcaster id
@@ -115,4 +103,15 @@ class TwitchManager {
       TwitchListener<Function(String sender, String message)>();
   void _onMessageReceived(String sender, String message) =>
       _chatListeners.notifyListeners((callback) => callback(sender, message));
+}
+
+class TwitchManagerMock extends TwitchManager {
+  TwitchManagerMock._({required super.appInfo}) : super._();
+
+  static Future<TwitchManagerMock> factory(
+      {required TwitchAppInfo appInfo}) async {
+    final instance = TwitchManagerMock._(appInfo: appInfo);
+    instance._useMocker = true;
+    return instance;
+  }
 }

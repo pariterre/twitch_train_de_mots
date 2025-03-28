@@ -1,11 +1,9 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/growing_widget.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
 import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/models/database_result.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -35,7 +33,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsOver.addListener(_refresh);
     gm.onAttemptingTheBigHeist.addListener(_showAttemptingTheBigHeist);
   }
@@ -44,7 +42,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   void dispose() {
     super.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsOver.removeListener(_refresh);
     gm.onAttemptingTheBigHeist.removeListener(_showAttemptingTheBigHeist);
     _attemptingTheBigHeist.dispose();
@@ -58,7 +56,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -127,7 +125,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onClockTicked.addListener(_refresh);
     gm.onCongratulationFireworks.addListener(_toggleCanClick);
   }
@@ -136,7 +134,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
   void dispose() {
     super.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onClockTicked.removeListener(_refresh);
   }
 
@@ -166,9 +164,9 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final cm = Managers.instance.configuration;
+    final tm = Managers.instance.theme;
 
     String buttonText;
     if (!gm.isNextProblemReady) {
@@ -265,7 +263,7 @@ class _LeaderBoard extends StatelessWidget {
       {required Player player,
       required TeamResult team,
       required Players players}) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     // Check some feats of the player
     final hasBestScore = players.bestPlayersByScore.contains(player);
@@ -285,9 +283,9 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Color? _highlightBestTeamColor({required TeamResult team}) {
-    final dm = DatabaseManager.instance;
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final dm = Managers.instance.database;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     final shouldHighlight = team.name == dm.teamName &&
         (team.bestStation == gm.roundCount || !gm.hasPlayedAtLeastOnce);
@@ -299,9 +297,9 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Color? _highlightBestOverallScoreColor({required PlayerResult player}) {
-    final dm = DatabaseManager.instance;
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final dm = Managers.instance.database;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     final bestPlayers = gm.players.bestPlayersByScore;
     final shouldHighlight = bestPlayers
@@ -316,9 +314,9 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Color? _highlightBestOverallStarsColor({required PlayerResult player}) {
-    final dm = DatabaseManager.instance;
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final dm = Managers.instance.database;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     final bestPlayers = gm.players.bestPlayersByStars;
     final shouldHighlight = bestPlayers.any((e) =>
@@ -336,7 +334,7 @@ class _LeaderBoard extends StatelessWidget {
       {required Player player,
       required TeamResult teamResult,
       required Players players}) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     // Check some feats of the player
     final hasBestScore = players.bestPlayersByScore.contains(player);
@@ -366,7 +364,7 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildGameScore({required double width}) {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     final players = gm.players.sort();
 
     if (players.isEmpty) {
@@ -382,7 +380,7 @@ class _LeaderBoard extends StatelessWidget {
         width - (stealWidth + scoreWidth + spacer + scoreWidth + spacer);
 
     return FutureBuilder(
-        future: DatabaseManager.instance.getCurrentTeamResult(),
+        future: Managers.instance.database.getCurrentTeamResult(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return SizedBox(
@@ -390,7 +388,7 @@ class _LeaderBoard extends StatelessWidget {
               height: 80,
               child: Center(
                   child: CircularProgressIndicator(
-                      color: ThemeManager.instance.mainColor)),
+                      color: Managers.instance.theme.mainColor)),
             );
           }
 
@@ -532,9 +530,9 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildTeamLeaderboardScore({required double width}) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
-    final dm = DatabaseManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
+    final dm = Managers.instance.database;
 
     const scoreWidth = 82.0;
     final nameWidth = width - scoreWidth;
@@ -603,8 +601,8 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _builBestPlayersLeaderboardScore({required double width}) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     final bestPlayers = gm.players.bestPlayersByScore;
 
@@ -612,7 +610,7 @@ class _LeaderBoard extends StatelessWidget {
     final nameWidth = width - scoreWidth;
 
     return FutureBuilder(
-        future: DatabaseManager.instance.getBestPlayers(
+        future: Managers.instance.database.getBestPlayers(
             top: 50,
             mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
             mvpType: MvpType.score),
@@ -679,8 +677,8 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _builBestPlayersLeaderboardStars({required double width}) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     final bestPlayers = gm.players.bestPlayersByStars;
 
@@ -688,7 +686,7 @@ class _LeaderBoard extends StatelessWidget {
     final nameWidth = width - starsWidth;
 
     return FutureBuilder(
-        future: DatabaseManager.instance.getBestPlayers(
+        future: Managers.instance.database.getBestPlayers(
             top: 50,
             mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
             mvpType: MvpType.stars),
@@ -756,7 +754,7 @@ class _LeaderBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
 
     return Expanded(
       child: Column(
@@ -802,7 +800,7 @@ class _LeaderBoard extends StatelessWidget {
   }
 
   Widget _buildTitleTile(String title) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Text(title,
         style: tm.clientMainTextStyle.copyWith(
@@ -871,7 +869,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -879,7 +877,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -887,8 +885,8 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -959,7 +957,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -967,7 +965,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -975,7 +973,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -1023,7 +1021,7 @@ class _BackgroundState extends State<_Background> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -1031,7 +1029,7 @@ class _BackgroundState extends State<_Background> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -1039,7 +1037,7 @@ class _BackgroundState extends State<_Background> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Stack(
       alignment: Alignment.center,
@@ -1094,7 +1092,7 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -1102,15 +1100,15 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -1170,7 +1168,7 @@ class _AttemptingTheBigHeist extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(

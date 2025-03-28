@@ -1,12 +1,8 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,10 +19,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
   void initState() {
     super.initState();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.addListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -34,10 +30,10 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
   void dispose() {
     super.dispose();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.removeListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -45,9 +41,9 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
-    final dm = DatabaseManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
+    final dm = Managers.instance.database;
 
     return Drawer(
       child: Column(
@@ -149,7 +145,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           if (context.mounted) Navigator.pop(context);
 
                           await dm.logOut();
-                          TwitchManager.instance.disconnect();
+                          Managers.instance.twitch.disconnect();
                         }),
                   ],
                 ),
@@ -187,10 +183,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   void initState() {
     super.initState();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.addListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -198,10 +194,10 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   void dispose() {
     super.dispose();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.removeListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -209,8 +205,8 @@ class _GameConfigurationState extends State<_GameConfiguration> {
 
   @override
   Widget build(BuildContext context) {
-    final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
+    final cm = Managers.instance.configuration;
+    final tm = Managers.instance.theme;
 
     final subtitleStyle = tm.clientMainTextStyle
         .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
@@ -312,7 +308,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -320,7 +316,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -328,7 +324,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +358,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -370,7 +366,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -378,7 +374,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     late String sizeCategory;
     if (tm.textSize < 18) {
@@ -479,7 +475,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
   void initState() {
     super.initState();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.addListener(_refresh);
   }
 
@@ -487,7 +483,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
   void dispose() {
     super.dispose();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.removeListener(_refresh);
   }
 
@@ -495,7 +491,7 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
 
   @override
   Widget build(BuildContext context) {
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     return PopScope(
       onPopInvokedWithResult: (didPop, result) =>
@@ -808,7 +804,7 @@ class _BooleanInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -861,7 +857,7 @@ class _SliderInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Column(

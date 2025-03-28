@@ -1,9 +1,6 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/release_notes.dart';
 import 'package:train_de_mots/models/exceptions.dart';
 import 'package:train_de_mots/widgets/word_train_about_dialog.dart';
@@ -24,13 +21,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onNextProblemReady.addListener(_onNextProblemReady);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onLoggedIn.addListener(_startSearchingForNextProblem);
     dm.onLoggedOut.addListener(_refresh);
 
@@ -46,13 +43,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void dispose() {
     super.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onNextProblemReady.removeListener(_onNextProblemReady);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onLoggedIn.removeListener(_startSearchingForNextProblem);
     dm.onLoggedOut.removeListener(_refresh);
   }
@@ -63,14 +60,14 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _startSearchingForNextProblem() async {
-    GameManager.instance.requestSearchForNextProblem();
+    Managers.instance.train.requestSearchForNextProblem();
     setState(() {});
   }
 
   void _refresh() => setState(() {});
 
   void _prepareReleaseNotesIfNeeded() {
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     if (cm.lastReleaseNotesShown == '') {
       // Do not show releases notes if it's the first time the app is launched
@@ -91,8 +88,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-    final dm = DatabaseManager.instance;
+    final tm = Managers.instance.theme;
+    final dm = Managers.instance.database;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height,
@@ -174,7 +171,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   void initState() {
     super.initState();
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onLoggedIn.addListener(_refresh);
     dm.onEmailVerified.addListener(_refresh);
     dm.onTeamNameSet.addListener(_refresh);
@@ -185,7 +182,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   void dispose() {
     super.dispose();
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onLoggedIn.removeListener(_refresh);
     dm.onEmailVerified.removeListener(_refresh);
     dm.onTeamNameSet.removeListener(_refresh);
@@ -198,7 +195,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     if (!_validateForm(_credidentialsFormKey)) return;
 
     try {
-      await DatabaseManager.instance
+      await Managers.instance.database
           .logIn(email: _email!, password: _password!);
     } on AuthenticationException catch (e) {
       _showError(e.message);
@@ -209,7 +206,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     if (!_validateForm(_credidentialsFormKey)) return;
 
     try {
-      await DatabaseManager.instance
+      await Managers.instance.database
           .signIn(email: _email!, password: _password!);
     } on AuthenticationException catch (e) {
       _showError(e.message);
@@ -218,7 +215,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
   void _showError(String errorMessage) {
     if (!mounted) return;
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(errorMessage,
           style: TextStyle(color: tm.mainColor, fontWeight: FontWeight.bold)),
@@ -236,8 +233,8 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-    final dm = DatabaseManager.instance;
+    final tm = Managers.instance.theme;
+    final dm = Managers.instance.database;
 
     return Container(
       decoration: BoxDecoration(
@@ -278,7 +275,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _loginBuild() {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     final border = OutlineInputBorder(
       borderSide: BorderSide(color: tm.mainColor),
@@ -402,7 +399,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
                 if (_email == null) {
                   message = 'Veuillez indiquer un courriel';
                 } else {
-                  DatabaseManager.instance.resetPassword(_email!);
+                  Managers.instance.database.resetPassword(_email!);
                   message =
                       'Un courriel vous a été envoyé pour réinitialiser votre mot de passe';
                 }
@@ -425,7 +422,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _buildWaitingForEmailVerification() {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0, left: 32.0, right: 32.0),
@@ -439,7 +436,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _buildChosingTeamName() {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     final border = OutlineInputBorder(
       borderSide: BorderSide(color: tm.mainColor),
@@ -492,7 +489,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
               if (!_validateForm(_teamNameFormKey)) return;
 
               try {
-                await DatabaseManager.instance.setTeamName(_teamName!);
+                await Managers.instance.database.setTeamName(_teamName!);
               } on AuthenticationException catch (e) {
                 _showError(e.message);
 

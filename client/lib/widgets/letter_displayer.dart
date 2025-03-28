@@ -1,8 +1,7 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 
 class LetterDisplayer extends StatefulWidget {
   const LetterDisplayer({super.key});
@@ -18,13 +17,13 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onScrablingLetters.addListener(_refresh);
     gm.onRevealUselessLetter.addListener(_onRevealUselessLetter);
     gm.onRevealHiddenLetter.addListener(_onRevealHiddenLetter);
     gm.onRoundStarted.addListener(_onRoundStarted);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
     _reinitializeFireworks();
@@ -32,13 +31,13 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onScrablingLetters.removeListener(_refresh);
     gm.onRevealUselessLetter.removeListener(_onRevealUselessLetter);
     gm.onRevealHiddenLetter.removeListener(_onRevealHiddenLetter);
     gm.onRoundStarted.removeListener(_onRoundStarted);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
     for (var e in _fireworksControllers) {
@@ -55,21 +54,21 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   }
 
   void _onRevealUselessLetter() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     final uselessIndex = gm.uselessLetterIndex;
     _fireworksControllers[uselessIndex].trigger();
     setState(() {});
   }
 
   void _onRevealHiddenLetter() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     final hiddenIndex = gm.hiddenLetterIndex;
     _fireworksControllers[hiddenIndex].trigger();
     setState(() {});
   }
 
   void _reinitializeFireworks() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     if (gm.problem == null) return;
 
     _fireworksControllers.clear();
@@ -86,7 +85,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
 
     if (gm.problem == null) return Container();
     final problem = gm.simplifiedProblem!;

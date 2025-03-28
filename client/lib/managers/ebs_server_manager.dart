@@ -3,27 +3,15 @@ import 'dart:async';
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('EbsServerManager');
 
 class EbsServerManager extends TwitchAppManagerAbstract {
-  // Singleton
-  static EbsServerManager get instance {
-    if (_instance == null) {
-      throw Exception(
-          'EbsServerManager not initialized, call initialize() first');
-    }
-    return _instance!;
-  }
-
-  static EbsServerManager? _instance;
-  EbsServerManager._internal({required super.ebsUri}) {
-    TwitchManager.instance.onTwitchManagerHasConnected
+  EbsServerManager._({required super.ebsUri}) {
+    Managers.instance.twitch.onTwitchManagerHasConnected
         .addListener(_twitchManagerHasConnected);
 
     onEbsHasConnected.listen(listenToGameManagerCallbacks);
@@ -31,24 +19,23 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 
   void _twitchManagerHasConnected() {
-    TwitchManager.instance.onTwitchManagerHasConnected
+    Managers.instance.twitch.onTwitchManagerHasConnected
         .removeListener(_twitchManagerHasConnected);
 
-    connect(TwitchManager.instance.broadcasterId);
+    connect(Managers.instance.twitch.broadcasterId);
   }
 
   ///
-  /// Initialize the TrainDeMotsEbsManager establishing a connection with the
+  /// Initialize the EbsServerManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
-  static Future<void> initialize({required Uri? ebsUri}) async {
-    if (_instance != null) return;
-
-    _instance = EbsServerManager._internal(ebsUri: ebsUri);
+  static Future<EbsServerManager> factory({required Uri ebsUri}) async {
+    final instance = EbsServerManager._(ebsUri: ebsUri);
+    return instance;
   }
 
   void listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.addListener(_sendGameStateToEbs);
     gm.onRoundIsOver.addListener(_sendGameStateToEbssWithParameter);
     gm.onStealerPardoned.addListener(_sendGameStateToEbssWithParameter);
@@ -60,7 +47,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onRevealUselessLetter.addListener(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.addListener(_sendGameStateToEbs);
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onShowExtensionChanged.addListener(_sendGameStateToEbs);
 
     // Check if we need to send something to the EBS server at each tick
@@ -70,10 +57,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 
   ///
-  /// Dispose the TrainDeMotsEbsManager by closing the connection with the
+  /// Dispose the EbsServerManager by closing the connection with the
   /// EBS server.
   void disposeListeners() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.removeListener(_sendGameStateToEbs);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbssWithParameter);
     gm.onStealerPardoned.removeListener(_sendGameStateToEbssWithParameter);
@@ -86,7 +73,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onRevealHiddenLetter.removeListener(_sendGameStateToEbs);
     //gm.onClockTicked.removeListener(_sendGameStateToEbs);
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onShowExtensionChanged.removeListener(_sendGameStateToEbs);
   }
 
@@ -147,8 +134,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   /// Get a simplified version of the GameState
   SimplifiedGameState simplifiedGameState(
       {Map<String, Duration> newCooldowns = const {}}) {
-    final cm = ConfigurationManager.instance;
-    final gm = GameManager.instance;
+    final cm = Managers.instance.configuration;
+    final gm = Managers.instance.train;
 
     return SimplifiedGameState(
       status: gm.gameStatus,
@@ -188,7 +175,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   @override
   Future<void> handleGetRequest(MessageProtocol message) async {
     try {
-      final gm = GameManager.instance;
+      final gm = Managers.instance.train;
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:

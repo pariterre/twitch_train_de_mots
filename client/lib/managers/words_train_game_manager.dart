@@ -7,9 +7,7 @@ import 'package:common/models/game_status.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
@@ -19,7 +17,33 @@ import 'package:train_de_mots/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
 
-class GameManager {
+class WordsTrainGameManager {
+  WordsTrainGameManager._();
+
+  static Future<WordsTrainGameManager> factory() async {
+    _logger.config('GameManager is initializing...');
+    final instance = WordsTrainGameManager._();
+
+    instance._listenToConfigurationEvents();
+    Timer.periodic(const Duration(milliseconds: 1000), instance._gameLoop);
+
+    return instance;
+  }
+
+  //// LISTEN TO GAME MANAGER ////
+  Future<void> _listenToConfigurationEvents() async {
+    while (true) {
+      try {
+        final cm = Managers.instance.configuration;
+        cm.onChanged.addListener(_checkForInvalidRules);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+  }
+
   /// ---------- ///
   /// GAME LOGIC ///
   /// ---------- ///
@@ -35,7 +59,8 @@ class GameManager {
   int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
       ? null
       : ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
-          ConfigurationManager.instance.postRoundGracePeriodDuration.inSeconds;
+          Managers
+              .instance.configuration.postRoundGracePeriodDuration.inSeconds;
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -53,10 +78,10 @@ class GameManager {
   int _roundCount = 0;
   int get roundCount => _roundCount;
   late Difficulty _currentDifficulty =
-      ConfigurationManager.instance.difficulty(0);
+      Managers.instance.configuration.difficulty(0);
 
   Duration cooldownDuration({required Player player}) {
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     return Duration(
         seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
             cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
@@ -106,7 +131,7 @@ class GameManager {
   bool get hasPlayedAtLeastOnce => _hasPlayedAtLeastOnce;
   bool _forceEndTheRound = false;
   late bool _isAllowedToSendResults =
-      !ConfigurationManager.instance.useCustomAdvancedOptions;
+      !Managers.instance.configuration.useCustomAdvancedOptions;
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   bool _roundHasGoldenSolution = false;
@@ -120,13 +145,13 @@ class GameManager {
   int get remainingBoosts => _remainingBoosts;
   bool get isTrainBoosted => _boostStartedAt != null;
   Duration? get trainBoostRemainingTime => _boostStartedAt
-      ?.add(ConfigurationManager.instance.boostTime)
+      ?.add(Managers.instance.configuration.boostTime)
       .difference(DateTime.now());
   DateTime? _boostStartedAt;
   final List<Player> _requestedBoost = [];
   List<Player> get requestedBoost => List.unmodifiable(_requestedBoost);
   int get numberOfBoostStillNeeded {
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
   }
 
@@ -138,23 +163,6 @@ class GameManager {
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
-
-  ///
-  /// Initialize the game logic. This should be called at the start of the
-  /// application.
-  static Future<void> initialize() async {
-    _logger.config('GameManager is initializing...');
-
-    if (_instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'GameManager should not be initialized twice');
-    }
-    GameManager._instance = GameManager._internal();
-
-    Timer.periodic(const Duration(milliseconds: 1000), instance._gameLoop);
-
-    _logger.config('GameManager is initialized');
-  }
 
   /// ----------- ///
   /// INTERACTION ///
@@ -174,7 +182,7 @@ class GameManager {
   Future<void> requestSearchForNextProblem() async {
     _logger.info('Requesting to search for the next problem');
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     _generateNextProblem(
         maxSearchingTime:
             Duration(seconds: cm.autoplayDuration.inSeconds ~/ 2));
@@ -247,21 +255,6 @@ class GameManager {
   /// -------- ///
 
   ///
-  /// Declare the singleton
-  static GameManager get instance {
-    if (_instance == null) {
-      throw ManagerNotInitializedException(
-          'GameManager must be initialized before being used');
-    }
-    return _instance!;
-  }
-
-  static GameManager? _instance;
-  GameManager._internal() {
-    ConfigurationManager.instance.onChanged.addListener(_checkForInvalidRules);
-  }
-
-  ///
   /// This is a method to tell the game manager that the rules have changed and
   /// some things may need to be updated
   /// [shouldRepickProblem] is used to tell the game manager that the problem
@@ -279,7 +272,7 @@ class GameManager {
     if (repickNow && _forceRepickProblem) {
       _logger.info('Rules have changed, repicking a problem...');
 
-      final cm = ConfigurationManager.instance;
+      final cm = Managers.instance.configuration;
       _generateNextProblem(
           maxSearchingTime: Duration(
               seconds: timeRemaining ?? cm.autoplayDuration.inSeconds ~/ 2));
@@ -297,7 +290,7 @@ class GameManager {
   void _checkForInvalidRules() {
     _logger.info('Checking for invalid rules...');
     _isAllowedToSendResults = _isAllowedToSendResults &&
-        !ConfigurationManager.instance.useCustomAdvancedOptions;
+        !Managers.instance.configuration.useCustomAdvancedOptions;
   }
 
   ///
@@ -321,7 +314,7 @@ class GameManager {
     _nextProblem = null;
     _isGeneratingProblem = true;
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     _forceRepickProblem = false;
 
     LetterProblem? problem;
@@ -384,7 +377,7 @@ class GameManager {
 
     // Prepare next round
     if (_successLevel == SuccessLevel.failed) _restartGame();
-    await _setValuesAtStartRound();
+    _setValuesAtStartRound();
 
     // Start the round
     await _sendTelegramToPlayers();
@@ -419,10 +412,10 @@ class GameManager {
     _logger.info('Telegram sent to players');
   }
 
-  Future<void> _setValuesAtStartRound() async {
+  void _setValuesAtStartRound() {
     _logger.info('Setting values at the start of the round...');
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     // Reinitialize the round timer and players
     _roundDuration = cm.roundDuration.inMilliseconds +
@@ -458,8 +451,9 @@ class GameManager {
 
   ///
   /// Initialize the callbacks from Twitch chat to [_trySolution]
-  Future<void> _initializeTrySolutionCallback() async => TwitchManager.instance
-      .addChatListener((sender, message) => _trySolution(sender, message));
+  Future<void> _initializeTrySolutionCallback() async =>
+      Managers.instance.twitch
+          .addChatListener((sender, message) => _trySolution(sender, message));
 
   ///
   /// Try to solve the problem from a [message] sent by a [sender], that is a
@@ -471,7 +465,7 @@ class GameManager {
       _logger.warning('Cannot try solution at this time');
       return;
     }
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     // Get the player from the players list
     final player = players.firstWhereOrAdd(sender);
@@ -679,7 +673,7 @@ class GameManager {
   void _restartGame() {
     _logger.info('Restarting the game...');
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     _roundCount = 0;
     _currentDifficulty = cm.difficulty(_roundCount);
@@ -750,7 +744,7 @@ class GameManager {
       return;
     }
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     // Manager players cooling down
     _logger.fine('Managing players cooling down...');
@@ -849,7 +843,7 @@ class GameManager {
     // if all the words have been found
     // if the timer has past the timer + the grace period
     // if we are attempting the big heist and it is a success
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     if (_forceEndTheRound ||
         _currentProblem!.areAllSolutionsFound ||
         (timeRemaining! + cm.postRoundGracePeriodDuration.inSeconds <= 0) ||
@@ -869,13 +863,13 @@ class GameManager {
   Future<void> _endingRound() async {
     _logger.info('Round is over, ending the round...');
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     _successLevel = _numberOfStarObtained(problem!.teamScore);
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
 
-    DatabaseManager.instance.sendLetterProblem(problem: _currentProblem!);
+    Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
     _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
 
     _forceEndTheRound = false;
@@ -921,7 +915,7 @@ class GameManager {
 
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
-      DatabaseManager.instance.sendResults(
+      Managers.instance.database.sendResults(
           stationReached: roundCount,
           mvpScore: players.bestPlayersByScore,
           mvpStars: players.bestPlayersByStars);
@@ -948,7 +942,7 @@ class GameManager {
   void _showCaseAnswers({required bool playSound}) {
     _logger.info('Show casing answers...');
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     _gameStatus = GameStatus.revealAnswers;
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
@@ -998,10 +992,10 @@ class GameManager {
   }
 }
 
-class GameManagerMock extends GameManager {
+class WordsTrainGameManagerMock extends WordsTrainGameManager {
   LetterProblemMock? _problemMocker;
 
-  static Future<void> initialize({
+  WordsTrainGameManagerMock({
     GameStatus? gameStatus,
     LetterProblemMock? problem,
     List<Player>? players,
@@ -1009,61 +1003,51 @@ class GameManagerMock extends GameManager {
     SuccessLevel? successLevel,
     bool shouldAttemptTheBigHeist = false,
     bool shouldChangeLane = false,
-  }) async {
-    if (GameManager._instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'GameManager should not be initialized twice');
-    }
-    GameManager._instance = GameManagerMock._internal();
-
+  }) : super._() {
     if (players != null) {
       for (final player in players) {
-        GameManager._instance!.players.add(player);
+        players.add(player);
       }
     }
 
-    GameManager._instance!._gameStatus = GameStatus.initializing;
+    _gameStatus = GameStatus.initializing;
     if (roundCount != null) {
-      GameManager._instance!._roundCount = roundCount;
-      GameManager._instance!._gameStatus = GameStatus.roundReady;
+      _roundCount = roundCount;
+      _gameStatus = GameStatus.roundReady;
     }
     if (successLevel != null) {
-      GameManager._instance!._roundCount += successLevel.toInt();
-      (GameManager._instance! as GameManagerMock)._successLevel = successLevel;
+      _roundCount += successLevel.toInt();
+      _successLevel = successLevel;
     }
-    GameManager._instance!._currentDifficulty = ConfigurationManager.instance
-        .difficulty(GameManager._instance!.roundCount);
+    _currentDifficulty =
+        Managers.instance.configuration.difficulty(roundCount!);
 
-    GameManager._instance!._initializeTrySolutionCallback();
+    _initializeTrySolutionCallback();
     if (problem == null) {
-      GameManager._instance!
-          ._generateNextProblem(maxSearchingTime: Duration.zero);
+      _generateNextProblem(maxSearchingTime: Duration.zero);
     } else {
-      (GameManager._instance! as GameManagerMock)._problemMocker = problem;
-      GameManager._instance!._currentProblem = problem;
-      GameManager._instance!._nextProblem = null;
+      _problemMocker = problem;
+      _currentProblem = problem;
+      _nextProblem = null;
 
-      Future.delayed(const Duration(seconds: 1)).then((value) =>
-          GameManager._instance!.onNextProblemReady.notifyListeners());
+      Future.delayed(const Duration(seconds: 1))
+          .then((value) => onNextProblemReady.notifyListeners());
     }
 
     if (shouldAttemptTheBigHeist) {
-      GameManager._instance!._canAttemptTheBigHeist = true;
-      GameManager._instance!.requestTheBigHeist();
+      _canAttemptTheBigHeist = true;
+      requestTheBigHeist();
     }
 
     if (shouldChangeLane) {
       Future.delayed(const Duration(seconds: 15))
-          .then((_) => GameManager._instance!.requestChangeOfLane());
+          .then((_) => requestChangeOfLane());
     }
 
-    if (gameStatus != null) GameManager._instance!._gameStatus = gameStatus;
-    if (gameStatus == GameStatus.roundStarted) {
-      await GameManager._instance!._setValuesAtStartRound();
-    }
+    if (gameStatus != null) _gameStatus = gameStatus;
+    if (gameStatus == GameStatus.roundStarted) _setValuesAtStartRound();
 
-    Timer.periodic(
-        const Duration(milliseconds: 100), GameManager._instance!._gameLoop);
+    Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
   }
 
   @override
@@ -1079,14 +1063,12 @@ class GameManagerMock extends GameManager {
       _isGeneratingProblem = false;
 
       // Make sure the game don't run if the player is not logged in
-      final dm = DatabaseManager.instance;
+      final dm = Managers.instance.database;
       dm.onLoggedOut.addListener(() => requestTerminateRound());
       dm.onFullyLoggedIn.addListener(() {
         if (gameStatus != GameStatus.initializing) _startNewRound();
       });
     }
-    GameManager._instance!.onGameIsInitializing.notifyListeners();
+    onGameIsInitializing.notifyListeners();
   }
-
-  GameManagerMock._internal() : super._internal();
 }

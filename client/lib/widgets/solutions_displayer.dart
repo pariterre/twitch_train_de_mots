@@ -1,14 +1,11 @@
 import 'dart:math';
 
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/widgets/clock.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
 class SolutionsDisplayer extends StatefulWidget {
@@ -27,7 +24,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.addListener(_reinitializeFireworks);
     gm.onRoundStarted.addListener(_fetchMvpPlayers);
     gm.onSolutionFound.addListener(_onSolutionFound);
@@ -35,7 +32,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onPlayerUpdate.addListener(_refresh);
     gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
     _fetchMvpPlayers();
@@ -45,7 +42,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   Future<void> _fetchMvpPlayers() async {
     // It is okay to do that once at the beginning of each round since the best
     // players can only change when a new game is started anyway.
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     final team = await dm.getCurrentTeamResult();
     _mvpPlayers.clear();
     _mvpPlayers.addAll(team.mvpScore.map((e) => e.name));
@@ -53,7 +50,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.removeListener(_reinitializeFireworks);
     gm.onRoundStarted.removeListener(_fetchMvpPlayers);
     gm.onSolutionFound.removeListener(_onSolutionFound);
@@ -61,7 +58,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     gm.onPlayerUpdate.removeListener(_refresh);
     gm.onGoldenSolutionAppeared.removeListener(_onGoldenSolutionAppeared);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
     _fireworksControllers.forEach((key, value) => value.dispose());
@@ -70,7 +67,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
   }
 
   void _reinitializeFireworks() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     if (gm.problem == null) return;
 
     _fireworksControllers.forEach((key, value) => value.dispose());
@@ -107,8 +104,8 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     if (gm.problem == null) return Container();
 
@@ -194,14 +191,14 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardoned.addListener(_onSolutionFound);
   }
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardoned.removeListener(_onSolutionFound);
 
@@ -262,13 +259,13 @@ class _SolutionTileState extends State<_SolutionTile> {
   void initState() {
     super.initState();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.addListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsPreparing.addListener(_refresh);
   }
 
@@ -276,13 +273,13 @@ class _SolutionTileState extends State<_SolutionTile> {
   void dispose() {
     super.dispose();
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.removeListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsPreparing.removeListener(_refresh);
   }
 
@@ -290,8 +287,8 @@ class _SolutionTileState extends State<_SolutionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
+    final cm = Managers.instance.configuration;
+    final tm = Managers.instance.theme;
 
     final widthFactor = min(MediaQuery.of(context).size.width / 1920, 1.0);
     final heightFactor = min(MediaQuery.of(context).size.height / 1080, 1.0);
@@ -317,8 +314,8 @@ class _SolutionTileState extends State<_SolutionTile> {
 
   Widget _buildTile(
       {required double widthFactor, required double heightFactor}) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     if (widget.fireworks != null) {
       return Fireworks(
@@ -410,7 +407,7 @@ class _SolutionTileState extends State<_SolutionTile> {
       );
 
   LinearGradient get isGolden {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return LinearGradient(
       begin: Alignment.topCenter,
@@ -424,7 +421,7 @@ class _SolutionTileState extends State<_SolutionTile> {
   }
 
   LinearGradient get unsolved {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return LinearGradient(
       begin: Alignment.topCenter,
@@ -438,7 +435,7 @@ class _SolutionTileState extends State<_SolutionTile> {
   }
 
   LinearGradient get solved {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     final solvedByMvp =
         widget.mvpPlayers!.contains(widget.solution.foundBy.name);
@@ -460,7 +457,7 @@ class _SolutionTileState extends State<_SolutionTile> {
   }
 
   LinearGradient get stolen {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return LinearGradient(
       begin: Alignment.topCenter,

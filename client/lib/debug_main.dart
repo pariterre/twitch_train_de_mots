@@ -1,18 +1,24 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/sound_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
+import 'package:twitch_manager/twitch_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ConfigurationManager.initialize();
-  await GameManager.initialize();
-  await ThemeManager.initialize();
-  await SoundManager.initialize();
-  TwitchManager.instance.initialize(useMock: true);
+  await Managers.initialize(
+    twtichAppInfo: TwitchAppInfo(
+        appName: 'Train de mots',
+        twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+        scope: const [
+          TwitchAppScope.chatRead,
+          TwitchAppScope.readFollowers,
+        ],
+        twitchRedirectUri: Uri.https(
+            'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+        authenticationServerUri:
+            Uri.https('twitchserver.pariterre.net:3000', 'token')),
+    ebsUri: Uri.parse('ws://localhost:3010'),
+  );
 
   runApp(const MyApp());
 }
@@ -38,14 +44,14 @@ class DebugScreen extends StatefulWidget {
 
 class _DebugScreenState extends State<DebugScreen> {
   Future<void> _setTwitchManager() async {
-    await TwitchManager.instance.showConnectManagerDialog(context);
+    await Managers.instance.twitch.showConnectManagerDialog(context);
     setState(() {});
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TwitchManager.instance.isNotConnected) {
+    if (Managers.instance.twitch.isNotConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
   }
@@ -60,7 +66,7 @@ class _DebugScreenState extends State<DebugScreen> {
         opacity: const AlwaysStoppedAnimation(0.05),
         fit: BoxFit.cover,
       ),
-      child: TwitchManager.instance.debugOverlay(
+      child: Managers.instance.twitch.debugOverlay(
         child: const Center(child: Text('Coucou')),
       ),
     ));

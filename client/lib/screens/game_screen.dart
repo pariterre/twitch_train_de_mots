@@ -1,11 +1,8 @@
 import 'dart:math';
 
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/success_level.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 import 'package:train_de_mots/widgets/animations_overlay.dart';
@@ -27,31 +24,32 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerHasConnected.addListener(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasConnected.addListener(_refresh);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerHasConnected.removeListener(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasConnected
+        .removeListener(_refresh);
   }
 
   void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
-    return TwitchManager.instance.isNotConnected
+    return Managers.instance.twitch.isNotConnected
         ? Center(child: CircularProgressIndicator(color: tm.mainColor))
-        : TwitchManager.instance.debugOverlay(
+        : Managers.instance.twitch.debugOverlay(
             child: const Stack(
             children: [
               Align(
@@ -102,26 +100,26 @@ class _HeaderState extends State<_Header> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardoned.addListener(_onSolutionFound);
     gm.onRoundStarted.addListener(_refresh);
     gm.onRoundStarted.addListener(_setTrainPath);
     _setTrainPath();
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardoned.removeListener(_onSolutionFound);
     gm.onRoundStarted.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_setTrainPath);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
     super.dispose();
@@ -131,8 +129,8 @@ class _HeaderState extends State<_Header> {
   void _onSolutionFound(WordSolution? solution) {
     if (solution == null) return;
 
-    final gm = GameManager.instance;
-    int currentScore = min(GameManager.instance.problem!.teamScore,
+    final gm = Managers.instance.train;
+    int currentScore = min(Managers.instance.train.problem!.teamScore,
         gm.problem?.maximumPossibleScore ?? 1);
     if (_previousScore < currentScore) {
       for (int i = _previousScore; i < currentScore; i++) {
@@ -149,7 +147,7 @@ class _HeaderState extends State<_Header> {
   }
 
   void _setTrainPath() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
 
     _previousScore = 0;
     _trainPath.nbSteps = gm.problem?.maximumPossibleScore ?? 1;
@@ -164,8 +162,8 @@ class _HeaderState extends State<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
 
     if (gm.problem == null) return Container();
 
@@ -183,6 +181,8 @@ class _HeaderState extends State<_Header> {
       case GameStatus.roundPreparing:
         title = 'Le Train de mots!';
         break;
+      case GameStatus.treasureSeeking:
+        title = 'Promenons-nous dans les bois...';
     }
 
     return Column(
@@ -201,7 +201,7 @@ class _HeaderState extends State<_Header> {
             alignment: Alignment.topCenter,
             children: [
               const SizedBox(width: 1300),
-              if (ConfigurationManager.instance.canUseControllerHelper)
+              if (Managers.instance.configuration.canUseControllerHelper)
                 const Positioned(
                     right: 0, top: 0, child: HelpFromTheControllerCard()),
               Column(
@@ -242,13 +242,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onClockTicked.addListener(_refresh);
     gm.onRoundIsOver.addListener(_refreshWithParameter);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -256,13 +256,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   void dispose() {
     super.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onClockTicked.removeListener(_refresh);
     gm.onRoundIsOver.removeListener(_refreshWithParameter);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -271,14 +271,14 @@ class _HeaderTimerState extends State<_HeaderTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final tm = ThemeManager.instance;
-
-    int timeRemaining = gm.timeRemaining ?? 0;
+    final gm = Managers.instance.train;
+    final tm = Managers.instance.theme;
+    final mgm = Managers.instance.miniGame;
 
     late String text;
     switch (gm.gameStatus) {
       case GameStatus.roundStarted:
+        int timeRemaining = gm.timeRemaining ?? 0;
         text = timeRemaining > 0
             ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Arrivée en gare';
@@ -296,6 +296,11 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case GameStatus.initializing:
         text = 'Initialisation...';
         break;
+      case GameStatus.treasureSeeking:
+        int timeRemaining = mgm.timeRemaining;
+        text = timeRemaining > 0
+            ? 'Temps restant à la manche : $timeRemaining secondes'
+            : 'Arrivée en gare';
     }
 
     return Text(

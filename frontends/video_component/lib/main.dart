@@ -11,7 +11,7 @@ void main() async {
   });
   await TwitchManager.initialize(useMocker: false, useLocalEbs: false);
   WidgetsFlutterBinding.ensureInitialized();
-  await ThemeManager.initialize();
+  await ThemeManager.factory();
 
   runApp(const MainExtension(
     isFullScreen: true,

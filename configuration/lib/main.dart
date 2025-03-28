@@ -9,7 +9,7 @@ void main() async {
     debugPrint(message);
   });
   WidgetsFlutterBinding.ensureInitialized();
-  await ThemeManager.initialize();
+  await ThemeManager.factory();
 
   runApp(const MyApp());
 }

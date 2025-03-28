@@ -63,7 +63,6 @@ class _WaitingScreenState extends State<WaitingScreen> {
             'lancer le Petit Train du Nord';
         showStar = false;
         break;
-      case GameStatus.roundStarted:
       case GameStatus.roundPreparing:
       case GameStatus.roundReady:
       case GameStatus.revealAnswers:
@@ -78,6 +77,11 @@ class _WaitingScreenState extends State<WaitingScreen> {
                 '\n'
                 'Dernière station ${gm.currentRound}';
         showStar = true;
+        break;
+      case GameStatus.treasureSeeking:
+        mainText = 'Promenez-vous dans les bois...\n';
+        break;
+      case GameStatus.roundStarted:
         break;
     }
 

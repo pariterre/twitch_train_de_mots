@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/custom_callback.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/mocks_configuration.dart';
 import 'package:train_de_mots/models/difficulty.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
@@ -55,33 +54,18 @@ final _logger = Logger('ConfigurationManager');
 class ConfigurationManager {
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
 
-  ///
-  /// Declare the singleton
-  static ConfigurationManager get instance {
-    if (_instance == null) {
-      throw ManagerNotInitializedException(
-          'ConfigurationManager must be initialized before being used');
-    }
-    return _instance!;
-  }
+  ConfigurationManager._();
 
-  static ConfigurationManager? _instance;
-  ConfigurationManager._internal();
-
-  static Future<void> initialize() async {
+  static Future<ConfigurationManager> factory() async {
     _logger.config('Initializing ConfigurationManager...');
 
-    if (_instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'ConfigurationManager should not be initialized twice');
-    }
-    _instance = ConfigurationManager._internal();
+    final instance = ConfigurationManager._();
 
-    instance._loadConfiguration();
-    // We must wait for the GameManager to be initialized before listening to
-    Future.delayed(Duration.zero, () => instance._listenToGameManagerEvents());
+    await instance._loadConfiguration();
+    instance._listenToGameManagerEvents();
 
     _logger.config('ConfigurationManager initialized');
+    return instance;
   }
 
   ///
@@ -340,12 +324,20 @@ class ConfigurationManager {
   }
 
   //// LISTEN TO GAME MANAGER ////
-  void _listenToGameManagerEvents() {
-    final gm = GameManager.instance;
-    gm.onRoundIsPreparing.addListener(_reactToGameManagerEvent);
-    gm.onNextProblemReady.addListener(_reactToGameManagerEvent);
-    gm.onRoundStarted.addListener(_reactToGameManagerEvent);
-    gm.onRoundIsOver.addListener(_reactToGameManagerEventWithParameter);
+  Future<void> _listenToGameManagerEvents() async {
+    while (true) {
+      try {
+        final gm = Managers.instance.train;
+        gm.onRoundIsPreparing.addListener(_reactToGameManagerEvent);
+        gm.onNextProblemReady.addListener(_reactToGameManagerEvent);
+        gm.onRoundStarted.addListener(_reactToGameManagerEvent);
+        gm.onRoundIsOver.addListener(_reactToGameManagerEventWithParameter);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
   }
 
   void _reactToGameManagerEvent() => onChanged.notifyListeners();
@@ -400,7 +392,7 @@ class ConfigurationManager {
 
   ///
   /// Load the configuration from the device
-  void _loadConfiguration() async {
+  Future<void> _loadConfiguration() async {
     _logger.config('Loading configuration from device...');
 
     final prefs = await SharedPreferences.getInstance();
@@ -495,7 +487,7 @@ class ConfigurationManager {
 
       _showExtension = _showExtensionDefault;
 
-      ThemeManager.instance.reset();
+      Managers.instance.theme.reset();
     }
 
     if (advancedOptions) {
@@ -737,18 +729,18 @@ class ConfigurationManager {
   ///
   /// If it is currently possible to change the duration of the round
   bool get canChangeDurations =>
-      GameManager.instance.gameStatus != GameStatus.roundStarted;
+      Managers.instance.train.gameStatus != GameStatus.roundStarted;
 
   ///
   /// If it is currently possible to change the problem picker rules
   bool get canChangeProblem =>
-      GameManager.instance.gameStatus == GameStatus.initializing ||
-      GameManager.instance.gameStatus == GameStatus.roundReady;
+      Managers.instance.train.gameStatus == GameStatus.initializing ||
+      Managers.instance.train.gameStatus == GameStatus.roundReady;
 
   void _tellGameManagerToRepickProblem() =>
-      GameManager.instance.rulesHasChanged(shouldRepickProblem: true);
+      Managers.instance.train.rulesHasChanged(shouldRepickProblem: true);
 
   void finalizeConfigurationChanges() {
-    GameManager.instance.rulesHasChanged(repickNow: true);
+    Managers.instance.train.rulesHasChanged(repickNow: true);
   }
 }

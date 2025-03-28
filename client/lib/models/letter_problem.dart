@@ -4,8 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:common/models/french_words.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/ebs_server_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/player.dart';
 import 'package:train_de_mots/models/word_solution.dart';
 
@@ -161,7 +160,7 @@ class ProblemGenerator {
     required int maxNbLetters,
   }) async {
     _logger.info('Fetching problem from database...');
-    final out = await DatabaseManager.instance.fetchLetterProblem(
+    final out = await Managers.instance.database.fetchLetterProblem(
         withUselessLetter: withUselessLetter,
         minNbLetters: minNbLetters,
         maxNbLetters: maxNbLetters);
@@ -561,12 +560,12 @@ class ProblemGenerator {
     }
 
     try {
-      if (!EbsServerManager.instance.isConnectedToEbs) {
+      if (!Managers.instance.ebs.isConnectedToEbs) {
         throw Exception('Not connected to EBS server');
       }
 
       Map<String, dynamic> data =
-          await EbsServerManager.instance.generateLetterProblem(
+          await Managers.instance.ebs.generateLetterProblem(
         nbLetterInSmallestWord: nbLetterInSmallestWord,
         minLetters: minLetters,
         maxLetters: maxLetters,
@@ -664,8 +663,8 @@ class _WordGenerator {
   final Map<int, Set<String>>
       wordsList; // -1 is all, the other are subset of exactly n letters
 
-  static final _WordGenerator _instance = _WordGenerator._internal();
-  _WordGenerator._internal()
+  static final _WordGenerator _instance = _WordGenerator._();
+  _WordGenerator._()
       : wordsList = {
           -1: frenchWords
               .where((e) => !e.contains('-'))

@@ -1,7 +1,5 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/models/letter_problem.dart';
 import 'package:train_de_mots/models/player.dart';
 
@@ -17,15 +15,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.addListener(_refresh);
     gm.onSolutionFound.addListener(_onSolutionFound);
     gm.onStealerPardoned.addListener(_onSolutionFound);
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.addListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
   }
 
@@ -33,15 +31,15 @@ class _LeaderBoardState extends State<LeaderBoard> {
   void dispose() {
     super.dispose();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundStarted.removeListener(_refresh);
     gm.onSolutionFound.removeListener(_onSolutionFound);
     gm.onStealerPardoned.removeListener(_onSolutionFound);
 
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
     cm.onChanged.removeListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
   }
 
@@ -50,9 +48,9 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final cm = Managers.instance.configuration;
+    final tm = Managers.instance.theme;
 
     LetterProblem? problem = gm.problem;
     // Sort players by round score then by total score if they are equal
@@ -158,7 +156,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     required bool isTitle,
     bool isStealer = false,
   }) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     final style = isTitle
         ? tm.clientMainTextStyle.copyWith(
             fontSize: 20,

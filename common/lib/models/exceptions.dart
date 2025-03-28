@@ -1,16 +1,16 @@
-abstract class TrainDeMotsException implements Exception {}
+abstract class WordsTrainException implements Exception {}
 
-class NoBroadcasterIdException implements TrainDeMotsException {
+class NoBroadcasterIdException implements WordsTrainException {
   @override
   String toString() => 'No broadcasterId found';
 }
 
-class InvalidAlgorithmException implements TrainDeMotsException {
+class InvalidAlgorithmException implements WordsTrainException {
   @override
   String toString() => 'Invalid algorithm';
 }
 
-class InvalidConfigurationException implements TrainDeMotsException {
+class InvalidConfigurationException implements WordsTrainException {
   @override
   String toString() => 'Invalid configuration';
 }

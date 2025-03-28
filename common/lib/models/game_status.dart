@@ -4,5 +4,6 @@ enum GameStatus {
   roundPreparing,
   roundReady,
   roundStarted,
-  revealAnswers;
+  revealAnswers,
+  treasureSeeking;
 }

@@ -1,4 +1,4 @@
-import 'package:train_de_mots/managers/configuration_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 
 enum SuccessLevel {
   failed,
@@ -9,7 +9,7 @@ enum SuccessLevel {
   ;
 
   int toInt() {
-    final cm = ConfigurationManager.instance;
+    final cm = Managers.instance.configuration;
 
     switch (this) {
       case SuccessLevel.failed:

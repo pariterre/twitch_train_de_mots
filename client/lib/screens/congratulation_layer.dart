@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
 
 class CongratulationLayer extends StatefulWidget {
@@ -52,13 +51,13 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
           explodeOnTap: false));
     }
 
-    GameManager.instance.onCongratulationFireworks
+    Managers.instance.train.onCongratulationFireworks
         .addListener(_launchFireworks);
   }
 
   @override
   void dispose() {
-    GameManager.instance.onCongratulationFireworks
+    Managers.instance.train.onCongratulationFireworks
         .removeListener(_launchFireworks);
     for (var e in _fireworksController) {
       e.dispose();
@@ -99,7 +98,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     Future.delayed(widget.duration + const Duration(milliseconds: 6000))
         .then((_) => setState(() {
               _isFiring = false;
-              GameManager.instance.onCongratulationFireworks
+              Managers.instance.train.onCongratulationFireworks
                   .notifyListenersWithParameter({'is_congratulating': false});
             }));
   }
@@ -131,7 +130,7 @@ class _CongratulationMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
 
     return Container(
       decoration: BoxDecoration(

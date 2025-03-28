@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:common/models/custom_callback.dart';
-import 'package:common/models/exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logging/logging.dart';
@@ -19,26 +19,10 @@ final _logger = Logger('DatabaseManager');
 enum MvpType { score, stars }
 
 class DatabaseManager {
-  /// Declare the singleton
-  static DatabaseManager get instance {
-    if (_instance == null) {
-      throw ManagerNotInitializedException(
-          'DatabaseManager must be initialized before being used');
-    }
-    return _instance!;
-  }
-
-  static DatabaseManager? _instance;
-  DatabaseManager._internal();
-
-  static Future<void> initialize() async {
+  static Future<DatabaseManager> factory() async {
     _logger.config('Initializing DatabaseManager...');
-    if (_instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'DatabaseManager should not be initialized twice');
-    }
-    _instance = DatabaseManager._internal();
 
+    final instance = DatabaseManager._();
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
 
@@ -46,8 +30,12 @@ class DatabaseManager {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
+
     _logger.config('DatabaseManager initialized');
+    return instance;
   }
+
+  DatabaseManager._();
 
   ////////////////////////////////
   //// AUTH RELATED FUNCTIONS ////
@@ -575,9 +563,9 @@ class DatabaseManagerMock extends DatabaseManager {
   Map<String, (int, String)> _dummyBestPlayersScore = {};
   Map<String, (int, String)> _dummyBestPlayersStars = {};
 
-  DatabaseManagerMock._internal() : super._internal();
+  DatabaseManagerMock._() : super._();
 
-  static Future<void> initialize({
+  static Future<DatabaseManagerMock> factory({
     bool? dummyIsSignedIn,
     String? dummyEmail,
     bool? emailIsVerified,
@@ -587,25 +575,21 @@ class DatabaseManagerMock extends DatabaseManager {
     Map<String, (int, String)>? dummyBestPlayerScore,
     Map<String, (int, String)>? dummyBestPlayerStars,
   }) async {
-    if (DatabaseManager._instance != null) {
-      throw ManagerAlreadyInitializedException(
-          'DatabaseManager should not be initialized twice');
-    }
+    final database = DatabaseManagerMock._();
 
-    DatabaseManager._instance = DatabaseManagerMock._internal();
+    database._dummyIsSignedIn = dummyIsSignedIn ?? database._dummyIsSignedIn;
+    database._dummyEmail = dummyEmail ?? database._dummyEmail;
+    database._emailIsVerified = emailIsVerified ?? database._emailIsVerified;
+    database._dummyTeamName = dummyTeamName ?? database._dummyTeamName;
+    database._dummyPassword = dummyPassword ?? database._dummyPassword;
+    database._dummyBestStationsResults =
+        dummyBestStationResults ?? database._dummyBestStationsResults;
+    database._dummyBestPlayersScore =
+        dummyBestPlayerScore ?? database._dummyBestPlayersScore;
+    database._dummyBestPlayersStars =
+        dummyBestPlayerStars ?? database._dummyBestPlayersStars;
 
-    final mock = DatabaseManager._instance as DatabaseManagerMock;
-    mock._dummyIsSignedIn = dummyIsSignedIn ?? mock._dummyIsSignedIn;
-    mock._dummyEmail = dummyEmail ?? mock._dummyEmail;
-    mock._emailIsVerified = emailIsVerified ?? mock._emailIsVerified;
-    mock._dummyTeamName = dummyTeamName ?? mock._dummyTeamName;
-    mock._dummyPassword = dummyPassword ?? mock._dummyPassword;
-    mock._dummyBestStationsResults =
-        dummyBestStationResults ?? mock._dummyBestStationsResults;
-    mock._dummyBestPlayersScore =
-        dummyBestPlayerScore ?? mock._dummyBestPlayersScore;
-    mock._dummyBestPlayersStars =
-        dummyBestPlayerStars ?? mock._dummyBestPlayersStars;
+    return database;
   }
 
   ///////////////////////

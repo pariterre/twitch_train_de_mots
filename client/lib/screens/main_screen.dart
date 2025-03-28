@@ -1,12 +1,8 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/managers/configuration_manager.dart';
-import 'package:train_de_mots/managers/database_manager.dart';
-import 'package:train_de_mots/managers/game_manager.dart';
+import 'package:train_de_mots/managers/managers.dart';
 import 'package:train_de_mots/managers/sound_manager.dart';
-import 'package:train_de_mots/managers/twitch_manager.dart';
 import 'package:train_de_mots/screens/between_round_screen.dart';
 import 'package:train_de_mots/screens/congratulation_layer.dart';
 import 'package:train_de_mots/screens/game_screen.dart';
@@ -25,7 +21,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
-    await TwitchManager.instance
+    await Managers.instance.twitch
         .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
     setState(() {});
   }
@@ -34,40 +30,40 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
 
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsPreparing.addListener(_refresh);
     gm.onNextProblemReady.addListener(_refresh);
     gm.onRoundStarted.addListener(_refresh);
     gm.onShowMessage = _showMessageDialog;
     gm.onShowcaseSolutionsRequest.addListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.addListener(_refresh);
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onFullyLoggedIn.addListener(_refresh);
     dm.onLoggedOut.addListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerHasDisconnected
+    Managers.instance.twitch.onTwitchManagerHasDisconnected
         .addListener(_reconnectedAfterDisconnect);
   }
 
   @override
   void dispose() {
-    final gm = GameManager.instance;
+    final gm = Managers.instance.train;
     gm.onRoundIsPreparing.removeListener(_refresh);
     gm.onNextProblemReady.removeListener(_refresh);
     gm.onRoundStarted.removeListener(_refresh);
     gm.onShowcaseSolutionsRequest.removeListener(_refresh);
 
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.theme;
     tm.onChanged.removeListener(_refresh);
 
-    final dm = DatabaseManager.instance;
+    final dm = Managers.instance.database;
     dm.onFullyLoggedIn.removeListener(_refresh);
     dm.onLoggedOut.removeListener(_refresh);
 
-    TwitchManager.instance.onTwitchManagerHasDisconnected
+    Managers.instance.twitch.onTwitchManagerHasDisconnected
         .removeListener(_reconnectedAfterDisconnect);
 
     super.dispose();
@@ -77,8 +73,8 @@ class _MainScreenState extends State<MainScreen> {
       _setTwitchManager(reloadIfPossible: false);
 
   Future<void> _showMessageDialog(String message) async {
-    final cm = ConfigurationManager.instance;
-    final tm = ThemeManager.instance;
+    final cm = Managers.instance.configuration;
+    final tm = Managers.instance.theme;
 
     await showDialog(
         context: context,
@@ -100,7 +96,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (TwitchManager.instance.isNotConnected) {
+    if (Managers.instance.twitch.isNotConnected) {
       WidgetsBinding.instance.addPostFrameCallback(
           (_) => _setTwitchManager(reloadIfPossible: true));
     }
@@ -108,13 +104,13 @@ class _MainScreenState extends State<MainScreen> {
 
   void _refresh() => setState(() {});
 
-  void _onClickedBegin() => GameManager.instance.requestStartNewRound();
+  void _onClickedBegin() => Managers.instance.train.requestStartNewRound();
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final dm = DatabaseManager.instance;
-    final tm = ThemeManager.instance;
+    final gm = Managers.instance.train;
+    final dm = Managers.instance.database;
+    final tm = Managers.instance.theme;
 
     return Scaffold(
       body: Background(
@@ -124,7 +120,7 @@ class _MainScreenState extends State<MainScreen> {
           opacity: const AlwaysStoppedAnimation(0.05),
           fit: BoxFit.cover,
         ),
-        child: TwitchManager.instance.isNotConnected
+        child: Managers.instance.twitch.isNotConnected
             ? Center(child: CircularProgressIndicator(color: tm.mainColor))
             : Stack(
                 children: [
