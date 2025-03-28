@@ -6,7 +6,7 @@ import 'package:common/models/game_status.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/mocks_configuration.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 
@@ -56,6 +56,8 @@ class ConfigurationManager {
 
   ConfigurationManager._();
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static Future<ConfigurationManager> factory() async {
     _logger.config('Initializing ConfigurationManager...');
 
@@ -338,6 +340,9 @@ class ConfigurationManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+
+    _isInitialized = true;
+    _logger.config('ConfigurationManager is initialized');
   }
 
   void _reactToGameManagerEvent() => onChanged.notifyListeners();

@@ -2,7 +2,6 @@ import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/sound_manager.dart';
 
 class TrainPathController {
   int _nbSteps = 1;
@@ -108,7 +107,7 @@ class TrainPathController {
     await _controller?.forward(from: 0.0);
     if (_hallMarks.contains(_currentStep)) {
       _fireworksControllers[_hallMarks.indexOf(_currentStep)].trigger();
-      SoundManager.instance.playTrainReachedStation();
+      Managers.instance.sound.playTrainReachedStation();
     }
     if (_refreshCallback != null) _refreshCallback!();
   }
@@ -127,7 +126,7 @@ class TrainPathController {
     if (_hallMarks.contains(_currentStep + 1)) {
       _fireworksControllers[_hallMarks.indexOf(_currentStep + 1)]
           .triggerReversed();
-      SoundManager.instance.playTrainLostStation();
+      Managers.instance.sound.playTrainLostStation();
     }
     if (_refreshCallback != null) _refreshCallback!();
   }

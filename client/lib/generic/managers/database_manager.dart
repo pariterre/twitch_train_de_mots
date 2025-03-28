@@ -8,8 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/firebase_options.dart';
-import 'package:train_de_mots/generic/managers/mocks_configuration.dart';
 import 'package:train_de_mots/generic/models/exceptions.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/database_result.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -19,6 +19,8 @@ final _logger = Logger('DatabaseManager');
 enum MvpType { score, stars }
 
 class DatabaseManager {
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static Future<DatabaseManager> factory() async {
     _logger.config('Initializing DatabaseManager...');
 
@@ -31,6 +33,7 @@ class DatabaseManager {
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
 
+    instance._isInitialized = true;
     _logger.config('DatabaseManager initialized');
     return instance;
   }
@@ -575,21 +578,22 @@ class DatabaseManagerMock extends DatabaseManager {
     Map<String, (int, String)>? dummyBestPlayerScore,
     Map<String, (int, String)>? dummyBestPlayerStars,
   }) async {
-    final database = DatabaseManagerMock._();
+    final instance = DatabaseManagerMock._();
 
-    database._dummyIsSignedIn = dummyIsSignedIn ?? database._dummyIsSignedIn;
-    database._dummyEmail = dummyEmail ?? database._dummyEmail;
-    database._emailIsVerified = emailIsVerified ?? database._emailIsVerified;
-    database._dummyTeamName = dummyTeamName ?? database._dummyTeamName;
-    database._dummyPassword = dummyPassword ?? database._dummyPassword;
-    database._dummyBestStationsResults =
-        dummyBestStationResults ?? database._dummyBestStationsResults;
-    database._dummyBestPlayersScore =
-        dummyBestPlayerScore ?? database._dummyBestPlayersScore;
-    database._dummyBestPlayersStars =
-        dummyBestPlayerStars ?? database._dummyBestPlayersStars;
+    instance._dummyIsSignedIn = dummyIsSignedIn ?? instance._dummyIsSignedIn;
+    instance._dummyEmail = dummyEmail ?? instance._dummyEmail;
+    instance._emailIsVerified = emailIsVerified ?? instance._emailIsVerified;
+    instance._dummyTeamName = dummyTeamName ?? instance._dummyTeamName;
+    instance._dummyPassword = dummyPassword ?? instance._dummyPassword;
+    instance._dummyBestStationsResults =
+        dummyBestStationResults ?? instance._dummyBestStationsResults;
+    instance._dummyBestPlayersScore =
+        dummyBestPlayerScore ?? instance._dummyBestPlayersScore;
+    instance._dummyBestPlayersStars =
+        dummyBestPlayerStars ?? instance._dummyBestPlayersStars;
 
-    return database;
+    instance._isInitialized = true;
+    return instance;
   }
 
   ///////////////////////

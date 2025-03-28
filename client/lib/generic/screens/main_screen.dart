@@ -2,7 +2,6 @@ import 'package:common/models/game_status.dart';
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/sound_manager.dart';
 import 'package:train_de_mots/generic/screens/between_round_screen.dart';
 import 'package:train_de_mots/generic/screens/congratulation_layer.dart';
 import 'package:train_de_mots/generic/screens/game_screen.dart';
@@ -79,7 +78,7 @@ class _MainScreenState extends State<MainScreen> {
     await showDialog(
         context: context,
         builder: (context) {
-          SoundManager.instance.playTelegramReceived();
+          Managers.instance.sound.playTelegramReceived();
           return ParchmentDialog(
             title: 'Un télégramme pour vous!',
             content: Text(message, style: TextStyle(fontSize: tm.textSize)),

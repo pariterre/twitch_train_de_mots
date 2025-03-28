@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/mocks_configuration.dart';
 import 'package:train_de_mots/generic/screens/main_screen.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
 void main() async {

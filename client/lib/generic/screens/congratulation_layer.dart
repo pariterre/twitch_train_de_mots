@@ -5,7 +5,6 @@ import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/sound_manager.dart';
 
 class CongratulationLayer extends StatefulWidget {
   const CongratulationLayer(
@@ -80,7 +79,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     for (int i = 0; i < widget.maxFireworksCount; i++) {
       Future.delayed(Duration(milliseconds: random.nextInt(1000))).then((_) {
         _fireworksController[i].trigger();
-        SoundManager.instance.playFireworks();
+        Managers.instance.sound.playFireworks();
       });
 
       Timer.periodic(Duration(milliseconds: 1000 + random.nextInt(5000)),
@@ -89,7 +88,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
           timer.cancel();
         }
         _fireworksController[i].trigger();
-        SoundManager.instance.playFireworks();
+        Managers.instance.sound.playFireworks();
         _positions[i] =
             Offset(random.nextDouble() - 0.5, random.nextDouble() - 0.5);
       });

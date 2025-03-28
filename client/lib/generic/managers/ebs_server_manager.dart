@@ -6,16 +6,40 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
+import 'package:common/models/exceptions.dart';
 
 final _logger = Logger('EbsServerManager');
 
 class EbsServerManager extends TwitchAppManagerAbstract {
-  EbsServerManager._({required super.ebsUri}) {
-    Managers.instance.twitch.onTwitchManagerHasConnected
-        .addListener(_twitchManagerHasConnected);
+  EbsServerManager._({required super.ebsUri});
 
-    onEbsHasConnected.listen(listenToGameManagerCallbacks);
-    onEbsHasDisconnected.listen(disposeListeners);
+  ///
+  /// Initialize the EbsServerManager establishing a connection with the
+  /// EBS server if [ebsUri] is provided.
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+  static Future<EbsServerManager> factory({required Uri ebsUri}) async {
+    final instance = EbsServerManager._(ebsUri: ebsUri);
+    instance._startListeningToTwich();
+    instance.onEbsHasConnected.listen(instance._listenToGameManagerCallbacks);
+    instance.onEbsHasDisconnected.listen(instance._disposeListeners);
+    return instance;
+  }
+
+  Future<void> _startListeningToTwich() async {
+    while (true) {
+      try {
+        final tm = Managers.instance.twitch;
+        tm.onTwitchManagerHasConnected.addListener(_twitchManagerHasConnected);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    _isInitialized = true;
+    _logger.info('EbsServerManager initialized');
   }
 
   void _twitchManagerHasConnected() {
@@ -25,15 +49,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     connect(Managers.instance.twitch.broadcasterId);
   }
 
-  ///
-  /// Initialize the EbsServerManager establishing a connection with the
-  /// EBS server if [ebsUri] is provided.
-  static Future<EbsServerManager> factory({required Uri ebsUri}) async {
-    final instance = EbsServerManager._(ebsUri: ebsUri);
-    return instance;
-  }
-
-  void listenToGameManagerCallbacks() {
+  void _listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
     final gm = Managers.instance.train;
     gm.onRoundStarted.addListener(_sendGameStateToEbs);
@@ -59,7 +75,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   ///
   /// Dispose the EbsServerManager by closing the connection with the
   /// EBS server.
-  void disposeListeners() {
+  void _disposeListeners() {
     final gm = Managers.instance.train;
     gm.onRoundStarted.removeListener(_sendGameStateToEbs);
     gm.onRoundIsOver.removeListener(_sendGameStateToEbssWithParameter);

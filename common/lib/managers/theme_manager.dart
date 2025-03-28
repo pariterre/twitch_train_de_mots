@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final _logger = Logger('ConfigurationManager');
+final _logger = Logger('ThemeManager');
 const _textSizeDefault = 20.0;
 const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);
 
 class ThemeManager {
   // Declare the singleton
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static final ThemeManager _instance = ThemeManager._();
   static ThemeManager get instance => _instance;
   ThemeManager._();
@@ -19,6 +21,8 @@ class ThemeManager {
   static Future<ThemeManager> factory() async {
     instance._updateBackgroundColors();
     await instance._load();
+    instance._isInitialized = true;
+    _logger.info('ThemeManager initialized');
     return instance;
   }
 

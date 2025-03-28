@@ -20,6 +20,8 @@ final _logger = Logger('GameManager');
 class WordsTrainGameManager {
   WordsTrainGameManager._();
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static Future<WordsTrainGameManager> factory() async {
     _logger.config('GameManager is initializing...');
     final instance = WordsTrainGameManager._();
@@ -42,6 +44,9 @@ class WordsTrainGameManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+
+    _isInitialized = true;
+    _logger.info('WordsTrainGameManager is initialized');
   }
 
   /// ---------- ///

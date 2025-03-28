@@ -37,49 +37,64 @@ class SoundManager {
     _logger.info('Sound effect: $source played');
   }
 
-  /// Declare the singleton
-  static SoundManager get instance {
-    if (_instance == null) {
-      throw ManagerNotInitializedException(
-          'SoundManager must be initialized before being used');
-    }
-    return _instance!;
-  }
-
-  static SoundManager? _instance;
   SoundManager._();
 
   ///
   /// This method initializes the singleton and should be called before
   /// using the singleton.
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static Future<SoundManager> factory() async {
     final instance = SoundManager._();
 
-    late final gm = Managers.instance.train;
-    gm.onGameIsInitializing.addListener(instance._manageGameMusic);
-    gm.onRoundStarted.addListener(instance._onRoundStarted);
-    gm.onSolutionFound.addListener(instance._onSolutionFound);
-    gm.onStealerPardoned.addListener(instance._onSolutionFound);
-    gm.onTrainGotBoosted.addListener(instance._onTrainGotBoosted);
-    gm.onScrablingLetters.addListener(instance._onLettersScrambled);
-    gm.onRevealUselessLetter.addListener(instance._onLettersScrambled);
-    gm.onRevealHiddenLetter.addListener(instance._onLettersScrambled);
-    gm.onRoundIsOver.addListener(instance._onRoundIsOver);
-    gm.onSolutionWasStolen.addListener(instance._onSolutionStolen);
-    gm.onGoldenSolutionAppeared.addListener(instance._onGoldenSolutionAppeared);
-    gm.onAttemptingTheBigHeist.addListener(instance._onAttemptingTheBigHeist);
-    gm.onBigHeistSuccess.addListener(instance._onTheBigHeistSuccess);
-    gm.onBigHeistFailed.addListener(instance._onTheBigHeistFailed);
-    gm.onChangingLane.addListener(instance._onChangingLane);
-
-    final cm = Managers.instance.configuration;
-    cm.onGameMusicVolumeChanged.addListener(instance._manageGameMusic);
-    cm.onSoundVolumeChanged.addListener(instance._onLettersScrambled);
+    instance._connectListeners();
 
     await instance._gameMusic.setLoopMode(LoopMode.all);
     await instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
 
     return instance;
+  }
+
+  Future<void> _connectListeners() async {
+    while (true) {
+      try {
+        final gm = Managers.instance.train;
+        gm.onGameIsInitializing.addListener(_manageGameMusic);
+        gm.onRoundStarted.addListener(_onRoundStarted);
+        gm.onSolutionFound.addListener(_onSolutionFound);
+        gm.onStealerPardoned.addListener(_onSolutionFound);
+        gm.onTrainGotBoosted.addListener(_onTrainGotBoosted);
+        gm.onScrablingLetters.addListener(_onLettersScrambled);
+        gm.onRevealUselessLetter.addListener(_onLettersScrambled);
+        gm.onRevealHiddenLetter.addListener(_onLettersScrambled);
+        gm.onRoundIsOver.addListener(_onRoundIsOver);
+        gm.onSolutionWasStolen.addListener(_onSolutionStolen);
+        gm.onGoldenSolutionAppeared.addListener(_onGoldenSolutionAppeared);
+        gm.onAttemptingTheBigHeist.addListener(_onAttemptingTheBigHeist);
+        gm.onBigHeistSuccess.addListener(_onTheBigHeistSuccess);
+        gm.onBigHeistFailed.addListener(_onTheBigHeistFailed);
+        gm.onChangingLane.addListener(_onChangingLane);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    while (true) {
+      try {
+        final cm = Managers.instance.configuration;
+        cm.onGameMusicVolumeChanged.addListener(_manageGameMusic);
+        cm.onSoundVolumeChanged.addListener(_onLettersScrambled);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    _isInitialized = true;
+    _logger.info('SoundManager initialized');
   }
 
   Future<void> _manageGameMusic() async {

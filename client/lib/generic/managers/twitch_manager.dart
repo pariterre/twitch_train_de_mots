@@ -1,7 +1,7 @@
 import 'package:common/models/custom_callback.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/managers/mocks_configuration.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:twitch_manager/twitch_app.dart';
 import 'package:twitch_manager/twitch_utils.dart';
 
@@ -11,8 +11,13 @@ class TwitchManager {
   final onTwitchManagerHasConnected = CustomCallback();
   final onTwitchManagerHasDisconnected = CustomCallback();
 
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
   static Future<TwitchManager> factory({required TwitchAppInfo appInfo}) async {
-    return TwitchManager._(appInfo: appInfo);
+    final instance = TwitchManager._(appInfo: appInfo);
+    instance._isInitialized = true;
+    _logger.info('TwitchManager initialized');
+    return instance;
   }
 
   ///
@@ -112,6 +117,7 @@ class TwitchManagerMock extends TwitchManager {
       {required TwitchAppInfo appInfo}) async {
     final instance = TwitchManagerMock._(appInfo: appInfo);
     instance._useMocker = true;
+    instance._isInitialized = true;
     return instance;
   }
 }
