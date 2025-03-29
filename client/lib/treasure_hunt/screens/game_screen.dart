@@ -1,7 +1,6 @@
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/game_grid.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/header.dart';
 
@@ -25,7 +24,7 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
 
-    final gm = TreasureHuntGameManager.instance;
+    final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.listen(_refresh);
     gm.onTileRevealed.listen(_refresh);
 
@@ -41,7 +40,7 @@ class _GameScreenState extends State<GameScreen> {
   // Dispose
   @override
   void dispose() {
-    final gm = TreasureHuntGameManager.instance;
+    final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.cancel(_refresh);
     gm.onTileRevealed.cancel(_refresh);
 
@@ -62,7 +61,7 @@ class _GameScreenState extends State<GameScreen> {
     final headerHeight = 160.0;
     final gridHeight = windowHeight - 2 * offsetFromBorder - headerHeight;
 
-    final gm = TreasureHuntGameManager.instance;
+    final gm = Managers.instance.miniGames.treasureHunt;
     final tileSize = gridHeight / (gm.nbRows + 1);
     final gridWidth = gm.nbCols * tileSize;
 

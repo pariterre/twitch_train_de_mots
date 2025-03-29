@@ -1,32 +1,28 @@
 import 'dart:async';
 
 import 'package:common/models/ebs_helpers.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
-import 'package:common/models/exceptions.dart';
 
 final _logger = Logger('EbsServerManager');
 
 class EbsServerManager extends TwitchAppManagerAbstract {
-  EbsServerManager._({required super.ebsUri});
-
   ///
   /// Initialize the EbsServerManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<EbsServerManager> factory({required Uri ebsUri}) async {
-    final instance = EbsServerManager._(ebsUri: ebsUri);
-    instance._startListeningToTwich();
-    instance.onEbsHasConnected.listen(instance._listenToGameManagerCallbacks);
-    instance.onEbsHasDisconnected.listen(instance._disposeListeners);
-    return instance;
+  EbsServerManager({required super.ebsUri}) {
+    _asyncInitializations();
   }
 
-  Future<void> _startListeningToTwich() async {
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
     while (true) {
       try {
         final tm = Managers.instance.twitch;
@@ -37,9 +33,11 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+    onEbsHasConnected.listen(_listenToGameManagerCallbacks);
+    onEbsHasDisconnected.listen(_disposeListeners);
 
     _isInitialized = true;
-    _logger.info('EbsServerManager initialized');
+    _logger.config('Ready');
   }
 
   void _twitchManagerHasConnected() {
@@ -157,7 +155,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       status: gm.gameStatus,
       round: gm.roundCount,
       isRoundSuccess: gm.successLevel.toInt() > 0,
-      timeRemaining: Duration(seconds: gm.timeRemaining ?? 0),
+      timeRemaining: gm.timeRemaining ?? const Duration(seconds: 0),
       newCooldowns: newCooldowns,
       letterProblem: gm.simplifiedProblem,
       pardonRemaining: gm.remainingPardon,

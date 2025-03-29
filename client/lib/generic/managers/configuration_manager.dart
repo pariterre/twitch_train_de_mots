@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:common/models/generic_listener.dart';
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/generic_listener.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -54,20 +55,32 @@ final _logger = Logger('ConfigurationManager');
 class ConfigurationManager {
   bool get useDebugOptions => MocksConfiguration.showDebugOptions;
 
-  ConfigurationManager._();
-
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<ConfigurationManager> factory() async {
-    _logger.config('Initializing ConfigurationManager...');
+  ConfigurationManager() {
+    _asyncInitializations();
+  }
 
-    final instance = ConfigurationManager._();
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+    await _loadConfiguration();
 
-    await instance._loadConfiguration();
-    instance._listenToGameManagerEvents();
+    while (true) {
+      try {
+        final gm = Managers.instance.train;
+        gm.onRoundIsPreparing.listen(_reactToGameManagerEvent);
+        gm.onNextProblemReady.listen(_reactToGameManagerEvent);
+        gm.onRoundStarted.listen(_reactToGameManagerEvent);
+        gm.onRoundIsOver.listen(_reactToGameManagerEventWithParameter);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
 
-    _logger.config('ConfigurationManager initialized');
-    return instance;
+    _isInitialized = true;
+    _logger.config('Ready');
   }
 
   ///
@@ -325,26 +338,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  //// LISTEN TO GAME MANAGER ////
-  Future<void> _listenToGameManagerEvents() async {
-    while (true) {
-      try {
-        final gm = Managers.instance.train;
-        gm.onRoundIsPreparing.listen(_reactToGameManagerEvent);
-        gm.onNextProblemReady.listen(_reactToGameManagerEvent);
-        gm.onRoundStarted.listen(_reactToGameManagerEvent);
-        gm.onRoundIsOver.listen(_reactToGameManagerEventWithParameter);
-        break;
-      } on ManagerNotInitializedException {
-        // Wait and repeat
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    }
-
-    _isInitialized = true;
-    _logger.config('ConfigurationManager is initialized');
-  }
-
   void _reactToGameManagerEvent() =>
       onChanged.notifyListeners((callback) => callback());
   void _reactToGameManagerEventWithParameter(_) =>
@@ -494,7 +487,7 @@ class ConfigurationManager {
 
       _showExtension = _showExtensionDefault;
 
-      Managers.instance.theme.reset();
+      ThemeManager.instance.reset();
     }
 
     if (advancedOptions) {

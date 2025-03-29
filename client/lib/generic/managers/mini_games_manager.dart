@@ -1,21 +1,41 @@
+import 'package:common/models/generic_listener.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/models/mini_games.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+
+final _logger = Logger('MiniGamesManager');
 
 abstract class MiniGameManager {
-  int get timeRemaining;
+  ///
+  /// How much time is left in the mini game
+  Duration get timeRemaining;
+
+  ///
+  /// Start the mini game
+  Future<void> start();
+
+  ///
+  /// Connect to the mini game results
+  GenericListener<Function(bool)> get onGameEnded;
 }
 
 class MiniGamesManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<MiniGamesManager> factory() async {
-    final instance = MiniGamesManager._();
-    instance._isInitialized = true;
-    return instance;
+  MiniGamesManager() {
+    _asyncInitializations();
   }
 
-  MiniGamesManager._();
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+    _miniGames[MiniGames.treasureHunt] = TreasureHuntGameManager();
+    _isInitialized = true;
+    _logger.config('Ready');
+  }
 
   final Map<MiniGames, MiniGameManager> _miniGames = {};
+  TreasureHuntGameManager get treasureHunt =>
+      _miniGames[MiniGames.treasureHunt] as TreasureHuntGameManager;
 
   ///
   /// Run a mini game, returns

@@ -1,7 +1,7 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class AnimatedTextOverlay extends StatefulWidget {
@@ -115,9 +115,9 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     gm.onBigHeistFailed.listen(_showBigHeistFailed);
     gm.onChangingLane.listen(_showChangeLane);
 
-    final tgm = TreasureHuntGameManager.instance;
+    final tgm = Managers.instance.miniGames.treasureHunt;
     tgm.onTrySolution.listen(_treasureHuntTrySolution);
-    tgm.onGameOver.listen(_treasureHuntFailed);
+    tgm.onGameEnded.listen(_treasureHuntFailed);
   }
 
   @override
@@ -141,9 +141,9 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     gm.onBigHeistFailed.cancel(_showBigHeistFailed);
     gm.onChangingLane.cancel(_showChangeLane);
 
-    final tgm = TreasureHuntGameManager.instance;
+    final tgm = Managers.instance.miniGames.treasureHunt;
     tgm.onTrySolution.cancel(_treasureHuntTrySolution);
-    tgm.onGameOver.cancel(_treasureHuntFailed);
+    tgm.onGameEnded.cancel(_treasureHuntFailed);
 
     super.dispose();
   }
@@ -265,7 +265,7 @@ class _ASolutionWasStolen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 243, 157, 151);
 
     return Container(
@@ -297,7 +297,7 @@ class _ANewGoldenSolutionAppeared extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -334,7 +334,7 @@ class _AStealerWasPardoned extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 237, 243, 151);
 
     late final String text;
@@ -377,7 +377,7 @@ class _AllSolutionsFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -414,7 +414,7 @@ class _TrainGotBoosted extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -449,7 +449,7 @@ class _BigHeistSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -484,7 +484,7 @@ class _BigHeistFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -517,7 +517,7 @@ class _ChangeLane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -554,7 +554,7 @@ class _TreasureHuntFoundWord extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -590,7 +590,7 @@ class _TreasureHuntWrongWord extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(
@@ -623,7 +623,7 @@ class _TreasureHuntFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(

@@ -1,4 +1,3 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:configuration/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -9,7 +8,6 @@ void main() async {
     debugPrint(message);
   });
   WidgetsFlutterBinding.ensureInitialized();
-  await ThemeManager.factory();
 
   runApp(const MyApp());
 }

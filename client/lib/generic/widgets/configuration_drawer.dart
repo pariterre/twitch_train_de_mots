@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -22,7 +23,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     final cm = Managers.instance.configuration;
     cm.onChanged.listen(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -33,7 +34,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -42,7 +43,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
 
     return Drawer(
@@ -186,7 +187,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     final cm = Managers.instance.configuration;
     cm.onChanged.listen(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -197,7 +198,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -206,7 +207,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   @override
   Widget build(BuildContext context) {
     final cm = Managers.instance.configuration;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     final subtitleStyle = tm.clientMainTextStyle
         .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
@@ -308,7 +309,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
   void initState() {
     super.initState();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -316,7 +317,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
   void dispose() {
     super.dispose();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -324,7 +325,7 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +359,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
   void initState() {
     super.initState();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -366,7 +367,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
   void dispose() {
     super.dispose();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -374,7 +375,7 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     late String sizeCategory;
     if (tm.textSize < 18) {
@@ -804,7 +805,7 @@ class _BooleanInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
@@ -857,7 +858,7 @@ class _SliderInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Column(

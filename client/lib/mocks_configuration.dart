@@ -65,88 +65,86 @@ class MocksConfiguration {
         WordSolution(word: 'repaaaac'),
       ]));
 
-  static Future<WordsTrainGameManagerMock>
-      getWordsTrainGameManagerMocked() async => WordsTrainGameManagerMock(
-            gameStatus: WordsTrainGameStatus.roundPreparing,
-            problem: MocksConfiguration.useProblemMock
-                ? MocksConfiguration.letterProblemMock
-                : null,
-            players: [
-              Player(name: 'Player 1')
-                ..score = 100
-                ..starsCollected = 1,
-              Player(name: 'Player 2')
-                ..score = 200
-                ..starsCollected = 2
-                ..addToStealCount(),
-              Player(name: 'Player 3')..score = 300,
-              Player(name: 'Player 4')..score = 150,
-              Player(name: 'Player 5')
-                ..score = 250
-                ..addToStealCount()
-                ..addToStealCount()
-                ..addToStealCount(),
-              Player(name: 'Player 6')..score = 350,
-              Player(name: 'PlayerWithAVeryVeryVeryLongName')
-                ..score = 400
-                ..addToStealCount()
-                ..addToStealCount(),
-              Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
-                ..addToStealCount()
-                ..addToStealCount()
-                ..addToStealCount()
-                ..score = 350,
-            ],
-            roundCount: 14,
-            successLevel: SuccessLevel.threeStars,
-            shouldAttemptTheBigHeist: false,
-            shouldChangeLane: true,
-            nextMiniGame: MiniGames.treasureHunt,
-          );
+  static WordsTrainGameManagerMock getWordsTrainGameManagerMocked() =>
+      WordsTrainGameManagerMock(
+        gameStatus: WordsTrainGameStatus.roundPreparing,
+        problem: MocksConfiguration.useProblemMock
+            ? MocksConfiguration.letterProblemMock
+            : null,
+        players: [
+          Player(name: 'Player 1')
+            ..score = 100
+            ..starsCollected = 1,
+          Player(name: 'Player 2')
+            ..score = 200
+            ..starsCollected = 2
+            ..addToStealCount(),
+          Player(name: 'Player 3')..score = 300,
+          Player(name: 'Player 4')..score = 150,
+          Player(name: 'Player 5')
+            ..score = 250
+            ..addToStealCount()
+            ..addToStealCount()
+            ..addToStealCount(),
+          Player(name: 'Player 6')..score = 350,
+          Player(name: 'PlayerWithAVeryVeryVeryLongName')
+            ..score = 400
+            ..addToStealCount()
+            ..addToStealCount(),
+          Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
+            ..addToStealCount()
+            ..addToStealCount()
+            ..addToStealCount()
+            ..score = 350,
+        ],
+        roundCount: 14,
+        successLevel: SuccessLevel.threeStars,
+        shouldAttemptTheBigHeist: false,
+        shouldChangeLane: true,
+        //nextMiniGame: MiniGames.treasureHunt,
+      );
 
-  static Future<DatabaseManagerMock> gedDatabaseMocked() async {
-    return await DatabaseManagerMock.factory(
-      dummyIsSignedIn: true,
-      emailIsVerified: true,
-      dummyTeamName: 'Les Bleuets',
-      dummyBestStationResults: {
-        'Les Verts': 3,
-        'Les Oranges': 6,
-        'Les Roses': 1,
-        'Les Jaunes': 5,
-        'Les Blancs': 1,
-        'Les Bleus': 0,
-        'Les Noirs': 1,
-        'Les Rouges': 2,
-        'Les Violets': 3,
-        'Les Gris': 0,
-        'Les Bruns': 0,
-        'Les Bleuets': 4,
-      },
-      dummyBestPlayerScore: {
-        'Viewer 1': (300, 'Les Verts'),
-        'Viewer 2': (250, 'Les Oranges'),
-        'Viewer 3': (600, 'Les Roses'),
-        'Viewer 4': (500, 'Les Jaunes'),
-        'Viewer 5': (600, 'Les Blancs'),
-        'Viewer 6': (250, 'Les Bleuets'),
-        'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
-        'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
-        'Player 3': (2, 'Les Bleuets'),
-      },
-      dummyBestPlayerStars: {
-        'Viewer 1': (3, 'Les Verts'),
-        'Viewer 2': (2, 'Les Oranges'),
-        'Viewer 3': (5, 'Les Roses'),
-        'Viewer 4': (10, 'Les Jaunes'),
-        'Viewer 5': (5, 'Les Blancs'),
-        'Viewer 6': (2, 'Les Bleus'),
-        'PlayerWithAVeryVeryVeryLongName': (0, 'Les Noirs'),
-        'AnotherPlayerWithAVeryVeryVeryLongName': (1, 'Les Rouges'),
-        'Player 3': (1, 'Les Bleuets'),
-      },
-    );
-  }
+  static DatabaseManagerMock getDatabaseMocked() => DatabaseManagerMock(
+        dummyIsSignedIn: true,
+        emailIsVerified: true,
+        dummyTeamName: 'Les Bleuets',
+        dummyBestStationResults: {
+          'Les Verts': 3,
+          'Les Oranges': 6,
+          'Les Roses': 1,
+          'Les Jaunes': 5,
+          'Les Blancs': 1,
+          'Les Bleus': 0,
+          'Les Noirs': 1,
+          'Les Rouges': 2,
+          'Les Violets': 3,
+          'Les Gris': 0,
+          'Les Bruns': 0,
+          'Les Bleuets': 4,
+        },
+        dummyBestPlayerScore: {
+          'Viewer 1': (300, 'Les Verts'),
+          'Viewer 2': (250, 'Les Oranges'),
+          'Viewer 3': (600, 'Les Roses'),
+          'Viewer 4': (500, 'Les Jaunes'),
+          'Viewer 5': (600, 'Les Blancs'),
+          'Viewer 6': (250, 'Les Bleuets'),
+          'PlayerWithAVeryVeryVeryLongName': (400, 'Les Noirs'),
+          'AnotherPlayerWithAVeryVeryVeryLongName': (350, 'Les Rouges'),
+          'Player 3': (2, 'Les Bleuets'),
+        },
+        dummyBestPlayerStars: {
+          'Viewer 1': (3, 'Les Verts'),
+          'Viewer 2': (2, 'Les Oranges'),
+          'Viewer 3': (5, 'Les Roses'),
+          'Viewer 4': (10, 'Les Jaunes'),
+          'Viewer 5': (5, 'Les Blancs'),
+          'Viewer 6': (2, 'Les Bleus'),
+          'PlayerWithAVeryVeryVeryLongName': (0, 'Les Noirs'),
+          'AnotherPlayerWithAVeryVeryVeryLongName': (1, 'Les Rouges'),
+          'Player 3': (1, 'Les Bleuets'),
+        },
+      );
 
   static TwitchDebugPanelOptions get twitchDebugPanelOptions =>
       TwitchDebugPanelOptions(chatters: [

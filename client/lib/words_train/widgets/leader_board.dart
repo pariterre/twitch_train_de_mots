@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
@@ -23,7 +24,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     final cm = Managers.instance.configuration;
     cm.onChanged.listen(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -39,7 +40,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -50,7 +51,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final cm = Managers.instance.configuration;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     LetterProblem? problem = gm.problem;
     // Sort players by round score then by total score if they are equal
@@ -156,7 +157,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     required bool isTitle,
     bool isStealer = false,
   }) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     final style = isTitle
         ? tm.clientMainTextStyle.copyWith(
             fontSize: 20,

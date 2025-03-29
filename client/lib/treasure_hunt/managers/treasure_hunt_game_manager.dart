@@ -2,12 +2,17 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/managers/dictionary_manager.dart';
+import 'package:common/models/exceptions.dart';
 import 'package:common/models/generic_listener.dart';
 import 'package:common/models/simplified_game_state.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:train_de_mots/treasure_hunt/models/enums.dart';
 import 'package:train_de_mots/treasure_hunt/models/game_tile.dart';
 import 'package:train_de_mots/treasure_hunt/models/tile.dart';
+
+final _logger = Logger('TreasureHuntGameManager');
 
 // TODO: Add sound effects
 // TODO: Add frontend
@@ -20,14 +25,29 @@ int toGridIndex(GameTile tile, int nbCols) => tile.row * nbCols + tile.col;
 GameTile toGridTile(int index, int nbCols) =>
     GameTile(index < 0 ? -1 : index ~/ nbCols, index < 0 ? -1 : index % nbCols);
 
-class TreasureHuntGameManager {
-  /// Prepare the singleton
-  static final TreasureHuntGameManager _instance = TreasureHuntGameManager._();
-  static TreasureHuntGameManager get instance => _instance;
-  TreasureHuntGameManager._() {
-    resetGame();
+class TreasureHuntGameManager implements MiniGameManager {
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+  TreasureHuntGameManager() {
+    _asyncInitializations();
+  }
 
-    Managers.instance.twitch.addChatListener(trySolution);
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
+    while (true) {
+      try {
+        final tm = Managers.instance.twitch;
+        tm.addChatListener(trySolution);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    _isInitialized = true;
+    _logger.config('Ready');
   }
 
   final _random = Random();
@@ -38,6 +58,7 @@ class TreasureHuntGameManager {
   Timer? _timer;
   final _startingTimeRemaining = const Duration(seconds: 30);
   late Duration _timeRemaining = _startingTimeRemaining;
+  @override
   Duration get timeRemaining => _timeRemaining;
 
   ///
@@ -65,7 +86,8 @@ class TreasureHuntGameManager {
       GenericListener<Function(String sender, String word, bool isSuccess)>();
   final onTileRevealed = GenericListener<Function()>();
   final onRewardFound = GenericListener<Function(Tile)>();
-  final onGameOver = GenericListener<Function(bool)>();
+  @override
+  final onGameEnded = GenericListener<Function(bool)>();
 
   // Size of the grid
   final int nbRows = 20;
@@ -110,10 +132,10 @@ class TreasureHuntGameManager {
 
   ///
   /// If the game is over
-  bool get hasWin => letterFoundCount == problem.letters.length;
-  bool get hasLost => isGameOver && !hasWin;
+  bool get hasWon => letterFoundCount == problem.letters.length;
+  bool get hasLost => isGameOver && !hasWon;
   bool get isGameOver =>
-      hasWin || _timeRemaining.inSeconds <= 0 || _triesRemaining <= 0;
+      hasWon || _timeRemaining.inSeconds <= 0 || _triesRemaining <= 0;
 
   List<String> get letters => List.from(problem.letters, growable: false);
 
@@ -205,7 +227,7 @@ class TreasureHuntGameManager {
 
     // Check if the game is over
     if (isGameOver) {
-      onGameOver.notifyListeners((callback) => callback(hasWin));
+      onGameEnded.notifyListeners((callback) => callback(hasWon));
       return RevealResult.gameOver;
     } else {
       return _grid[tileIndex].hasReward ? RevealResult.hit : RevealResult.miss;
@@ -284,7 +306,8 @@ class TreasureHuntGameManager {
     );
   }
 
-  void resetGame() {
+  @override
+  Future<void> start() async {
     _generateGrid();
     _isTimerRunning = false;
     _timeRemaining = _startingTimeRemaining;
@@ -401,7 +424,7 @@ class TreasureHuntGameManager {
     _tickClock();
 
     if (isGameOver) {
-      onGameOver.notifyListeners((callback) => callback(hasWin));
+      onGameEnded.notifyListeners((callback) => callback(hasWon));
       return;
     }
   }

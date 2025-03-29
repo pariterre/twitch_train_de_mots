@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -24,7 +25,7 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
   void initState() {
     super.initState();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
     Managers.instance.twitch.onTwitchManagerHasConnected.listen(_refresh);
@@ -34,7 +35,7 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
   void dispose() {
     super.dispose();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     Managers.instance.twitch.onTwitchManagerHasConnected.cancel(_refresh);
@@ -101,7 +102,7 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.listen(_setTrainPath);
     _setTrainPath();
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -113,7 +114,7 @@ class _HeaderState extends State<_Header> {
     gm.onRoundStarted.cancel(_refresh);
     gm.onRoundStarted.cancel(_setTrainPath);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     super.dispose();
@@ -157,7 +158,7 @@ class _HeaderState extends State<_Header> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     if (gm.problem == null) return Container();
 
@@ -243,7 +244,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onClockTicked.listen(_refresh);
     gm.onRoundIsOver.listen(_refreshWithParameter);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
   }
 
@@ -257,7 +258,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onClockTicked.cancel(_refresh);
     gm.onRoundIsOver.cancel(_refreshWithParameter);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
@@ -267,13 +268,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     final mgm = Managers.instance.miniGames.current;
 
     late String text;
     switch (gm.gameStatus) {
       case WordsTrainGameStatus.roundStarted:
-        int timeRemaining = gm.timeRemaining ?? 0;
+        int timeRemaining = gm.timeRemaining?.inSeconds ?? 0;
         text = timeRemaining > 0
             ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Arrivée en gare';
@@ -293,9 +294,9 @@ class _HeaderTimerState extends State<_HeaderTimer> {
         break;
       case WordsTrainGameStatus.miniGamePreparing:
       case WordsTrainGameStatus.miniGameStarted:
-        int timeRemaining = mgm!.timeRemaining;
-        text = timeRemaining > 0
-            ? 'Temps restant à la manche : $timeRemaining secondes'
+        Duration timeRemaining = mgm!.timeRemaining;
+        text = timeRemaining.inSeconds > 0
+            ? 'Temps restant à la manche : ${timeRemaining.inSeconds} secondes'
             : 'Arrivée en gare';
     }
 

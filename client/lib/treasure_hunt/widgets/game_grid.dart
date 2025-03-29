@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/sweeper_tile.dart';
 
 class GameGrid extends StatelessWidget {
@@ -10,7 +10,7 @@ class GameGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textSize = tileSize * 3 / 4;
-    final gm = TreasureHuntGameManager.instance;
+    final gm = Managers.instance.miniGames.treasureHunt;
 
     return Row(
       children: List.generate(gm.nbCols, (col) {

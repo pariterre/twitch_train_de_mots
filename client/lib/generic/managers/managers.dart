@@ -1,4 +1,3 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:train_de_mots/generic/managers/configuration_manager.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
@@ -39,33 +38,30 @@ class Managers {
 
     // Initialize the database manager
     _instance._database = MocksConfiguration.useDatabaseMock
-        ? await MocksConfiguration.gedDatabaseMocked()
-        : await DatabaseManager.factory();
+        ? MocksConfiguration.getDatabaseMocked()
+        : DatabaseManager();
 
     // Initialize the Twitch manager
     _instance._twitch = MocksConfiguration.useTwitchManagerMock
-        ? await TwitchManagerMock.factory(appInfo: twtichAppInfo)
-        : await TwitchManager.factory(appInfo: twtichAppInfo);
+        ? TwitchManagerMock(appInfo: twtichAppInfo)
+        : TwitchManager(appInfo: twtichAppInfo);
 
     // Initialize the configuration manager
-    _instance._configuration = await ConfigurationManager.factory();
+    _instance._configuration = ConfigurationManager();
 
     // Initialize the main game manager
     _instance._train = MocksConfiguration.useGameManagerMock
-        ? await MocksConfiguration.getWordsTrainGameManagerMocked()
-        : await WordsTrainGameManager.factory();
+        ? MocksConfiguration.getWordsTrainGameManagerMocked()
+        : WordsTrainGameManager();
 
     // Initialize the mini game manager
-    _instance._miniGames = await MiniGamesManager.factory();
+    _instance._miniGames = MiniGamesManager();
 
     // Initialize the sound manager
-    _instance._sound = await SoundManager.factory();
-
-    // Initialize the theme manager
-    _instance._theme = await ThemeManager.factory();
+    _instance._sound = SoundManager();
 
     // Initialize the EBS server manager
-    _instance._ebs = await EbsServerManager.factory(ebsUri: ebsUri);
+    _instance._ebs = EbsServerManager(ebsUri: ebsUri);
 
     // Wait for all the manager to be ready
     while (!(_instance._database?.isInitialized ?? false) ||
@@ -73,7 +69,6 @@ class Managers {
         !(_instance._train?.isInitialized ?? false) ||
         !(_instance._miniGames?.isInitialized ?? false) ||
         !(_instance._sound?.isInitialized ?? false) ||
-        !(_instance._theme?.isInitialized ?? false) ||
         !(_instance._twitch?.isInitialized ?? false) ||
         !(_instance._ebs?.isInitialized ?? false)) {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -123,15 +118,6 @@ class Managers {
           'SoundManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _sound!;
-  }
-
-  ThemeManager? _theme;
-  ThemeManager get theme {
-    if (_theme == null) {
-      throw ManagerNotInitializedException(
-          'ThemeManager is not initialized. Please call Managers.initialize() before using it.');
-    }
-    return _theme!;
   }
 
   TwitchManager? _twitch;

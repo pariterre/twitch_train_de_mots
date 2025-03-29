@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:flutter/material.dart';
@@ -127,7 +128,7 @@ class _CongratulationMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Container(
       decoration: BoxDecoration(

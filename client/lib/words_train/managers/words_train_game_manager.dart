@@ -18,22 +18,16 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 final _logger = Logger('GameManager');
 
 class WordsTrainGameManager {
-  WordsTrainGameManager._();
-
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<WordsTrainGameManager> factory() async {
-    _logger.config('GameManager is initializing...');
-    final instance = WordsTrainGameManager._();
-
-    instance._listenToConfigurationEvents();
-    Timer.periodic(const Duration(milliseconds: 1000), instance._gameLoop);
-
-    return instance;
+  WordsTrainGameManager() {
+    _asyncInitializations();
+    Timer.periodic(const Duration(milliseconds: 1000), _gameLoop);
   }
 
-  //// LISTEN TO GAME MANAGER ////
-  Future<void> _listenToConfigurationEvents() async {
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
     while (true) {
       try {
         final cm = Managers.instance.configuration;
@@ -46,7 +40,8 @@ class WordsTrainGameManager {
     }
 
     _isInitialized = true;
-    _logger.info('WordsTrainGameManager is initialized');
+
+    _logger.config('Ready');
   }
 
   /// ---------- ///
@@ -61,11 +56,13 @@ class WordsTrainGameManager {
   final _random = Random();
 
   int? _roundDuration;
-  int? get timeRemaining => _roundDuration == null || _roundStartedSince == null
-      ? null
-      : ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
-          Managers
-              .instance.configuration.postRoundGracePeriodDuration.inSeconds;
+  Duration? get timeRemaining =>
+      _roundDuration == null || _roundStartedSince == null
+          ? null
+          : Duration(
+              seconds: ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
+                  Managers.instance.configuration.postRoundGracePeriodDuration
+                      .inSeconds);
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -281,8 +278,8 @@ class WordsTrainGameManager {
 
       final cm = Managers.instance.configuration;
       _generateNextProblem(
-          maxSearchingTime: Duration(
-              seconds: timeRemaining ?? cm.autoplayDuration.inSeconds ~/ 2));
+          maxSearchingTime: timeRemaining ??
+              Duration(seconds: cm.autoplayDuration.inSeconds ~/ 2));
     }
 
     _logger.info('Rules have been updated');
@@ -792,7 +789,7 @@ class WordsTrainGameManager {
     // Manage golden solution
     _logger.fine('Managing golden solution...');
     if (!_roundHasGoldenSolution &&
-        timeRemaining! > cm.goldenSolutionMinimumDuration.inSeconds &&
+        timeRemaining! > cm.goldenSolutionMinimumDuration &&
         _random.nextDouble() < cm.goldenSolutionProbability) {
       _logger.info('A new golden solution appears');
 
@@ -830,7 +827,8 @@ class WordsTrainGameManager {
     _logger.fine('Managing useless letter...');
     if (!_isUselessLetterRevealed &&
         _currentDifficulty.hasUselessLetter &&
-        timeRemaining! <= _currentDifficulty.revealUselessLetterAtTimeLeft) {
+        timeRemaining!.inSeconds <=
+            _currentDifficulty.revealUselessLetterAtTimeLeft) {
       _logger.info('Revealing useless letter...');
       _isUselessLetterRevealed = true;
       onRevealUselessLetter.notifyListeners((callback) => callback());
@@ -840,7 +838,8 @@ class WordsTrainGameManager {
     _logger.fine('Managing hidden letter...');
     if (!_isHiddenLetterRevealed &&
         _currentDifficulty.hasHiddenLetter &&
-        timeRemaining! <= _currentDifficulty.revealHiddenLetterAtTimeLeft) {
+        timeRemaining!.inSeconds <=
+            _currentDifficulty.revealHiddenLetterAtTimeLeft) {
       _logger.info('Revealing hidden letter...');
       _isHiddenLetterRevealed = true;
       onRevealHiddenLetter.notifyListeners((callback) => callback());
@@ -874,7 +873,7 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
     if (_forceEndTheRound ||
         _currentProblem!.areAllSolutionsFound ||
-        (timeRemaining! + cm.postRoundGracePeriodDuration.inSeconds <= 0) ||
+        ((timeRemaining! + cm.postRoundGracePeriodDuration).inSeconds <= 0) ||
         (_isAttemptingTheBigHeist &&
             _numberOfStarObtained(problem!.teamScore) ==
                 SuccessLevel.bigHeist)) {
@@ -1032,7 +1031,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     bool shouldAttemptTheBigHeist = false,
     bool shouldChangeLane = false,
     MiniGames? nextMiniGame,
-  }) : super._() {
+  }) {
     if (players != null) {
       for (final player in players) {
         this.players.add(player);
@@ -1080,7 +1079,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     _nextMiniGame = nextMiniGame;
 
-    _listenToConfigurationEvents();
+    _asyncInitializations();
     Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
   }
 

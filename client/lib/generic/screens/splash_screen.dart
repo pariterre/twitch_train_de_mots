@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -24,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final gm = Managers.instance.train;
     gm.onNextProblemReady.listen(_onNextProblemReady);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
     final dm = Managers.instance.database;
@@ -46,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final gm = Managers.instance.train;
     gm.onNextProblemReady.cancel(_onNextProblemReady);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     final dm = Managers.instance.database;
@@ -88,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
 
     return SizedBox(
@@ -215,7 +216,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
   void _showError(String errorMessage) {
     if (!mounted) return;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(errorMessage,
           style: TextStyle(color: tm.mainColor, fontWeight: FontWeight.bold)),
@@ -233,7 +234,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
 
     return Container(
@@ -275,7 +276,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _loginBuild() {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     final border = OutlineInputBorder(
       borderSide: BorderSide(color: tm.mainColor),
@@ -422,7 +423,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _buildWaitingForEmailVerification() {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0, left: 32.0, right: 32.0),
@@ -436,7 +437,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   }
 
   Widget _buildChosingTeamName() {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     final border = OutlineInputBorder(
       borderSide: BorderSide(color: tm.mainColor),

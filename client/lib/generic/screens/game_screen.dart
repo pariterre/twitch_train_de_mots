@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -31,7 +32,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Managers.instance.twitch.isNotConnected
         ? Center(child: CircularProgressIndicator(color: tm.mainColor))

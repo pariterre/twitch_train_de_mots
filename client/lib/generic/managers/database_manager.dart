@@ -21,10 +21,13 @@ enum MvpType { score, stars }
 class DatabaseManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<DatabaseManager> factory() async {
-    _logger.config('Initializing DatabaseManager...');
+  DatabaseManager() {
+    _asyncInitializations();
+  }
 
-    final instance = DatabaseManager._();
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
     try {
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
@@ -36,12 +39,10 @@ class DatabaseManager {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
-    instance._isInitialized = true;
-    _logger.config('DatabaseManager initialized');
-    return instance;
-  }
 
-  DatabaseManager._();
+    _isInitialized = true;
+    _logger.config('Ready');
+  }
 
   ////////////////////////////////
   //// AUTH RELATED FUNCTIONS ////
@@ -569,9 +570,7 @@ class DatabaseManagerMock extends DatabaseManager {
   Map<String, (int, String)> _dummyBestPlayersScore = {};
   Map<String, (int, String)> _dummyBestPlayersStars = {};
 
-  DatabaseManagerMock._() : super._();
-
-  static Future<DatabaseManagerMock> factory({
+  DatabaseManagerMock({
     bool? dummyIsSignedIn,
     String? dummyEmail,
     bool? emailIsVerified,
@@ -580,23 +579,23 @@ class DatabaseManagerMock extends DatabaseManager {
     Map<String, int>? dummyBestStationResults,
     Map<String, (int, String)>? dummyBestPlayerScore,
     Map<String, (int, String)>? dummyBestPlayerStars,
-  }) async {
-    final instance = DatabaseManagerMock._();
+  }) {
+    _dummyIsSignedIn = dummyIsSignedIn ?? _dummyIsSignedIn;
+    _dummyEmail = dummyEmail ?? _dummyEmail;
+    _emailIsVerified = emailIsVerified ?? _emailIsVerified;
+    _dummyTeamName = dummyTeamName ?? _dummyTeamName;
+    _dummyPassword = dummyPassword ?? _dummyPassword;
+    _dummyBestStationsResults =
+        dummyBestStationResults ?? _dummyBestStationsResults;
+    _dummyBestPlayersScore = dummyBestPlayerScore ?? _dummyBestPlayersScore;
+    _dummyBestPlayersStars = dummyBestPlayerStars ?? _dummyBestPlayersStars;
+  }
 
-    instance._dummyIsSignedIn = dummyIsSignedIn ?? instance._dummyIsSignedIn;
-    instance._dummyEmail = dummyEmail ?? instance._dummyEmail;
-    instance._emailIsVerified = emailIsVerified ?? instance._emailIsVerified;
-    instance._dummyTeamName = dummyTeamName ?? instance._dummyTeamName;
-    instance._dummyPassword = dummyPassword ?? instance._dummyPassword;
-    instance._dummyBestStationsResults =
-        dummyBestStationResults ?? instance._dummyBestStationsResults;
-    instance._dummyBestPlayersScore =
-        dummyBestPlayerScore ?? instance._dummyBestPlayersScore;
-    instance._dummyBestPlayersStars =
-        dummyBestPlayerStars ?? instance._dummyBestPlayersStars;
-
-    instance._isInitialized = true;
-    return instance;
+  @override
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+    _isInitialized = true;
+    _logger.config('Ready');
   }
 
   ///////////////////////

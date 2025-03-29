@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
 
 class ParchmentDialog extends StatefulWidget {
   const ParchmentDialog({
@@ -65,7 +65,7 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return AlertDialog(
       content: SizedBox(

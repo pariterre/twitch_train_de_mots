@@ -13,11 +13,14 @@ class TwitchManager {
 
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<TwitchManager> factory({required TwitchAppInfo appInfo}) async {
-    final instance = TwitchManager._(appInfo: appInfo);
-    instance._isInitialized = true;
-    _logger.info('TwitchManager initialized');
-    return instance;
+  TwitchManager({required this.appInfo}) {
+    _asyncInitializations();
+  }
+
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+    _isInitialized = true;
+    _logger.config('Ready');
   }
 
   ///
@@ -90,10 +93,6 @@ class TwitchManager {
   TwitchAppManager? _manager;
 
   ///
-  /// Declare the singleton
-  TwitchManager._({required this.appInfo});
-
-  ///
   /// Twitch options
   bool _useMocker = false;
   final TwitchAppInfo appInfo;
@@ -111,13 +110,7 @@ class TwitchManager {
 }
 
 class TwitchManagerMock extends TwitchManager {
-  TwitchManagerMock._({required super.appInfo}) : super._();
-
-  static Future<TwitchManagerMock> factory(
-      {required TwitchAppInfo appInfo}) async {
-    final instance = TwitchManagerMock._(appInfo: appInfo);
-    instance._useMocker = true;
-    instance._isInitialized = true;
-    return instance;
+  TwitchManagerMock({required super.appInfo}) {
+    _useMocker = true;
   }
 }

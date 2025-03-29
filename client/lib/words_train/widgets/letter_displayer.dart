@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     gm.onRevealHiddenLetter.listen(_onRevealHiddenLetter);
     gm.onRoundStarted.listen(_onRoundStarted);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
     _reinitializeFireworks();
@@ -37,7 +38,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     gm.onRevealHiddenLetter.cancel(_onRevealHiddenLetter);
     gm.onRoundStarted.cancel(_onRoundStarted);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     for (var e in _fireworksControllers) {

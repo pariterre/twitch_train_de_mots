@@ -1,4 +1,3 @@
-import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/widgets/main_extension.dart';
@@ -11,7 +10,6 @@ void main() async {
   });
   await TwitchManager.initialize(useMocker: false, useLocalEbs: false);
   WidgetsFlutterBinding.ensureInitialized();
-  await ThemeManager.factory();
 
   runApp(const MainExtension(
     isFullScreen: false,

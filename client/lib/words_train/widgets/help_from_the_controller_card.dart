@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
@@ -7,7 +8,7 @@ class HelpFromTheControllerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Card(
       color: tm.mainColor,
@@ -96,7 +97,7 @@ class _PardonState extends State<_Pardon> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -152,7 +153,7 @@ class _BoostState extends State<_Boost> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Row(
       mainAxisSize: MainAxisSize.max,

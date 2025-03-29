@@ -1,3 +1,4 @@
+import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/widgets/background.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onShowMessage = _showMessageDialog;
     gm.onShowcaseSolutionsRequest.listen(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
     final dm = Managers.instance.database;
@@ -55,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundStarted.cancel(_refresh);
     gm.onShowcaseSolutionsRequest.cancel(_refresh);
 
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     final dm = Managers.instance.database;
@@ -73,7 +74,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _showMessageDialog(String message) async {
     final cm = Managers.instance.configuration;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     await showDialog(
         context: context,
@@ -109,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final dm = Managers.instance.database;
-    final tm = Managers.instance.theme;
+    final tm = ThemeManager.instance;
 
     return Scaffold(
       body: Background(

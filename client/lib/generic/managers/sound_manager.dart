@@ -37,25 +37,18 @@ class SoundManager {
     _logger.info('Sound effect: $source played');
   }
 
-  SoundManager._();
-
   ///
   /// This method initializes the singleton and should be called before
   /// using the singleton.
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  static Future<SoundManager> factory() async {
-    final instance = SoundManager._();
-
-    instance._connectListeners();
-
-    instance._gameMusic.setLoopMode(LoopMode.all);
-    instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
-
-    return instance;
+  SoundManager() {
+    _asyncInitializations();
   }
 
-  Future<void> _connectListeners() async {
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
     while (true) {
       try {
         final gm = Managers.instance.train;
@@ -92,9 +85,11 @@ class SoundManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+    _gameMusic.setLoopMode(LoopMode.all);
+    _gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
 
     _isInitialized = true;
-    _logger.info('SoundManager initialized');
+    _logger.config('Ready');
   }
 
   Future<void> _manageGameMusic() async {
