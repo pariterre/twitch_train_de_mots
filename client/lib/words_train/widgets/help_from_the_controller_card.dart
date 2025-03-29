@@ -53,9 +53,10 @@ class _PardonState extends State<_Pardon> {
 
     final gm = Managers.instance.train;
     gm.onNewPardonGranted.listen(_refresh);
+    gm.onNewBoostGranted.listen(_refresh);
     gm.onStealerPardoned.listen(_onStealerPardoned);
     gm.onSolutionWasStolen.listen(_onSolutionWasStolen);
-    gm.onRoundIsOver.listen(_resetCardInterfaced);
+    gm.onRoundIsOver.listen(_resetCard);
     gm.onRoundStarted.listen(_resetCard);
   }
 
@@ -63,9 +64,10 @@ class _PardonState extends State<_Pardon> {
   void dispose() {
     final gm = Managers.instance.train;
     gm.onNewPardonGranted.cancel(_refresh);
+    gm.onNewBoostGranted.cancel(_refresh);
     gm.onStealerPardoned.cancel(_onStealerPardoned);
     gm.onSolutionWasStolen.cancel(_onSolutionWasStolen);
-    gm.onRoundIsOver.cancel(_resetCardInterfaced);
+    gm.onRoundIsOver.cancel(_resetCard);
     gm.onRoundStarted.cancel(_resetCard);
 
     super.dispose();
@@ -85,8 +87,6 @@ class _PardonState extends State<_Pardon> {
     _lastStealer = solution.stolenFrom.name;
     setState(() {});
   }
-
-  void _resetCardInterfaced(_) => _resetCard();
 
   void _resetCard() => setState(() => _lastStealer = null);
 

@@ -50,7 +50,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     _attemptingTheBigHeist.dispose();
   }
 
-  void _refresh(_) => setState(() {});
+  void _refresh() => setState(() {});
 
   void _showAttemptingTheBigHeist() {
     _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());

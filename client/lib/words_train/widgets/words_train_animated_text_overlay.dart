@@ -2,6 +2,7 @@ import 'package:common/managers/theme_manager.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/words_train/models/round_success.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class WordsTrainAnimatedTextOverlay extends StatefulWidget {
@@ -35,7 +36,7 @@ class _WordsTrainAnimatedTextOverlayState
       bouncyScale: 1.0,
       maxScale: 1.1,
       maxOpacity: 0.9);
-  final _allSolutionFoundController = BouncyContainerController(
+  final _roundIsOverController = BouncyContainerController(
       bounceCount: 5,
       easingInDuration: 300,
       bouncingDuration: 1000,
@@ -89,7 +90,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onSolutionWasStolen.listen(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.listen(_showStealerWasPardoned);
-    gm.onAllSolutionsFound.listen(_showAllSolutionsFound);
+    gm.onRoundIsOver.listen(_showRoundIsOver);
     gm.onTrainGotBoosted.listen(_showTrainGotBoosted);
     gm.onBigHeistSuccess.listen(_showBigHeistSuccess);
     gm.onBigHeistFailed.listen(_showBigHeistFailed);
@@ -101,7 +102,7 @@ class _WordsTrainAnimatedTextOverlayState
     _stolenController.dispose();
     _pardonedController.dispose();
     _newGoldenController.dispose();
-    _allSolutionFoundController.dispose();
+    _roundIsOverController.dispose();
     _trainGotBoostedController.dispose();
     _bigHeistSuccessController.dispose();
     _bigHeistFailedController.dispose();
@@ -111,7 +112,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onSolutionWasStolen.cancel(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.cancel(_showStealerWasPardoned);
-    gm.onAllSolutionsFound.cancel(_showAllSolutionsFound);
+    gm.onRoundIsOver.cancel(_showRoundIsOver);
     gm.onTrainGotBoosted.cancel(_showTrainGotBoosted);
     gm.onBigHeistSuccess.cancel(_showBigHeistSuccess);
     gm.onBigHeistFailed.cancel(_showBigHeistFailed);
@@ -133,8 +134,8 @@ class _WordsTrainAnimatedTextOverlayState
         .triggerAnimation(_AStealerWasPardoned(solution: solution));
   }
 
-  void _showAllSolutionsFound() {
-    _allSolutionFoundController.triggerAnimation(const _AllSolutionsFound());
+  void _showRoundIsOver() {
+    _roundIsOverController.triggerAnimation(const _RoundIsOver());
   }
 
   void _showTrainGotBoosted(int boostRemaining) {
@@ -176,7 +177,7 @@ class _WordsTrainAnimatedTextOverlayState
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.4,
-            child: BouncyContainer(controller: _allSolutionFoundController),
+            child: BouncyContainer(controller: _roundIsOverController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
@@ -314,12 +315,23 @@ class _AStealerWasPardoned extends StatelessWidget {
   }
 }
 
-class _AllSolutionsFound extends StatelessWidget {
-  const _AllSolutionsFound();
+class _RoundIsOver extends StatelessWidget {
+  const _RoundIsOver();
 
   @override
   Widget build(BuildContext context) {
+    final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
+
+    String message = '';
+    if (gm.roundSuccesses.contains(RoundSuccess.maxPoints)) {
+      message += 'Vous avez atteint le bout du rail, ça mérite un boost!';
+    }
+    if (gm.roundSuccesses.contains(RoundSuccess.foundAll)) {
+      if (message.isNotEmpty) message += '\n\n';
+      message +=
+          'Toutes les solutions ont été trouvées!\nAllons cueillir des bleuets!';
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -333,8 +345,7 @@ class _AllSolutionsFound extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Toutes les solutions ont été trouvées!\n'
-            'Un boost supplémentaire a été accordé!',
+            message,
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,

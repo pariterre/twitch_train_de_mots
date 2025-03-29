@@ -239,7 +239,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onRoundStarted.listen(_refresh);
     gm.onNextProblemReady.listen(_refresh);
     gm.onClockTicked.listen(_refresh);
-    gm.onRoundIsOver.listen(_refreshWithParameter);
+    gm.onRoundIsOver.listen(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
@@ -253,14 +253,13 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     gm.onRoundStarted.cancel(_refresh);
     gm.onNextProblemReady.cancel(_refresh);
     gm.onClockTicked.cancel(_refresh);
-    gm.onRoundIsOver.cancel(_refreshWithParameter);
+    gm.onRoundIsOver.cancel(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
-  void _refreshWithParameter(_) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

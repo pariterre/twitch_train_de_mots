@@ -51,11 +51,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     // Connect the listeners to the GameManager
     final gm = Managers.instance.train;
     gm.onRoundStarted.listen(_sendGameStateToEbs);
-    gm.onRoundIsOver.listen(_sendGameStateToEbssWithParameter);
+    gm.onRoundIsOver.listen(_sendGameStateToEbs);
     gm.onStealerPardoned.listen(_sendGameStateToEbssWithParameter);
     gm.onSolutionFound.listen(_sendCooldownToEbs);
     gm.onSolutionWasStolen.listen(_sendCooldownToEbs);
-    gm.onRoundIsOver.listen(_sendGameStateToEbssWithParameter);
     gm.onAttemptingTheBigHeist.listen(_sendGameStateToEbs);
     gm.onScrablingLetters.listen(_sendGameStateToEbs);
     gm.onRevealUselessLetter.listen(_sendGameStateToEbs);
@@ -76,11 +75,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   void _disposeListeners() {
     final gm = Managers.instance.train;
     gm.onRoundStarted.cancel(_sendGameStateToEbs);
-    gm.onRoundIsOver.cancel(_sendGameStateToEbssWithParameter);
+    gm.onRoundIsOver.cancel(_sendGameStateToEbs);
     gm.onStealerPardoned.cancel(_sendGameStateToEbssWithParameter);
     gm.onSolutionFound.cancel(_sendCooldownToEbs);
     gm.onSolutionWasStolen.cancel(_sendCooldownToEbs);
-    gm.onRoundIsOver.cancel(_sendGameStateToEbssWithParameter);
     gm.onAttemptingTheBigHeist.cancel(_sendGameStateToEbs);
     gm.onScrablingLetters.cancel(_sendGameStateToEbs);
     gm.onRevealUselessLetter.cancel(_sendGameStateToEbs);

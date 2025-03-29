@@ -71,7 +71,7 @@ class ConfigurationManager {
         gm.onRoundIsPreparing.listen(_reactToGameManagerEvent);
         gm.onNextProblemReady.listen(_reactToGameManagerEvent);
         gm.onRoundStarted.listen(_reactToGameManagerEvent);
-        gm.onRoundIsOver.listen(_reactToGameManagerEventWithParameter);
+        gm.onRoundIsOver.listen(_reactToGameManagerEvent);
         break;
       } on ManagerNotInitializedException {
         // Wait and repeat
@@ -339,8 +339,6 @@ class ConfigurationManager {
   }
 
   void _reactToGameManagerEvent() =>
-      onChanged.notifyListeners((callback) => callback());
-  void _reactToGameManagerEventWithParameter(_) =>
       onChanged.notifyListeners((callback) => callback());
 
   //// LOAD AND SAVE ////

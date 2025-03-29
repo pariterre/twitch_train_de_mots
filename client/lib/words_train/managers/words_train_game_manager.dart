@@ -255,7 +255,7 @@ class WordsTrainGameManager {
   final onRoundIsPreparing = GenericListener<Function()>();
   final onNextProblemReady = GenericListener<Function()>();
   final onRoundStarted = GenericListener<Function()>();
-  final onRoundIsOver = GenericListener<Function(bool)>();
+  final onRoundIsOver = GenericListener<Function()>();
   final onClockTicked = GenericListener<Function()>();
   final onScrablingLetters = GenericListener<Function()>();
   final onRevealUselessLetter = GenericListener<Function()>();
@@ -265,6 +265,7 @@ class WordsTrainGameManager {
   final onGoldenSolutionAppeared = GenericListener<Function(WordSolution)>();
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
+  final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onAttemptingTheBigHeist = GenericListener<Function()>();
   final onBigHeistSuccess = GenericListener<Function()>();
@@ -742,6 +743,11 @@ class WordsTrainGameManager {
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
 
+    // There is no mini game at the start
+    _isNextRoundAMiniGame = false;
+    _isRoundAMiniGame = false;
+    _currentMiniGame = null;
+
     players.clear();
 
     _logger.info('Game restarted');
@@ -951,10 +957,10 @@ class WordsTrainGameManager {
     }
     _isAttemptingTheBigHeist = false;
 
-    if (_currentProblem!.areAllSolutionsFound) {
-      _roundSuccesses.add(RoundSuccess.foundAll);
+    if (_currentProblem!.teamScore >= _currentProblem!.maximumPossibleScore) {
+      _roundSuccesses.add(RoundSuccess.maxPoints);
       _remainingBoosts += 1;
-      onAllSolutionsFound.notifyListeners((callback) => callback());
+      onNewBoostGranted.notifyListeners((callback) => callback());
     }
 
     if (_currentProblem!.noSolutionWasStolenOrPardoned &&
@@ -971,8 +977,19 @@ class WordsTrainGameManager {
       }
     }
 
+    // Select the mini game to play if allowed
+    _isNextRoundAMiniGame = false;
+    _currentMiniGame = null;
+    if (_currentProblem!.areAllSolutionsFound || true) {
+      _roundSuccesses.add(RoundSuccess.foundAll);
+      _isNextRoundAMiniGame = true;
+      _currentMiniGame = MiniGames.treasureHunt;
+      onAllSolutionsFound.notifyListeners((callback) => callback());
+    }
+
     _gameStatus = WordsTrainGameStatus.roundEnding;
-    _showCaseAnswers(playSound: true);
+    onRoundIsOver.notifyListeners((callback) => callback());
+    _showCaseAnswers();
 
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
@@ -988,10 +1005,6 @@ class WordsTrainGameManager {
           mvpStars: players.bestPlayersByStars);
     }
 
-    // Select the mini game to play if allowed
-    _isNextRoundAMiniGame = false;
-    _currentMiniGame = null;
-
     _logger.info('Round ended');
   }
 
@@ -1002,10 +1015,10 @@ class WordsTrainGameManager {
       _logger.warning('Cannot show case answers at this time');
       return;
     }
-    _showCaseAnswers(playSound: false);
+    _showCaseAnswers();
   }
 
-  void _showCaseAnswers({required bool playSound}) {
+  void _showCaseAnswers() {
     _logger.info('Show casing answers...');
 
     final cm = Managers.instance.configuration;
@@ -1015,7 +1028,6 @@ class WordsTrainGameManager {
       onRoundIsPreparing.notifyListeners((callback) => callback());
       _gameStatus = WordsTrainGameStatus.roundPreparing;
     });
-    onRoundIsOver.notifyListeners((callback) => callback(playSound));
     onShowcaseSolutionsRequest.notifyListeners((callback) => callback());
 
     _logger.info('Answers are shown');
@@ -1073,7 +1085,7 @@ class WordsTrainGameManager {
     _boostStartedAt = null;
 
     _gameStatus = WordsTrainGameStatus.roundEnding;
-    _showCaseAnswers(playSound: false);
+    _showCaseAnswers();
 
     // Launch the automatic start of the round timer if needed
     final cm = Managers.instance.configuration;

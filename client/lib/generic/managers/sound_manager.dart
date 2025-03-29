@@ -119,8 +119,7 @@ class SoundManager {
     _playSoundEffect('assets/sounds/LettersScrambling.mp3');
   }
 
-  Future<void> _onRoundIsOver(bool playSound) async {
-    if (!playSound) return;
+  Future<void> _onRoundIsOver() async {
     _playSoundEffect('assets/sounds/RoundIsOver.mp3');
   }
 
