@@ -25,14 +25,17 @@ class DatabaseManager {
     _logger.config('Initializing DatabaseManager...');
 
     final instance = DatabaseManager._();
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+    try {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+    } on UnsupportedError {
+      throw 'DatabaseManager is not available on this platform, please use the mock';
+    }
 
     if (MocksConfiguration.useDatabaseEmulators) {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }
-
     instance._isInitialized = true;
     _logger.config('DatabaseManager initialized');
     return instance;

@@ -3,25 +3,12 @@ import 'package:common/models/exceptions.dart';
 import 'package:train_de_mots/generic/managers/configuration_manager.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
 import 'package:train_de_mots/generic/managers/ebs_server_manager.dart';
+import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:train_de_mots/generic/managers/sound_manager.dart';
 import 'package:train_de_mots/generic/managers/twitch_manager.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/managers/words_train_game_manager.dart';
 import 'package:twitch_manager/twitch_app.dart' as twitch_app;
-
-class MiniGameManager {
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
-  static Future<MiniGameManager> factory() async {
-    final instance = MiniGameManager._();
-    instance._isInitialized = true;
-    return instance;
-  }
-
-  MiniGameManager._();
-
-  int get timeRemaining => 30;
-}
 
 class Managers {
   ///
@@ -32,7 +19,7 @@ class Managers {
   static Managers get instance {
     if (!_instance._isInitialized) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'Managers are not initialized. Please call Managers.initialize() before using it.');
     }
     return _instance;
   }
@@ -44,13 +31,21 @@ class Managers {
       required Uri ebsUri}) async {
     if (_instance._isInitialized) {
       throw ManagerAlreadyInitializedException(
-          'GamesManager is already initialized.');
+          'Managers are already initialized.');
     }
+    // We need to allow access to managers already because they need each other
+    // to be initialized
+    _instance._isInitialized = true;
 
     // Initialize the database manager
     _instance._database = MocksConfiguration.useDatabaseMock
         ? await MocksConfiguration.gedDatabaseMocked()
         : await DatabaseManager.factory();
+
+    // Initialize the Twitch manager
+    _instance._twitch = MocksConfiguration.useTwitchManagerMock
+        ? await TwitchManagerMock.factory(appInfo: twtichAppInfo)
+        : await TwitchManager.factory(appInfo: twtichAppInfo);
 
     // Initialize the configuration manager
     _instance._configuration = await ConfigurationManager.factory();
@@ -61,7 +56,7 @@ class Managers {
         : await WordsTrainGameManager.factory();
 
     // Initialize the mini game manager
-    _instance._miniGame = await MiniGameManager.factory();
+    _instance._miniGames = await MiniGamesManager.factory();
 
     // Initialize the sound manager
     _instance._sound = await SoundManager.factory();
@@ -69,20 +64,14 @@ class Managers {
     // Initialize the theme manager
     _instance._theme = await ThemeManager.factory();
 
-    // Initialize the Twitch manager
-    _instance._twitch = MocksConfiguration.useTwitchManagerMock
-        ? await TwitchManagerMock.factory(appInfo: twtichAppInfo)
-        : await TwitchManager.factory(appInfo: twtichAppInfo);
-
     // Initialize the EBS server manager
     _instance._ebs = await EbsServerManager.factory(ebsUri: ebsUri);
 
     // Wait for all the manager to be ready
-    _instance._isInitialized = true;
     while (!(_instance._database?.isInitialized ?? false) ||
         !(_instance._configuration?.isInitialized ?? false) ||
         !(_instance._train?.isInitialized ?? false) ||
-        !(_instance._miniGame?.isInitialized ?? false) ||
+        !(_instance._miniGames?.isInitialized ?? false) ||
         !(_instance._sound?.isInitialized ?? false) ||
         !(_instance._theme?.isInitialized ?? false) ||
         !(_instance._twitch?.isInitialized ?? false) ||
@@ -95,7 +84,7 @@ class Managers {
   DatabaseManager get database {
     if (_database == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'DatabaseManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _database!;
   }
@@ -104,7 +93,7 @@ class Managers {
   ConfigurationManager get configuration {
     if (_configuration == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'ConfigurationManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _configuration!;
   }
@@ -113,25 +102,25 @@ class Managers {
   WordsTrainGameManager get train {
     if (_train == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'GamesManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _train!;
   }
 
-  MiniGameManager? _miniGame;
-  MiniGameManager get miniGame {
-    if (_miniGame == null) {
+  MiniGamesManager? _miniGames;
+  MiniGamesManager get miniGames {
+    if (_miniGames == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'MiniGamesManager is not initialized. Please call Managers.initialize() before using it.');
     }
-    return _miniGame!;
+    return _miniGames!;
   }
 
   SoundManager? _sound;
   SoundManager get sound {
     if (_sound == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'SoundManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _sound!;
   }
@@ -140,7 +129,7 @@ class Managers {
   ThemeManager get theme {
     if (_theme == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'ThemeManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _theme!;
   }
@@ -149,7 +138,7 @@ class Managers {
   TwitchManager get twitch {
     if (_twitch == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'TwitchManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _twitch!;
   }
@@ -158,7 +147,7 @@ class Managers {
   EbsServerManager get ebs {
     if (_ebs == null) {
       throw ManagerNotInitializedException(
-          'GamesManager is not initialized. Please call initialize() before using it.');
+          'EbsServerManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _ebs!;
   }

@@ -123,13 +123,16 @@ class _MainScreenState extends State<MainScreen> {
             ? Center(child: CircularProgressIndicator(color: tm.mainColor))
             : Stack(
                 children: [
-                  dm.isLoggedOut || gm.gameStatus == GameStatus.initializing
+                  dm.isLoggedOut ||
+                          gm.gameStatus == WordsTrainGameStatus.initializing
                       ? SplashScreen(onClickStart: _onClickedBegin)
                       : Stack(
                           children: [
                             GameScreen(),
-                            if (gm.gameStatus == GameStatus.roundPreparing ||
-                                gm.gameStatus == GameStatus.roundReady)
+                            if (gm.gameStatus ==
+                                    WordsTrainGameStatus.roundPreparing ||
+                                gm.gameStatus ==
+                                    WordsTrainGameStatus.roundReady)
                               const BetweenRoundsOverlay(),
                             const CongratulationLayer(),
                           ],

@@ -49,8 +49,8 @@ class SoundManager {
 
     instance._connectListeners();
 
-    await instance._gameMusic.setLoopMode(LoopMode.all);
-    await instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
+    instance._gameMusic.setLoopMode(LoopMode.all);
+    instance._gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
 
     return instance;
   }

@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
-import 'package:train_de_mots/treasure_seeker/models/tile.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 extension TileColor on TileValue {
   Color get color {
@@ -47,7 +47,7 @@ class SweeperTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     final tile = gm.getTile(tileIndex);
 
     // index is the number of treasure around the current tile

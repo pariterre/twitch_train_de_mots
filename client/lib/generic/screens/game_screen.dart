@@ -15,15 +15,16 @@ class _GameScreenState extends State<GameScreen> {
     final gm = Managers.instance.train;
 
     switch (gm.gameStatus) {
-      case GameStatus.uninitialized:
-      case GameStatus.initializing:
-      case GameStatus.roundPreparing:
-      case GameStatus.roundReady:
-      case GameStatus.roundStarted:
-      case GameStatus.revealAnswers:
+      case WordsTrainGameStatus.uninitialized:
+      case WordsTrainGameStatus.initializing:
+      case WordsTrainGameStatus.roundPreparing:
+      case WordsTrainGameStatus.roundReady:
+      case WordsTrainGameStatus.roundStarted:
+      case WordsTrainGameStatus.revealAnswers:
         return const WordsTrainGameScreen();
 
-      case GameStatus.treasureSeeking:
+      case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameStarted:
         return const WordsTrainGameScreen();
     }
   }

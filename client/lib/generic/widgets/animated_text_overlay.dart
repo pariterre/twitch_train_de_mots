@@ -1,7 +1,7 @@
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class AnimatedTextOverlay extends StatefulWidget {
@@ -79,10 +79,10 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
       maxScale: 1.4,
       maxOpacity: 0.9);
 
-  // Treasure Seeker messages
-  final _treasureSeekerWrongWordController = BouncyContainerController(
+  // Treasure Hunt messages
+  final _treasureHuntWrongWordController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
-  final _treasureSeekerFoundWordController = BouncyContainerController(
+  final _treasureHuntFoundWordController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -91,7 +91,7 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
       bouncyScale: 1.2,
       maxScale: 1.4,
       maxOpacity: 0.9);
-  final _treasureSeekerFailedController = BouncyContainerController(
+  final _treasureHuntFailedController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 4000,
@@ -115,9 +115,9 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     gm.onBigHeistFailed.listen(_showBigHeistFailed);
     gm.onChangingLane.listen(_showChangeLane);
 
-    final tgm = TreasureSeekerGameManager.instance;
-    tgm.onTrySolution.listen(_treasureSeekerTrySolution);
-    tgm.onGameOver.listen(_treasureSeekerFailed);
+    final tgm = TreasureHuntGameManager.instance;
+    tgm.onTrySolution.listen(_treasureHuntTrySolution);
+    tgm.onGameOver.listen(_treasureHuntFailed);
   }
 
   @override
@@ -141,9 +141,9 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     gm.onBigHeistFailed.cancel(_showBigHeistFailed);
     gm.onChangingLane.cancel(_showChangeLane);
 
-    final tgm = TreasureSeekerGameManager.instance;
-    tgm.onTrySolution.cancel(_treasureSeekerTrySolution);
-    tgm.onGameOver.cancel(_treasureSeekerFailed);
+    final tgm = TreasureHuntGameManager.instance;
+    tgm.onTrySolution.cancel(_treasureHuntTrySolution);
+    tgm.onGameOver.cancel(_treasureHuntFailed);
 
     super.dispose();
   }
@@ -182,21 +182,20 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
     _changeLaneController.triggerAnimation(const _ChangeLane());
   }
 
-  void _treasureSeekerTrySolution(String sender, String word, bool isSuccess) {
+  void _treasureHuntTrySolution(String sender, String word, bool isSuccess) {
     if (isSuccess) {
-      _treasureSeekerFoundWordController
-          .triggerAnimation(_TreasureSeekerFoundWord(sender, word));
+      _treasureHuntFoundWordController
+          .triggerAnimation(_TreasureHuntFoundWord(sender, word));
     } else {
-      _treasureSeekerWrongWordController
-          .triggerAnimation(_TreasureSeekerWrongWord(sender, word));
+      _treasureHuntWrongWordController
+          .triggerAnimation(_TreasureHuntWrongWord(sender, word));
     }
   }
 
-  void _treasureSeekerFailed(bool hasWin) {
+  void _treasureHuntFailed(bool hasWin) {
     // Do not write anything if the game was won, as the try solution will
     if (hasWin) return;
-    _treasureSeekerFailedController
-        .triggerAnimation(const _TreasureSeekerFailed());
+    _treasureHuntFailedController.triggerAnimation(const _TreasureHuntFailed());
   }
 
   @override
@@ -242,16 +241,16 @@ class _AnimatedTextOverlayState extends State<AnimatedTextOverlay> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
             child:
-                BouncyContainer(controller: _treasureSeekerWrongWordController),
+                BouncyContainer(controller: _treasureHuntWrongWordController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
             child:
-                BouncyContainer(controller: _treasureSeekerFoundWordController),
+                BouncyContainer(controller: _treasureHuntFoundWordController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _treasureSeekerFailedController),
+            child: BouncyContainer(controller: _treasureHuntFailedController),
           ),
         ],
       ),
@@ -547,8 +546,8 @@ class _ChangeLane extends StatelessWidget {
   }
 }
 
-class _TreasureSeekerFoundWord extends StatelessWidget {
-  const _TreasureSeekerFoundWord(this.sender, this.word);
+class _TreasureHuntFoundWord extends StatelessWidget {
+  const _TreasureHuntFoundWord(this.sender, this.word);
 
   final String sender;
   final String word;
@@ -583,8 +582,8 @@ class _TreasureSeekerFoundWord extends StatelessWidget {
   }
 }
 
-class _TreasureSeekerWrongWord extends StatelessWidget {
-  const _TreasureSeekerWrongWord(this.sender, this.word);
+class _TreasureHuntWrongWord extends StatelessWidget {
+  const _TreasureHuntWrongWord(this.sender, this.word);
 
   final String sender;
   final String word;
@@ -619,8 +618,8 @@ class _TreasureSeekerWrongWord extends StatelessWidget {
   }
 }
 
-class _TreasureSeekerFailed extends StatelessWidget {
-  const _TreasureSeekerFailed();
+class _TreasureHuntFailed extends StatelessWidget {
+  const _TreasureHuntFailed();
 
   @override
   Widget build(BuildContext context) {

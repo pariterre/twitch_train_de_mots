@@ -1,9 +1,10 @@
-enum GameStatus {
+enum WordsTrainGameStatus {
   uninitialized,
   initializing,
   roundPreparing,
   roundReady,
   roundStarted,
   revealAnswers,
-  treasureSeeking;
+  miniGamePreparing,
+  miniGameStarted;
 }

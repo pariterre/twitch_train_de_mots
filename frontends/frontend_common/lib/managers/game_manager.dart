@@ -24,7 +24,8 @@ class GameManager {
   ///
   /// Callback to know when a round has started or ended
   int get currentRound => _gameState.round;
-  bool get isRoundRunning => _gameState.status == GameStatus.roundStarted;
+  bool get isRoundRunning =>
+      _gameState.status == WordsTrainGameStatus.roundStarted;
   bool get isRoundSuccess => _gameState.isRoundSuccess;
 
   Duration get timeRemaining => _gameState.timeRemaining;
@@ -37,7 +38,7 @@ class GameManager {
   ///
   /// Flag to indicate if the game has started
   final _gameState = SimplifiedGameState(
-    status: GameStatus.uninitialized,
+    status: WordsTrainGameStatus.uninitialized,
     round: 0,
     isRoundSuccess: false,
     timeRemaining: Duration.zero,
@@ -56,7 +57,7 @@ class GameManager {
   void updateGameState(SimplifiedGameState newGameState) {
     if (_gameState.status != newGameState.status) {
       _gameState.status = newGameState.status;
-      if (_gameState.status == GameStatus.roundStarted ||
+      if (_gameState.status == WordsTrainGameStatus.roundStarted ||
           _gameState.round > 0) {
         _hasPlayedAtLeastOneRound = true;
         _gameState.newCooldowns.clear();
@@ -145,18 +146,20 @@ class GameManager {
 
   ///
   /// Callback to know when the game has started
-  GameStatus get status => _gameState.status;
+  WordsTrainGameStatus get status => _gameState.status;
   final onGameStatusUpdated = GenericListener<Function()>();
   void startGame() {
     _logger.info('Starting a new game');
-    updateGameState(_gameState.copyWith(status: GameStatus.initializing));
+    updateGameState(
+        _gameState.copyWith(status: WordsTrainGameStatus.initializing));
   }
 
   ///
   /// Callback to know when the game has stopped
   void stopGame() {
     _logger.info('Stopping the current game');
-    updateGameState(_gameState.copyWith(status: GameStatus.uninitialized));
+    updateGameState(
+        _gameState.copyWith(status: WordsTrainGameStatus.uninitialized));
   }
 
   ///

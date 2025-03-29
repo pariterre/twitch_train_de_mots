@@ -1,8 +1,8 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
-import 'package:train_de_mots/treasure_seeker/models/tile.dart';
-import 'package:train_de_mots/treasure_seeker/widgets/letter_displayer.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/treasure_hunt/models/tile.dart';
+import 'package:train_de_mots/treasure_hunt/widgets/letter_displayer.dart';
 
 class Header extends StatefulWidget {
   const Header({super.key});
@@ -16,7 +16,7 @@ class _HeaderState extends State<Header> {
   void initState() {
     super.initState();
 
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     gm.onGameStarted.listen(_onGameStarted);
     gm.onClockTicked.listen(_onClockTicked);
     gm.onTileRevealed.listen(_onTileRevealed);
@@ -25,7 +25,7 @@ class _HeaderState extends State<Header> {
 
   @override
   void dispose() {
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     gm.onGameStarted.cancel(_onGameStarted);
     gm.onClockTicked.cancel(_onClockTicked);
     gm.onTileRevealed.cancel(_onTileRevealed);
@@ -58,11 +58,11 @@ class _HeaderState extends State<Header> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text(
-              'Temps restant: ${TreasureSeekerGameManager.instance.timeRemaining.inSeconds}',
+              'Temps restant: ${TreasureHuntGameManager.instance.timeRemaining.inSeconds}',
               style: ThemeManager.instance.textFrontendSc,
             ),
             Text(
-              'Essais restants: ${TreasureSeekerGameManager.instance.triesRemaining}',
+              'Essais restants: ${TreasureHuntGameManager.instance.triesRemaining}',
               style: ThemeManager.instance.textFrontendSc,
             ),
           ],

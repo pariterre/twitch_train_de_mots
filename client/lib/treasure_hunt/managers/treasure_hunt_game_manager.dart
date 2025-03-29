@@ -5,9 +5,9 @@ import 'package:common/managers/dictionary_manager.dart';
 import 'package:common/models/generic_listener.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_seeker/models/enums.dart';
-import 'package:train_de_mots/treasure_seeker/models/game_tile.dart';
-import 'package:train_de_mots/treasure_seeker/models/tile.dart';
+import 'package:train_de_mots/treasure_hunt/models/enums.dart';
+import 'package:train_de_mots/treasure_hunt/models/game_tile.dart';
+import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 // TODO: Add sound effects
 // TODO: Add frontend
@@ -20,12 +20,11 @@ int toGridIndex(GameTile tile, int nbCols) => tile.row * nbCols + tile.col;
 GameTile toGridTile(int index, int nbCols) =>
     GameTile(index < 0 ? -1 : index ~/ nbCols, index < 0 ? -1 : index % nbCols);
 
-class TreasureSeekerGameManager {
+class TreasureHuntGameManager {
   /// Prepare the singleton
-  static final TreasureSeekerGameManager _instance =
-      TreasureSeekerGameManager._();
-  static TreasureSeekerGameManager get instance => _instance;
-  TreasureSeekerGameManager._() {
+  static final TreasureHuntGameManager _instance = TreasureHuntGameManager._();
+  static TreasureHuntGameManager get instance => _instance;
+  TreasureHuntGameManager._() {
     resetGame();
 
     Managers.instance.twitch.addChatListener(trySolution);

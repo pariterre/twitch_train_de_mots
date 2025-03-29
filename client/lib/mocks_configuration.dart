@@ -1,5 +1,6 @@
 import 'package:common/models/game_status.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
+import 'package:train_de_mots/generic/models/mini_games.dart';
 import 'package:train_de_mots/words_train/managers/words_train_game_manager.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -66,7 +67,7 @@ class MocksConfiguration {
 
   static Future<WordsTrainGameManagerMock>
       getWordsTrainGameManagerMocked() async => WordsTrainGameManagerMock(
-            gameStatus: GameStatus.roundPreparing,
+            gameStatus: WordsTrainGameStatus.roundPreparing,
             problem: MocksConfiguration.useProblemMock
                 ? MocksConfiguration.letterProblemMock
                 : null,
@@ -100,6 +101,7 @@ class MocksConfiguration {
             successLevel: SuccessLevel.threeStars,
             shouldAttemptTheBigHeist: false,
             shouldChangeLane: true,
+            nextMiniGame: MiniGames.treasureHunt,
           );
 
   static Future<DatabaseManagerMock> gedDatabaseMocked() async {

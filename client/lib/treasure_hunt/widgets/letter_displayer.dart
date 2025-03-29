@@ -1,8 +1,8 @@
 import 'package:common/widgets/fireworks.dart';
 import 'package:common/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
-import 'package:train_de_mots/treasure_seeker/models/tile.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 class LetterDisplayer extends StatefulWidget {
   const LetterDisplayer({super.key});
@@ -18,7 +18,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void initState() {
     super.initState();
 
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     gm.onGameStarted.listen(refresh);
     gm.onRewardFound.listen(_onRevealHiddenLetter);
     refresh();
@@ -26,7 +26,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
   @override
   void dispose() {
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     gm.onGameStarted.cancel(refresh);
     gm.onRewardFound.cancel(_onRevealHiddenLetter);
 
@@ -45,14 +45,14 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void _onRevealHiddenLetter(Tile tile) {
     if (!tile.hasLetter) return;
 
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     final index = gm.getLetterIndex(tile.index);
     _fireworksControllers[index].trigger();
     setState(() {});
   }
 
   void _reinitializeFireworks() {
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
     if (gm.letters.isEmpty) return;
 
     _fireworksControllers.clear();
@@ -68,7 +68,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
   @override
   Widget build(BuildContext context) {
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
 
     if (gm.letters.isEmpty) return Container();
 

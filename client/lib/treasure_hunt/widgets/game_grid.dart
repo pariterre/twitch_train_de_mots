@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/treasure_seeker/managers/treasure_seeker_game_manager.dart';
-import 'package:train_de_mots/treasure_seeker/widgets/sweeper_tile.dart';
+import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/treasure_hunt/widgets/sweeper_tile.dart';
 
 class GameGrid extends StatelessWidget {
   const GameGrid({super.key, required this.tileSize});
@@ -10,7 +10,7 @@ class GameGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textSize = tileSize * 3 / 4;
-    final gm = TreasureSeekerGameManager.instance;
+    final gm = TreasureHuntGameManager.instance;
 
     return Row(
       children: List.generate(gm.nbCols, (col) {

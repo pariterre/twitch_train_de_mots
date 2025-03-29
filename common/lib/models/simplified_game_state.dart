@@ -109,7 +109,7 @@ class SimplifiedLetterProblem {
 }
 
 class SimplifiedGameState {
-  GameStatus status;
+  WordsTrainGameStatus status;
   int round;
   bool isRoundSuccess;
   Duration timeRemaining;
@@ -148,7 +148,7 @@ class SimplifiedGameState {
   });
 
   SimplifiedGameState copyWith({
-    GameStatus? status,
+    WordsTrainGameStatus? status,
     int? round,
     bool? isRoundSuccess,
     Duration? timeRemaining,
@@ -204,7 +204,7 @@ class SimplifiedGameState {
 
   static SimplifiedGameState deserialize(Map<String, dynamic> data) {
     return SimplifiedGameState(
-      status: GameStatus.values[data['game_status'] as int],
+      status: WordsTrainGameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
       isRoundSuccess: data['is_round_success'] as bool,
       timeRemaining: Duration(milliseconds: data['time_remaining'] as int),

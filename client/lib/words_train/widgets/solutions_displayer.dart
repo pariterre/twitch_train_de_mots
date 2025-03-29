@@ -329,7 +329,7 @@ class _SolutionTileState extends State<_SolutionTile> {
       decoration: _boxDecoration,
       padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2 * widthFactor),
       child: widget.solution.isFound ||
-              gm.gameStatus == GameStatus.revealAnswers
+              gm.gameStatus == WordsTrainGameStatus.revealAnswers
           ? Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -359,7 +359,8 @@ class _SolutionTileState extends State<_SolutionTile> {
                     ],
                   ),
                 ),
-                if (showCooldown && gm.gameStatus == GameStatus.roundStarted)
+                if (showCooldown &&
+                    gm.gameStatus == WordsTrainGameStatus.roundStarted)
                   Padding(
                     padding: const EdgeInsets.only(left: 15.0),
                     child: SizedBox(

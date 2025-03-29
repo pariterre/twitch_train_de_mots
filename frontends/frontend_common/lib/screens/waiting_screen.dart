@@ -47,7 +47,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
     late final String mainText;
     late final bool showStar;
     switch (gm.status) {
-      case GameStatus.uninitialized:
+      case WordsTrainGameStatus.uninitialized:
         mainText = 'Bien le bonjour cheminot\u00b7e!\n'
             '\n'
             'Nous sommes en attente de\n'
@@ -55,7 +55,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
             'veuillez patienter...';
         showStar = false;
         break;
-      case GameStatus.initializing:
+      case WordsTrainGameStatus.initializing:
         mainText = 'Votre cheminot\u00b7e en chef est\n'
             'prêt\u00b7e pour le grand départ!\n'
             '\n'
@@ -63,9 +63,9 @@ class _WaitingScreenState extends State<WaitingScreen> {
             'lancer le Petit Train du Nord';
         showStar = false;
         break;
-      case GameStatus.roundPreparing:
-      case GameStatus.roundReady:
-      case GameStatus.revealAnswers:
+      case WordsTrainGameStatus.roundPreparing:
+      case WordsTrainGameStatus.roundReady:
+      case WordsTrainGameStatus.revealAnswers:
         mainText = gm.isRoundSuccess
             ? 'Bravo, cheminot\u00b7e\u00b7s,\n'
                 'vous avancez bien!\n'
@@ -78,10 +78,11 @@ class _WaitingScreenState extends State<WaitingScreen> {
                 'Dernière station ${gm.currentRound}';
         showStar = true;
         break;
-      case GameStatus.treasureSeeking:
+      case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameStarted:
         mainText = 'Promenez-vous dans les bois...\n';
         break;
-      case GameStatus.roundStarted:
+      case WordsTrainGameStatus.roundStarted:
         break;
     }
 
@@ -118,7 +119,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                         ),
                     ],
                   ),
-                  if (gm.status != GameStatus.uninitialized)
+                  if (gm.status != WordsTrainGameStatus.uninitialized)
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [

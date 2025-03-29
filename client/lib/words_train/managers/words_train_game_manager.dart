@@ -7,6 +7,7 @@ import 'package:common/models/generic_listener.dart';
 import 'package:common/models/simplified_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/models/mini_games.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -54,8 +55,8 @@ class WordsTrainGameManager {
 
   final Players players = Players();
 
-  GameStatus _gameStatus = GameStatus.initializing;
-  GameStatus get gameStatus => _gameStatus;
+  WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
+  WordsTrainGameStatus get gameStatus => _gameStatus;
 
   final _random = Random();
 
@@ -164,6 +165,8 @@ class WordsTrainGameManager {
   bool _isAttemptingTheBigHeist = false;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
+  MiniGames? _nextMiniGame;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -197,12 +200,12 @@ class WordsTrainGameManager {
   Future<void> requestTerminateRound() async {
     _logger.info('Requesting to terminate the round');
 
-    if (gameStatus == GameStatus.initializing) {
+    if (gameStatus == WordsTrainGameStatus.initializing) {
       _initializeCallbacks();
-      _gameStatus = GameStatus.roundPreparing;
+      _gameStatus = WordsTrainGameStatus.roundPreparing;
       onRoundIsPreparing.notifyListeners((callback) => callback());
     }
-    if (_gameStatus != GameStatus.roundStarted) return;
+    if (_gameStatus != WordsTrainGameStatus.roundStarted) return;
     _forceEndTheRound = true;
   }
 
@@ -354,38 +357,57 @@ class WordsTrainGameManager {
     if (onShowMessage == null) {
       throw Exception('onShowMessage must be set before starting the game');
     }
-    _gameStatus = GameStatus.roundPreparing;
+    _gameStatus = WordsTrainGameStatus.roundPreparing;
 
     _logger.info('Callbacks initialized');
   }
 
   ///
   /// Prepare the game for a new round by making sure everything is initialized.
-  /// Then, it finds a new word problem and start the timer.
+  /// Then, it finds a new word problem and start the timer. It launches the mini
+  /// game if needed.
   Future<void> _startNewRound() async {
     _logger.info('Starting a new round...');
 
-    if (_gameStatus == GameStatus.initializing) _initializeCallbacks();
+    if (_gameStatus == WordsTrainGameStatus.initializing) {
+      _initializeCallbacks();
+    }
 
-    if (_gameStatus != GameStatus.roundPreparing &&
-        _gameStatus != GameStatus.roundReady) {
+    if (_gameStatus != WordsTrainGameStatus.roundPreparing &&
+        _gameStatus != WordsTrainGameStatus.roundReady) {
       _logger.warning('Cannot start a new round at this time');
       return;
     }
-    onRoundIsPreparing.notifyListeners((callback) => callback());
 
-    // Wait for the problem to be generated
-    while (_isGeneratingProblem) {
-      await Future.delayed(const Duration(milliseconds: 100));
+    if (_nextMiniGame != null) {
+      _logger.info('Starting mini game ${_nextMiniGame!.name}...');
+      _gameStatus = WordsTrainGameStatus.miniGamePreparing;
     }
 
-    // Prepare next round
-    if (_successLevel == SuccessLevel.failed) _restartGame();
-    _setValuesAtStartRound();
+    onRoundIsPreparing.notifyListeners((callback) => callback());
+
+    if (_gameStatus == WordsTrainGameStatus.miniGamePreparing) {
+      Managers.instance.miniGames.run(_nextMiniGame!);
+      _nextMiniGame = null;
+    } else {
+      // Wait for the problem to be generated
+      while (_isGeneratingProblem) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      // Prepare next round
+      if (_successLevel == SuccessLevel.failed) _restartGame();
+      _setValuesAtStartRound();
+    }
 
     // Start the round
     await _sendTelegramToPlayers();
-    _gameStatus = GameStatus.roundStarted;
+    if (_gameStatus == WordsTrainGameStatus.miniGamePreparing) {
+      _gameStatus = WordsTrainGameStatus.miniGameStarted;
+    } else {
+      _gameStatus = WordsTrainGameStatus.roundStarted;
+    }
+
     _roundStartedAt = DateTime.now();
     onRoundStarted.notifyListeners((callback) => callback());
 
@@ -648,7 +670,7 @@ class WordsTrainGameManager {
   bool requestChangeOfLane() {
     _logger.info('Requesting the change of lane...');
 
-    if (_gameStatus != GameStatus.roundStarted) {
+    if (_gameStatus != WordsTrainGameStatus.roundStarted) {
       _logger.warning('Cannot change lane at this time');
       return false;
     }
@@ -716,7 +738,7 @@ class WordsTrainGameManager {
       return false;
     }
 
-    if (_gameStatus != GameStatus.roundReady) {
+    if (_gameStatus != WordsTrainGameStatus.roundReady) {
       _logger.fine('Round is not ready, so cannot start automatically');
       return false;
     }
@@ -743,7 +765,8 @@ class WordsTrainGameManager {
     _logger.fine('Tic...');
     onClockTicked.notifyListeners((callback) => callback());
 
-    if (_gameStatus != GameStatus.roundStarted || timeRemaining == null) {
+    if (_gameStatus != WordsTrainGameStatus.roundStarted ||
+        timeRemaining == null) {
       _logger.fine('The game is not running, so nothing more to do');
       _logger.fine('Toc');
       return;
@@ -837,7 +860,7 @@ class WordsTrainGameManager {
     _logger.fine('Checking for end of round...');
 
     // Do not end the round if we are not playing
-    if (_gameStatus != GameStatus.roundStarted) {
+    if (_gameStatus != WordsTrainGameStatus.roundStarted) {
       _logger.fine(
           'Round is not running, so cannot check for end of round at this time');
       return false;
@@ -932,13 +955,13 @@ class WordsTrainGameManager {
   void requestShowCaseAnswers() {
     _logger.info('Requesting to show case answers...');
 
-    if (_gameStatus == GameStatus.initializing ||
-        _gameStatus == GameStatus.roundStarted ||
-        _gameStatus == GameStatus.revealAnswers) {
+    if (_gameStatus == WordsTrainGameStatus.initializing ||
+        _gameStatus == WordsTrainGameStatus.roundStarted ||
+        _gameStatus == WordsTrainGameStatus.revealAnswers) {
       _logger.warning('Cannot show case answers at this time');
       return;
     }
-    _gameStatus = GameStatus.revealAnswers;
+    _gameStatus = WordsTrainGameStatus.revealAnswers;
     _showCaseAnswers(playSound: false);
 
     _logger.info('Answers are being shown');
@@ -949,12 +972,12 @@ class WordsTrainGameManager {
 
     final cm = Managers.instance.configuration;
 
-    _gameStatus = GameStatus.revealAnswers;
+    _gameStatus = WordsTrainGameStatus.revealAnswers;
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
       onRoundIsPreparing.notifyListeners((callback) => callback());
       _gameStatus = isNextProblemReady
-          ? GameStatus.roundReady
-          : GameStatus.roundPreparing;
+          ? WordsTrainGameStatus.roundReady
+          : WordsTrainGameStatus.roundPreparing;
     });
     onRoundIsOver.notifyListeners((callback) => callback(playSound));
     onShowcaseSolutionsRequest.notifyListeners((callback) => callback());
@@ -1001,24 +1024,25 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
   LetterProblemMock? _problemMocker;
 
   WordsTrainGameManagerMock({
-    GameStatus? gameStatus,
+    WordsTrainGameStatus? gameStatus,
     LetterProblemMock? problem,
     List<Player>? players,
     int? roundCount,
     SuccessLevel? successLevel,
     bool shouldAttemptTheBigHeist = false,
     bool shouldChangeLane = false,
+    MiniGames? nextMiniGame,
   }) : super._() {
     if (players != null) {
       for (final player in players) {
-        players.add(player);
+        this.players.add(player);
       }
     }
 
-    _gameStatus = GameStatus.initializing;
+    _gameStatus = WordsTrainGameStatus.initializing;
     if (roundCount != null) {
       _roundCount = roundCount;
-      _gameStatus = GameStatus.roundReady;
+      _gameStatus = WordsTrainGameStatus.roundReady;
     }
     if (successLevel != null) {
       _roundCount += successLevel.toInt();
@@ -1050,8 +1074,13 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     }
 
     if (gameStatus != null) _gameStatus = gameStatus;
-    if (gameStatus == GameStatus.roundStarted) _setValuesAtStartRound();
+    if (gameStatus == WordsTrainGameStatus.roundStarted) {
+      _setValuesAtStartRound();
+    }
 
+    _nextMiniGame = nextMiniGame;
+
+    _listenToConfigurationEvents();
     Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
   }
 
@@ -1071,7 +1100,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       final dm = Managers.instance.database;
       dm.onLoggedOut.listen(() => requestTerminateRound());
       dm.onFullyLoggedIn.listen(() {
-        if (gameStatus != GameStatus.initializing) _startNewRound();
+        if (gameStatus != WordsTrainGameStatus.initializing) _startNewRound();
       });
     }
     onGameIsInitializing.notifyListeners((callback) => callback());

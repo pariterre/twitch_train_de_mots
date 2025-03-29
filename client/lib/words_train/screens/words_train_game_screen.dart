@@ -163,19 +163,20 @@ class _HeaderState extends State<_Header> {
 
     late String title;
     switch (gm.gameStatus) {
-      case GameStatus.roundStarted:
+      case WordsTrainGameStatus.roundStarted:
         title = ' En direction de la Station N\u00b0${gm.roundCount + 1}!';
         break;
-      case GameStatus.revealAnswers:
+      case WordsTrainGameStatus.revealAnswers:
         title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
         break;
-      case GameStatus.uninitialized:
-      case GameStatus.initializing:
-      case GameStatus.roundReady:
-      case GameStatus.roundPreparing:
+      case WordsTrainGameStatus.uninitialized:
+      case WordsTrainGameStatus.initializing:
+      case WordsTrainGameStatus.roundReady:
+      case WordsTrainGameStatus.roundPreparing:
         title = 'Le Train de mots!';
         break;
-      case GameStatus.treasureSeeking:
+      case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameStarted:
         title = 'Promenons-nous dans les bois...';
     }
 
@@ -267,31 +268,32 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final tm = Managers.instance.theme;
-    final mgm = Managers.instance.miniGame;
+    final mgm = Managers.instance.miniGames.current;
 
     late String text;
     switch (gm.gameStatus) {
-      case GameStatus.roundStarted:
+      case WordsTrainGameStatus.roundStarted:
         int timeRemaining = gm.timeRemaining ?? 0;
         text = timeRemaining > 0
             ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Arrivée en gare';
         break;
-      case GameStatus.roundPreparing:
+      case WordsTrainGameStatus.roundPreparing:
         text = 'Préparation de la manche...';
         break;
-      case GameStatus.roundReady:
+      case WordsTrainGameStatus.roundReady:
         text = 'Prochaine manche prête!';
         break;
-      case GameStatus.revealAnswers:
+      case WordsTrainGameStatus.revealAnswers:
         text = 'Les solutions étaient :';
         break;
-      case GameStatus.uninitialized:
-      case GameStatus.initializing:
+      case WordsTrainGameStatus.uninitialized:
+      case WordsTrainGameStatus.initializing:
         text = 'Initialisation...';
         break;
-      case GameStatus.treasureSeeking:
-        int timeRemaining = mgm.timeRemaining;
+      case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameStarted:
+        int timeRemaining = mgm!.timeRemaining;
         text = timeRemaining > 0
             ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Arrivée en gare';
