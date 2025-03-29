@@ -15,7 +15,6 @@ class GenericListener<T extends Function> {
   /// Start listening.
   Future<void> listen(T callback) async {
     await _waitForNotifying();
-
     _listeners.add(callback);
   }
 
