@@ -330,7 +330,7 @@ class _SolutionTileState extends State<_SolutionTile> {
       decoration: _boxDecoration,
       padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2 * widthFactor),
       child: widget.solution.isFound ||
-              gm.gameStatus == WordsTrainGameStatus.revealAnswers
+              gm.gameStatus == WordsTrainGameStatus.roundEnding
           ? Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

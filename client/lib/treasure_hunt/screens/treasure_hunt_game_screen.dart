@@ -4,16 +4,16 @@ import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/game_grid.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/header.dart';
 
-class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+class TreasureHuntGameScreen extends StatefulWidget {
+  const TreasureHuntGameScreen({super.key});
 
   static const route = '/game-screen';
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<TreasureHuntGameScreen> createState() => _TreasureHuntGameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
   Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
     await Managers.instance.twitch
         .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);

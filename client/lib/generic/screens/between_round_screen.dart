@@ -1,4 +1,5 @@
 import 'package:common/managers/theme_manager.dart';
+import 'package:common/models/game_status.dart';
 import 'package:common/widgets/bouncy_container.dart';
 import 'package:common/widgets/growing_widget.dart';
 import 'package:common/widgets/themed_elevated_button.dart';
@@ -163,29 +164,45 @@ class _ContinueSectionState extends State<_ContinueSection> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  String generateButtonText() {
     final gm = Managers.instance.train;
-    final cm = Managers.instance.configuration;
-    final tm = ThemeManager.instance;
 
-    String buttonText;
-    if (!gm.isNextProblemReady) {
-      buttonText = 'Aiguillage du train en cours...';
-    } else if (gm.successLevel == SuccessLevel.failed &&
-        gm.hasPlayedAtLeastOnce) {
-      buttonText = 'Relancer le train';
+    String buttonText = '';
+    if (gm.gameStatus == WordsTrainGameStatus.miniGamePreparing ||
+        gm.gameStatus == WordsTrainGameStatus.miniGameReady) {
+      buttonText += 'Aller au bois';
     } else {
-      buttonText = 'Prendre les rails';
+      if (!gm.isNextProblemReady) {
+        buttonText += 'Aiguillage du train en cours...';
+      } else if (gm.successLevel == SuccessLevel.failed &&
+          gm.hasPlayedAtLeastOnce) {
+        buttonText += 'Relancer le train';
+      } else {
+        buttonText += 'Prendre les rails';
+      }
     }
+
     if (gm.nextRoundStartIn != null) {
       if (gm.nextRoundStartIn!.inSeconds <= 0) {
-        buttonText += ' (Lancement imminent!)';
+        if (gm.gameStatus == WordsTrainGameStatus.miniGamePreparing) {
+          buttonText += ' (C\'est parti!)';
+        } else {
+          buttonText += ' (Lancement immédiat!)';
+        }
       } else {
         buttonText +=
             ' (${gm.nextRoundStartIn!.inSeconds} seconde${gm.nextRoundStartIn!.inSeconds > 1 ? 's' : ''})';
       }
     }
+
+    return buttonText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = Managers.instance.train;
+    final cm = Managers.instance.configuration;
+    final tm = ThemeManager.instance;
 
     return Column(
       children: [
@@ -209,7 +226,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 onPressed: _canClick && gm.isNextProblemReady
                     ? () => gm.requestStartNewRound()
                     : null,
-                buttonText: buttonText),
+                buttonText: generateButtonText()),
             if (MocksConfiguration.showDebugOptions)
               Row(
                 children: [

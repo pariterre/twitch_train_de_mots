@@ -101,7 +101,7 @@ class MocksConfiguration {
         successLevel: SuccessLevel.threeStars,
         shouldAttemptTheBigHeist: false,
         shouldChangeLane: true,
-        //nextMiniGame: MiniGames.treasureHunt,
+        nextMiniGame: MiniGames.treasureHunt,
       );
 
   static DatabaseManagerMock getDatabaseMocked() => DatabaseManagerMock(

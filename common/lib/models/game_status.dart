@@ -4,7 +4,10 @@ enum WordsTrainGameStatus {
   roundPreparing,
   roundReady,
   roundStarted,
-  revealAnswers,
+  roundEnding,
   miniGamePreparing,
-  miniGameStarted;
+  miniGameReady,
+  miniGameStarted,
+  miniGameEnding,
+  ;
 }

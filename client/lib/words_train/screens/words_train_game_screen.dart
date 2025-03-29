@@ -167,7 +167,7 @@ class _HeaderState extends State<_Header> {
       case WordsTrainGameStatus.roundStarted:
         title = ' En direction de la Station N\u00b0${gm.roundCount + 1}!';
         break;
-      case WordsTrainGameStatus.revealAnswers:
+      case WordsTrainGameStatus.roundEnding:
         title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
         break;
       case WordsTrainGameStatus.uninitialized:
@@ -177,8 +177,12 @@ class _HeaderState extends State<_Header> {
         title = 'Le Train de mots!';
         break;
       case WordsTrainGameStatus.miniGamePreparing:
+        title = 'Ouverture du sentier...';
+        break;
+      case WordsTrainGameStatus.miniGameReady:
       case WordsTrainGameStatus.miniGameStarted:
-        title = 'Promenons-nous dans les bois...';
+      case WordsTrainGameStatus.miniGameEnding:
+        title = 'Promenons-nous dans les bois!';
     }
 
     return Column(
@@ -285,7 +289,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case WordsTrainGameStatus.roundReady:
         text = 'Prochaine manche prête!';
         break;
-      case WordsTrainGameStatus.revealAnswers:
+      case WordsTrainGameStatus.roundEnding:
         text = 'Les solutions étaient :';
         break;
       case WordsTrainGameStatus.uninitialized:
@@ -293,11 +297,14 @@ class _HeaderTimerState extends State<_HeaderTimer> {
         text = 'Initialisation...';
         break;
       case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameReady:
       case WordsTrainGameStatus.miniGameStarted:
+      case WordsTrainGameStatus.miniGameEnding:
         Duration timeRemaining = mgm!.timeRemaining;
         text = timeRemaining.inSeconds > 0
             ? 'Temps restant à la manche : ${timeRemaining.inSeconds} secondes'
-            : 'Arrivée en gare';
+            : 'Retournons à la gare!';
+        break;
     }
 
     return Text(

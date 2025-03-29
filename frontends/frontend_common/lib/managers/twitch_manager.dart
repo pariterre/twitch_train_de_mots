@@ -358,7 +358,7 @@ class TwitchManagerMock extends TwitchManager {
         data: jsonDecode(jsonEncode({
           'type': ToFrontendMessages.gameState.name,
           'game_state': SimplifiedGameState(
-            status: WordsTrainGameStatus.revealAnswers,
+            status: WordsTrainGameStatus.roundEnding,
             round: 11,
             isRoundSuccess: true,
             timeRemaining: const Duration(seconds: 83),

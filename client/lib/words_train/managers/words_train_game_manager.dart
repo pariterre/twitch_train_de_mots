@@ -51,7 +51,25 @@ class WordsTrainGameManager {
   final Players players = Players();
 
   WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
-  WordsTrainGameStatus get gameStatus => _gameStatus;
+  WordsTrainGameStatus get gameStatus {
+    if (_currentMiniGame == null) {
+      if (_gameStatus == WordsTrainGameStatus.roundPreparing &&
+          isNextProblemReady) {
+        return WordsTrainGameStatus.roundReady;
+      }
+      return _gameStatus;
+    }
+
+    if (_gameStatus == WordsTrainGameStatus.roundPreparing) {
+      // For now assume preparing the mini-game is instantaneous
+      return WordsTrainGameStatus.miniGameReady;
+    } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
+      return WordsTrainGameStatus.miniGameStarted;
+    } else if (_gameStatus == WordsTrainGameStatus.roundEnding) {
+      return WordsTrainGameStatus.miniGameEnding;
+    }
+    return _gameStatus;
+  }
 
   final _random = Random();
 
@@ -162,7 +180,7 @@ class WordsTrainGameManager {
   bool _isAttemptingTheBigHeist = false;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
-  MiniGames? _nextMiniGame;
+  MiniGames? _currentMiniGame;
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -370,23 +388,16 @@ class WordsTrainGameManager {
       _initializeCallbacks();
     }
 
-    if (_gameStatus != WordsTrainGameStatus.roundPreparing &&
-        _gameStatus != WordsTrainGameStatus.roundReady) {
+    if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.warning('Cannot start a new round at this time');
       return;
     }
 
-    if (_nextMiniGame != null) {
-      _logger.info('Starting mini game ${_nextMiniGame!.name}...');
-      _gameStatus = WordsTrainGameStatus.miniGamePreparing;
-    }
-
     onRoundIsPreparing.notifyListeners((callback) => callback());
 
-    if (_gameStatus == WordsTrainGameStatus.miniGamePreparing) {
-      Managers.instance.miniGames.run(_nextMiniGame!);
-      _nextMiniGame = null;
-    } else {
+    if (_currentMiniGame == null) {
+      _logger.info('No mini game to play, starting the round...');
+
       // Wait for the problem to be generated
       while (_isGeneratingProblem) {
         await Future.delayed(const Duration(milliseconds: 100));
@@ -395,15 +406,14 @@ class WordsTrainGameManager {
       // Prepare next round
       if (_successLevel == SuccessLevel.failed) _restartGame();
       _setValuesAtStartRound();
+    } else {
+      _logger.info('Starting mini game ${_currentMiniGame!.name}...');
+      Managers.instance.miniGames.run(_currentMiniGame!);
     }
 
     // Start the round
     await _sendTelegramToPlayers();
-    if (_gameStatus == WordsTrainGameStatus.miniGamePreparing) {
-      _gameStatus = WordsTrainGameStatus.miniGameStarted;
-    } else {
-      _gameStatus = WordsTrainGameStatus.roundStarted;
-    }
+    _gameStatus = WordsTrainGameStatus.roundStarted;
 
     _roundStartedAt = DateTime.now();
     onRoundStarted.notifyListeners((callback) => callback());
@@ -416,6 +426,9 @@ class WordsTrainGameManager {
   /// sends a telegram to the players if required. The message is skipped if it
   /// was previously sent.
   Future<void> _sendTelegramToPlayers() async {
+    // Do not send telegram when playing a minigame
+    if (_currentMiniGame != null) return;
+
     _logger.info('Preparing to send telegram to players...');
 
     final message = _currentDifficulty.message;
@@ -719,6 +732,10 @@ class WordsTrainGameManager {
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
   void _gameLoop(Timer timer) async {
     _logger.fine('Game looping...');
+    if (_currentMiniGame != null) {
+      _logger.fine('Mini game is running, so nothing to do');
+      return;
+    }
 
     _tickingClock();
     if (_checkIfShouldAutomaticallyStartRound()) _autoStartingRound();
@@ -734,19 +751,22 @@ class WordsTrainGameManager {
       _logger.fine('No automatic start of the round planned');
       return false;
     }
-
-    if (_gameStatus != WordsTrainGameStatus.roundReady) {
-      _logger.fine('Round is not ready, so cannot start automatically');
+    if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
+      _logger.fine('Round is not preparing, so cannot start automatically');
+      return false;
+    }
+    if (!isNextProblemReady) {
+      _logger.fine('Next problem is not ready, so cannot start automatically');
+      return false;
+    }
+    if (DateTime.now().isBefore(_nextRoundStartAt!)) {
+      _logger.fine(
+          'Next round start is in the future, so cannot start automatically');
       return false;
     }
 
-    if (DateTime.now().isAfter(_nextRoundStartAt!)) {
-      _logger.fine('Automatic start of the round');
-      return true;
-    }
-
-    _logger.fine('Automatic start of the round not yet');
-    return false;
+    _logger.fine('Automatic start');
+    return true;
   }
 
   void _autoStartingRound() {
@@ -954,13 +974,11 @@ class WordsTrainGameManager {
   void requestShowCaseAnswers() {
     _logger.info('Requesting to show case answers...');
 
-    if (_gameStatus == WordsTrainGameStatus.initializing ||
-        _gameStatus == WordsTrainGameStatus.roundStarted ||
-        _gameStatus == WordsTrainGameStatus.revealAnswers) {
+    if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.warning('Cannot show case answers at this time');
       return;
     }
-    _gameStatus = WordsTrainGameStatus.revealAnswers;
+    _gameStatus = WordsTrainGameStatus.roundEnding;
     _showCaseAnswers(playSound: false);
 
     _logger.info('Answers are being shown');
@@ -971,12 +989,10 @@ class WordsTrainGameManager {
 
     final cm = Managers.instance.configuration;
 
-    _gameStatus = WordsTrainGameStatus.revealAnswers;
+    _gameStatus = WordsTrainGameStatus.roundEnding;
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
       onRoundIsPreparing.notifyListeners((callback) => callback());
-      _gameStatus = isNextProblemReady
-          ? WordsTrainGameStatus.roundReady
-          : WordsTrainGameStatus.roundPreparing;
+      _gameStatus = WordsTrainGameStatus.roundPreparing;
     });
     onRoundIsOver.notifyListeners((callback) => callback(playSound));
     onShowcaseSolutionsRequest.notifyListeners((callback) => callback());
@@ -1041,7 +1057,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     _gameStatus = WordsTrainGameStatus.initializing;
     if (roundCount != null) {
       _roundCount = roundCount;
-      _gameStatus = WordsTrainGameStatus.roundReady;
+      _gameStatus = WordsTrainGameStatus.roundPreparing;
     }
     if (successLevel != null) {
       _roundCount += successLevel.toInt();
@@ -1077,7 +1093,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _setValuesAtStartRound();
     }
 
-    _nextMiniGame = nextMiniGame;
+    _currentMiniGame = nextMiniGame;
 
     _asyncInitializations();
     Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
