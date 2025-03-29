@@ -538,7 +538,7 @@ class ProblemGenerator {
   }
 
   ///
-  /// Calls the Train de mots EBS server using the generateFromRandomWord method.
+  /// Calls the WordsTrain EBS server using the generateFromRandomWord method.
   static Future<LetterProblem> generateFromEbs({
     required int nbLetterInSmallestWord,
     required int minLetters,
