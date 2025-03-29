@@ -1,4 +1,5 @@
 import 'package:common/models/simplified_game_state.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 enum TileValue {
   zero,
@@ -99,7 +100,9 @@ class Tile {
 
   bool get hasTreasure => value == TileValue.treasure;
   bool get hasLetter =>
-      value == TileValue.letter && _uselessStatus == LetterStatus.normal;
+      value == TileValue.letter &&
+      (_uselessStatus == LetterStatus.normal ||
+          Managers.instance.miniGames.treasureHunt.isGameOver);
   bool get hasReward =>
       value == TileValue.treasure || value == TileValue.letter;
   bool get hasNoReward => !hasReward;

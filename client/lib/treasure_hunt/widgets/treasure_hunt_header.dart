@@ -1,17 +1,18 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/widgets/theme_card.dart';
 import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/letter_displayer.dart';
 
-class Header extends StatefulWidget {
-  const Header({super.key});
+class TreasureHuntHeader extends StatefulWidget {
+  const TreasureHuntHeader({super.key});
 
   @override
-  State<Header> createState() => _HeaderState();
+  State<TreasureHuntHeader> createState() => _TreasureHuntHeaderState();
 }
 
-class _HeaderState extends State<Header> {
+class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   @override
   void initState() {
     super.initState();
@@ -52,18 +53,31 @@ class _HeaderState extends State<Header> {
 
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds}',
-              style: ThemeManager.instance.textFrontendSc,
+            ThemeCard(
+              child: Text(
+                'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds}',
+                style: tm.clientMainTextStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    color: tm.textColor),
+              ),
             ),
-            Text(
-              'Essais restants: ${Managers.instance.miniGames.treasureHunt.triesRemaining}',
-              style: ThemeManager.instance.textFrontendSc,
+            const SizedBox(width: 100),
+            ThemeCard(
+              child: Text(
+                'Essais restants: ${Managers.instance.miniGames.treasureHunt.triesRemaining}',
+                style: tm.clientMainTextStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    color: tm.textColor),
+              ),
             ),
           ],
         ),

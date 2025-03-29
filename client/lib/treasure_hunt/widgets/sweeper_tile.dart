@@ -67,8 +67,8 @@ class SweeperTile extends StatelessWidget {
                   // border: Border.all(width: tileSize * 0.02),
                   ),
               child: Image.asset(tile.isConcealed
-                  ? 'assets/images/grass.png'
-                  : 'assets/images/open_grass.png'),
+                  ? 'assets/images/treasure_hunt/grass.png'
+                  : 'assets/images/treasure_hunt/open_grass.png'),
             ),
             tile.isRevealed && tile.hasReward
                 ? (tile.hasLetter
@@ -121,7 +121,8 @@ class _TreasureTileState extends State<_TreasureTile> {
           return SizedBox(
               height: _animation(value) * 30,
               width: _animation(value) * 30,
-              child: Image.asset('assets/images/blueberries.png'));
+              child:
+                  Image.asset('assets/images/treasure_hunt/blueberries.png'));
         });
   }
 }

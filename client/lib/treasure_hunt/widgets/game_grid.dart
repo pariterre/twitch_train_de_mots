@@ -13,6 +13,7 @@ class GameGrid extends StatelessWidget {
     final gm = Managers.instance.miniGames.treasureHunt;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: List.generate(gm.nbCols, (col) {
         return Column(
           children: List.generate(gm.nbRows, (row) {

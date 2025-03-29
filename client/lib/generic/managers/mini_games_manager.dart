@@ -11,8 +11,21 @@ abstract class MiniGameManager {
   Duration get timeRemaining;
 
   ///
+  /// If the mini game is ready to start. A signal to [onGameIsReady] is also
+  /// expected to be sent
+  bool get isReady;
+
+  ///
+  /// Prepare the mini game
+  Future<void> initialize();
+
+  ///
   /// Start the mini game
   Future<void> start();
+
+  ///
+  /// Callback when the game has initialized
+  GenericListener<Function()> get onGameIsReady;
 
   ///
   /// Connect to the mini game results
@@ -39,11 +52,12 @@ class MiniGamesManager {
 
   ///
   /// Run a mini game, returns
-  void run(MiniGames game) {
+  void initialize(MiniGames game) {
     if (_miniGames[game] == null) {
       throw Exception('Mini game $game is not implemented.');
     }
     _currentGame = game;
+    _miniGames[_currentGame]!.initialize();
   }
 
   MiniGames? _currentGame;

@@ -168,9 +168,8 @@ class _ContinueSectionState extends State<_ContinueSection> {
     final gm = Managers.instance.train;
 
     String buttonText = '';
-    if (gm.gameStatus == WordsTrainGameStatus.miniGamePreparing ||
-        gm.gameStatus == WordsTrainGameStatus.miniGameReady) {
-      buttonText += 'Aller au bois';
+    if (gm.isNextRoundAMiniGame) {
+      buttonText += 'Aller aux bleuets';
     } else {
       if (!gm.isNextProblemReady) {
         buttonText += 'Aiguillage du train en cours...';

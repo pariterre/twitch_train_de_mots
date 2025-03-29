@@ -1,6 +1,7 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/widgets/theme_card.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
 
@@ -70,43 +71,34 @@ class _LeaderBoardState extends State<LeaderBoard> {
       width: 425,
       height: 350,
       child: cm.showLeaderBoard
-          ? Card(
-              color: tm.mainColor,
-              elevation: 10,
+          ? ThemeCard(
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text('Tableau des cheminot\u00b7e\u00b7s',
-                            style: tm.clientMainTextStyle.copyWith(
-                              fontSize: 26,
-                              color: tm.leaderTextColor,
-                            )),
-                      ),
+                      child: Text('Tableau des cheminot\u00b7e\u00b7s',
+                          style: tm.clientMainTextStyle.copyWith(
+                            fontSize: 26,
+                            color: tm.leaderTextColor,
+                          )),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          _buildTitleTile(),
-                          const SizedBox(height: 12.0),
-                          if (players.isNotEmpty)
-                            for (var player in players)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 4.0),
-                                child: _buildPlayerTile(
-                                  player: player,
-                                  roundScore:
-                                      problem?.scoreOf(player).toString() ??
-                                          '0',
-                                ),
+                    Column(
+                      children: [
+                        _buildTitleTile(),
+                        const SizedBox(height: 12.0),
+                        if (players.isNotEmpty)
+                          for (var player in players)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4.0),
+                              child: _buildPlayerTile(
+                                player: player,
+                                roundScore:
+                                    problem?.scoreOf(player).toString() ?? '0',
                               ),
-                        ],
-                      ),
+                            ),
+                      ],
                     ),
                     if (players.isEmpty)
                       Center(

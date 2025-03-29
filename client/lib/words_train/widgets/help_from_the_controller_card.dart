@@ -1,6 +1,7 @@
 import 'package:common/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/widgets/theme_card.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class HelpFromTheControllerCard extends StatelessWidget {
@@ -10,32 +11,27 @@ class HelpFromTheControllerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Card(
-      color: tm.mainColor,
-      elevation: 10,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Aides du contrôleur :',
-              style: tm.clientMainTextStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: tm.titleSize * 0.6,
-                  color: tm.textColor),
+    return ThemeCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Aides du contrôleur :',
+            style: tm.clientMainTextStyle.copyWith(
+                fontWeight: FontWeight.bold,
+                fontSize: tm.titleSize * 0.6,
+                color: tm.textColor),
+          ),
+          const SizedBox(
+            width: 250,
+            child: Column(
+              children: [
+                _Pardon(),
+                _Boost(),
+              ],
             ),
-            const SizedBox(
-              width: 250,
-              child: Column(
-                children: [
-                  _Pardon(),
-                  _Boost(),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

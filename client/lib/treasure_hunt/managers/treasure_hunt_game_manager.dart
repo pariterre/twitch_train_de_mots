@@ -54,6 +54,9 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   ///
   /// Time remaining
+  bool _isReady = false;
+  @override
+  bool get isReady => _isReady;
   bool _isTimerRunning = false;
   Timer? _timer;
   final _startingTimeRemaining = const Duration(seconds: 30);
@@ -70,7 +73,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   ///
   /// Number of tries remaining
-  final _startingTriesRemaining = 5;
+  final _startingTriesRemaining = 1;
   late int _triesRemaining = _startingTriesRemaining;
   int get triesRemaining => _triesRemaining;
 
@@ -80,6 +83,8 @@ class TreasureHuntGameManager implements MiniGameManager {
   final int _rewardInTrials = 1;
 
   // Listeners
+  @override
+  final onGameIsReady = GenericListener<Function()>();
   final onGameStarted = GenericListener<Function()>();
   final onClockTicked = GenericListener<Function(Duration)>();
   final onTrySolution =
@@ -128,7 +133,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   ///
   /// Get the number of letters that were found
   int get letterFoundCount => problem.hiddenLetterStatuses.fold(
-      0, (prev, status) => prev + (status == LetterStatus.hidden ? 0 : 1));
+      0, (prev, status) => prev + (status == LetterStatus.normal ? 1 : 0));
 
   ///
   /// If the game is over
@@ -227,7 +232,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
     // Check if the game is over
     if (isGameOver) {
-      onGameEnded.notifyListeners((callback) => callback(hasWon));
+      _proceedGameOver();
       return RevealResult.gameOver;
     } else {
       return _grid[tileIndex].hasReward ? RevealResult.hit : RevealResult.miss;
@@ -307,13 +312,19 @@ class TreasureHuntGameManager implements MiniGameManager {
   }
 
   @override
-  Future<void> start() async {
+  Future<void> initialize() async {
     _generateGrid();
     _isTimerRunning = false;
     _timeRemaining = _startingTimeRemaining;
     _triesRemaining = _startingTriesRemaining;
-    onGameStarted.notifyListeners((callback) => callback());
+    _isReady = true;
+    onGameIsReady.notifyListeners((callback) => callback());
+  }
+
+  @override
+  Future<void> start() async {
     _startGameLoop();
+    onGameStarted.notifyListeners((callback) => callback());
   }
 
   ///
@@ -409,11 +420,28 @@ class TreasureHuntGameManager implements MiniGameManager {
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _gameLoop();
-      if (isGameOver) {
-        _timer?.cancel();
-        _timer = null;
-      }
     });
+  }
+
+  void _revealSolution() {
+    // Reveal all the tiles in the grid
+    for (final index in _letterGrid.keys) {
+      final tile = _grid[index];
+      tile.reveal();
+      onRewardFound.notifyListeners((callback) => callback(tile));
+    }
+
+    // Reveal all the letters in the problem
+    for (int i = 0; i < problem.letters.length; i++) {
+      if (problem.hiddenLetterStatuses[i] == LetterStatus.hidden) {
+        problem.hiddenLetterStatuses[i] = LetterStatus.revealed;
+      }
+      if (problem.uselessLetterStatuses[i] == LetterStatus.hidden) {
+        problem.uselessLetterStatuses[i] = LetterStatus.revealed;
+      }
+    }
+
+    onTileRevealed.notifyListeners((callback) => callback());
   }
 
   ///
@@ -424,9 +452,18 @@ class TreasureHuntGameManager implements MiniGameManager {
     _tickClock();
 
     if (isGameOver) {
-      onGameEnded.notifyListeners((callback) => callback(hasWon));
+      _proceedGameOver();
       return;
     }
+  }
+
+  void _proceedGameOver() {
+    _isTimerRunning = false;
+    _timer?.cancel();
+    _timer = null;
+
+    _revealSolution();
+    onGameEnded.notifyListeners((callback) => callback(hasWon));
   }
 
   ///

@@ -52,7 +52,7 @@ class WordsTrainGameManager {
 
   WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
   WordsTrainGameStatus get gameStatus {
-    if (_currentMiniGame == null) {
+    if (!_isRoundAMiniGame) {
       if (_gameStatus == WordsTrainGameStatus.roundPreparing &&
           isNextProblemReady) {
         return WordsTrainGameStatus.roundReady;
@@ -60,9 +60,11 @@ class WordsTrainGameManager {
       return _gameStatus;
     }
 
-    if (_gameStatus == WordsTrainGameStatus.roundPreparing) {
-      // For now assume preparing the mini-game is instantaneous
-      return WordsTrainGameStatus.miniGameReady;
+    if (_gameStatus == WordsTrainGameStatus.roundPreparing ||
+        _gameStatus == WordsTrainGameStatus.roundReady) {
+      return Managers.instance.miniGames.current?.isReady == false
+          ? WordsTrainGameStatus.miniGameReady
+          : WordsTrainGameStatus.miniGamePreparing;
     } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
       return WordsTrainGameStatus.miniGameStarted;
     } else if (_gameStatus == WordsTrainGameStatus.roundEnding) {
@@ -180,6 +182,9 @@ class WordsTrainGameManager {
   bool _isAttemptingTheBigHeist = false;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
+  bool _isNextRoundAMiniGame = false;
+  bool get isNextRoundAMiniGame => _isNextRoundAMiniGame;
+  bool _isRoundAMiniGame = false;
   MiniGames? _currentMiniGame;
 
   /// ----------- ///
@@ -394,9 +399,21 @@ class WordsTrainGameManager {
     }
 
     onRoundIsPreparing.notifyListeners((callback) => callback());
+    if (_isNextRoundAMiniGame) {
+      _logger.info('Preparing the mini game $_currentMiniGame...');
+      _isRoundAMiniGame = true;
+      _isNextRoundAMiniGame = false;
 
-    if (_currentMiniGame == null) {
-      _logger.info('No mini game to play, starting the round...');
+      Managers.instance.miniGames.initialize(_currentMiniGame!);
+      final miniGame = Managers.instance.miniGames.current!;
+      while (!miniGame.isReady) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      miniGame.onGameEnded.listen(_miniGameEnded);
+      miniGame.start();
+    } else {
+      _logger.info('Preparing a normal round...');
+      _isRoundAMiniGame = false;
 
       // Wait for the problem to be generated
       while (_isGeneratingProblem) {
@@ -406,9 +423,6 @@ class WordsTrainGameManager {
       // Prepare next round
       if (_successLevel == SuccessLevel.failed) _restartGame();
       _setValuesAtStartRound();
-    } else {
-      _logger.info('Starting mini game ${_currentMiniGame!.name}...');
-      Managers.instance.miniGames.run(_currentMiniGame!);
     }
 
     // Start the round
@@ -427,7 +441,7 @@ class WordsTrainGameManager {
   /// was previously sent.
   Future<void> _sendTelegramToPlayers() async {
     // Do not send telegram when playing a minigame
-    if (_currentMiniGame != null) return;
+    if (_isRoundAMiniGame) return;
 
     _logger.info('Preparing to send telegram to players...');
 
@@ -495,6 +509,11 @@ class WordsTrainGameManager {
   /// Try to solve the problem from a [message] sent by a [sender], that is a
   /// Twitch chatter.
   Future<void> _trySolution(String sender, String message) async {
+    if (_isRoundAMiniGame) {
+      _logger.warning('Cannot try solution while playing a mini game');
+      return;
+    }
+
     _logger.info('Trying solution from $sender: $message');
 
     if (problem == null || timeRemaining == null) {
@@ -680,7 +699,7 @@ class WordsTrainGameManager {
   bool requestChangeOfLane() {
     _logger.info('Requesting the change of lane...');
 
-    if (_gameStatus != WordsTrainGameStatus.roundStarted) {
+    if (gameStatus != WordsTrainGameStatus.roundStarted) {
       _logger.warning('Cannot change lane at this time');
       return false;
     }
@@ -732,10 +751,6 @@ class WordsTrainGameManager {
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
   void _gameLoop(Timer timer) async {
     _logger.fine('Game looping...');
-    if (_currentMiniGame != null) {
-      _logger.fine('Mini game is running, so nothing to do');
-      return;
-    }
 
     _tickingClock();
     if (_checkIfShouldAutomaticallyStartRound()) _autoStartingRound();
@@ -876,6 +891,10 @@ class WordsTrainGameManager {
   }
 
   bool _checkForEndOfRound() {
+    if (_isRoundAMiniGame) {
+      _logger.fine('Mini game is running, so nothing to do');
+      return false;
+    }
     _logger.fine('Checking for end of round...');
 
     // Do not end the round if we are not playing
@@ -952,6 +971,7 @@ class WordsTrainGameManager {
       }
     }
 
+    _gameStatus = WordsTrainGameStatus.roundEnding;
     _showCaseAnswers(playSound: true);
 
     // Launch the automatic start of the round timer if needed
@@ -968,6 +988,10 @@ class WordsTrainGameManager {
           mvpStars: players.bestPlayersByStars);
     }
 
+    // Select the mini game to play if allowed
+    _isNextRoundAMiniGame = false;
+    _currentMiniGame = null;
+
     _logger.info('Round ended');
   }
 
@@ -978,10 +1002,7 @@ class WordsTrainGameManager {
       _logger.warning('Cannot show case answers at this time');
       return;
     }
-    _gameStatus = WordsTrainGameStatus.roundEnding;
     _showCaseAnswers(playSound: false);
-
-    _logger.info('Answers are being shown');
   }
 
   void _showCaseAnswers({required bool playSound}) {
@@ -1032,6 +1053,38 @@ class WordsTrainGameManager {
       case SuccessLevel.failed:
         throw Exception('Failed is not a valid level');
     }
+  }
+
+  void _miniGameEnded(bool hasWon) {
+    _logger.info('Mini game ended');
+    Managers.instance.miniGames.current!.onGameEnded.cancel(_miniGameEnded);
+
+    // Give some perks based on the mini game
+    if (hasWon) {
+      _logger.info('Mini game was won');
+    } else {
+      _logger.info('Mini game was lost');
+    }
+
+    // Reset some flags
+    _forceEndTheRound = false;
+    _roundDuration = null;
+    _roundStartedAt = null;
+    _boostStartedAt = null;
+
+    _gameStatus = WordsTrainGameStatus.roundEnding;
+    _showCaseAnswers(playSound: false);
+
+    // Launch the automatic start of the round timer if needed
+    final cm = Managers.instance.configuration;
+    if (cm.autoplay) {
+      _nextRoundStartAt = DateTime.now()
+          .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
+    }
+
+    _isNextRoundAMiniGame = false;
+    _currentMiniGame = null;
+    _startNewRound();
   }
 }
 

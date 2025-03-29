@@ -4,7 +4,7 @@ import 'package:common/managers/theme_manager.dart';
 import 'package:common/models/game_status.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/widgets/animated_text_overlay.dart';
+import 'package:train_de_mots/generic/widgets/theme_card.dart';
 import 'package:train_de_mots/words_train/models/success_level.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:train_de_mots/words_train/widgets/help_from_the_controller_card.dart';
@@ -12,6 +12,7 @@ import 'package:train_de_mots/words_train/widgets/leader_board.dart';
 import 'package:train_de_mots/words_train/widgets/letter_displayer.dart';
 import 'package:train_de_mots/words_train/widgets/solutions_displayer.dart';
 import 'package:train_de_mots/words_train/widgets/train_path.dart';
+import 'package:train_de_mots/words_train/widgets/words_train_animated_text_overlay.dart';
 
 class WordsTrainGameScreen extends StatefulWidget {
   const WordsTrainGameScreen({super.key});
@@ -74,7 +75,7 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
             ],
           ),
         ),
-        AnimatedTextOverlay(),
+        WordsTrainAnimatedTextOverlay(),
       ],
     );
   }
@@ -206,15 +207,7 @@ class _HeaderState extends State<_Header> {
                     right: 0, top: 0, child: HelpFromTheControllerCard()),
               Column(
                 children: [
-                  Card(
-                    color: tm.mainColor,
-                    elevation: 10,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 24.0, vertical: 12.0),
-                      child: _HeaderTimer(),
-                    ),
-                  ),
+                  ThemeCard(child: _HeaderTimer()),
                   Padding(
                     padding: const EdgeInsets.only(top: 20.0),
                     child: TrainPath(
