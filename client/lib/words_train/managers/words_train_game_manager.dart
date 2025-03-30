@@ -917,7 +917,11 @@ class WordsTrainGameManager {
 
   bool _checkForEndOfRound() {
     if (_isRoundAMiniGame) {
-      _logger.fine('Mini game is running, so nothing to do');
+      _logger.fine('Mini game is running, so nothing to do unless forced');
+      if (_forceEndTheRound) {
+        Managers.instance.miniGames.current!.end();
+        _forceEndTheRound = false;
+      }
       return false;
     }
     _logger.fine('Checking for end of round...');

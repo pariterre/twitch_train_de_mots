@@ -61,6 +61,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   Duration _timeRemaining = Duration.zero;
   @override
   Duration get timeRemaining => _timeRemaining;
+  bool _forceEndOfGame = false;
 
   ///
   /// Current problem
@@ -131,7 +132,10 @@ class TreasureHuntGameManager implements MiniGameManager {
   bool get hasWon => letterFoundCount == problem.letters.length;
   bool get hasLost => isGameOver && !hasWon;
   bool get isGameOver =>
-      hasWon || _timeRemaining.inSeconds <= 0 || _triesRemaining <= 0;
+      _forceEndOfGame ||
+      hasWon ||
+      _timeRemaining.inSeconds <= 0 ||
+      _triesRemaining <= 0;
 
   List<String> get letters => List.from(problem.letters, growable: false);
 
@@ -318,6 +322,11 @@ class TreasureHuntGameManager implements MiniGameManager {
     onGameStarted.notifyListeners((callback) => callback());
   }
 
+  @override
+  Future<void> end() async {
+    _forceEndOfGame = true;
+  }
+
   ///
   /// Generate a new grid with randomly positionned rewards
   void _generateGrid() {
@@ -438,20 +447,20 @@ class TreasureHuntGameManager implements MiniGameManager {
   ///
   /// The game loop
   void _gameLoop() {
-    if (!_isTimerRunning) return;
-
-    _tickClock();
-
     if (isGameOver) {
       _proceedGameOver();
       return;
     }
+    if (!_isTimerRunning) return;
+
+    _tickClock();
   }
 
   void _proceedGameOver() {
     _isTimerRunning = false;
     _timer?.cancel();
     _timer = null;
+    _forceEndOfGame = false;
 
     _revealSolution();
     onGameEnded.notifyListeners((callback) => callback(hasWon));
