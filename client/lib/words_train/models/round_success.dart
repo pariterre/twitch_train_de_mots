@@ -1,5 +1,6 @@
 enum RoundSuccess {
   noSteal,
   maxPoints,
-  foundAll;
+  foundAll,
+  miniGameWon;
 }

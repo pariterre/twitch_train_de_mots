@@ -946,6 +946,15 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                         fontSize: 20,
                         fontWeight: FontWeight.normal,
                         color: tm.textColor)),
+              if (gm.roundSuccesses.contains(RoundSuccess.miniGameWon))
+                Text(
+                    'Vous avez cueilli tous les bleuets! Pour vous remercier\n'
+                    'de sa belle tarte, le controleur vous offre une étoile',
+                    textAlign: TextAlign.center,
+                    style: tm.clientMainTextStyle.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.normal,
+                        color: tm.textColor)),
               const SizedBox(height: 16.0),
             ],
           ),

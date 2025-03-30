@@ -164,6 +164,7 @@ class WordsTrainGameManager {
   bool get isAllowedToSendResults => _isAllowedToSendResults;
 
   bool _roundHasGoldenSolution = false;
+  bool _forceGoldenSolution = false;
 
   WordSolution? _lastStolenSolution;
   WordSolution? get lastStolenSolution => _lastStolenSolution;
@@ -421,6 +422,7 @@ class WordsTrainGameManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
       miniGame.onGameEnded.listen(_miniGameEnded);
+      _roundSuccesses.clear();
       miniGame.start();
     } else {
       _logger.info('Preparing a normal round...');
@@ -762,6 +764,7 @@ class WordsTrainGameManager {
     _isNextRoundAMiniGame = false;
     _isRoundAMiniGame = false;
     _currentMiniGame = null;
+    _forceGoldenSolution = false;
 
     players.clear();
 
@@ -850,8 +853,10 @@ class WordsTrainGameManager {
     _logger.fine('Managing golden solution...');
     if (!_roundHasGoldenSolution &&
         timeRemaining! > cm.goldenSolutionMinimumDuration &&
-        _random.nextDouble() < cm.goldenSolutionProbability) {
+        (_random.nextDouble() < cm.goldenSolutionProbability ||
+            _forceGoldenSolution)) {
       _logger.info('A new golden solution appears');
+      _forceGoldenSolution = false;
 
       // Find one solution that is not found yet and make it golden solution
       int index = -1;
@@ -1097,9 +1102,8 @@ class WordsTrainGameManager {
 
     // Give some perks based on the mini game
     if (hasWon) {
-      _logger.info('Mini game was won');
-    } else {
-      _logger.info('Mini game was lost');
+      _forceGoldenSolution = true;
+      _roundSuccesses.add(RoundSuccess.miniGameWon);
     }
 
     // Reset some flags
