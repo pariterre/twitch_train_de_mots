@@ -34,7 +34,7 @@ class _MainScreenState extends State<MainScreen> {
     gm.onRoundIsPreparing.listen(_refresh);
     gm.onNextProblemReady.listen(_refresh);
     gm.onRoundStarted.listen(_refresh);
-    gm.onShowMessage = _showMessageDialog;
+    gm.onShowTelegram = _showMessageDialog;
     gm.onShowcaseSolutionsRequest.listen(_refresh);
 
     final tm = ThemeManager.instance;

@@ -28,6 +28,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     gm.onGameStarted.listen(_refresh);
     gm.onGameIsReady.listen(_refresh);
     gm.onTileRevealed.listen(_refresh);
+    gm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasConnected.listen(_refresh);
@@ -45,6 +46,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     gm.onGameStarted.cancel(_refresh);
     gm.onGameIsReady.cancel(_refresh);
     gm.onTileRevealed.cancel(_refresh);
+    gm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasConnected.cancel(_refresh);
@@ -53,6 +55,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
   }
 
   void _refresh() => setState(() {});
+  void _solutionWasTried(String _, String __, bool ___) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

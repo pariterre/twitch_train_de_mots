@@ -20,9 +20,11 @@ final _logger = Logger('GameManager');
 class WordsTrainGameManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  WordsTrainGameManager() {
+  final Duration _deltaTime;
+  WordsTrainGameManager({deltaTime = const Duration(milliseconds: 1000)})
+      : _deltaTime = deltaTime {
     _asyncInitializations();
-    Timer.periodic(const Duration(milliseconds: 1000), _gameLoop);
+    Timer.periodic(_deltaTime, _gameLoop);
   }
 
   Future<void> _asyncInitializations() async {
@@ -38,6 +40,9 @@ class WordsTrainGameManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
+
+    // This is triggered if a user sends fireworks to the screen
+    onCongratulationFireworks.listen(_requestedFireworks);
 
     _isInitialized = true;
 
@@ -189,6 +194,8 @@ class WordsTrainGameManager {
   bool _isRoundAMiniGame = false;
   MiniGames? _currentMiniGame;
 
+  bool _areCongratulationFireworksFiring = false;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -278,7 +285,7 @@ class WordsTrainGameManager {
   final onPlayerUpdate = GenericListener<Function()>();
   final onCongratulationFireworks =
       GenericListener<Function(Map<String, dynamic>)>();
-  Future<void> Function(String)? onShowMessage;
+  Future<void> Function(String)? onShowTelegram;
 
   /// -------- ///
   /// INTERNAL ///
@@ -377,9 +384,10 @@ class WordsTrainGameManager {
 
     onGameIsInitializing.notifyListeners((callback) => callback());
     _initializeTrySolutionCallback();
-    if (onShowMessage == null) {
-      throw Exception('onShowMessage must be set before starting the game');
+    if (onShowTelegram == null) {
+      throw Exception('onShowTelegram must be set before starting the game');
     }
+
     _gameStatus = WordsTrainGameStatus.roundPreparing;
 
     _logger.info('Callbacks initialized');
@@ -461,7 +469,7 @@ class WordsTrainGameManager {
 
     _messagesToPlayers.add(message);
     _logger.info('Sending telegram to players...');
-    await onShowMessage!(message);
+    await onShowTelegram!(message);
     _logger.info('Telegram sent to players');
   }
 
@@ -727,6 +735,11 @@ class WordsTrainGameManager {
     }
   }
 
+  void _requestedFireworks(info) {
+    _areCongratulationFireworksFiring =
+        (info['is_congratulating'] as bool?) ?? false;
+  }
+
   ///
   /// Restart the game by resetting the players and the round count
   void _restartGame() {
@@ -772,6 +785,10 @@ class WordsTrainGameManager {
 
     if (_nextRoundStartAt == null) {
       _logger.fine('No automatic start of the round planned');
+      return false;
+    }
+    if (_areCongratulationFireworksFiring) {
+      _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
       return false;
     }
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
@@ -1115,7 +1132,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     bool shouldAttemptTheBigHeist = false,
     bool shouldChangeLane = false,
     MiniGames? nextMiniGame,
-  }) {
+  }) : super(deltaTime: Duration(milliseconds: 100)) {
     if (players != null) {
       for (final player in players) {
         this.players.add(player);
@@ -1164,7 +1181,6 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     _currentMiniGame = nextMiniGame;
 
     _asyncInitializations();
-    Timer.periodic(const Duration(milliseconds: 100), _gameLoop);
   }
 
   @override
