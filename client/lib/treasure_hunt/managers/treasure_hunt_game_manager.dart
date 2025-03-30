@@ -15,7 +15,6 @@ import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 final _logger = Logger('TreasureHuntGameManager');
 
 // TODO: Add sound effects
-// TODO: Add frontend
 // TODO: Add backend
 
 ///
@@ -59,8 +58,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   bool get isReady => _isReady;
   bool _isTimerRunning = false;
   Timer? _timer;
-  final _startingTimeRemaining = const Duration(seconds: 30);
-  late Duration _timeRemaining = _startingTimeRemaining;
+  Duration _timeRemaining = Duration.zero;
   @override
   Duration get timeRemaining => _timeRemaining;
 
@@ -73,8 +71,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   ///
   /// Number of tries remaining
-  final _startingTriesRemaining = 1;
-  late int _triesRemaining = _startingTriesRemaining;
+  int _triesRemaining = 0;
   int get triesRemaining => _triesRemaining;
 
   ///
@@ -111,23 +108,17 @@ class TreasureHuntGameManager implements MiniGameManager {
     if (words.isEmpty || words.length > 1) return;
     final word = words.first.toUpperCase();
 
-    if (word == problem.letters.join()) {
+    final isSolutionRight = word == problem.letters.join();
+    if (isSolutionRight) {
       for (int i = 0; i < _problem!.uselessLetterStatuses.length; i++) {
         _problem!.uselessLetterStatuses[i] = LetterStatus.normal;
         _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
       }
-
-      onTrySolution.notifyListeners((callback) => callback(sender, word, true));
-
-      // For each _letterGrid, reveal the letter
-      for (final index in _letterGrid.keys) {
-        revealTile(tileIndex: index);
-        onRewardFound.notifyListeners((callback) => callback(_grid[index]));
-      }
     } else {
-      onTrySolution
-          .notifyListeners((callback) => callback(sender, word, false));
+      _triesRemaining--;
     }
+    onTrySolution
+        .notifyListeners((callback) => callback(sender, word, isSolutionRight));
   }
 
   ///
@@ -315,8 +306,8 @@ class TreasureHuntGameManager implements MiniGameManager {
   Future<void> initialize() async {
     _generateGrid();
     _isTimerRunning = false;
-    _timeRemaining = _startingTimeRemaining;
-    _triesRemaining = _startingTriesRemaining;
+    _timeRemaining = Managers.instance.train.lastRoundTimeRemaining;
+    _triesRemaining = 10;
     _isReady = true;
     onGameIsReady.notifyListeners((callback) => callback());
   }

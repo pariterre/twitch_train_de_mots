@@ -83,6 +83,8 @@ class WordsTrainGameManager {
               seconds: ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
                   Managers.instance.configuration.postRoundGracePeriodDuration
                       .inSeconds);
+  Duration _lastRoundTimeRemaining = Duration.zero;
+  Duration get lastRoundTimeRemaining => _lastRoundTimeRemaining;
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -944,6 +946,7 @@ class WordsTrainGameManager {
     Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
     _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
 
+    _lastRoundTimeRemaining = timeRemaining!;
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
