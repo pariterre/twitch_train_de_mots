@@ -1,5 +1,6 @@
-import 'package:common/models/game_status.dart';
-import 'package:common/models/helpers.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/helpers.dart';
+import 'package:common/generic/models/serializable_mini_game_state.dart';
 
 enum LetterStatus {
   normal,
@@ -130,6 +131,8 @@ class SerializableGameState {
 
   SerializableConfiguration configuration;
 
+  SerializableMiniGameState? miniGameState;
+
   SerializableGameState({
     required this.status,
     required this.round,
@@ -145,6 +148,7 @@ class SerializableGameState {
     required this.canAttemptTheBigHeist,
     required this.isAttemptingTheBigHeist,
     required this.configuration,
+    required this.miniGameState,
   });
 
   SerializableGameState copyWith({
@@ -162,6 +166,7 @@ class SerializableGameState {
     bool? canAttemptTheBigHeist,
     bool? isAttemptingTheBigHeist,
     SerializableConfiguration? configuration,
+    SerializableMiniGameState? miniGameState,
   }) =>
       SerializableGameState(
         status: status ?? this.status,
@@ -180,6 +185,7 @@ class SerializableGameState {
         isAttemptingTheBigHeist:
             isAttemptingTheBigHeist ?? this.isAttemptingTheBigHeist,
         configuration: configuration ?? this.configuration,
+        miniGameState: miniGameState ?? this.miniGameState,
       );
 
   Map<String, dynamic> serialize() {
@@ -199,6 +205,7 @@ class SerializableGameState {
       'can_attempt_the_big_heist': canAttemptTheBigHeist,
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
       'configuration': configuration.serialize(),
+      'mini_game_state': miniGameState?.serialize(),
     };
   }
 
@@ -222,6 +229,10 @@ class SerializableGameState {
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
       configuration:
           SerializableConfiguration.deserialize(data['configuration']),
+      miniGameState: data['mini_game_state'] == null
+          ? null
+          : SerializableMiniGameState.deserialize(
+              data['mini_game_state'] as Map<String, dynamic>),
     );
   }
 }

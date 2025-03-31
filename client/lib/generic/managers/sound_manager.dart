@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:common/models/exceptions.dart';
+import 'package:common/generic/models/exceptions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';

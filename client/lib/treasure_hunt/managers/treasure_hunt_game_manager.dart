@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:common/managers/dictionary_manager.dart';
-import 'package:common/models/exceptions.dart';
-import 'package:common/models/generic_listener.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/treasure_hunt/serializable_tile.dart';
+import 'package:common/treasure_hunt/serializable_treasure_hunt_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -13,8 +15,6 @@ import 'package:train_de_mots/treasure_hunt/models/game_tile.dart';
 import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 final _logger = Logger('TreasureHuntGameManager');
-
-// TODO: Add backend
 
 ///
 /// Easy accessors translating index into row/col pair or row/col pair into
@@ -99,6 +99,19 @@ class TreasureHuntGameManager implements MiniGameManager {
   // The actual grid
   List<Tile> _grid = [];
   Map<int, int> _letterGrid = {}; // Grid index : Word letter index
+
+  @override
+  SerializableTreasureHuntGameState serialize() {
+    return SerializableTreasureHuntGameState(
+      nbRows: nbRows,
+      nbCols: nbCols,
+      rewardsCount: rewardsCount,
+      isTimerRunning: _isTimerRunning,
+      timeRemaining: _timeRemaining,
+      triesRemaining: _triesRemaining,
+      grid: _grid.map((tile) => tile.serialize()).toList(growable: false),
+    );
+  }
 
   void trySolution(String sender, String message) {
     if (!_isTimerRunning) return;

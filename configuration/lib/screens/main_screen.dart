@@ -1,5 +1,5 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/widgets/background.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/background.dart';
 import 'package:configuration/widgets/header.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';

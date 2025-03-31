@@ -1,4 +1,4 @@
-import 'package:common/models/exceptions.dart';
+import 'package:common/generic/models/exceptions.dart';
 import 'package:train_de_mots/generic/managers/configuration_manager.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
 import 'package:train_de_mots/generic/managers/ebs_server_manager.dart';

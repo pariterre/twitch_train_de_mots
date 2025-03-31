@@ -1,6 +1,6 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/widgets/growing_widget.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';

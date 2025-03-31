@@ -1,7 +1,7 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/widgets/clock.dart';
-import 'package:common/widgets/letter_displayer_common.dart';
-import 'package:common/widgets/themed_elevated_button.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/clock.dart';
+import 'package:common/generic/widgets/letter_displayer_common.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';

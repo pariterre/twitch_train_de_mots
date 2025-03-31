@@ -1,6 +1,7 @@
-import 'package:common/models/generic_listener.dart';
+import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/models/mini_games.dart';
 import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 
 final _logger = Logger('MiniGamesManager');
@@ -34,6 +35,10 @@ abstract class MiniGameManager {
   ///
   /// Request the immediate end of the mini game
   Future<void> end();
+
+  ///
+  /// Get a serialized version of the game state
+  SerializableMiniGameState serialize();
 }
 
 class MiniGamesManager {

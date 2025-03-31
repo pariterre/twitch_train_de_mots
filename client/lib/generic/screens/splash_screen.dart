@@ -1,5 +1,5 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/widgets/themed_elevated_button.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/models/exceptions.dart';

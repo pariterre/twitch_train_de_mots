@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/models/exceptions.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/models/generic_listener.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';

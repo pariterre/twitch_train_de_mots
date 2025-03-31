@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:common/models/valuable_letter.dart';
+import 'package:common/generic/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/player.dart';

@@ -1,4 +1,4 @@
-import 'package:common/models/generic_listener.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/mocks_configuration.dart';

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/ebs_helpers.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
@@ -294,6 +294,7 @@ class TwitchManagerMock extends TwitchManager {
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
               configuration: SerializableConfiguration(showExtension: true),
+              miniGameState: null,
             )));
 
     Future.delayed(const Duration(seconds: 8))
@@ -323,6 +324,7 @@ class TwitchManagerMock extends TwitchManager {
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
               configuration: SerializableConfiguration(showExtension: true),
+              miniGameState: null,
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -383,6 +385,7 @@ class TwitchManagerMock extends TwitchManager {
             canAttemptTheBigHeist: false,
             isAttemptingTheBigHeist: true,
             configuration: SerializableConfiguration(showExtension: true),
+            miniGameState: null,
           ).serialize(),
         }))));
     return true;
@@ -444,6 +447,7 @@ class TwitchManagerMock extends TwitchManager {
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
+                miniGameState: null,
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:

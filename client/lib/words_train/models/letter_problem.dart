@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:common/models/french_words.dart';
+import 'package:common/generic/models/french_words.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';

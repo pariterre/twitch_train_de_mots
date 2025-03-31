@@ -1,8 +1,8 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/widgets/bouncy_container.dart';
-import 'package:common/widgets/growing_widget.dart';
-import 'package:common/widgets/themed_elevated_button.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/widgets/bouncy_container.dart';
+import 'package:common/generic/widgets/growing_widget.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';

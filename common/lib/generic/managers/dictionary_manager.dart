@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:common/models/french_words.dart';
+import 'package:common/generic/models/french_words.dart';
 import 'package:diacritic/diacritic.dart';
 
 final _random = Random();

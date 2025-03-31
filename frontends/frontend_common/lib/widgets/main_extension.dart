@@ -1,5 +1,5 @@
-import 'package:common/models/game_status.dart';
-import 'package:common/widgets/background.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';

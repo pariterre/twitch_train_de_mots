@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/ebs_helpers.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
@@ -32,6 +32,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
     configuration: SerializableConfiguration(showExtension: true),
+    miniGameState: null,
   );
   SerializableGameState get gameState => _gameState;
   set gameState(SerializableGameState value) {

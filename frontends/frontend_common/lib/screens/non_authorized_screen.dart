@@ -1,4 +1,4 @@
-import 'package:common/managers/theme_manager.dart';
+import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/widgets/header.dart';

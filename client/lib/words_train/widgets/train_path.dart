@@ -1,6 +1,6 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/widgets/fireworks.dart';
-import 'package:common/widgets/growing_widget.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/fireworks.dart';
+import 'package:common/generic/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 

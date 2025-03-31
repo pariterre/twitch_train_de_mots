@@ -1,8 +1,8 @@
 import 'dart:math';
 
+import 'package:common/treasure_hunt/serializable_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 extension TileColor on TileValue {
   Color get color {

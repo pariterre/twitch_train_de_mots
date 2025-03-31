@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/exceptions.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/ebs_helpers.dart';
+import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
@@ -148,6 +148,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       {Map<String, Duration> newCooldowns = const {}}) {
     final cm = Managers.instance.configuration;
     final gm = Managers.instance.train;
+    final mgm = Managers.instance.miniGames.current;
 
     return SerializableGameState(
       status: gm.gameStatus,
@@ -164,6 +165,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
+      miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
+          ? mgm?.serialize()
+          : null,
     );
   }
 

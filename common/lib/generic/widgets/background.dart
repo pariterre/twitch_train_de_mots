@@ -1,5 +1,5 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/widgets/snowfall_overlay.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/snowfall_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 

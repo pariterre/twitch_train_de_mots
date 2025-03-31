@@ -1,4 +1,4 @@
-import 'package:common/managers/theme_manager.dart';
+import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 
 class ThemeCard extends StatelessWidget {

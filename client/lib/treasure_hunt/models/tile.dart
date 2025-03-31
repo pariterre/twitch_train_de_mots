@@ -1,74 +1,6 @@
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/treasure_hunt/serializable_tile.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-
-enum TileValue {
-  zero,
-  one,
-  two,
-  three,
-  four,
-  five,
-  six,
-  seven,
-  eight,
-  treasure,
-  letter;
-
-  int get value {
-    switch (this) {
-      case zero:
-        return 0;
-      case one:
-        return 1;
-      case two:
-        return 2;
-      case three:
-        return 3;
-      case four:
-        return 4;
-      case five:
-        return 5;
-      case six:
-        return 6;
-      case seven:
-        return 7;
-      case eight:
-        return 8;
-      case treasure:
-        return -1;
-      case letter:
-        return -2;
-    }
-  }
-
-  @override
-  String toString() {
-    switch (this) {
-      case zero:
-        return '';
-      case one:
-        return '1';
-      case two:
-        return '2';
-      case three:
-        return '3';
-      case four:
-        return '4';
-      case five:
-        return '5';
-      case six:
-        return '6';
-      case seven:
-        return '7';
-      case eight:
-        return '8';
-      case treasure:
-        return '';
-      case letter:
-        return '';
-    }
-  }
-}
 
 class Tile {
   final int _index;
@@ -117,4 +49,15 @@ class Tile {
   void reveal() {
     _hiddenStatus = LetterStatus.revealed;
   }
+
+  SerializableTile serialize() => SerializableTile(
+        index: _index,
+        value: value,
+        uselessStatus: _uselessStatus,
+        hiddenStatus: _hiddenStatus,
+        isConcealed: isConcealed,
+        isRevealed: isRevealed,
+        hasTreasure: hasTreasure,
+        hasLetter: hasLetter,
+      );
 }

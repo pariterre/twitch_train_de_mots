@@ -1,6 +1,6 @@
-import 'package:common/models/game_status.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
-import 'package:train_de_mots/generic/models/mini_games.dart';
 import 'package:train_de_mots/words_train/managers/words_train_game_manager.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';

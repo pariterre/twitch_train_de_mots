@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:common/models/exceptions.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/models/generic_listener.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/models/mini_games.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -193,6 +193,7 @@ class WordsTrainGameManager {
   bool _isNextRoundAMiniGame = false;
   bool get isNextRoundAMiniGame => _isNextRoundAMiniGame;
   bool _isRoundAMiniGame = false;
+  bool get isRoundAMiniGame => _isRoundAMiniGame;
   MiniGames? _currentMiniGame;
 
   bool _areCongratulationFireworksFiring = false;

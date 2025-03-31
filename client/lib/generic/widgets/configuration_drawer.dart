@@ -1,4 +1,4 @@
-import 'package:common/managers/theme_manager.dart';
+import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';

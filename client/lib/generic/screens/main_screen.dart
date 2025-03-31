@@ -1,6 +1,6 @@
-import 'package:common/managers/theme_manager.dart';
-import 'package:common/models/game_status.dart';
-import 'package:common/widgets/background.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/screens/between_round_screen.dart';

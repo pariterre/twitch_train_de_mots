@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:common/models/game_status.dart';
-import 'package:common/models/generic_listener.dart';
-import 'package:common/models/helpers.dart';
-import 'package:common/models/serializable_game_state.dart';
+import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/helpers.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -52,6 +52,7 @@ class GameManager {
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
     configuration: SerializableConfiguration(showExtension: true),
+    miniGameState: null,
   );
 
   void updateGameState(SerializableGameState newGameState) {

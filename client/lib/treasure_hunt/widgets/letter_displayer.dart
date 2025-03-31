@@ -1,5 +1,5 @@
-import 'package:common/widgets/fireworks.dart';
-import 'package:common/widgets/letter_displayer_common.dart';
+import 'package:common/generic/widgets/fireworks.dart';
+import 'package:common/generic/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/models/tile.dart';

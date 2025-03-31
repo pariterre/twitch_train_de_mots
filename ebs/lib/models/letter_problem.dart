@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:common/managers/dictionary_manager.dart';
-import 'package:common/models/exceptions.dart';
+import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/models/exceptions.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/problem_configuration.dart';
