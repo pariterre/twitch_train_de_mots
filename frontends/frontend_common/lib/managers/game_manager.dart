@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:common/models/game_status.dart';
 import 'package:common/models/generic_listener.dart';
 import 'package:common/models/helpers.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -37,7 +37,7 @@ class GameManager {
 
   ///
   /// Flag to indicate if the game has started
-  final _gameState = SimplifiedGameState(
+  final _gameState = SerializableGameState(
     status: WordsTrainGameStatus.uninitialized,
     round: 0,
     isRoundSuccess: false,
@@ -51,10 +51,10 @@ class GameManager {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    configuration: SimplifiedConfiguration(showExtension: true),
+    configuration: SerializableConfiguration(showExtension: true),
   );
 
-  void updateGameState(SimplifiedGameState newGameState) {
+  void updateGameState(SerializableGameState newGameState) {
     if (_gameState.status != newGameState.status) {
       _gameState.status = newGameState.status;
       if (_gameState.status == WordsTrainGameStatus.roundStarted ||
@@ -171,7 +171,7 @@ class GameManager {
   ///
   /// Callback to know when the letters were changed
   final onLetterProblemChanged = GenericListener<Function()>();
-  SimplifiedLetterProblem? get problem => _gameState.letterProblem;
+  SerializableLetterProblem? get problem => _gameState.letterProblem;
 
   ///
   /// Stealer and pardonner management

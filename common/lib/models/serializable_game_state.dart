@@ -7,17 +7,17 @@ enum LetterStatus {
   revealed,
 }
 
-class SimplifiedConfiguration {
+class SerializableConfiguration {
   bool showExtension;
 
-  SimplifiedConfiguration({
+  SerializableConfiguration({
     required this.showExtension,
   });
 
-  SimplifiedConfiguration copyWith({
+  SerializableConfiguration copyWith({
     bool? showExtension,
   }) {
-    return SimplifiedConfiguration(
+    return SerializableConfiguration(
         showExtension: showExtension ?? this.showExtension);
   }
 
@@ -27,33 +27,33 @@ class SimplifiedConfiguration {
     };
   }
 
-  static SimplifiedConfiguration deserialize(Map<String, dynamic> data) =>
-      SimplifiedConfiguration(
+  static SerializableConfiguration deserialize(Map<String, dynamic> data) =>
+      SerializableConfiguration(
         showExtension: data['show_extension'] as bool,
       );
 }
 
-class SimplifiedLetterProblem {
+class SerializableLetterProblem {
   final List<String> letters;
   final List<int> scrambleIndices;
   final List<LetterStatus> uselessLetterStatuses;
   final List<LetterStatus> hiddenLetterStatuses;
 
-  SimplifiedLetterProblem({
+  SerializableLetterProblem({
     required this.letters,
     required this.scrambleIndices,
     required this.uselessLetterStatuses,
     required this.hiddenLetterStatuses,
   });
 
-  SimplifiedLetterProblem copyWith({
+  SerializableLetterProblem copyWith({
     List<String>? letters,
     List<int>? scrambleIndices,
     List<LetterStatus>? uselessLetterStatuses,
     List<LetterStatus>? hiddenLetterStatuses,
     bool? shouldHideHiddenLetter,
   }) =>
-      SimplifiedLetterProblem(
+      SerializableLetterProblem(
         letters: letters ?? this.letters,
         scrambleIndices: scrambleIndices ?? this.scrambleIndices,
         uselessLetterStatuses:
@@ -72,8 +72,8 @@ class SimplifiedLetterProblem {
     };
   }
 
-  static SimplifiedLetterProblem deserialize(Map<String, dynamic> data) {
-    return SimplifiedLetterProblem(
+  static SerializableLetterProblem deserialize(Map<String, dynamic> data) {
+    return SerializableLetterProblem(
       letters: (data['letters'] as List).cast<String>(),
       scrambleIndices: (data['scramble_indices'] as List).cast<int>(),
       uselessLetterStatuses:
@@ -88,12 +88,12 @@ class SimplifiedLetterProblem {
   }
 
   ///
-  /// Is equal to another [SimplifiedLetterProblem]
+  /// Is equal to another [SerializableLetterProblem]
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is SimplifiedLetterProblem &&
+    return other is SerializableLetterProblem &&
         listEquality(letters, other.letters) &&
         listEquality(scrambleIndices, other.scrambleIndices) &&
         listEquality(uselessLetterStatuses, other.uselessLetterStatuses) &&
@@ -108,7 +108,7 @@ class SimplifiedLetterProblem {
       hiddenLetterStatuses.hashCode;
 }
 
-class SimplifiedGameState {
+class SerializableGameState {
   WordsTrainGameStatus status;
   int round;
   bool isRoundSuccess;
@@ -126,11 +126,11 @@ class SimplifiedGameState {
   bool canAttemptTheBigHeist;
   bool isAttemptingTheBigHeist;
 
-  SimplifiedLetterProblem? letterProblem;
+  SerializableLetterProblem? letterProblem;
 
-  SimplifiedConfiguration configuration;
+  SerializableConfiguration configuration;
 
-  SimplifiedGameState({
+  SerializableGameState({
     required this.status,
     required this.round,
     required this.isRoundSuccess,
@@ -147,13 +147,13 @@ class SimplifiedGameState {
     required this.configuration,
   });
 
-  SimplifiedGameState copyWith({
+  SerializableGameState copyWith({
     WordsTrainGameStatus? status,
     int? round,
     bool? isRoundSuccess,
     Duration? timeRemaining,
     Map<String, Duration>? newCooldowns,
-    SimplifiedLetterProblem? letterProblem,
+    SerializableLetterProblem? letterProblem,
     int? pardonRemaining,
     List<String>? pardonners,
     int? boostRemaining,
@@ -161,9 +161,9 @@ class SimplifiedGameState {
     List<String>? boosters,
     bool? canAttemptTheBigHeist,
     bool? isAttemptingTheBigHeist,
-    SimplifiedConfiguration? configuration,
+    SerializableConfiguration? configuration,
   }) =>
-      SimplifiedGameState(
+      SerializableGameState(
         status: status ?? this.status,
         round: round ?? this.round,
         isRoundSuccess: isRoundSuccess ?? this.isRoundSuccess,
@@ -202,8 +202,8 @@ class SimplifiedGameState {
     };
   }
 
-  static SimplifiedGameState deserialize(Map<String, dynamic> data) {
-    return SimplifiedGameState(
+  static SerializableGameState deserialize(Map<String, dynamic> data) {
+    return SerializableGameState(
       status: WordsTrainGameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
       isRoundSuccess: data['is_round_success'] as bool,
@@ -212,7 +212,7 @@ class SimplifiedGameState {
           (key, value) => MapEntry(key, Duration(milliseconds: value as int))),
       letterProblem: data['letterProblem'] == null
           ? null
-          : SimplifiedLetterProblem.deserialize(data['letterProblem']!),
+          : SerializableLetterProblem.deserialize(data['letterProblem']!),
       pardonRemaining: data['pardon_remaining'] as int,
       pardonners: (data['pardonners'] as List).cast<String>(),
       boostRemaining: data['boost_remaining'] as int,
@@ -220,7 +220,8 @@ class SimplifiedGameState {
       boosters: (data['boosters'] as List).cast<String>(),
       canAttemptTheBigHeist: data['can_attempt_the_big_heist'] as bool,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
-      configuration: SimplifiedConfiguration.deserialize(data['configuration']),
+      configuration:
+          SerializableConfiguration.deserialize(data['configuration']),
     );
   }
 }

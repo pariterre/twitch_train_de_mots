@@ -1,4 +1,4 @@
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 
 enum TileValue {

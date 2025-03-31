@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:common/models/ebs_helpers.dart';
-import 'package:common/models/simplified_game_state.dart';
 import 'package:common/models/game_status.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
-
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
@@ -18,7 +17,7 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  SimplifiedGameState _gameState = SimplifiedGameState(
+  SerializableGameState _gameState = SerializableGameState(
     status: WordsTrainGameStatus.initializing,
     round: 0,
     isRoundSuccess: false,
@@ -32,10 +31,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    configuration: SimplifiedConfiguration(showExtension: true),
+    configuration: SerializableConfiguration(showExtension: true),
   );
-  SimplifiedGameState get gameState => _gameState;
-  set gameState(SimplifiedGameState value) {
+  SerializableGameState get gameState => _gameState;
+  set gameState(SerializableGameState value) {
     _gameState = value;
 
     // Convert the cooldowns from login to opaque id
@@ -216,7 +215,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.frontend:
           switch (ToFrontendMessages.values.byName(message.data!['type'])) {
             case ToFrontendMessages.gameState:
-              gameState = SimplifiedGameState.deserialize(
+              gameState = SerializableGameState.deserialize(
                   message.data!['game_state'] as Map<String, dynamic>);
               _sendGameStateToFrontend();
               break;

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/exceptions.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
@@ -143,19 +143,19 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 
   ///
-  /// Get a simplified version of the GameState
-  SimplifiedGameState simplifiedGameState(
+  /// Get a serializable version of the GameState
+  SerializableGameState serializableGameState(
       {Map<String, Duration> newCooldowns = const {}}) {
     final cm = Managers.instance.configuration;
     final gm = Managers.instance.train;
 
-    return SimplifiedGameState(
+    return SerializableGameState(
       status: gm.gameStatus,
       round: gm.roundCount,
       isRoundSuccess: gm.successLevel.toInt() > 0,
       timeRemaining: gm.timeRemaining ?? const Duration(seconds: 0),
       newCooldowns: newCooldowns,
-      letterProblem: gm.simplifiedProblem,
+      letterProblem: gm.serializableProblem,
       pardonRemaining: gm.remainingPardon,
       pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
       boostRemaining: gm.remainingBoosts,
@@ -163,7 +163,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      configuration: SimplifiedConfiguration(showExtension: cm.showExtension),
+      configuration: SerializableConfiguration(showExtension: cm.showExtension),
     );
   }
 
@@ -176,7 +176,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
           data: {
             'type': ToFrontendMessages.gameState.name,
             'game_state':
-                simplifiedGameState(newCooldowns: newCooldowns).serialize(),
+                serializableGameState(newCooldowns: newCooldowns).serialize(),
           }));
 
   ///
@@ -198,7 +198,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               isSuccess: true,
               data: {
                 'type': ToFrontendMessages.gameState.name,
-                'game_state': simplifiedGameState().serialize(),
+                'game_state': serializableGameState().serialize(),
               }));
           break;
 

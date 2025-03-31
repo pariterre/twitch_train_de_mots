@@ -89,7 +89,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     final gm = Managers.instance.train;
 
     if (gm.problem == null) return Container();
-    final problem = gm.simplifiedProblem!;
+    final problem = gm.serializableProblem!;
 
     return SizedBox(
       width: LetterDisplayerCommon.baseWidth(problem.letters.length),

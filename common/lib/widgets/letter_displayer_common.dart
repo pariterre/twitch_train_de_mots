@@ -1,5 +1,5 @@
 import 'package:common/managers/theme_manager.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:common/models/valuable_letter.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +16,7 @@ class LetterDisplayerCommon extends StatefulWidget {
     this.letterBuilder,
   });
 
-  final SimplifiedLetterProblem letterProblem;
+  final SerializableLetterProblem letterProblem;
   final Widget Function(int)? letterBuilder;
 
   static double baseWidth(int letterCount) =>

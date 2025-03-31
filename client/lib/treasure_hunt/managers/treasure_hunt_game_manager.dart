@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:common/managers/dictionary_manager.dart';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/generic_listener.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -65,8 +65,8 @@ class TreasureHuntGameManager implements MiniGameManager {
   ///
   /// Current problem
   final _dictionary = DictionaryManager.wordsWithAtLeast(6).toList();
-  SimplifiedLetterProblem? _problem;
-  SimplifiedLetterProblem get problem =>
+  SerializableLetterProblem? _problem;
+  SerializableLetterProblem get problem =>
       _problem == null ? throw "This should not happen" : _problem!;
 
   ///
@@ -292,7 +292,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     // One letter will not be on the grid. For internal reasons of LetterDisplayer, we must flag it as "revealed"
     final mysteryLetterIndex = _random.nextInt(word.length);
 
-    _problem = SimplifiedLetterProblem(
+    _problem = SerializableLetterProblem(
       letters: word.split(''),
       scrambleIndices: List.generate(word.length, (index) => index),
       uselessLetterStatuses: List.generate(

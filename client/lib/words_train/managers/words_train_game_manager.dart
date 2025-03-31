@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:common/models/exceptions.dart';
 import 'package:common/models/game_status.dart';
 import 'package:common/models/generic_listener.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/models/mini_games.dart';
@@ -144,9 +144,9 @@ class WordsTrainGameManager {
                   : LetterStatus.hidden
               : LetterStatus.normal);
 
-  SimplifiedLetterProblem? get simplifiedProblem => problem == null
+  SerializableLetterProblem? get serializableProblem => problem == null
       ? null
-      : SimplifiedLetterProblem(
+      : SerializableLetterProblem(
           letters: problem!.letters,
           scrambleIndices: problem!.scrambleIndices,
           uselessLetterStatuses: uselessLetterStatuses,

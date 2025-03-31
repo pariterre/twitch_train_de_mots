@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:common/models/ebs_helpers.dart';
 import 'package:common/models/game_status.dart';
-import 'package:common/models/simplified_game_state.dart';
+import 'package:common/models/serializable_game_state.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
@@ -190,7 +190,7 @@ class TwitchManager {
           _logger.info('Update from game state received');
 
           GameManager.instance.updateGameState(
-              SimplifiedGameState.deserialize(message.data!['game_state']));
+              SerializableGameState.deserialize(message.data!['game_state']));
 
           break;
 
@@ -227,7 +227,7 @@ class TwitchManager {
 
     _logger.info('Game status received');
     GameManager.instance.updateGameState(
-        SimplifiedGameState.deserialize(response.data!['game_state']));
+        SerializableGameState.deserialize(response.data!['game_state']));
   }
 
   ///
@@ -268,13 +268,13 @@ class TwitchManagerMock extends TwitchManager {
 
     // Uncomment the next line to simulate that the user can pardon in 1 second
     Future.delayed(const Duration(seconds: 3))
-        .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
+        .then((_) => GameManager.instance.updateGameState(SerializableGameState(
               status: WordsTrainGameStatus.roundStarted,
               round: 11,
               isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 83),
               newCooldowns: {userId: const Duration(seconds: 5)},
-              letterProblem: SimplifiedLetterProblem(
+              letterProblem: SerializableLetterProblem(
                 letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                 scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
                 uselessLetterStatuses: List.generate(
@@ -293,17 +293,17 @@ class TwitchManagerMock extends TwitchManager {
               boosters: [],
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
-              configuration: SimplifiedConfiguration(showExtension: true),
+              configuration: SerializableConfiguration(showExtension: true),
             )));
 
     Future.delayed(const Duration(seconds: 8))
-        .then((_) => GameManager.instance.updateGameState(SimplifiedGameState(
+        .then((_) => GameManager.instance.updateGameState(SerializableGameState(
               status: WordsTrainGameStatus.roundStarted,
               round: 11,
               isRoundSuccess: true,
               timeRemaining: const Duration(seconds: 3),
               newCooldowns: {userId: const Duration(seconds: 5)},
-              letterProblem: SimplifiedLetterProblem(
+              letterProblem: SerializableLetterProblem(
                 letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                 scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
                 uselessLetterStatuses: List.generate(
@@ -322,7 +322,7 @@ class TwitchManagerMock extends TwitchManager {
               boosters: [],
               canAttemptTheBigHeist: true,
               isAttemptingTheBigHeist: false,
-              configuration: SimplifiedConfiguration(showExtension: true),
+              configuration: SerializableConfiguration(showExtension: true),
             )));
 
     // Uncomment the next line to simulate that the App refused the pardon
@@ -357,13 +357,13 @@ class TwitchManagerMock extends TwitchManager {
         isSuccess: true,
         data: jsonDecode(jsonEncode({
           'type': ToFrontendMessages.gameState.name,
-          'game_state': SimplifiedGameState(
+          'game_state': SerializableGameState(
             status: WordsTrainGameStatus.roundEnding,
             round: 11,
             isRoundSuccess: true,
             timeRemaining: const Duration(seconds: 83),
             newCooldowns: {userId: const Duration(seconds: 5)},
-            letterProblem: SimplifiedLetterProblem(
+            letterProblem: SerializableLetterProblem(
               letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
               scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
               uselessLetterStatuses: List.generate(
@@ -382,7 +382,7 @@ class TwitchManagerMock extends TwitchManager {
             boosters: [],
             canAttemptTheBigHeist: false,
             isAttemptingTheBigHeist: true,
-            configuration: SimplifiedConfiguration(showExtension: true),
+            configuration: SerializableConfiguration(showExtension: true),
           ).serialize(),
         }))));
     return true;
@@ -416,13 +416,13 @@ class TwitchManagerMock extends TwitchManager {
             type: MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
-              'game_state': SimplifiedGameState(
+              'game_state': SerializableGameState(
                 status: WordsTrainGameStatus.uninitialized,
                 round: 1,
                 isRoundSuccess: false,
                 timeRemaining: const Duration(seconds: 83),
                 newCooldowns: {userId: const Duration(seconds: 5)},
-                letterProblem: SimplifiedLetterProblem(
+                letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
                   uselessLetterStatuses: List.generate(
@@ -443,7 +443,7 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
-                configuration: SimplifiedConfiguration(showExtension: true),
+                configuration: SerializableConfiguration(showExtension: true),
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:
