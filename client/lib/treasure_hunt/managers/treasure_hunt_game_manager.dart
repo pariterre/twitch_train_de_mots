@@ -14,7 +14,6 @@ import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
 final _logger = Logger('TreasureHuntGameManager');
 
-// TODO: Add sound effects
 // TODO: Add backend
 
 ///
@@ -310,7 +309,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   Future<void> initialize() async {
     _generateGrid();
     _isTimerRunning = false;
-    _timeRemaining = Managers.instance.train.lastRoundTimeRemaining;
+    _timeRemaining = Managers.instance.train.previousRoundTimeRemaining;
     _triesRemaining = 10;
     _isReady = true;
     onGameIsReady.notifyListeners((callback) => callback());

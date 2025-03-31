@@ -62,7 +62,11 @@ flutter:
     - assets/sounds/BigHeistSuccess.mp3
     - assets/sounds/BigHeistFailed.mp3
     - assets/sounds/ChangingLane.mp3
-    
+    - assets/sounds/treasure_hunt/pluck_grass1.mp3 
+    - assets/sounds/treasure_hunt/pluck_grass2.mp3 
+    - assets/sounds/treasure_hunt/pluck_grass3.mp3
+    - assets/sounds/treasure_hunt/pluck_grass4.mp3 
+
   fonts:
     - family: BaskervvilleSC
       fonts:

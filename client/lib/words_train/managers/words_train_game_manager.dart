@@ -88,8 +88,8 @@ class WordsTrainGameManager {
               seconds: ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
                   Managers.instance.configuration.postRoundGracePeriodDuration
                       .inSeconds);
-  Duration _lastRoundTimeRemaining = Duration.zero;
-  Duration get lastRoundTimeRemaining => _lastRoundTimeRemaining;
+  Duration _previousRoundTimeRemaining = Duration.zero;
+  Duration get previousRoundTimeRemaining => _previousRoundTimeRemaining;
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -972,7 +972,7 @@ class WordsTrainGameManager {
     Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
     _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
 
-    _lastRoundTimeRemaining = timeRemaining!;
+    _previousRoundTimeRemaining = timeRemaining!;
     _forceEndTheRound = false;
     _roundDuration = null;
     _roundStartedAt = null;
@@ -1009,7 +1009,7 @@ class WordsTrainGameManager {
     // Select the mini game to play if allowed
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
-    if (_currentProblem!.areAllSolutionsFound || true) {
+    if (_currentProblem!.areAllSolutionsFound) {
       _roundSuccesses.add(RoundSuccess.foundAll);
       _isNextRoundAMiniGame = true;
       _currentMiniGame = MiniGames.treasureHunt;
@@ -1139,6 +1139,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     SuccessLevel? successLevel,
     bool shouldAttemptTheBigHeist = false,
     bool shouldChangeLane = false,
+    bool isNextRoundAMiniGame = false,
     MiniGames? nextMiniGame,
   }) : super(deltaTime: Duration(milliseconds: 100)) {
     if (players != null) {
@@ -1186,6 +1187,8 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _setValuesAtStartRound();
     }
 
+    _previousRoundTimeRemaining = Duration(seconds: 100);
+    _isNextRoundAMiniGame = isNextRoundAMiniGame;
     _currentMiniGame = nextMiniGame;
 
     _asyncInitializations();

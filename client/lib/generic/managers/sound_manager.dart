@@ -4,6 +4,7 @@ import 'package:common/models/exceptions.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
@@ -49,6 +50,7 @@ class SoundManager {
   Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
 
+    // Main game sounds
     while (true) {
       try {
         final gm = Managers.instance.train;
@@ -67,6 +69,20 @@ class SoundManager {
         gm.onBigHeistSuccess.listen(_onTheBigHeistSuccess);
         gm.onBigHeistFailed.listen(_onTheBigHeistFailed);
         gm.onChangingLane.listen(_onChangingLane);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+    // Minigame Treasure Hunt sounds
+    while (true) {
+      try {
+        final thm = Managers.instance.miniGames.treasureHunt;
+        thm.onTileRevealed.listen(_onTreasureHuntPluckingGrass);
+        thm.onRewardFound.listen(_onTreasureHuntLetterFound);
+        thm.onTrySolution.listen(_onSolutionTried);
+        thm.onGameEnded.listen(_onTreasureHuntGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -183,5 +199,32 @@ class SoundManager {
 
   Future<void> _onChangingLane() async {
     _playSoundEffect('assets/sounds/ChangingLane.mp3');
+  }
+
+  Future<void> _onTreasureHuntPluckingGrass() async {
+    // Choose one of the 4 sounds at random
+    final fileNumber = Random().nextInt(4) + 1;
+    _playSoundEffect('assets/sounds/treasure_hunt/pluck_grass$fileNumber.mp3');
+  }
+
+  Future<void> _onTreasureHuntLetterFound(Tile tile) async {
+    if (!tile.hasLetter) return;
+    _playSoundEffect('assets/sounds/SolutionFound.mp3');
+  }
+
+  Future<void> _onSolutionTried(String _, String __, bool isCorrect) async {
+    if (isCorrect) {
+      // Do nothing as the sound is already played in the game over
+    } else {
+      _playSoundEffect('assets/sounds/SolutionStolen.mp3');
+    }
+  }
+
+  Future<void> _onTreasureHuntGameIsOver(bool hasWon) async {
+    if (hasWon) {
+      _playSoundEffect('assets/sounds/BestSolutionFound.mp3');
+    } else {
+      _playSoundEffect('assets/sounds/RoundIsOver.mp3');
+    }
   }
 }
