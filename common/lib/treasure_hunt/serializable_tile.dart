@@ -75,7 +75,6 @@ class SerializableTile {
 
   final LetterStatus uselessStatus;
   final LetterStatus hiddenStatus;
-  final bool isConcealed;
   final bool isRevealed;
 
   final bool hasTreasure;
@@ -88,7 +87,6 @@ class SerializableTile {
     required this.value,
     required this.uselessStatus,
     required this.hiddenStatus,
-    required this.isConcealed,
     required this.isRevealed,
     required this.hasTreasure,
     required this.hasLetter,
@@ -99,7 +97,6 @@ class SerializableTile {
     TileValue? value,
     LetterStatus? uselessStatus,
     LetterStatus? hiddenStatus,
-    bool? isConcealed,
     bool? isRevealed,
     bool? hasTreasure,
     bool? hasLetter,
@@ -109,7 +106,6 @@ class SerializableTile {
         value: value ?? this.value,
         uselessStatus: uselessStatus ?? this.uselessStatus,
         hiddenStatus: hiddenStatus ?? this.hiddenStatus,
-        isConcealed: isConcealed ?? this.isConcealed,
         isRevealed: isRevealed ?? this.isRevealed,
         hasTreasure: hasTreasure ?? this.hasTreasure,
         hasLetter: hasLetter ?? this.hasLetter,
@@ -120,7 +116,6 @@ class SerializableTile {
       'value': value.index,
       'useless_status': uselessStatus.index,
       'hidden_status': hiddenStatus.index,
-      'is_concealed': isConcealed,
       'is_revealed': isRevealed,
       'has_treasure': hasTreasure,
       'has_letter': hasLetter,
@@ -133,7 +128,6 @@ class SerializableTile {
       value: TileValue.values[data['value'] as int],
       uselessStatus: LetterStatus.values[data['useless_status'] as int],
       hiddenStatus: LetterStatus.values[data['hidden_status'] as int],
-      isConcealed: data['is_concealed'] as bool,
       isRevealed: data['is_revealed'] as bool,
       hasTreasure: data['has_treasure'] as bool,
       hasLetter: data['has_letter'] as bool,

@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/treasure_hunt/serializable_tile.dart';
+import 'package:common/treasure_hunt/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
@@ -266,66 +268,66 @@ class TwitchManagerMock extends TwitchManager {
     // Uncomment the next line to simulate a connexion of the App with the EBS
     _requestGameStatus();
 
-    // Uncomment the next line to simulate that the user can pardon in 1 second
-    Future.delayed(const Duration(seconds: 3))
-        .then((_) => GameManager.instance.updateGameState(SerializableGameState(
-              status: WordsTrainGameStatus.roundStarted,
-              round: 11,
-              isRoundSuccess: true,
-              timeRemaining: const Duration(seconds: 83),
-              newCooldowns: {userId: const Duration(seconds: 5)},
-              letterProblem: SerializableLetterProblem(
-                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                uselessLetterStatuses: List.generate(
-                    10,
-                    (index) =>
-                        index == 9 ? LetterStatus.hidden : LetterStatus.normal),
-                hiddenLetterStatuses: List.generate(
-                    10,
-                    (index) =>
-                        index == 2 ? LetterStatus.hidden : LetterStatus.normal),
-              ),
-              pardonRemaining: 1,
-              pardonners: [userId],
-              boostRemaining: 1,
-              boostStillNeeded: 0,
-              boosters: [],
-              canAttemptTheBigHeist: true,
-              isAttemptingTheBigHeist: false,
-              configuration: SerializableConfiguration(showExtension: true),
-              miniGameState: null,
-            )));
+    // // Uncomment the next line to simulate that the user can pardon in 1 second
+    // Future.delayed(const Duration(seconds: 3))
+    //     .then((_) => GameManager.instance.updateGameState(SerializableGameState(
+    //           status: WordsTrainGameStatus.roundStarted,
+    //           round: 11,
+    //           isRoundSuccess: true,
+    //           timeRemaining: const Duration(seconds: 83),
+    //           newCooldowns: {userId: const Duration(seconds: 5)},
+    //           letterProblem: SerializableLetterProblem(
+    //             letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+    //             scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+    //             uselessLetterStatuses: List.generate(
+    //                 10,
+    //                 (index) =>
+    //                     index == 9 ? LetterStatus.hidden : LetterStatus.normal),
+    //             hiddenLetterStatuses: List.generate(
+    //                 10,
+    //                 (index) =>
+    //                     index == 2 ? LetterStatus.hidden : LetterStatus.normal),
+    //           ),
+    //           pardonRemaining: 1,
+    //           pardonners: [userId],
+    //           boostRemaining: 1,
+    //           boostStillNeeded: 0,
+    //           boosters: [],
+    //           canAttemptTheBigHeist: true,
+    //           isAttemptingTheBigHeist: false,
+    //           configuration: SerializableConfiguration(showExtension: true),
+    //           miniGameState: null,
+    //         )));
 
-    Future.delayed(const Duration(seconds: 8))
-        .then((_) => GameManager.instance.updateGameState(SerializableGameState(
-              status: WordsTrainGameStatus.roundStarted,
-              round: 11,
-              isRoundSuccess: true,
-              timeRemaining: const Duration(seconds: 3),
-              newCooldowns: {userId: const Duration(seconds: 5)},
-              letterProblem: SerializableLetterProblem(
-                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                uselessLetterStatuses: List.generate(
-                    10,
-                    (index) =>
-                        index == 9 ? LetterStatus.hidden : LetterStatus.normal),
-                hiddenLetterStatuses: List.generate(
-                    10,
-                    (index) =>
-                        index == 2 ? LetterStatus.hidden : LetterStatus.normal),
-              ),
-              pardonRemaining: 1,
-              pardonners: [userId],
-              boostRemaining: 1,
-              boostStillNeeded: 0,
-              boosters: [],
-              canAttemptTheBigHeist: true,
-              isAttemptingTheBigHeist: false,
-              configuration: SerializableConfiguration(showExtension: true),
-              miniGameState: null,
-            )));
+    // Future.delayed(const Duration(seconds: 8))
+    //     .then((_) => GameManager.instance.updateGameState(SerializableGameState(
+    //           status: WordsTrainGameStatus.roundStarted,
+    //           round: 11,
+    //           isRoundSuccess: true,
+    //           timeRemaining: const Duration(seconds: 3),
+    //           newCooldowns: {userId: const Duration(seconds: 5)},
+    //           letterProblem: SerializableLetterProblem(
+    //             letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+    //             scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+    //             uselessLetterStatuses: List.generate(
+    //                 10,
+    //                 (index) =>
+    //                     index == 9 ? LetterStatus.hidden : LetterStatus.normal),
+    //             hiddenLetterStatuses: List.generate(
+    //                 10,
+    //                 (index) =>
+    //                     index == 2 ? LetterStatus.hidden : LetterStatus.normal),
+    //           ),
+    //           pardonRemaining: 1,
+    //           pardonners: [userId],
+    //           boostRemaining: 1,
+    //           boostStillNeeded: 0,
+    //           boosters: [],
+    //           canAttemptTheBigHeist: true,
+    //           isAttemptingTheBigHeist: false,
+    //           configuration: SerializableConfiguration(showExtension: true),
+    //           miniGameState: null,
+    //         )));
 
     // Uncomment the next line to simulate that the App refused the pardon
     _acceptPardon = false;
@@ -420,7 +422,7 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.uninitialized,
+                status: WordsTrainGameStatus.miniGameStarted,
                 round: 1,
                 isRoundSuccess: false,
                 timeRemaining: const Duration(seconds: 83),
@@ -447,7 +449,25 @@ class TwitchManagerMock extends TwitchManager {
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: null,
+                miniGameState: SerializableTreasureHuntGameState(
+                  nbRows: 40,
+                  nbCols: 20,
+                  rewardsCount: 40,
+                  isTimerRunning: false,
+                  timeRemaining: const Duration(seconds: 30),
+                  triesRemaining: 10,
+                  grid: List.generate(
+                      40 * 20,
+                      (i) => SerializableTile(
+                            index: i,
+                            value: TileValue.zero,
+                            uselessStatus: LetterStatus.normal,
+                            hiddenStatus: LetterStatus.normal,
+                            isRevealed: false,
+                            hasTreasure: false,
+                            hasLetter: false,
+                          )),
+                ),
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:

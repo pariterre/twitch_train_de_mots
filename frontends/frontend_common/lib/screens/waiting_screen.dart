@@ -81,10 +81,13 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case WordsTrainGameStatus.miniGamePreparing:
       case WordsTrainGameStatus.miniGameReady:
         mainText = 'Promenez-vous dans les bois...\n';
+        showStar = false;
         break;
       case WordsTrainGameStatus.roundStarted:
       case WordsTrainGameStatus.miniGameStarted:
       case WordsTrainGameStatus.miniGameEnding:
+        mainText = '';
+        showStar = false;
         break;
     }
 

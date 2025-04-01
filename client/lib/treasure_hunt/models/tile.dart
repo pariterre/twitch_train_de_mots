@@ -55,7 +55,6 @@ class Tile {
         value: value,
         uselessStatus: _uselessStatus,
         hiddenStatus: _hiddenStatus,
-        isConcealed: isConcealed,
         isRevealed: isRevealed,
         hasTreasure: hasTreasure,
         hasLetter: hasLetter,
