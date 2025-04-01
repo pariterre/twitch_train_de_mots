@@ -1,9 +1,9 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/widgets/theme_card.dart';
-import 'package:train_de_mots/treasure_hunt/models/tile.dart';
-import 'package:train_de_mots/treasure_hunt/widgets/letter_displayer.dart';
+import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_letter_displayer.dart';
 
 class TreasureHuntHeader extends StatefulWidget {
   const TreasureHuntHeader({super.key});
@@ -43,7 +43,7 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
     setState(() {});
   }
 
-  void _onTileRevealed() {
+  void _onTileRevealed(Tile tile) {
     setState(() {});
   }
 
@@ -82,7 +82,7 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
           ],
         ),
         const SizedBox(height: 12),
-        const LetterDisplayer(),
+        const TreasureHuntLetterDisplayer(),
       ],
     );
   }

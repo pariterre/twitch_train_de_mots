@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/widgets/sweeper_tile.dart';
+import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_game_tile.dart';
 
-class GameGrid extends StatelessWidget {
-  const GameGrid({super.key, required this.tileSize});
+class TreasureHuntGameGrid extends StatelessWidget {
+  const TreasureHuntGameGrid({super.key, required this.tileSize});
 
   final double tileSize;
 
@@ -14,19 +14,16 @@ class GameGrid extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(gm.nbCols, (col) {
+      children: List.generate(gm.grid.columnCount, (col) {
         return Column(
-          children: List.generate(gm.nbRows, (row) {
+          children: List.generate(gm.grid.rowCount, (row) {
             return SizedBox(
               width: tileSize,
               height: tileSize,
-              child: SweeperTile(
-                tileIndex: row * gm.nbCols + col,
-                tileSize: tileSize,
-                textSize: textSize,
-              ),
+              child: TreasureHuntGameTile(
+                  row: row, col: col, tileSize: tileSize, textSize: textSize),
             );
-          }),
+          }, growable: false),
         );
       }, growable: false),
     );

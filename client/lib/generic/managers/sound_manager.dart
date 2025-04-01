@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:common/generic/models/exceptions.dart';
+import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
@@ -201,14 +201,14 @@ class SoundManager {
     _playSoundEffect('assets/sounds/ChangingLane.mp3');
   }
 
-  Future<void> _onTreasureHuntPluckingGrass() async {
+  Future<void> _onTreasureHuntPluckingGrass(Tile tile) async {
     // Choose one of the 4 sounds at random
     final fileNumber = Random().nextInt(4) + 1;
     _playSoundEffect('assets/sounds/treasure_hunt/pluck_grass$fileNumber.mp3');
   }
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
-    if (!tile.hasLetter) return;
+    if (!tile.isLetter) return;
     _playSoundEffect('assets/sounds/SolutionFound.mp3');
   }
 

@@ -1,17 +1,19 @@
 import 'package:common/generic/widgets/fireworks.dart';
 import 'package:common/generic/widgets/letter_displayer_common.dart';
+import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/treasure_hunt/models/tile.dart';
 
-class LetterDisplayer extends StatefulWidget {
-  const LetterDisplayer({super.key});
+class TreasureHuntLetterDisplayer extends StatefulWidget {
+  const TreasureHuntLetterDisplayer({super.key});
 
   @override
-  State<LetterDisplayer> createState() => _LetterDisplayerState();
+  State<TreasureHuntLetterDisplayer> createState() =>
+      _TreasureHuntLetterDisplayerState();
 }
 
-class _LetterDisplayerState extends State<LetterDisplayer> {
+class _TreasureHuntLetterDisplayerState
+    extends State<TreasureHuntLetterDisplayer> {
   final List<FireworksController> _fireworksControllers = [];
 
   @override
@@ -20,7 +22,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
 
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.listen(refresh);
-    gm.onRewardFound.listen(_onRevealHiddenLetter);
+    gm.onRewardFound.listen(_onRevealLetter);
     refresh();
   }
 
@@ -28,7 +30,7 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.cancel(refresh);
-    gm.onRewardFound.cancel(_onRevealHiddenLetter);
+    gm.onRewardFound.cancel(_onRevealLetter);
 
     for (var e in _fireworksControllers) {
       e.dispose();
@@ -42,12 +44,10 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
     setState(() {});
   }
 
-  void _onRevealHiddenLetter(Tile tile) {
-    if (!tile.hasLetter) return;
+  void _onRevealLetter(Tile tile) {
+    if (!tile.isLetter) return;
 
-    final gm = Managers.instance.miniGames.treasureHunt;
-    final index = gm.getLetterIndex(tile.index);
-    _fireworksControllers[index].trigger();
+    _fireworksControllers[tile.letterIndex!].trigger();
     setState(() {});
   }
 

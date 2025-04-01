@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
-import 'package:common/treasure_hunt/serializable_tile.dart';
 import 'package:common/treasure_hunt/serializable_treasure_hunt_game_state.dart';
+import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
@@ -450,23 +450,22 @@ class TwitchManagerMock extends TwitchManager {
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableTreasureHuntGameState(
-                  nbRows: 40,
-                  nbCols: 20,
-                  rewardsCount: 40,
+                  grid: Grid(
+                      rowCount: 20,
+                      columnCount: 10,
+                      rewardsCount: 40,
+                      tiles: List.generate(
+                          20 * 10,
+                          (i) => Tile(
+                              index: i,
+                              row: i ~/ 20,
+                              col: i % 20,
+                              value: TileValue.zero,
+                              isConcealed: true,
+                              isMysteryLetter: false))),
                   isTimerRunning: false,
                   timeRemaining: const Duration(seconds: 30),
                   triesRemaining: 10,
-                  grid: List.generate(
-                      40 * 20,
-                      (i) => SerializableTile(
-                            index: i,
-                            value: TileValue.zero,
-                            uselessStatus: LetterStatus.normal,
-                            hiddenStatus: LetterStatus.normal,
-                            isRevealed: false,
-                            hasTreasure: false,
-                            hasLetter: false,
-                          )),
                 ),
               ).serialize(),
             })));

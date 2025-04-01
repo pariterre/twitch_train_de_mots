@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_animated_text_overlay.dart';
-import 'package:train_de_mots/treasure_hunt/widgets/game_grid.dart';
+import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_header.dart';
 
 class TreasureHuntGameScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.listen(_refresh);
     gm.onGameIsReady.listen(_refresh);
-    gm.onTileRevealed.listen(_refresh);
+    gm.onTileRevealed.listen(_refreshWithOneParameter);
     gm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -45,7 +45,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.cancel(_refresh);
     gm.onGameIsReady.cancel(_refresh);
-    gm.onTileRevealed.cancel(_refresh);
+    gm.onTileRevealed.cancel(_refreshWithOneParameter);
     gm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -55,6 +55,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
   }
 
   void _refresh() => setState(() {});
+  void _refreshWithOneParameter(_) => setState(() {});
   void _solutionWasTried(String _, String __, bool ___) => setState(() {});
 
   @override
@@ -70,7 +71,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     final headerHeight = 160.0;
     final gridHeight = windowHeight - 2 * offsetFromBorder - headerHeight;
 
-    final tileSize = gridHeight / (gm.nbRows + 1);
+    final tileSize = gridHeight / (gm.grid.rowCount + 1);
 
     return Stack(
       children: [
@@ -83,7 +84,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
                 const SizedBox(height: 12),
                 const TreasureHuntHeader(),
                 const SizedBox(height: 20),
-                GameGrid(tileSize: tileSize),
+                TreasureHuntGameGrid(tileSize: tileSize),
               ],
             ),
           ),

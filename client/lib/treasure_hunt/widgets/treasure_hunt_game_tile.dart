@@ -1,10 +1,10 @@
 import 'dart:math';
 
-import 'package:common/treasure_hunt/serializable_tile.dart';
+import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 
-extension TileColor on TileValue {
+extension _TileColor on TileValue {
   Color get color {
     switch (this) {
       case TileValue.zero:
@@ -26,29 +26,30 @@ extension TileColor on TileValue {
       case TileValue.eight:
         return Colors.deepPurple;
       case TileValue.treasure:
-        return const Color.fromARGB(255, 10, 41, 66);
-      case TileValue.letter:
         return const Color.fromARGB(255, 255, 108, 108);
     }
   }
 }
 
-class SweeperTile extends StatelessWidget {
-  const SweeperTile({
+class TreasureHuntGameTile extends StatelessWidget {
+  const TreasureHuntGameTile({
     super.key,
-    required this.tileIndex,
+    required this.row,
+    required this.col,
     required this.tileSize,
     required this.textSize,
   });
 
-  final int tileIndex;
+  final int row;
+  final int col;
   final double tileSize;
   final double textSize;
 
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.miniGames.treasureHunt;
-    final tile = gm.getTile(tileIndex);
+    final tile = gm.grid.tileAt(row: row, col: col);
+    if (tile == null) return const SizedBox();
 
     // index is the number of treasure around the current tile
     final value = tile.value;
@@ -58,7 +59,7 @@ class SweeperTile extends StatelessWidget {
         border: Border.all(width: tileSize * 0.03),
       ),
       child: GestureDetector(
-        onTap: () => gm.revealTile(tileIndex: tileIndex),
+        onTap: () => gm.revealTile(row: row, col: col),
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -71,8 +72,8 @@ class SweeperTile extends StatelessWidget {
                   : 'assets/images/treasure_hunt/open_grass.png'),
             ),
             tile.isRevealed && tile.hasReward
-                ? (tile.hasLetter
-                    ? Text(gm.getLetter(tileIndex)!,
+                ? (tile.isLetter
+                    ? Text(tile.letter!,
                         style: TextStyle(
                             fontSize: textSize * 0.65,
                             color: tile.value.color,
