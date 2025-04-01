@@ -1,8 +1,7 @@
 import 'dart:math';
 
-import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
 
 extension _TileColor on TileValue {
   Color get color {
@@ -34,23 +33,19 @@ extension _TileColor on TileValue {
 class TreasureHuntGameTile extends StatelessWidget {
   const TreasureHuntGameTile({
     super.key,
-    required this.row,
-    required this.col,
+    required this.tile,
     required this.tileSize,
     required this.textSize,
+    required this.onTap,
   });
 
-  final int row;
-  final int col;
+  final Tile tile;
   final double tileSize;
   final double textSize;
+  final Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final gm = Managers.instance.miniGames.treasureHunt;
-    final tile = gm.grid.tileAt(row: row, col: col);
-    if (tile == null) return const SizedBox();
-
     // index is the number of treasure around the current tile
     final value = tile.value;
 
@@ -59,7 +54,7 @@ class TreasureHuntGameTile extends StatelessWidget {
         border: Border.all(width: tileSize * 0.03),
       ),
       child: GestureDetector(
-        onTap: () => gm.revealTile(row: row, col: col),
+        onTap: onTap,
         child: Stack(
           alignment: Alignment.center,
           children: [

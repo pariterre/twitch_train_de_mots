@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:common/generic/models/exceptions.dart';
-import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';

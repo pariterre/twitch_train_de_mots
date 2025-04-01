@@ -1,7 +1,7 @@
+import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_animated_text_overlay.dart';
-import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:train_de_mots/treasure_hunt/widgets/treasure_hunt_header.dart';
 
 class TreasureHuntGameScreen extends StatefulWidget {
@@ -84,7 +84,16 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
                 const SizedBox(height: 12),
                 const TreasureHuntHeader(),
                 const SizedBox(height: 20),
-                TreasureHuntGameGrid(tileSize: tileSize),
+                TreasureHuntGameGrid(
+                    rowCount: gm.grid.rowCount,
+                    columnCount: gm.grid.columnCount,
+                    tileSize: tileSize,
+                    getTileAt: (int row, int col) =>
+                        gm.grid.tileAt(row: row, col: col)!,
+                    onTileTapped: (int row, int col) {
+                      final gm = Managers.instance.miniGames.treasureHunt;
+                      gm.revealTile(row: row, col: col);
+                    }),
               ],
             ),
           ),

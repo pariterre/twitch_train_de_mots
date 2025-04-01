@@ -1,5 +1,5 @@
 import 'package:common/generic/models/mini_games.dart';
-import 'package:common/treasure_hunt/serializable_treasure_hunt_game_state.dart';
+import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 
 abstract class SerializableMiniGameState {
   MiniGames get type;

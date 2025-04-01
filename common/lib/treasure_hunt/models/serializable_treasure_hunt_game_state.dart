@@ -1,6 +1,6 @@
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
-import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 
 class SerializableTreasureHuntGameState implements SerializableMiniGameState {
   SerializableTreasureHuntGameState({

@@ -1,6 +1,6 @@
 import 'package:common/generic/widgets/fireworks.dart';
 import 'package:common/generic/widgets/letter_displayer_common.dart';
-import 'package:common/treasure_hunt/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 
