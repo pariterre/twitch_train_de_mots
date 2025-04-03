@@ -14,7 +14,7 @@ class MainScreen extends StatelessWidget {
       backgroundLayer: Opacity(
         opacity: 0.05,
         child: Image.asset(
-          'assets/images/train.png',
+          'packages/common/assets/images/train.png',
           height: MediaQuery.of(context).size.height,
           fit: BoxFit.cover,
         ),

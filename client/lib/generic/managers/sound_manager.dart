@@ -102,7 +102,7 @@ class SoundManager {
       }
     }
     _gameMusic.setLoopMode(LoopMode.all);
-    _gameMusic.setAsset('assets/sounds/TheSwindler.mp3');
+    _gameMusic.setAsset('packages/common/assets/sounds/TheSwindler.mp3');
 
     _isInitialized = true;
     _logger.config('Ready');
@@ -128,15 +128,15 @@ class SoundManager {
   }
 
   Future<void> _onRoundStarted() async {
-    _playSoundEffect('assets/sounds/GameStarted.mp3');
+    _playSoundEffect('packages/common/assets/sounds/GameStarted.mp3');
   }
 
   Future<void> _onLettersScrambled() async {
-    _playSoundEffect('assets/sounds/LettersScrambling.mp3');
+    _playSoundEffect('packages/common/assets/sounds/LettersScrambling.mp3');
   }
 
   Future<void> _onRoundIsOver() async {
-    _playSoundEffect('assets/sounds/RoundIsOver.mp3');
+    _playSoundEffect('packages/common/assets/sounds/RoundIsOver.mp3');
   }
 
   Future<void> _onSolutionFound(WordSolution? solution) async {
@@ -145,86 +145,89 @@ class SoundManager {
     final gm = Managers.instance.train;
 
     if (solution.isGolden) {
-      _playSoundEffect('assets/sounds/GoldenSolutionAppeared.mp3');
+      _playSoundEffect(
+          'packages/common/assets/sounds/GoldenSolutionAppeared.mp3');
     }
     if (solution.word.length == gm.problem!.solutions.nbLettersInLongest) {
-      _playSoundEffect('assets/sounds/BestSolutionFound.mp3');
+      _playSoundEffect('packages/common/assets/sounds/BestSolutionFound.mp3');
     } else {
-      _playSoundEffect('assets/sounds/SolutionFound.mp3');
+      _playSoundEffect('packages/common/assets/sounds/SolutionFound.mp3');
     }
   }
 
   Future<void> _onGoldenSolutionAppeared(WordSolution solution) async {
-    _playSoundEffect('assets/sounds/GoldenSolutionAppeared.mp3');
+    _playSoundEffect(
+        'packages/common/assets/sounds/GoldenSolutionAppeared.mp3');
   }
 
   Future<void> _onSolutionStolen(WordSolution solution) async {
-    _playSoundEffect('assets/sounds/SolutionStolen.mp3');
+    _playSoundEffect('packages/common/assets/sounds/SolutionStolen.mp3');
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
     if (boostNeeded > 0) return;
 
-    _playSoundEffect('assets/sounds/GameStarted.mp3');
+    _playSoundEffect('packages/common/assets/sounds/GameStarted.mp3');
   }
 
   Future<void> playTelegramReceived() async {
-    _playSoundEffect('assets/sounds/TelegramReceived.mp3');
+    _playSoundEffect('packages/common/assets/sounds/TelegramReceived.mp3');
   }
 
   Future<void> playTrainReachedStation() async {
-    _playSoundEffect('assets/sounds/TrainReachedStation.mp3');
+    _playSoundEffect('packages/common/assets/sounds/TrainReachedStation.mp3');
   }
 
   Future<void> playTrainLostStation() async {
-    _playSoundEffect('assets/sounds/TrainLostStation.mp3');
+    _playSoundEffect('packages/common/assets/sounds/TrainLostStation.mp3');
   }
 
   Future<void> playFireworks() async {
     final fileNumber = Random().nextInt(6) + 1;
-    _playSoundEffect('assets/sounds/Fireworks$fileNumber.mp3');
+    _playSoundEffect('packages/common/assets/sounds/Fireworks$fileNumber.mp3');
   }
 
   Future<void> _onAttemptingTheBigHeist() async {
-    _playSoundEffect('assets/sounds/TheBigHeist.mp3');
+    _playSoundEffect('packages/common/assets/sounds/TheBigHeist.mp3');
   }
 
   Future<void> _onTheBigHeistSuccess() async {
-    _playSoundEffect('assets/sounds/BigHeistSuccess.mp3');
+    _playSoundEffect('packages/common/assets/sounds/BigHeistSuccess.mp3');
   }
 
   Future<void> _onTheBigHeistFailed() async {
-    _playSoundEffect('assets/sounds/BigHeistFailed.mp3');
+    _playSoundEffect('packages/common/assets/sounds/BigHeistFailed.mp3');
   }
 
   Future<void> _onChangingLane() async {
-    _playSoundEffect('assets/sounds/ChangingLane.mp3');
+    _playSoundEffect('packages/common/assets/sounds/ChangingLane.mp3');
   }
 
   Future<void> _onTreasureHuntPluckingGrass(Tile tile) async {
     // Choose one of the 4 sounds at random
     final fileNumber = Random().nextInt(4) + 1;
-    _playSoundEffect('assets/sounds/treasure_hunt/pluck_grass$fileNumber.mp3');
+    _playSoundEffect(
+        'packages/common/assets/sounds/treasure_hunt/pluck_grass$fileNumber.mp3');
   }
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
     if (!tile.isLetter) return;
-    _playSoundEffect('assets/sounds/SolutionFound.mp3');
+    _playSoundEffect('packages/common/assets/sounds/SolutionFound.mp3');
   }
 
   Future<void> _onSolutionTried(String _, String __, bool isCorrect) async {
     if (isCorrect) {
       // Do nothing as the sound is already played in the game over
     } else {
-      _playSoundEffect('assets/sounds/SolutionStolen.mp3');
+      _playSoundEffect('packages/common/assets/sounds/SolutionStolen.mp3');
     }
   }
 
   Future<void> _onTreasureHuntGameIsOver(bool hasWon) async {
     if (hasWon) {
-      _playSoundEffect('assets/sounds/BestSolutionFound.mp3');
+      _playSoundEffect('packages/common/assets/sounds/BestSolutionFound.mp3');
     } else {
-      _playSoundEffect('assets/sounds/RoundIsOver.mp3');
+      _playSoundEffect('packages/common/assets/sounds/RoundIsOver.mp3');
     }
   }
 }

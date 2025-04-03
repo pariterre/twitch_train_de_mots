@@ -63,8 +63,8 @@ class TreasureHuntGameTile extends StatelessWidget {
                   // border: Border.all(width: tileSize * 0.02),
                   ),
               child: Image.asset(tile.isConcealed
-                  ? 'assets/images/treasure_hunt/grass.png'
-                  : 'assets/images/treasure_hunt/open_grass.png'),
+                  ? 'packages/common/assets/images/treasure_hunt/grass.png'
+                  : 'packages/common/assets/images/treasure_hunt/open_grass.png'),
             ),
             tile.isRevealed && tile.hasReward
                 ? (tile.isLetter
@@ -117,8 +117,8 @@ class _TreasureTileState extends State<_TreasureTile> {
           return SizedBox(
               height: _animation(value) * 30,
               width: _animation(value) * 30,
-              child:
-                  Image.asset('assets/images/treasure_hunt/blueberries.png'));
+              child: Image.asset(
+                  'packages/common/assets/images/treasure_hunt/blueberries.png'));
         });
   }
 }

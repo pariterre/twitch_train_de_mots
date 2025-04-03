@@ -25,9 +25,9 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/train.png
+    - packages/common/assets/images/train.png
 
   fonts:
     - family: BaskervvilleSC
       fonts:
-        - asset: packages/common/generic/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
+        - asset: packages/common/assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
