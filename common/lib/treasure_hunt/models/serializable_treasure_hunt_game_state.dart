@@ -54,4 +54,22 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
       triesRemaining: triesRemaining ?? this.triesRemaining,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SerializableTreasureHuntGameState &&
+        other.grid == grid &&
+        other.isTimerRunning == isTimerRunning &&
+        other.timeRemaining == timeRemaining &&
+        other.triesRemaining == triesRemaining;
+  }
+
+  @override
+  int get hashCode =>
+      grid.hashCode ^
+      isTimerRunning.hashCode ^
+      timeRemaining.hashCode ^
+      triesRemaining.hashCode;
 }

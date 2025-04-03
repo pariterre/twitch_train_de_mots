@@ -21,6 +21,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
     final gm = GameManager.instance;
     gm.onGameStatusUpdated.listen(_refresh);
     gm.onAttemptingTheBigHeist.listen(_refresh);
+    gm.onMiniGameStateUpdated.listen(_refresh);
   }
 
   @override
@@ -28,6 +29,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
     final gm = GameManager.instance;
     gm.onGameStatusUpdated.cancel(_refresh);
     gm.onAttemptingTheBigHeist.cancel(_refresh);
+    gm.onMiniGameStateUpdated.cancel(_refresh);
 
     super.dispose();
   }

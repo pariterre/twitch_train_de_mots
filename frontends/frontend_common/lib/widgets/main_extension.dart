@@ -6,6 +6,7 @@ import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/screens/dragging_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
+import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
 import 'package:frontend_common/screens/waiting_screen.dart';
 import 'package:frontend_common/widgets/opaque_on_hover.dart';
 import 'package:frontend_common/widgets/resized_box.dart';
@@ -188,8 +189,21 @@ class _MainScreenState extends State<_MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GameManager.instance.isRoundRunning
-        ? const PlayScreen()
-        : const WaitingScreen();
+    switch (GameManager.instance.status) {
+      case WordsTrainGameStatus.uninitialized:
+      case WordsTrainGameStatus.initializing:
+      case WordsTrainGameStatus.roundPreparing:
+      case WordsTrainGameStatus.roundReady:
+      case WordsTrainGameStatus.roundEnding:
+        return const WaitingScreen();
+      case WordsTrainGameStatus.roundStarted:
+        return const PlayScreen();
+      case WordsTrainGameStatus.miniGamePreparing:
+      case WordsTrainGameStatus.miniGameReady:
+      case WordsTrainGameStatus.miniGameEnding:
+        return const WaitingScreen();
+      case WordsTrainGameStatus.miniGameStarted:
+        return const TreasureHuntPlayScreen();
+    }
   }
 }

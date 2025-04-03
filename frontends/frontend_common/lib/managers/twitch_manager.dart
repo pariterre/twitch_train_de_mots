@@ -450,19 +450,8 @@ class TwitchManagerMock extends TwitchManager {
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableTreasureHuntGameState(
-                  grid: Grid(
-                      rowCount: 20,
-                      columnCount: 10,
-                      rewardsCount: 40,
-                      tiles: List.generate(
-                          20 * 10,
-                          (i) => Tile(
-                              index: i,
-                              row: i ~/ 20,
-                              col: i % 20,
-                              value: TileValue.zero,
-                              isConcealed: true,
-                              isMysteryLetter: false))),
+                  grid: Grid.random(
+                      rowCount: 20, columnCount: 10, rewardsCount: 40),
                   isTimerRunning: false,
                   timeRemaining: const Duration(seconds: 30),
                   triesRemaining: 10,

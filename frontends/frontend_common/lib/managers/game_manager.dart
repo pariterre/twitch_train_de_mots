@@ -4,6 +4,8 @@ import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/serializable_mini_game_state.dart';
+import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -18,6 +20,8 @@ class GameManager {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       _gameState.timeRemaining -= const Duration(seconds: 1);
       onGameTicked.notifyListeners((callback) => callback());
+
+      _tickMiniGame();
     });
   }
 
@@ -139,6 +143,12 @@ class GameManager {
           newGameState.configuration.showExtension;
       onGameStatusUpdated.notifyListeners((callback) => callback());
     }
+
+    if (_gameState.miniGameState != newGameState.miniGameState) {
+      _gameState.miniGameState = newGameState.miniGameState;
+      _logger.info('Mini game state changed');
+      onMiniGameStateUpdated.notifyListeners((callback) => callback());
+    }
   }
 
   ///
@@ -214,4 +224,24 @@ class GameManager {
   bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
   bool get isAttemptingTheBigHeist => _gameState.isAttemptingTheBigHeist;
   final onAttemptingTheBigHeist = GenericListener<Function()>();
+
+  ///
+  /// Mini game is active
+  bool get isMiniGameActive => _gameState.miniGameState != null;
+  SerializableMiniGameState? get miniGameState => _gameState.miniGameState;
+  final onMiniGameStateUpdated = GenericListener<Function()>();
+  void updateMiniGameState(SerializableMiniGameState newMiniGameState) {
+    _gameState.miniGameState = newMiniGameState;
+    onMiniGameStateUpdated.notifyListeners((callback) => callback());
+  }
+
+  void _tickMiniGame() {
+    if (_gameState.miniGameState == null) return;
+    final thm = _gameState.miniGameState as SerializableTreasureHuntGameState;
+
+    if (thm.isTimerRunning) {
+      updateMiniGameState(thm.copyWith(
+          timeRemaining: thm.timeRemaining - const Duration(seconds: 1)));
+    }
+  }
 }

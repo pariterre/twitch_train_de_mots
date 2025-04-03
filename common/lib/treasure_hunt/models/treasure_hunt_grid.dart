@@ -134,7 +134,7 @@ class Grid {
     required this.rowCount,
     required this.columnCount,
     required this.rewardsCount,
-    required SerializableLetterProblem problem,
+    SerializableLetterProblem? problem,
   }) : _tiles = [] {
     // Create an empty grid
     for (var i = 0; i < cellCount; i++) {
@@ -156,9 +156,9 @@ class Grid {
         // Make sure it this tile does not already have a reward
       } while (_tiles[rewardIndex].hasReward);
 
-      if (i < problem.letters.length) {
+      if (i < (problem?.letters.length ?? -1)) {
         _tiles[rewardIndex].addLetter(
-            letter: problem.letters[i],
+            letter: problem!.letters[i],
             letterIndex: i,
             isMystery:
                 problem.uselessLetterStatuses[i] == LetterStatus.revealed);

@@ -69,9 +69,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
 
     final offsetFromBorder = windowHeight * 0.02;
     final headerHeight = 160.0;
-    final gridHeight = windowHeight - 2 * offsetFromBorder - headerHeight;
-
-    final tileSize = gridHeight / (gm.grid.rowCount + 1);
+    final gridHeight = windowHeight - 3 * offsetFromBorder - headerHeight;
 
     return Stack(
       children: [
@@ -84,16 +82,18 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
                 const SizedBox(height: 12),
                 const TreasureHuntHeader(),
                 const SizedBox(height: 20),
-                TreasureHuntGameGrid(
-                    rowCount: gm.grid.rowCount,
-                    columnCount: gm.grid.columnCount,
-                    tileSize: tileSize,
-                    getTileAt: (int row, int col) =>
-                        gm.grid.tileAt(row: row, col: col)!,
-                    onTileTapped: (int row, int col) {
-                      final gm = Managers.instance.miniGames.treasureHunt;
-                      gm.revealTile(row: row, col: col);
-                    }),
+                SizedBox(
+                  height: gridHeight,
+                  child: TreasureHuntGameGrid(
+                      rowCount: gm.grid.rowCount,
+                      columnCount: gm.grid.columnCount,
+                      getTileAt: (int row, int col) =>
+                          gm.grid.tileAt(row: row, col: col)!,
+                      onTileTapped: (int row, int col) {
+                        final gm = Managers.instance.miniGames.treasureHunt;
+                        gm.revealTile(row: row, col: col);
+                      }),
+                ),
               ],
             ),
           ),
