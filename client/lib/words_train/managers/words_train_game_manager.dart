@@ -1100,6 +1100,7 @@ class WordsTrainGameManager {
   void _miniGameEnded(bool hasWon) {
     _logger.info('Mini game ended');
     Managers.instance.miniGames.current!.onGameEnded.cancel(_miniGameEnded);
+    Managers.instance.miniGames.finalize();
 
     // Give some perks based on the mini game
     if (hasWon) {

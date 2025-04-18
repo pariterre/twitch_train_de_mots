@@ -166,6 +166,27 @@ class EbsManager extends TwitchEbsManagerAbstract {
     return isSuccess;
   }
 
+  Future<bool> _frontendRequestedRevealTileAt(int index, int userId) async {
+    _logger.info('Resquesting to reveal tile at $index');
+
+    final playerName = userIdToLogin[userId];
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': ToAppMessages.revealTileAt.name,
+          'player_name': playerName,
+          'index': index
+        }));
+    return response.isSuccess ?? false;
+  }
+
   @override
   Future<void> handlePutRequest(MessageProtocol message) async =>
       await _handleRequest(message);
@@ -277,6 +298,16 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
         case ToAppMessages.boostRequest:
           final isSuccess = await _frontendRequestedBoosted(userId);
+          communicator.sendReponse(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.ebs,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
+          break;
+
+        case ToAppMessages.revealTileAt:
+          final isSuccess = await _frontendRequestedRevealTileAt(
+              message.data!['index'] as int, userId);
           communicator.sendReponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,

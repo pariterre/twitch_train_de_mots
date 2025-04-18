@@ -115,16 +115,28 @@ class TwitchManager {
     return true;
   }
 
+  Future<bool> revealTileAt({required int index}) async {
+    final response = await _sendMessageToApp(ToAppMessages.revealTileAt,
+            data: {'index': index})
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => MessageProtocol(
+                to: MessageTo.frontend,
+                from: MessageFrom.ebs,
+                type: MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
   Future<bool> _redeemBitsTransaction(
       tm.BitsTransactionObject transaction) async {
-    final response =
-        await _sendMessageToApp(ToAppMessages.bitsRedeemed, transaction)
-            .timeout(const Duration(seconds: 5),
-                onTimeout: () => MessageProtocol(
-                    to: MessageTo.frontend,
-                    from: MessageFrom.ebs,
-                    type: MessageTypes.response,
-                    isSuccess: false));
+    final response = await _sendMessageToApp(ToAppMessages.bitsRedeemed,
+            transaction: transaction)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => MessageProtocol(
+                to: MessageTo.frontend,
+                from: MessageFrom.ebs,
+                type: MessageTypes.response,
+                isSuccess: false));
     return response.isSuccess ?? false;
   }
 
@@ -234,8 +246,11 @@ class TwitchManager {
 
   ///
   /// Send a message to the App based on the [type] of message.
-  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request,
-      [tm.BitsTransactionObject? transaction]) async {
+  Future<MessageProtocol> _sendMessageToApp(
+    ToAppMessages request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
     if (!isInitialized) {
       _logger.severe('TwitchManager is not initialized');
       throw Exception('TwitchManager is not initialized');
@@ -246,7 +261,7 @@ class TwitchManager {
             to: MessageTo.app,
             from: MessageFrom.frontend,
             type: MessageTypes.get,
-            data: {'type': request.name}),
+            data: {'type': request.name}..addAll(data ?? {})),
         transaction: transaction);
   }
 }
@@ -399,8 +414,11 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   @override
-  Future<MessageProtocol> _sendMessageToApp(ToAppMessages request,
-      [tm.BitsTransactionObject? transaction]) async {
+  Future<MessageProtocol> _sendMessageToApp(
+    ToAppMessages request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
     switch (request) {
       case ToAppMessages.pardonRequest:
         return MessageProtocol(
@@ -465,6 +483,13 @@ class TwitchManagerMock extends TwitchManager {
             'with the method _redeemBitsTransaction');
 
       case ToAppMessages.bitsRedeemed:
+        return MessageProtocol(
+            to: MessageTo.frontend,
+            from: MessageFrom.app,
+            type: MessageTypes.response,
+            isSuccess: true);
+
+      case ToAppMessages.revealTileAt:
         return MessageProtocol(
             to: MessageTo.frontend,
             from: MessageFrom.app,

@@ -10,6 +10,7 @@ enum ToAppMessages {
   fireworksRequest,
   attemptTheBigHeist,
   changeLaneRequest,
+  revealTileAt,
 }
 
 enum ToFrontendMessages {

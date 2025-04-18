@@ -3,6 +3,7 @@ import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_stat
 import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
+import 'package:frontend_common/managers/twitch_manager.dart';
 
 class TreasureHuntPlayScreen extends StatefulWidget {
   const TreasureHuntPlayScreen({super.key});
@@ -63,9 +64,7 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
         timeRemaining: timeReamaining,
         triesRemaining: triesRemaining));
 
-    // TODO Send the tile to the server
-    // GameManager.instance.sendTileToServer(row: row, col: col);
-
+    TwitchManager.instance.revealTileAt(index: tile.index);
     setState(() {});
   }
 }

@@ -66,6 +66,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     // Check if we need to send something to the EBS server at each tick
     //gm.onClockTicked.listen(_sendGameStateToEbs);
 
+    final mgm = Managers.instance.miniGames;
+    mgm.onMinigameStarted.listen(_connectMiniGame);
+    mgm.onMinigameEnded.listen(_disconnectMiniGame);
+
     _sendGameStateToEbs();
   }
 
@@ -85,8 +89,26 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     gm.onRevealHiddenLetter.cancel(_sendGameStateToEbs);
     //gm.onClockTicked.cancel(_sendGameStateToEbs);
 
+    final mgm = Managers.instance.miniGames;
+    mgm.onMinigameStarted.cancel(_connectMiniGame);
+    mgm.onMinigameEnded.cancel(_disconnectMiniGame);
+
     final cm = Managers.instance.configuration;
     cm.onShowExtensionChanged.cancel(_sendGameStateToEbs);
+  }
+
+  void _connectMiniGame() {
+    final minigame = Managers.instance.miniGames.current;
+    minigame?.onGameIsReady.listen(_sendGameStateToEbs);
+    minigame?.onGameUpdated.listen(_sendGameStateToEbs);
+    minigame?.onGameEnded.listen(_sendGameStateToEbssWithParameter);
+  }
+
+  void _disconnectMiniGame() {
+    final minigame = Managers.instance.miniGames.current;
+    minigame?.onGameIsReady.cancel(_sendGameStateToEbs);
+    minigame?.onGameUpdated.cancel(_sendGameStateToEbs);
+    minigame?.onGameEnded.cancel(_sendGameStateToEbssWithParameter);
   }
 
   ///
@@ -254,6 +276,19 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               type: MessageTypes.response,
               isSuccess: gm.requestChangeOfLane()));
           break;
+
+        case ToAppMessages.revealTileAt:
+          final playerName = message.data!['player_name'] as String;
+          final isSuccess = gm.players.hasPlayer(playerName)
+              ? Managers.instance.miniGames.treasureHunt
+                  .revealTile(tileIndex: message.data!['index'] as int)
+              : false;
+
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
 
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(

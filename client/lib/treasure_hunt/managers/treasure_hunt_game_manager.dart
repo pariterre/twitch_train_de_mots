@@ -77,6 +77,8 @@ class TreasureHuntGameManager implements MiniGameManager {
   @override
   final onGameIsReady = GenericListener<Function()>();
   final onGameStarted = GenericListener<Function()>();
+  @override
+  final onGameUpdated = GenericListener<Function()>();
   final onClockTicked = GenericListener<Function(Duration)>();
   final onTrySolution =
       GenericListener<Function(String sender, String word, bool isSuccess)>();
@@ -168,12 +170,12 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   ///
   /// Main interface for a user to reveal a tile from the grid
-  void revealTile({int? row, int? col, int? tileIndex}) {
-    if (_grid == null || isGameOver) return;
+  bool revealTile({int? row, int? col, int? tileIndex}) {
+    if (_grid == null || isGameOver) return false;
     _isTimerRunning = true; // The first tile revealed starts the timer
 
     final tile = _grid!.revealAt(row: row, col: col, index: tileIndex);
-    if (tile == null) return;
+    if (tile == null) return false;
 
     // Change the values of the surrounding tiles if it is a reward
     switch (tile.value) {
@@ -191,9 +193,11 @@ class TreasureHuntGameManager implements MiniGameManager {
     }
 
     onTileRevealed.notifyListeners((callback) => callback(tile));
+    onGameUpdated.notifyListeners((callback) => callback());
 
     // Check if the game is over
     if (isGameOver) _processGameOver();
+    return true;
   }
 
   void _revealSolution() {

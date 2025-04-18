@@ -29,6 +29,10 @@ abstract class MiniGameManager {
   GenericListener<Function()> get onGameIsReady;
 
   ///
+  /// Callback when the game updated
+  GenericListener<Function()> get onGameUpdated;
+
+  ///
   /// Connect to the mini game results
   GenericListener<Function(bool)> get onGameEnded;
 
@@ -42,6 +46,14 @@ abstract class MiniGameManager {
 }
 
 class MiniGamesManager {
+  ///
+  /// Callback when a minigame started
+  final onMinigameStarted = GenericListener<Function()>();
+
+  ///
+  /// Callback when a minigame ended
+  final onMinigameEnded = GenericListener<Function()>();
+
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
   MiniGamesManager() {
@@ -61,12 +73,23 @@ class MiniGamesManager {
 
   ///
   /// Run a mini game, returns
-  void initialize(MiniGames game) {
+  Future<void> initialize(MiniGames game) async {
     if (_miniGames[game] == null) {
       throw Exception('Mini game $game is not implemented.');
     }
     _currentGame = game;
-    _miniGames[_currentGame]!.initialize();
+    await _miniGames[_currentGame]!.initialize();
+
+    onMinigameStarted.notifyListeners((callback) => callback());
+  }
+
+  Future<void> finalize() async {
+    if (_currentGame == null) {
+      throw Exception('No mini game is running.');
+    }
+    await _miniGames[_currentGame]!.end();
+    _currentGame = null;
+    onMinigameEnded.notifyListeners((callback) => callback());
   }
 
   MiniGames? _currentGame;
