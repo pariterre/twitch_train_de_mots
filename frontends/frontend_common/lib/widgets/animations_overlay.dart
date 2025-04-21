@@ -78,29 +78,31 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      child: LayoutBuilder(builder: (context, constraints) {
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned(
-              top: constraints.maxHeight * 0.65,
-              child: BouncyContainer(controller: _pardonedController),
-            ),
-            Positioned(
-              top: constraints.maxHeight * 0.65,
-              child: BouncyContainer(controller: _trainGotBoostedController),
-            ),
-            Positioned(
-              top: constraints.maxHeight * 0.65,
-              child: BouncyContainer(controller: _changeLaneController),
-            ),
-          ],
-        );
-      }),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: constraints.maxHeight * 0.15,
+            child: Transform.scale(
+                scale: constraints.maxWidth / 800,
+                child: BouncyContainer(controller: _pardonedController)),
+          ),
+          Positioned(
+            top: constraints.maxHeight * 0.15,
+            child: Transform.scale(
+                scale: constraints.maxWidth / 800,
+                child: BouncyContainer(controller: _trainGotBoostedController)),
+          ),
+          Positioned(
+            top: constraints.maxHeight * 0.15,
+            child: Transform.scale(
+                scale: constraints.maxWidth / 800,
+                child: BouncyContainer(controller: _changeLaneController)),
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -113,28 +115,25 @@ class _StealerWasPardoned extends StatelessWidget {
     const textColor = Color.fromARGB(255, 237, 243, 151);
     const text = 'Vous avez pardonné!';
 
-    return Transform.scale(
-      scale: MediaQuery.of(context).size.width / 800,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 99, 91, 18),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.star, color: textColor, size: 32),
-            const SizedBox(width: 10),
-            Text(
-              text,
-              style: tm.textFrontendSc.copyWith(
-                  fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-            ),
-            const SizedBox(width: 10),
-            const Icon(Icons.star, color: textColor, size: 32),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 91, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: textColor, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: tm.textFrontendSc.copyWith(
+                fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: textColor, size: 32),
+        ],
       ),
     );
   }
@@ -147,30 +146,27 @@ class _TrainGotBoosted extends StatelessWidget {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Transform.scale(
-      scale: MediaQuery.of(context).size.width / 800,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 23, 99, 18),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.star, color: Colors.amber, size: 32),
-            const SizedBox(width: 10),
-            Text(
-              'Vous avez boosté le train!',
-              style: tm.textFrontendSc.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 157, 243, 151)),
-            ),
-            const SizedBox(width: 10),
-            const Icon(Icons.star, color: Colors.amber, size: 32),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez boosté le train!',
+            style: tm.textFrontendSc.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
       ),
     );
   }
@@ -183,30 +179,27 @@ class _ChangeLane extends StatelessWidget {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Transform.scale(
-      scale: MediaQuery.of(context).size.width / 800,
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 23, 99, 18),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.star, color: Colors.amber, size: 32),
-            const SizedBox(width: 10),
-            Text(
-              'Changement de voie!',
-              style: tm.textFrontendSc.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(255, 157, 243, 151)),
-            ),
-            const SizedBox(width: 10),
-            const Icon(Icons.star, color: Colors.amber, size: 32),
-          ],
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Changement de voie!',
+            style: tm.textFrontendSc.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
       ),
     );
   }

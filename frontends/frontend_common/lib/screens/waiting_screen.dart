@@ -68,6 +68,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case WordsTrainGameStatus.roundPreparing:
       case WordsTrainGameStatus.roundReady:
       case WordsTrainGameStatus.roundEnding:
+      case WordsTrainGameStatus.miniGameEnding:
         mainText = gm.isRoundSuccess
             ? 'Bravo, cheminot\u00b7e\u00b7s,\n'
                 'vous avancez bien!\n'
@@ -87,7 +88,6 @@ class _WaitingScreenState extends State<WaitingScreen> {
         break;
       case WordsTrainGameStatus.roundStarted:
       case WordsTrainGameStatus.miniGameStarted:
-      case WordsTrainGameStatus.miniGameEnding:
         mainText = '';
         showStar = false;
         break;

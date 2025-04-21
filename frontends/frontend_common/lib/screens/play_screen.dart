@@ -87,7 +87,7 @@ class PlayScreen extends StatelessWidget {
             ),
           );
         }),
-        const FittedBox(fit: BoxFit.scaleDown, child: AnimationOverlay()),
+        const AnimationOverlay(),
       ],
     );
   }

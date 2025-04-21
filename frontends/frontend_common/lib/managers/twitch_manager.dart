@@ -143,12 +143,12 @@ class TwitchManager {
   ///
   /// Callback to know when the TwitchManager has connected to the Twitch
   /// backend services.
-  bool get isInitialized => _onInitialized.isCompleted;
-  Future<bool> get onInitialized => _onInitialized.future;
-  final _onInitialized = Completer<bool>();
+  bool get isInitialized => _onHasInitialized.isCompleted;
+  Future<bool> get onHasInitialized => _onHasInitialized.future;
+  final _onHasInitialized = Completer<bool>();
   Future<void> _onFinishedInitializing() async {
     _logger.info('Connected to Twitch service');
-    _onInitialized.complete(true);
+    _onHasInitialized.complete(true);
   }
 
   ///
@@ -344,41 +344,41 @@ class TwitchManagerMock extends TwitchManager {
     //           miniGameState: null,
     //         )));
 
-    // Uncomment the next line to simulate the start of minigame in 3 seconds
-    Future.delayed(const Duration(seconds: 3)).then((_) =>
-        GameManager.instance.updateGameState(SerializableGameState(
-          status: WordsTrainGameStatus.miniGameStarted,
-          round: 11,
-          isRoundSuccess: true,
-          timeRemaining: const Duration(seconds: 83),
-          newCooldowns: {userId: const Duration(seconds: 5)},
-          letterProblem: SerializableLetterProblem(
-            letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-            scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-            uselessLetterStatuses: List.generate(
-                10,
-                (index) =>
-                    index == 9 ? LetterStatus.hidden : LetterStatus.normal),
-            hiddenLetterStatuses: List.generate(
-                10,
-                (index) =>
-                    index == 2 ? LetterStatus.hidden : LetterStatus.normal),
-          ),
-          pardonRemaining: 1,
-          pardonners: [userId],
-          boostRemaining: 1,
-          boostStillNeeded: 0,
-          boosters: [],
-          canAttemptTheBigHeist: true,
-          isAttemptingTheBigHeist: false,
-          configuration: SerializableConfiguration(showExtension: true),
-          miniGameState: SerializableTreasureHuntGameState(
-            grid: Grid.random(rowCount: 20, columnCount: 10, rewardsCount: 40),
-            isTimerRunning: false,
-            timeRemaining: const Duration(seconds: 30),
-            triesRemaining: 10,
-          ),
-        )));
+    // // Uncomment the next line to simulate the start of minigame in 3 seconds
+    // Future.delayed(const Duration(seconds: 3)).then((_) =>
+    //     GameManager.instance.updateGameState(SerializableGameState(
+    //       status: WordsTrainGameStatus.miniGameStarted,
+    //       round: 11,
+    //       isRoundSuccess: true,
+    //       timeRemaining: const Duration(seconds: 83),
+    //       newCooldowns: {userId: const Duration(seconds: 5)},
+    //       letterProblem: SerializableLetterProblem(
+    //         letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+    //         scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+    //         uselessLetterStatuses: List.generate(
+    //             10,
+    //             (index) =>
+    //                 index == 9 ? LetterStatus.hidden : LetterStatus.normal),
+    //         hiddenLetterStatuses: List.generate(
+    //             10,
+    //             (index) =>
+    //                 index == 2 ? LetterStatus.hidden : LetterStatus.normal),
+    //       ),
+    //       pardonRemaining: 1,
+    //       pardonners: [userId],
+    //       boostRemaining: 1,
+    //       boostStillNeeded: 0,
+    //       boosters: [],
+    //       canAttemptTheBigHeist: true,
+    //       isAttemptingTheBigHeist: false,
+    //       configuration: SerializableConfiguration(showExtension: true),
+    //       miniGameState: SerializableTreasureHuntGameState(
+    //         grid: Grid.random(rowCount: 20, columnCount: 10, rewardsCount: 40),
+    //         isTimerRunning: false,
+    //         timeRemaining: const Duration(seconds: 30),
+    //         triesRemaining: 10,
+    //       ),
+    //     )));
 
     // // Uncomment the next line to simulate the end of minigame in 3 seconds
     // Future.delayed(const Duration(seconds: 10)).then((_) =>
@@ -512,9 +512,9 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.roundStarted,
+                status: WordsTrainGameStatus.miniGameStarted,
                 round: 1,
-                isRoundSuccess: false,
+                isRoundSuccess: true,
                 timeRemaining: const Duration(seconds: 83),
                 newCooldowns: {userId: const Duration(seconds: 5)},
                 letterProblem: SerializableLetterProblem(

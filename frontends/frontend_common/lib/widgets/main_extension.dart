@@ -88,7 +88,7 @@ class _MainExtensionState extends State<MainExtension> {
               MediaQuery.of(context).size.width * 0.30),
       boxSizeController: boxSizeController,
       child: FutureBuilder(
-          future: TwitchManager.instance.onInitialized,
+          future: TwitchManager.instance.onHasInitialized,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

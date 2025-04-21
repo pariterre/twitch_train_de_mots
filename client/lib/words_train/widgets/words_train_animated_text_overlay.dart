@@ -333,6 +333,8 @@ class _RoundIsOver extends StatelessWidget {
           'Toutes les solutions ont été trouvées!\nAllons cueillir des bleuets!';
     }
 
+    if (message.isEmpty) return Container();
+
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 23, 99, 18),
