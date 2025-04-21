@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+class ResizedBoxController extends ChangeNotifier {
+  ResizedBoxController({double factor = 1.0}) : _factor = factor;
+
+  double _factor;
+  double get factor => _factor;
+  set factor(double value) {
+    _factor = value;
+    notifyListeners();
+  }
+}
+
 class ResizedBox extends StatefulWidget {
   const ResizedBox({
     super.key,
+    this.sizeController,
     required this.borderWidth,
     this.draggableBorderWidth = 10.0,
     this.decoration = const BoxDecoration(color: Colors.transparent),
@@ -23,6 +35,8 @@ class ResizedBox extends StatefulWidget {
     this.draggingChild,
     this.preserveAspectRatio = false,
   });
+
+  final ResizedBoxController? sizeController;
 
   final double draggableBorderWidth;
   final double borderWidth;
@@ -53,6 +67,23 @@ class ResizedBox extends StatefulWidget {
 }
 
 class _ResizedBoxState extends State<ResizedBox> {
+  @override
+  void initState() {
+    super.initState();
+    widget.sizeController?.addListener(() {
+      setState(() {
+        width = width * widget.sizeController!.factor;
+        height = height * widget.sizeController!.factor;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.sizeController?.removeListener(() {});
+    super.dispose();
+  }
+
   late double _height = widget.initialHeight;
   double get height => _height;
   set height(double value) {

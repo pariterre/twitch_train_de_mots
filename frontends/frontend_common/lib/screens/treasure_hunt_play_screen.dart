@@ -25,20 +25,22 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: _Header(),
           ),
-          SizedBox(
-            width: 0.8 * MediaQuery.of(context).size.width,
-            height: (MediaQuery.of(context).size.height -
-                2 * 20 -
-                2 * ThemeManager.instance.textSize),
-            child: Center(
-              child: TreasureHuntGameGrid(
-                rowCount: thm.grid.rowCount,
-                columnCount: thm.grid.columnCount,
-                getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col)!,
-                onTileTapped: _onTileTapped,
+          LayoutBuilder(builder: (context, constraints) {
+            return SizedBox(
+              width: 0.8 * constraints.maxWidth,
+              height: (constraints.maxWidth * 1.5 -
+                  2 * 20 -
+                  2 * ThemeManager.instance.textSize),
+              child: Center(
+                child: TreasureHuntGameGrid(
+                  rowCount: thm.grid.rowCount,
+                  columnCount: thm.grid.columnCount,
+                  getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col)!,
+                  onTileTapped: _onTileTapped,
+                ),
               ),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
@@ -105,17 +107,23 @@ class _HeaderState extends State<_Header> {
       return Text('Vous avez épuisé vos essais!', style: tm.textFrontendSc);
     }
 
-    return thm.timeRemaining.inSeconds > 0
-        ? Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Temps restant ${thm.timeRemaining.inSeconds}',
-                  style: tm.textFrontendSc),
-              const SizedBox(width: 20),
-              Text('Essais restants ${thm.triesRemaining}',
-                  style: tm.textFrontendSc),
-            ],
-          )
-        : Text('Retournons à la gare!', style: tm.textFrontendSc);
+    return LayoutBuilder(builder: (context, constraints) {
+      return thm.timeRemaining.inSeconds > 0
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Temps restant ${thm.timeRemaining.inSeconds}',
+                    style: tm.textFrontendSc
+                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
+                const SizedBox(width: 20),
+                Text('Essais restants ${thm.triesRemaining}',
+                    style: tm.textFrontendSc
+                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
+              ],
+            )
+          : Text('Retournons à la gare!',
+              style: tm.textFrontendSc
+                  .copyWith(fontSize: constraints.maxWidth * 0.05));
+    });
   }
 }

@@ -35,10 +35,6 @@
             "type": "dart",
             "flutterMode": "debug",
             "program": "frontends/video_component/lib/main.dart",
-            "args": [
-                "--web-renderer",
-                "html",
-            ]
         },
         {
             "name": "Frontend video overlay",
@@ -46,10 +42,6 @@
             "type": "dart",
             "flutterMode": "debug",
             "program": "frontends/video_overlay/lib/main.dart",
-            "args": [
-                "--web-renderer",
-                "html",
-            ]
         },
         
     ]

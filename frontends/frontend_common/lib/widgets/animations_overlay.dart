@@ -86,15 +86,15 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
           alignment: Alignment.center,
           children: [
             Positioned(
-              top: constraints.maxHeight * 0.165,
+              top: constraints.maxHeight * 0.65,
               child: BouncyContainer(controller: _pardonedController),
             ),
             Positioned(
-              top: constraints.maxHeight * 0.165,
+              top: constraints.maxHeight * 0.65,
               child: BouncyContainer(controller: _trainGotBoostedController),
             ),
             Positioned(
-              top: constraints.maxHeight * 0.165,
+              top: constraints.maxHeight * 0.65,
               child: BouncyContainer(controller: _changeLaneController),
             ),
           ],

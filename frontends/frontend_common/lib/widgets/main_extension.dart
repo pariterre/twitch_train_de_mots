@@ -28,6 +28,7 @@ class MainExtension extends StatefulWidget {
 }
 
 class _MainExtensionState extends State<MainExtension> {
+  final boxSizeController = ResizedBoxController();
   late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
@@ -40,22 +41,37 @@ class _MainExtensionState extends State<MainExtension> {
   void initState() {
     super.initState();
 
-    GameManager.instance.onGameStatusUpdated.listen(_toggleVisibility);
+    final gm = GameManager.instance;
+    gm.onGameStatusUpdated.listen(_updateStatus);
   }
 
   @override
   void dispose() {
-    GameManager.instance.onGameStatusUpdated.cancel(_toggleVisibility);
+    GameManager.instance.onGameStatusUpdated.cancel(_updateStatus);
 
     super.dispose();
   }
 
-  void _toggleVisibility() {
+  void _updateStatus() {
+    // Check if we should hide the extension
     final gm = GameManager.instance;
+
+    double sizeFactor = 1.2;
+    if (gm.status == WordsTrainGameStatus.miniGameStarted &&
+        boxSizeController.factor != sizeFactor) {
+      setState(() {
+        boxSizeController.factor = sizeFactor;
+      });
+    } else if (gm.status != WordsTrainGameStatus.miniGameStarted &&
+        boxSizeController.factor == sizeFactor) {
+      setState(() {
+        boxSizeController.factor = 1 / sizeFactor;
+      });
+    }
+
+    // If the status hasn't changed, do nothing
     final shouldHide = gm.status == WordsTrainGameStatus.uninitialized ||
         !gm.shouldShowExtension;
-
-    // Check for the nothing-to-do cases
     if (shouldHide == _shouldHide) return;
 
     setState(() {
@@ -68,8 +84,9 @@ class _MainExtensionState extends State<MainExtension> {
     final mainWidget = _MainWindow(
       initialSize: (widget.isFullScreen)
           ? null
-          : Size(MediaQuery.of(context).size.width * 0.2,
-              MediaQuery.of(context).size.width * 0.22),
+          : Size(MediaQuery.of(context).size.width * 0.20,
+              MediaQuery.of(context).size.width * 0.30),
+      boxSizeController: boxSizeController,
       child: FutureBuilder(
           future: TwitchManager.instance.onInitialized,
           builder: (context, snapshot) {
@@ -108,8 +125,12 @@ class _MainExtensionState extends State<MainExtension> {
 }
 
 class _MainWindow extends StatelessWidget {
-  const _MainWindow({required this.initialSize, required this.child});
+  const _MainWindow(
+      {required this.initialSize,
+      required this.boxSizeController,
+      required this.child});
 
+  final ResizedBoxController? boxSizeController;
   final Size? initialSize;
   final Widget child;
 
@@ -121,7 +142,8 @@ class _MainWindow extends StatelessWidget {
     return initialSize == null
         ? mainWidget
         : ResizedBox(
-            initialTop: MediaQuery.of(context).size.height * 0.5,
+            sizeController: boxSizeController,
+            initialTop: MediaQuery.of(context).size.height * 0.1,
             minTop: 0,
             maxTop: MediaQuery.of(context).size.height - 50,
             initialLeft: 20,

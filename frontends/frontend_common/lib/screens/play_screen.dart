@@ -44,7 +44,7 @@ class PlayScreen extends StatelessWidget {
                       SizedBox(
                           width: constraints.maxWidth,
                           child: const _LetterDisplayer()),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 20),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -62,7 +62,7 @@ class PlayScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 30),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
