@@ -15,6 +15,9 @@ dependencies:
   common:
     path: ../../common
   twitch_manager:
+
+dependency_overrides:
+  twitch_manager:
     path: ../../common/plugins/twitch_manager
 
 dev_dependencies:

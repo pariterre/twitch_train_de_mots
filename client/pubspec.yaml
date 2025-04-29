@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   diacritic: ^0.1.4
   twitch_manager:
-    path: ../common/plugins/twitch_manager
   collection: ^1.17.2
   just_audio: ^0.9.46
   just_audio_mpv: ^0.1.7
@@ -26,6 +25,10 @@ dependencies:
   logging: ^1.2.0
   common: 
     path: ../common
+
+dependency_overrides:
+  twitch_manager:
+    path: ../common/plugins/twitch_manager
 
 dev_dependencies:
   flutter_test:
