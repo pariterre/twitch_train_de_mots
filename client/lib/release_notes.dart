@@ -466,5 +466,22 @@ const List<ReleaseNotes> releaseNotes = [
               'Le bogue où le train ne continuait indéfiniment si la prochaine manche '
               'était lancée trop rapidement a été réglé.'),
     ],
+  ),
+  ReleaseNotes(
+    version: '1.4.0',
+    codeName: 'Promenons-nous dans les bois',
+    notes:
+        'Vos chemino\u00b7t\u00b7e\u00b7s sont si bons qu\'ils et elles permettent '
+        'd\'arriver aux stations bien avant le temps imparti? Alors pourquoi ne pas '
+        'profiter de ce temps pour faire une petite promenade dans les bois? '
+        'Le mini-jeu de la chasse aux bleuets est maintenant disponible! ',
+    features: [
+      FeatureNotes(
+          description:
+              'Ajout du mini-jeu de la chasse aux bleuets! Le jeu se lance '
+              'automatiquement si tous les mots sont trouvés avant la fin de la manche. '
+              'ATTENTION: vous devez avoir activé l\'extension Twitch pour que '
+              'vos chemino\u00b7t\u00b7e\u00b7s puissent y jouer!'),
+    ],
   )
 ];
