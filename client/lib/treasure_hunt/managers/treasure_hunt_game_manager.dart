@@ -48,12 +48,14 @@ class TreasureHuntGameManager implements MiniGameManager {
   bool _isReady = false;
   @override
   bool get isReady => _isReady;
-  bool _isTimerRunning = false;
+  bool _isMainTimerRunning = false;
   Timer? _timer;
   Duration _timeRemaining = Duration.zero;
   @override
   Duration get timeRemaining => _timeRemaining;
   bool _forceEndOfGame = false;
+
+  Duration _autoplayTimeRemaining = Duration(seconds: 10);
 
   ///
   /// Current problem
@@ -117,7 +119,7 @@ class TreasureHuntGameManager implements MiniGameManager {
         columnCount: _columnCount,
         rewardsCount: _rewardsCount,
         problem: _problem!);
-    _isTimerRunning = false;
+    _isMainTimerRunning = false;
     _timeRemaining = Duration(
       seconds:
           max(10, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
@@ -131,7 +133,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   SerializableTreasureHuntGameState serialize() {
     return SerializableTreasureHuntGameState(
       grid: _grid!,
-      isTimerRunning: _isTimerRunning,
+      isTimerRunning: _isMainTimerRunning,
       timeRemaining: _timeRemaining,
       triesRemaining: _triesRemaining,
     );
@@ -151,7 +153,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   }
 
   void trySolution(String sender, String message) {
-    if (!_isTimerRunning) return;
+    if (!_isMainTimerRunning) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -175,7 +177,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   /// Main interface for a user to reveal a tile from the grid
   bool revealTile({int? row, int? col, int? tileIndex}) {
     if (_grid == null || isGameOver) return false;
-    _isTimerRunning = true; // The first tile revealed starts the timer
+    _isMainTimerRunning = true; // The first tile revealed starts the timer
 
     final tile = _grid!.revealAt(row: row, col: col, index: tileIndex);
     if (tile == null) return false;
@@ -224,7 +226,13 @@ class TreasureHuntGameManager implements MiniGameManager {
   /// The game loop
   void _gameLoop() {
     if (isGameOver) _processGameOver();
-    if (!_isTimerRunning) return;
+    if (!_isMainTimerRunning) {
+      if (Managers.instance.configuration.autoplay) {
+        _autoplayTimeRemaining -= const Duration(seconds: 1);
+        if (_autoplayTimeRemaining.inSeconds <= 0) _isMainTimerRunning = true;
+      }
+      return;
+    }
 
     _tickClock();
   }
@@ -251,7 +259,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   }
 
   void _processGameOver() {
-    _isTimerRunning = false;
+    _isMainTimerRunning = false;
     _timer?.cancel();
     _timer = null;
     _forceEndOfGame = false;
