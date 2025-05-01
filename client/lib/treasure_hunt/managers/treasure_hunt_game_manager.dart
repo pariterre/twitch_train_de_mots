@@ -118,7 +118,10 @@ class TreasureHuntGameManager implements MiniGameManager {
         rewardsCount: _rewardsCount,
         problem: _problem!);
     _isTimerRunning = false;
-    _timeRemaining = Managers.instance.train.previousRoundTimeRemaining;
+    _timeRemaining = Duration(
+      seconds:
+          max(10, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
+    );
     _triesRemaining = 10;
     _isReady = true;
     onGameIsReady.notifyListeners((callback) => callback());
