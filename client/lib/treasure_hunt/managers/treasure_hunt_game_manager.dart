@@ -126,6 +126,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     );
     _triesRemaining = 10;
     _isReady = true;
+    _forceEndOfGame = false;
     onGameIsReady.notifyListeners((callback) => callback());
   }
 
