@@ -13,6 +13,9 @@ dependencies:
   frontend_common:
     path: ../frontend_common
   common:
+
+dependency_overrides:
+  common:
     path: ../../common
   
 dev_dependencies:

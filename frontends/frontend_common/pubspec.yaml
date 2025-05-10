@@ -13,10 +13,12 @@ dependencies:
   http: ^1.2.2
   logging: ^1.2.0
   common:
-    path: ../../common
   twitch_manager:
+    path: ../../common/plugins/twitch_manager
 
 dependency_overrides:
+  common:
+    path: ../../common
   twitch_manager:
     path: ../../common/plugins/twitch_manager
 
