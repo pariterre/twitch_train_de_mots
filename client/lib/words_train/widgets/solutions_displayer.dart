@@ -268,6 +268,7 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     final gm = Managers.instance.train;
     gm.onRoundIsPreparing.listen(_refresh);
+    gm.onRoundIsOver.listen(_refresh);
   }
 
   @override
@@ -282,6 +283,7 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     final gm = Managers.instance.train;
     gm.onRoundIsPreparing.cancel(_refresh);
+    gm.onRoundIsOver.cancel(_refresh);
   }
 
   void _refresh() => setState(() {});
