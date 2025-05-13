@@ -171,7 +171,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     if (gm.isNextRoundAMiniGame) {
       buttonText += 'Aller aux bleuets';
     } else {
-      if (!gm.isNextProblemReady) {
+      if (!gm.canProceedToNextRound) {
         buttonText += 'Aiguillage du train en cours...';
       } else if (gm.successLevel == SuccessLevel.failed &&
           gm.hasPlayedAtLeastOnce) {
@@ -222,7 +222,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
               ),
             const SizedBox(width: 24),
             ThemedElevatedButton(
-                onPressed: _canClick && gm.isNextProblemReady
+                onPressed: _canClick && gm.canProceedToNextRound
                     ? () => gm.requestStartNewRound()
                     : null,
                 buttonText: generateButtonText()),

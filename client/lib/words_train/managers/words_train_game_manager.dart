@@ -122,7 +122,8 @@ class WordsTrainGameManager {
   final List<LetterProblem> _playedProblems = [];
   LetterProblem? _nextProblem;
   bool _isGeneratingProblem = false;
-  bool get isNextProblemReady => !_isGeneratingProblem && _nextProblem != null;
+  bool get isNextProblemReady =>
+      (!_isGeneratingProblem && _nextProblem != null) || _isNextRoundAMiniGame;
 
   LetterProblem? get problem => _currentProblem;
   List<LetterStatus> get uselessLetterStatuses => problem == null
