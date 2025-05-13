@@ -1,4 +1,5 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/game_status.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -83,10 +84,13 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           ? 'Terminer la rounde actuelle'
                           : 'Afficher le tableau des cheminot·e·s'),
                       enabled: true,
-                      onTap: () async {
-                        await gm.requestTerminateRound();
-                        if (context.mounted) Navigator.pop(context);
-                      },
+                      onTap: !gm.hasPlayedAtLeastOnce ||
+                              gm.gameStatus == WordsTrainGameStatus.roundStarted
+                          ? () async {
+                              await gm.requestTerminateRound();
+                              if (context.mounted) Navigator.pop(context);
+                            }
+                          : null,
                     ),
                     const Divider(),
                     ListTile(
