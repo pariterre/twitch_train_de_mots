@@ -123,7 +123,8 @@ class WordsTrainGameManager {
   LetterProblem? _nextProblem;
   bool _isGeneratingProblem = false;
   bool get isNextProblemReady =>
-      (!_isGeneratingProblem && _nextProblem != null) || _isNextRoundAMiniGame;
+      (!_isGeneratingProblem && _nextProblem != null);
+  bool get canProceedToNextRound => isNextProblemReady || _isNextRoundAMiniGame;
 
   LetterProblem? get problem => _currentProblem;
   List<LetterStatus> get uselessLetterStatuses => problem == null
