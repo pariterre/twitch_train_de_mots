@@ -16,6 +16,7 @@ class WordsTrainAnimatedTextOverlay extends StatefulWidget {
 class _WordsTrainAnimatedTextOverlayState
     extends State<WordsTrainAnimatedTextOverlay> {
   // Words train messages
+  bool _hasShownRoundIsOver = false;
   final _stolenController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
   final _pardonedController = BouncyContainerController(
@@ -87,6 +88,7 @@ class _WordsTrainAnimatedTextOverlayState
     super.initState();
 
     final gm = Managers.instance.train;
+    gm.onRoundStarted.listen(_resetRound);
     gm.onSolutionWasStolen.listen(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.listen(_showStealerWasPardoned);
@@ -109,6 +111,7 @@ class _WordsTrainAnimatedTextOverlayState
     _changeLaneController.dispose();
 
     final gm = Managers.instance.train;
+    gm.onRoundStarted.cancel(_resetRound);
     gm.onSolutionWasStolen.cancel(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.cancel(_showStealerWasPardoned);
@@ -119,6 +122,10 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onChangingLane.cancel(_showChangeLane);
 
     super.dispose();
+  }
+
+  void _resetRound() {
+    _hasShownRoundIsOver = false;
   }
 
   void _showSolutionWasStolen(WordSolution solution) {
@@ -135,7 +142,10 @@ class _WordsTrainAnimatedTextOverlayState
   }
 
   void _showRoundIsOver() {
-    _roundIsOverController.triggerAnimation(const _RoundIsOver());
+    if (!_hasShownRoundIsOver) {
+      _roundIsOverController.triggerAnimation(const _RoundIsOver());
+    }
+    _hasShownRoundIsOver = true;
   }
 
   void _showTrainGotBoosted(int boostRemaining) {
