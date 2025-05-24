@@ -127,6 +127,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     _triesRemaining = 10;
     _isReady = true;
     _forceEndOfGame = false;
+    _autoplayTimeRemaining = Duration(seconds: 10);
     onGameIsReady.notifyListeners((callback) => callback());
   }
 
@@ -226,7 +227,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   ///
   /// The game loop
   void _gameLoop() {
-    if (isGameOver) _processGameOver();
+    if (isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
       if (Managers.instance.configuration.autoplay) {
         _autoplayTimeRemaining -= const Duration(seconds: 1);
