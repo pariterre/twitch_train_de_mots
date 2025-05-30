@@ -1056,7 +1056,6 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
 
     _gameStatus = WordsTrainGameStatus.roundEnding;
-    onRoundIsOver.notifyListeners((callback) => callback());
     Timer(Duration(seconds: cm.postRoundShowCaseDuration.inSeconds), () {
       onRoundIsPreparing.notifyListeners((callback) => callback());
       _gameStatus = WordsTrainGameStatus.roundPreparing;
