@@ -37,6 +37,11 @@ class LetterProblem {
   /// Returns the maximum score that can be obtained by finding all the solutions
   int get maximumPossibleScore => _solutions.maximumPossibleScore;
 
+  int get solutionWithHighestScore => _solutions
+      .where((e) => e.isFound)
+      .map((e) => e.value)
+      .fold(0, (prev, e) => max(prev, e));
+
   ///
   /// Returns the current score of all the found solutions
   int get teamScore => _solutions

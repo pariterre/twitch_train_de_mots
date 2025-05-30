@@ -17,6 +17,32 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
 
+extension RandomExtension on Random {
+  int nextSkewedInt({
+    int min = 0,
+    required int max,
+    required int skewTowards,
+    int stdWidthAdjustment = 6,
+  }) {
+    assert(min < max);
+    assert(skewTowards >= min && skewTowards < max);
+
+    final stdDev =
+        (max - min) / stdWidthAdjustment; // Adjust for bell curve width
+
+    double gaussian = nextGaussian() * stdDev + skewTowards;
+    return gaussian.round().clamp(min, max - 1);
+  }
+
+  double nextGaussian() {
+    // Box-Muller transform to generate a standard normal distribution
+    final u1 = nextDouble();
+    final u2 = nextDouble();
+    final z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * pi * u2);
+    return z0;
+  }
+}
+
 class WordsTrainGameManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
@@ -456,12 +482,14 @@ class WordsTrainGameManager {
   /// sends a telegram to the players if required. The message is skipped if it
   /// was previously sent.
   Future<void> _sendTelegramToPlayers() async {
-    // Do not send telegram when playing a minigame
-    if (_isRoundAMiniGame) return;
-
     _logger.info('Preparing to send telegram to players...');
 
-    final message = _currentDifficulty.message;
+    String? message;
+    if (_isRoundAMiniGame) {
+      message = Managers.instance.miniGames.current?.instructions;
+    } else {
+      message = _currentDifficulty.message;
+    }
 
     if (message == null) {
       _logger.info('No telegram to send to players');
@@ -859,7 +887,6 @@ class WordsTrainGameManager {
         (_random.nextDouble() < cm.goldenSolutionProbability ||
             _forceGoldenSolution)) {
       _logger.info('A new golden solution appears');
-      _forceGoldenSolution = false;
 
       // Find one solution that is not found yet and make it golden solution
       int index = -1;
@@ -870,7 +897,35 @@ class WordsTrainGameManager {
           index = -1;
           break;
         }
-        index = _random.nextInt(_currentProblem!.solutions.length);
+        if (_forceGoldenSolution) {
+          // When forcing the golden solution, pick a solution with the highest score value
+          // and that is not found yet. If there is no solution with the highest score,
+          // then pick a solution with the next best score that is not found yet until
+          // there is no more solution to pick. If there is no solution to pick,
+          // then break the loop and do not set a golden solution.
+          int highestScore = _currentProblem!.solutionWithHighestScore;
+
+          while (true) {
+            final bestSolutions = _currentProblem!.solutions
+                .where((s) => !s.isFound && s.value >= highestScore);
+            if (bestSolutions.isEmpty) {
+              highestScore -= 1;
+              // No more solution to pick, so break
+              if (highestScore == 0) break;
+              continue;
+            }
+            final solution =
+                bestSolutions.elementAt(_random.nextInt(bestSolutions.length));
+            index = _currentProblem!.solutions.indexOf(solution);
+            break;
+          }
+        } else {
+          // When normal picking, pick a skewed value towards the best solutions base on gaussian distribution
+          index = _random.nextSkewedInt(
+            max: _currentProblem!.solutions.length,
+            skewTowards: _currentProblem!.solutions.length * 2 ~/ 3,
+          );
+        }
       } while (_currentProblem!.solutions[index].isFound);
 
       if (index != -1) {
@@ -879,6 +934,8 @@ class WordsTrainGameManager {
         onGoldenSolutionAppeared.notifyListeners(
             (callback) => callback(_currentProblem!.solutions[index]));
       }
+
+      _forceGoldenSolution = false;
     }
 
     // Manager letter swapping in the problem

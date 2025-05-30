@@ -112,6 +112,13 @@ class TreasureHuntGameManager implements MiniGameManager {
       _triesRemaining <= 0;
 
   @override
+  String? get instructions =>
+      'Pendant que vous attendez que le train se prépare, pourquoi ne pas aller aux bleuets! '
+      'Trouvez le mot mystère en découvrant des lettres dans le champ.\n\n'
+      'Chaque bleuet trouvé vous redonne des essais, et regagnez du temps en trouvant des lettres.\n'
+      'Mais attention, chaque tentative de mot ou de case vous coûtera un essai!\n\n';
+
+  @override
   Future<void> initialize() async {
     _generateProblem();
     _grid = Grid.random(

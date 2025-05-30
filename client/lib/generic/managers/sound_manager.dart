@@ -211,8 +211,12 @@ class SoundManager {
   }
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
-    if (!tile.isLetter) return;
-    _playSoundEffect('packages/common/assets/sounds/SolutionFound.mp3');
+    final tm = Managers.instance.miniGames.treasureHunt;
+    if (tm.isGameOver && !tm.hasWon) return;
+
+    _playSoundEffect(tile.isLetter
+        ? 'packages/common/assets/sounds/SolutionFound.mp3'
+        : 'packages/common/assets/sounds/treasure_hunt/picking_treasure.mp3');
   }
 
   Future<void> _onSolutionTried(String _, String __, bool isCorrect) async {

@@ -17,6 +17,11 @@ abstract class MiniGameManager {
   bool get isReady;
 
   ///
+  /// The instructions to display to the user on the telegram when first playing
+  /// the minigame
+  String? get instructions;
+
+  ///
   /// Prepare the mini game
   Future<void> initialize();
 
