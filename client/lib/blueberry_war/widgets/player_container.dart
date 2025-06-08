@@ -162,15 +162,21 @@ class _PlayerContainerState extends State<PlayerContainer> {
       return const SizedBox.shrink();
     }
 
-    final mainWidget = SizedBox(
+    final mainWidget = Container(
       width: widget.player.radius.x * 2,
       height: widget.player.radius.y * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.transparent,
+      ),
       child: Image.asset(
         'packages/common/assets/images/blueberry_war/blueberries.png',
         fit: BoxFit.cover,
         opacity: AlwaysStoppedAnimation<double>(
           alpha / 255.0,
         ),
+        color:
+            widget.player.isDestroyed ? Color.fromARGB(alpha, 255, 0, 0) : null,
       ),
     );
 

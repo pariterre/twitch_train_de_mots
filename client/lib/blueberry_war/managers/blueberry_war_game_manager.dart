@@ -112,18 +112,17 @@ class BlueberryWarGameManager implements MiniGameManager {
     _isGameOver = false;
     _generateProblem();
 
-    allAgents.clear();
-
     // Populate letters with random agents
-    final bossIndex = _random.nextInt(problem.letters.length);
-    for (int i = 0; i < problem.letters.length; i++) {
-      final isBoss = i == bossIndex;
+    allAgents.clear();
+    for (int i = 0; i < _problem!.letters.length; i++) {
+      final isBoss =
+          _problem!.uselessLetterStatuses[i] == LetterStatus.revealed;
       allAgents.add(
         LetterAgent(
           id: i,
           isBoss: isBoss,
           problemIndex: i,
-          letter: problem.letters[i],
+          letter: _problem!.letters[i],
           position: Vector2(fieldSize.x * 2 / 3, fieldSize.y * 2 / 5),
           velocity: Vector2(
             _random.nextDouble() * 1500 - 750,
@@ -143,7 +142,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           id: i,
           position: _generateRandomStartingPlayerPosition(),
           velocity: Vector2.zero(),
-          radius: Vector2(20.0, 20.0),
+          radius: Vector2(30.0, 30.0),
           mass: 3.0,
           coefficientOfFriction: 0.8,
         ),
@@ -184,16 +183,14 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     // One letter will not be on the grid. For internal reasons of LetterDisplayer,
     // we must flag it as "revealed"
-    final mysteryLetterIndex = _random.nextInt(word.length);
+    final isBoss = _random.nextInt(word.length);
 
     _problem = SerializableLetterProblem(
       letters: word.split(''),
       scrambleIndices: List.generate(word.length, (index) => index),
       uselessLetterStatuses: List.generate(
         word.length,
-        (i) => i == mysteryLetterIndex
-            ? LetterStatus.revealed
-            : LetterStatus.normal,
+        (i) => i == isBoss ? LetterStatus.revealed : LetterStatus.normal,
       ),
       hiddenLetterStatuses: List.generate(
         word.length,
@@ -231,7 +228,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     for (final agent in allAgents) {
       if (agent is! PlayerAgent) continue;
       if (agent.velocity.length2 != 0.0) {
-        _logger.info('Timer started');
+        _logger.info('Blueberry war timer started');
         _startTime = DateTime.now();
         break;
       }
@@ -305,8 +302,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           agent.performCollisionWith(other);
           if (agent is LetterAgent && other is PlayerAgent) {
             performHitOfPlayerOnLetter(other, agent);
-          }
-          if (agent is PlayerAgent && other is LetterAgent) {
+          } else if (agent is PlayerAgent && other is LetterAgent) {
             performHitOfPlayerOnLetter(agent, other);
           }
         }
@@ -321,15 +317,6 @@ class BlueberryWarGameManager implements MiniGameManager {
         }
       }
     }
-
-    // Check if collision revealed the letter
-    for (int i = allAgents.length - 1; i >= 0; i--) {
-      final agent = allAgents[i];
-      if (agent is LetterAgent && agent.isDestroyed) {
-        problem.hiddenLetterStatuses[agent.problemIndex] =
-            LetterStatus.revealed;
-      }
-    }
   }
 
   void performHitOfPlayerOnLetter(PlayerAgent player, LetterAgent letter) {
@@ -338,6 +325,12 @@ class BlueberryWarGameManager implements MiniGameManager {
       player.destroy();
     } else {
       letter.hit();
+      if (letter.isDestroyed) {
+        _problem!.hiddenLetterStatuses[letter.problemIndex] =
+            LetterStatus.normal;
+        _problem!.uselessLetterStatuses[letter.problemIndex] =
+            LetterStatus.normal;
+      }
     }
   }
 

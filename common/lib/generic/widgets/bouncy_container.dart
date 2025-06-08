@@ -103,31 +103,31 @@ class _BouncyContainerCollection {
   /// Perform the animation
   Future<void> _performAnimation(
       {required Function() onControllerChanged}) async {
-    _logger.info('Showing bouncing container...');
+    _logger.fine('Showing bouncing container...');
 
     currentAnimation = appearingAnimation;
     currentController = appearingController;
     onControllerChanged();
-    _logger.info('Bouncing container appearing...');
+    _logger.fine('Bouncing container appearing...');
     await appearingController.forward();
 
     currentAnimation = bouncingAnimation;
     currentController = bouncingController;
     onControllerChanged();
     for (var i = 0; i < controller.bounceCount; i++) {
-      _logger.info('Bouncing container growing...');
+      _logger.fine('Bouncing container growing...');
       await bouncingController.forward();
-      _logger.info('Bouncing container shrinking...');
+      _logger.fine('Bouncing container shrinking...');
       await bouncingController.reverse();
     }
 
     currentAnimation = disapearingScale;
     currentController = disapearingController;
     onControllerChanged();
-    _logger.info('Bouncing container disapearing...');
+    _logger.fine('Bouncing container disapearing...');
     await disapearingController.forward();
 
-    _logger.info('Bouncing container finished');
+    _logger.fine('Bouncing container finished');
   }
 
   ///

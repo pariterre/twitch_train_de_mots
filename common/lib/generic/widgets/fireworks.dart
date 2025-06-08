@@ -66,7 +66,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _logger.info('New fireworks initialized');
+    _logger.fine('New fireworks initialized');
 
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1500));
@@ -79,7 +79,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _logger.info('Fireworks disposed');
+    _logger.fine('Fireworks disposed');
 
     _animationController.dispose();
     super.dispose();

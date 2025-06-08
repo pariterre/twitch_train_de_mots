@@ -9,6 +9,8 @@ import 'package:twitch_manager/twitch_app.dart';
 final _logger = Logger('Main');
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Set up logging
   Logger.root.level = Level.INFO; // Set the logging level
   Logger.root.onRecord.listen((record) {
@@ -51,6 +53,7 @@ class MyApp extends StatelessWidget {
       ),
       home: Scaffold(
           body: Background(
+              withSnowfall: false,
               backgroundLayer: Image.asset(
                 'packages/common/assets/images/train.png',
                 height: MediaQuery.of(context).size.height,
