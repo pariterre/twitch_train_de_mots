@@ -47,6 +47,18 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
             child: const BlueberryWarHeader(),
           ),
         ),
+        Positioned(
+          top: headerHeight,
+          left: MediaQuery.of(context).size.width / 5,
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - headerHeight,
+            child: VerticalDivider(
+              thickness: 2,
+              endIndent: 10,
+              color: Colors.white.withAlpha(100),
+            ),
+          ),
+        ),
         Align(
           alignment: Alignment.topLeft,
           child: Column(

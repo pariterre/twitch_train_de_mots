@@ -90,6 +90,22 @@ class SoundManager {
       }
     }
 
+    // Minigame Blueberry War sounds
+    while (true) {
+      try {
+        final bwm = Managers.instance.miniGames.blueberryWar;
+        bwm.onLetterHitByPlayer.listen(_onBlueberryWarLetterHitByPlayer);
+        bwm.onLetterHitByLetter.listen(_onBlueberryWarLetterHitByLetter);
+        bwm.onBlueberryDestroyed.listen(_onBlueberryWarBlueberryDestroyed);
+        bwm.onTrySolution.listen(_onSolutionTried);
+        bwm.onGameEnded.listen(_onBlueberryWarGameIsOver);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
     while (true) {
       try {
         final cm = Managers.instance.configuration;
@@ -228,6 +244,46 @@ class SoundManager {
   }
 
   Future<void> _onTreasureHuntGameIsOver(bool hasWon) async {
+    if (hasWon) {
+      _playSoundEffect('packages/common/assets/sounds/BestSolutionFound.mp3');
+    } else {
+      _playSoundEffect('packages/common/assets/sounds/RoundIsOver.mp3');
+    }
+  }
+
+  DateTime _lastLetterHitByLetterPlayed = DateTime.now();
+  Future<void> _onBlueberryWarLetterHitByLetter(int first, int second) async {
+    final tm = Managers.instance.miniGames.blueberryWar;
+    if (tm.isGameOver) return;
+    // Prevent spamming the sound effect
+    if (_lastLetterHitByLetterPlayed
+        .add(const Duration(milliseconds: 100))
+        .isAfter(DateTime.now())) {
+      return;
+    }
+    _lastLetterHitByLetterPlayed = DateTime.now();
+
+    _playSoundEffect(
+        'packages/common/assets/sounds/blueberry_war/letter_knock.mp3');
+  }
+
+  Future<void> _onBlueberryWarLetterHitByPlayer(
+      int letterIndex, bool isDestroyed) async {
+    final tm = Managers.instance.miniGames.blueberryWar;
+    if (tm.isGameOver) return;
+
+    _playSoundEffect(
+        'packages/common/assets/sounds/blueberry_war/letter_hit.mp3');
+    if (isDestroyed) {
+      _playSoundEffect('packages/common/assets/sounds/SolutionFound.mp3');
+    }
+  }
+
+  Future<void> _onBlueberryWarBlueberryDestroyed(int blueberryIndex) async {
+    _playSoundEffect('packages/common/assets/sounds/TrainLostStation.mp3');
+  }
+
+  Future<void> _onBlueberryWarGameIsOver(bool hasWon) async {
     if (hasWon) {
       _playSoundEffect('packages/common/assets/sounds/BestSolutionFound.mp3');
     } else {

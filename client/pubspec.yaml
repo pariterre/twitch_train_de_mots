@@ -69,11 +69,15 @@ flutter:
     - packages/common/assets/sounds/BigHeistSuccess.mp3
     - packages/common/assets/sounds/BigHeistFailed.mp3
     - packages/common/assets/sounds/ChangingLane.mp3
+
     - packages/common/assets/sounds/treasure_hunt/picking_treasure.mp3
     - packages/common/assets/sounds/treasure_hunt/pluck_grass1.mp3 
     - packages/common/assets/sounds/treasure_hunt/pluck_grass2.mp3 
     - packages/common/assets/sounds/treasure_hunt/pluck_grass3.mp3
     - packages/common/assets/sounds/treasure_hunt/pluck_grass4.mp3 
+
+    - packages/common/assets/sounds/blueberry_war/letter_hit.mp3
+    - packages/common/assets/sounds/blueberry_war/letter_knock.mp3
 
   fonts:
     - family: BaskervvilleSC

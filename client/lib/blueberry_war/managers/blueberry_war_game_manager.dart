@@ -16,7 +16,7 @@ import 'package:vector_math/vector_math.dart';
 final _logger = Logger('BlueberryWarGameManager');
 final _random = Random();
 
-final _dictionary = DictionaryManager.wordsWithAtLeast(6).toList();
+final _dictionary = DictionaryManager.wordsWithAtLeast(10).toList();
 
 ///
 /// Easy accessors translating index into row/col pair or row/col pair into
@@ -28,6 +28,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   final Duration _tickDuration = const Duration(milliseconds: 16);
   DateTime _lastTick = DateTime.now();
   Vector2 fieldSize = Vector2(1920, 1080);
+  Vector2 get _playerFieldSize => Vector2(fieldSize.x / 5, fieldSize.y);
 
   ///
   /// Whether the game manager is initialized
@@ -67,6 +68,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   List<LetterAgent> get letters =>
       allAgents.whereType<LetterAgent>().toList(growable: false);
   final initialPlayerCount = 10;
+  final _playerRadius = Vector2(30.0, 30.0);
   List<PlayerAgent> get players =>
       allAgents.whereType<PlayerAgent>().toList(growable: false);
 
@@ -84,6 +86,11 @@ class BlueberryWarGameManager implements MiniGameManager {
   final onClockTicked = GenericListener<Function()>();
   @override
   final onGameUpdated = GenericListener<Function()>();
+  final onLetterHitByPlayer =
+      GenericListener<Function(int letterIndex, bool isDestroyed)>();
+  final onLetterHitByLetter =
+      GenericListener<Function(int firstIndex, int secondIndex)>();
+  final onBlueberryDestroyed = GenericListener<Function(int blueberryIndex)>();
   @override
   final onGameEnded = GenericListener<Function(bool)>();
   final onTrySolution =
@@ -95,8 +102,11 @@ class BlueberryWarGameManager implements MiniGameManager {
 
   Vector2 _generateRandomStartingPlayerPosition() {
     return Vector2(
-      _random.nextDouble() * fieldSize.x * 1 / 10.0 + fieldSize.x / 10,
-      _random.nextDouble() * fieldSize.y * 6 / 8.0 + fieldSize.y / 8,
+      _playerFieldSize.x / 2 +
+          (_random.nextDouble() * _playerFieldSize.x / 2) -
+          _playerRadius.x,
+      _playerFieldSize.y / 8 +
+          (_random.nextDouble() * _playerFieldSize.y * 6 / 8.0),
     );
   }
 
@@ -124,10 +134,12 @@ class BlueberryWarGameManager implements MiniGameManager {
           problemIndex: i,
           letter: _problem!.letters[i],
           position: Vector2(fieldSize.x * 2 / 3, fieldSize.y * 2 / 5),
-          velocity: Vector2(
-            _random.nextDouble() * 1500 - 750,
-            _random.nextDouble() * 1500 - 750,
-          ),
+          velocity: isBoss
+              ? Vector2.zero()
+              : Vector2(
+                  _random.nextDouble() * 1500 - 750,
+                  _random.nextDouble() * 1500 - 750,
+                ),
           radius: Vector2(40.0, 50.0),
           mass: 1.0,
           coefficientOfFriction: (isBoss ? -0.2 : 0.5),
@@ -142,7 +154,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           id: i,
           position: _generateRandomStartingPlayerPosition(),
           velocity: Vector2.zero(),
-          radius: Vector2(30.0, 30.0),
+          radius: _playerRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
         ),
@@ -274,6 +286,11 @@ class BlueberryWarGameManager implements MiniGameManager {
       agent.coefficientOfFriction = 0.9;
     }
 
+    // Reveal the problem
+    for (int i = 0; i < _problem!.hiddenLetterStatuses.length; i++) {
+      _problem!.hiddenLetterStatuses[i] = LetterStatus.revealed;
+    }
+
     _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(_hasWon!));
   }
@@ -304,6 +321,17 @@ class BlueberryWarGameManager implements MiniGameManager {
             performHitOfPlayerOnLetter(other, agent);
           } else if (agent is PlayerAgent && other is LetterAgent) {
             performHitOfPlayerOnLetter(agent, other);
+          } else if (agent is LetterAgent && other is LetterAgent) {
+            // Two letters colliding, notify listeners
+            onLetterHitByLetter.notifyListeners(
+              (callback) => callback(agent.problemIndex, other.problemIndex),
+            );
+          } else if (agent is PlayerAgent && other is PlayerAgent) {
+            // Two players colliding, do nothing
+          } else {
+            _logger.warning(
+              'Collision between ${agent.runtimeType} and ${other.runtimeType} not handled',
+            );
           }
         }
       }
@@ -323,6 +351,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     if (letter.isBoss) {
       // Destroy the player
       player.destroy();
+      onBlueberryDestroyed.notifyListeners((callback) => callback(player.id));
     } else {
       letter.hit();
       if (letter.isDestroyed) {
@@ -331,6 +360,9 @@ class BlueberryWarGameManager implements MiniGameManager {
         _problem!.uselessLetterStatuses[letter.problemIndex] =
             LetterStatus.normal;
       }
+      onLetterHitByPlayer.notifyListeners(
+        (callback) => callback(letter.problemIndex, letter.isDestroyed),
+      );
     }
   }
 
