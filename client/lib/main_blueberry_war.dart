@@ -60,7 +60,59 @@ class MyApp extends StatelessWidget {
                 opacity: const AlwaysStoppedAnimation(0.05),
                 fit: BoxFit.cover,
               ),
-              child: BlueberryWarGameScreen())),
+              child: const _MainScreen(child: BlueberryWarGameScreen()))),
     );
+  }
+}
+
+class _MainScreen extends StatefulWidget {
+  const _MainScreen({
+    required this.child,
+  });
+
+  final Widget child;
+
+  @override
+  State<_MainScreen> createState() => __MainScreenState();
+}
+
+class __MainScreenState extends State<_MainScreen> {
+  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
+    await Managers.instance.twitch
+        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
+    setState(() {});
+  }
+
+  void _reconnectedAfterDisconnect() =>
+      _setTwitchManager(reloadIfPossible: false);
+
+  @override
+  void initState() {
+    Managers.instance.twitch.onTwitchManagerHasDisconnected
+        .listen(_reconnectedAfterDisconnect);
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    Managers.instance.twitch.onTwitchManagerHasDisconnected
+        .cancel(_reconnectedAfterDisconnect);
+
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (Managers.instance.twitch.isNotConnected) {
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => _setTwitchManager(reloadIfPossible: true));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

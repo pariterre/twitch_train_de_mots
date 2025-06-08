@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:common/blueberry_war/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
@@ -49,6 +50,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   Timer? _timer;
   DateTime? _startTime;
   DateTime get startTime => _startTime ?? DateTime.now();
+  bool get gameStarted => _startTime != null;
   DateTime? _finalTime;
   DateTime? get finalTime => _finalTime;
   Duration _roundDuration = const Duration(seconds: 30);
@@ -99,7 +101,26 @@ class BlueberryWarGameManager implements MiniGameManager {
 
   ///
   /// Constructor
-  BlueberryWarGameManager();
+  BlueberryWarGameManager() {
+    _asyncInitializations();
+  }
+
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
+    while (true) {
+      try {
+        final tm = Managers.instance.twitch;
+        tm.addChatListener(trySolution);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    _logger.config('Ready');
+  }
 
   Vector2 _generateRandomStartingPlayerPosition() {
     return Vector2(
@@ -169,6 +190,8 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     // Notify listeners that the game is ready
     _isInitialized = true;
+    _timer?.cancel();
+    _timer = null;
     _startTime = null;
     _finalTime = null;
     _isGameOver = false;
@@ -187,6 +210,24 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   Future<void> end() async {
     _forceEndOfGame = true;
+  }
+
+  void trySolution(String sender, String message) {
+    if (!gameStarted || _isGameOver) return;
+
+    // Transform the message so it is only the first word all in uppercase
+    final words = message.split(' ');
+    if (words.isEmpty || words.length > 1) return;
+    final word = words.first.toUpperCase();
+
+    final isSolutionRight = word == problem.letters.join();
+    if (isSolutionRight) {
+      for (int i = 0; i < _problem!.uselessLetterStatuses.length; i++) {
+        _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
+      }
+    }
+    onTrySolution
+        .notifyListeners((callback) => callback(sender, word, isSolutionRight));
   }
 
   ///
@@ -266,7 +307,8 @@ class BlueberryWarGameManager implements MiniGameManager {
       _logger.info('Blueberry war game forced to end');
       _isGameOver = true;
       _hasWon = false;
-    } else if (letters.every((letter) => letter.isDestroyed)) {
+    } else if (problem.hiddenLetterStatuses
+        .every((status) => status != LetterStatus.hidden)) {
       _logger.info('All letters revealed in blueberry war, you win!');
       _isGameOver = true;
       _hasWon = true;

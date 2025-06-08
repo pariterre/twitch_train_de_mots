@@ -19,8 +19,6 @@ final _random = Random();
 /// index
 
 class TreasureHuntGameManager implements MiniGameManager {
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
   TreasureHuntGameManager() {
     _asyncInitializations();
   }
@@ -39,7 +37,6 @@ class TreasureHuntGameManager implements MiniGameManager {
       }
     }
 
-    _isInitialized = true;
     _logger.config('Ready');
   }
 
