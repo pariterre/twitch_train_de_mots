@@ -36,7 +36,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final headerHeight = 88.0;
+    final headerHeight = 180.0;
 
     return Stack(
       children: [
@@ -61,8 +61,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                       constraints.maxHeight,
                     );
 
-                    return Container(
-                      color: Colors.blue.withAlpha(100),
+                    return SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: const BlueberryWarPlayingField(),
                     );

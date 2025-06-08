@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_letter_displayer.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/widgets/theme_card.dart';
 
@@ -37,7 +37,6 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
-    final gm = Managers.instance.miniGames.blueberryWar;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -54,23 +53,7 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
             ),
           ),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ...gm.problem.letters.asMap().keys.map(
-                  (index) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: Text(
-                      gm.problem.hiddenLetterStatuses[index] ==
-                              LetterStatus.hidden
-                          ? '_'
-                          : gm.problem.letters[index],
-                      style: TextStyle(fontSize: 30),
-                    ),
-                  ),
-                ),
-          ],
-        ),
+        BlueberryWarLetterDisplayer(),
       ],
     );
   }

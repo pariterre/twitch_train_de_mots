@@ -54,7 +54,7 @@ class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
                 curve: Curves.easeInOut,
                 left: (_letterWidth + 2 * _letterPadding) *
                     lp.scrambleIndices[index],
-                child: _Letter(
+                child: LetterWidget(
                   letter: lp.letters[index],
                   width: _letterWidth,
                   height: _letterHeight,
@@ -82,8 +82,9 @@ class _LetterDisplayerCommonState extends State<LetterDisplayerCommon> {
   }
 }
 
-class _Letter extends StatefulWidget {
-  const _Letter({
+class LetterWidget extends StatefulWidget {
+  const LetterWidget({
+    super.key,
     required this.letter,
     required this.width,
     required this.height,
@@ -104,10 +105,10 @@ class _Letter extends StatefulWidget {
   final LetterStatus hiddenStatus;
 
   @override
-  State<_Letter> createState() => _LetterState();
+  State<LetterWidget> createState() => _LetterWidgetState();
 }
 
-class _LetterState extends State<_Letter> {
+class _LetterWidgetState extends State<LetterWidget> {
   @override
   void initState() {
     super.initState();

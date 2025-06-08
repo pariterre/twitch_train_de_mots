@@ -41,9 +41,12 @@ flutter:
   assets:
     - packages/common/assets/images/train.png
     - packages/common/assets/images/parchment.png
+
     - packages/common/assets/images/treasure_hunt/blueberries.png
     - packages/common/assets/images/treasure_hunt/grass.png
     - packages/common/assets/images/treasure_hunt/open_grass.png
+
+    - packages/common/assets/images/blueberry_war/blueberries.png
 
     - packages/common/assets/sounds/BestSolutionFound.mp3
     - packages/common/assets/sounds/GameStarted.mp3

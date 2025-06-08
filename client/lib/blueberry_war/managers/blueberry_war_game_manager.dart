@@ -143,7 +143,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           id: i,
           position: _generateRandomStartingPlayerPosition(),
           velocity: Vector2.zero(),
-          radius: Vector2(15.0, 15.0),
+          radius: Vector2(20.0, 20.0),
           mass: 3.0,
           coefficientOfFriction: 0.8,
         ),

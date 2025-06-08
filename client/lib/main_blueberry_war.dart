@@ -1,3 +1,4 @@
+import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/blueberry_war/screens/blueberry_war_game_screen.dart';
@@ -48,7 +49,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Scaffold(body: BlueberryWarGameScreen()),
+      home: Scaffold(
+          body: Background(
+              backgroundLayer: Image.asset(
+                'packages/common/assets/images/train.png',
+                height: MediaQuery.of(context).size.height,
+                opacity: const AlwaysStoppedAnimation(0.05),
+                fit: BoxFit.cover,
+              ),
+              child: BlueberryWarGameScreen())),
     );
   }
 }

@@ -162,16 +162,15 @@ class _PlayerContainerState extends State<PlayerContainer> {
       return const SizedBox.shrink();
     }
 
-    final mainWidget = Container(
+    final mainWidget = SizedBox(
       width: widget.player.radius.x * 2,
       height: widget.player.radius.y * 2,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: widget.player.isDestroyed
-            ? Colors.red.withAlpha(alpha)
-            : Colors.blue.withAlpha(alpha),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.black.withAlpha(alpha), width: 2.0),
+      child: Image.asset(
+        'packages/common/assets/images/blueberry_war/blueberries.png',
+        fit: BoxFit.cover,
+        opacity: AlwaysStoppedAnimation<double>(
+          alpha / 255.0,
+        ),
       ),
     );
 

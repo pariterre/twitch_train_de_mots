@@ -1,3 +1,5 @@
+import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/models/letter_agent.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -37,19 +39,19 @@ class _LetterContainerState extends State<LetterContainer> {
         : Positioned(
             left: widget.letter.position.x - widget.letter.radius.x,
             top: widget.letter.position.y - widget.letter.radius.y,
-            child: Container(
-              width: widget.letter.radius.x * 2,
-              height: widget.letter.radius.y * 2,
-              decoration: BoxDecoration(
-                color: widget.letter.isBoss ? Colors.red : Colors.blue,
-                border: Border.all(color: Colors.black, width: 2.0),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Center(
-                child: Text(
-                  widget.letter.isWeak ? widget.letter.letter : '',
-                  style: TextStyle(fontSize: 30, color: Colors.black),
-                ),
+            child: Center(
+              child: LetterWidget(
+                letter: widget.letter.letter,
+                width: widget.letter.radius.x * 2,
+                height: widget.letter.radius.y * 2,
+                letterSize: widget.letter.radius.y,
+                numberSize: 0,
+                uselessStatus: widget.letter.isBoss
+                    ? LetterStatus.revealed
+                    : LetterStatus.normal,
+                hiddenStatus: widget.letter.isWeak
+                    ? LetterStatus.normal
+                    : LetterStatus.hidden,
               ),
             ),
           );
