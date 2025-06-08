@@ -1,78 +1,82 @@
-import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/blueberry_war/to_remove/bouncy_container.dart';
 
-class TreasureHuntAnimatedTextOverlay extends StatefulWidget {
-  const TreasureHuntAnimatedTextOverlay({super.key});
+class BluberryWarAnimatedTextOverlay extends StatefulWidget {
+  const BluberryWarAnimatedTextOverlay({super.key});
 
   @override
-  State<TreasureHuntAnimatedTextOverlay> createState() =>
-      _TreasureHuntAnimatedTextOverlayState();
+  State<BluberryWarAnimatedTextOverlay> createState() =>
+      _BluberryWarAnimatedTextOverlayState();
 }
 
-class _TreasureHuntAnimatedTextOverlayState
-    extends State<TreasureHuntAnimatedTextOverlay> {
-  final _treasureHuntWrongWordController = BouncyContainerController(
-      bounceCount: 2,
-      easingInDuration: 600,
-      bouncingDuration: 1500,
-      easingOutDuration: 300,
-      minScale: 0.9,
-      bouncyScale: 1.2,
-      maxScale: 1.4,
-      maxOpacity: 0.9);
-  final _treasureHuntFoundWordController = BouncyContainerController(
-      bounceCount: 2,
-      easingInDuration: 600,
-      bouncingDuration: 1500,
-      easingOutDuration: 300,
-      minScale: 0.9,
-      bouncyScale: 1.2,
-      maxScale: 1.4,
-      maxOpacity: 0.9);
-  final _treasureHuntFailedController = BouncyContainerController(
-      bounceCount: 2,
-      easingInDuration: 600,
-      bouncingDuration: 1500,
-      easingOutDuration: 300,
-      minScale: 0.9,
-      bouncyScale: 1.2,
-      maxScale: 1.4,
-      maxOpacity: 0.9);
+class _BluberryWarAnimatedTextOverlayState
+    extends State<BluberryWarAnimatedTextOverlay> {
+  final _blueberryWarWrongWordController = BouncyContainerController(
+    bounceCount: 2,
+    easingInDuration: 600,
+    bouncingDuration: 1500,
+    easingOutDuration: 300,
+    minScale: 0.9,
+    bouncyScale: 1.2,
+    maxScale: 1.4,
+    maxOpacity: 0.9,
+  );
+  final _blueberryWarFoundWordController = BouncyContainerController(
+    bounceCount: 2,
+    easingInDuration: 600,
+    bouncingDuration: 1500,
+    easingOutDuration: 300,
+    minScale: 0.9,
+    bouncyScale: 1.2,
+    maxScale: 1.4,
+    maxOpacity: 0.9,
+  );
+  final _blueberryWarFailedController = BouncyContainerController(
+    bounceCount: 2,
+    easingInDuration: 600,
+    bouncingDuration: 1500,
+    easingOutDuration: 300,
+    minScale: 0.9,
+    bouncyScale: 1.2,
+    maxScale: 1.4,
+    maxOpacity: 0.9,
+  );
 
   @override
   void initState() {
     super.initState();
 
-    final tgm = Managers.instance.miniGames.treasureHunt;
-    tgm.onTrySolution.listen(_treasureHuntTrySolution);
-    tgm.onGameEnded.listen(_treasureHuntFailed);
+    final gm = Managers.instance.miniGames.blueberryWar;
+    gm.onTrySolution.listen(_blueberryWarTrySolution);
+    gm.onGameOver.listen(_blueberryWarFailed);
   }
 
   @override
   void dispose() {
-    final tgm = Managers.instance.miniGames.treasureHunt;
-    tgm.onTrySolution.cancel(_treasureHuntTrySolution);
-    tgm.onGameEnded.cancel(_treasureHuntFailed);
+    final tgm = Managers.instance.miniGames.blueberryWar;
+    tgm.onTrySolution.cancel(_blueberryWarTrySolution);
+    tgm.onGameOver.cancel(_blueberryWarFailed);
 
     super.dispose();
   }
 
-  void _treasureHuntTrySolution(String sender, String word, bool isSuccess) {
+  void _blueberryWarTrySolution(String sender, String word, bool isSuccess) {
     if (isSuccess) {
-      _treasureHuntFoundWordController
-          .triggerAnimation(_TreasureHuntFoundWord(sender, word));
+      _blueberryWarFoundWordController.triggerAnimation(
+        _BlueberryWarFoundWord(sender, word),
+      );
     } else {
-      _treasureHuntWrongWordController
-          .triggerAnimation(_TreasureHuntWrongWord(sender, word));
+      _blueberryWarWrongWordController.triggerAnimation(
+        _BlueberryWarWrongWord(sender, word),
+      );
     }
   }
 
-  void _treasureHuntFailed(bool hasWin) {
+  void _blueberryWarFailed(bool hasWin) {
     // Do not write anything if the game was won, as the try solution will
     if (hasWin) return;
-    _treasureHuntFailedController.triggerAnimation(const _TreasureHuntFailed());
+    _blueberryWarFailedController.triggerAnimation(const _BlueberryWarFailed());
   }
 
   @override
@@ -85,17 +89,19 @@ class _TreasureHuntAnimatedTextOverlayState
         children: [
           Positioned(
             top: MediaQuery.of(context).size.height * 0.35,
-            child:
-                BouncyContainer(controller: _treasureHuntWrongWordController),
+            child: BouncyContainer(
+              controller: _blueberryWarWrongWordController,
+            ),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child:
-                BouncyContainer(controller: _treasureHuntFoundWordController),
+            child: BouncyContainer(
+              controller: _blueberryWarFoundWordController,
+            ),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _treasureHuntFailedController),
+            child: BouncyContainer(controller: _blueberryWarFailedController),
           ),
         ],
       ),
@@ -103,8 +109,8 @@ class _TreasureHuntAnimatedTextOverlayState
   }
 }
 
-class _TreasureHuntFoundWord extends StatelessWidget {
-  const _TreasureHuntFoundWord(this.sender, this.word);
+class _BlueberryWarFoundWord extends StatelessWidget {
+  const _BlueberryWarFoundWord(this.sender, this.word);
 
   final String sender;
   final String word;
@@ -128,9 +134,10 @@ class _TreasureHuntFoundWord extends StatelessWidget {
             'Vous avez gagné!\n$sender a trouvé la solution!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 157, 243, 151)),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: const Color.fromARGB(255, 157, 243, 151),
+            ),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: Colors.amber, size: 32),
@@ -140,8 +147,8 @@ class _TreasureHuntFoundWord extends StatelessWidget {
   }
 }
 
-class _TreasureHuntWrongWord extends StatelessWidget {
-  const _TreasureHuntWrongWord(this.sender, this.word);
+class _BlueberryWarWrongWord extends StatelessWidget {
+  const _BlueberryWarWrongWord(this.sender, this.word);
 
   final String sender;
   final String word;
@@ -164,8 +171,10 @@ class _TreasureHuntWrongWord extends StatelessWidget {
           Text(
             '$sender a proposé $word\nMais ce n\'est pas la solution',
             textAlign: TextAlign.center,
-            style:
-                tm.clientMainTextStyle.copyWith(fontSize: 24, color: textColor),
+            style: tm.clientMainTextStyle.copyWith(
+              fontSize: 24,
+              color: textColor,
+            ),
           ),
           const SizedBox(width: 10),
         ],
@@ -174,8 +183,8 @@ class _TreasureHuntWrongWord extends StatelessWidget {
   }
 }
 
-class _TreasureHuntFailed extends StatelessWidget {
-  const _TreasureHuntFailed();
+class _BlueberryWarFailed extends StatelessWidget {
+  const _BlueberryWarFailed();
 
   @override
   Widget build(BuildContext context) {
@@ -194,11 +203,14 @@ class _TreasureHuntFailed extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
+            'Vous n\'avez pas trouvé le mot à temps...\n'
             'On retourne immédiatement au train!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
-                fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.star, color: textColor, size: 32),
