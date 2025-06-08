@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
 import 'package:train_de_mots/blueberry_war/models/player_agent.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
 class PlayerContainer extends StatefulWidget {

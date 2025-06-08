@@ -1,7 +1,7 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 class BluberryWarAnimatedTextOverlay extends StatefulWidget {
   const BluberryWarAnimatedTextOverlay({super.key});
@@ -50,14 +50,14 @@ class _BluberryWarAnimatedTextOverlayState
 
     final gm = Managers.instance.miniGames.blueberryWar;
     gm.onTrySolution.listen(_blueberryWarTrySolution);
-    gm.onGameOver.listen(_blueberryWarFailed);
+    gm.onGameEnded.listen(_blueberryWarFailed);
   }
 
   @override
   void dispose() {
     final tgm = Managers.instance.miniGames.blueberryWar;
     tgm.onTrySolution.cancel(_blueberryWarTrySolution);
-    tgm.onGameOver.cancel(_blueberryWarFailed);
+    tgm.onGameEnded.cancel(_blueberryWarFailed);
 
     super.dispose();
   }

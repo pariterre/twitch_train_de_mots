@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/blueberry_war/screens/blueberry_war_game_screen.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
+import 'package:twitch_manager/twitch_app.dart';
 
 final _logger = Logger('Main');
 
-void main() {
+void main() async {
   // Set up logging
   Logger.root.level = Level.INFO; // Set the logging level
   Logger.root.onRecord.listen((record) {
@@ -13,7 +15,25 @@ void main() {
   });
   _logger.info('Starting Twitch Blueberry War App');
 
-  Managers.initialize();
+  await Managers.initialize(
+    twtichAppInfo: TwitchAppInfo(
+        appName: 'Train de mots',
+        twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+        scope: const [
+          TwitchAppScope.chatRead,
+          TwitchAppScope.readFollowers,
+        ],
+        twitchRedirectUri: Uri.https(
+            'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+        authenticationServerUri:
+            Uri.https('twitchserver.pariterre.net:3000', 'token')),
+    ebsUri: MocksConfiguration.useLocalEbs
+        ? Uri.parse('ws://localhost:3010')
+        : Uri.parse('wss://twitchserver.pariterre.net:3010'),
+  );
+  await Managers.instance.miniGames.blueberryWar.initialize();
+  await Managers.instance.miniGames.blueberryWar.start();
+
   runApp(const MyApp());
 }
 

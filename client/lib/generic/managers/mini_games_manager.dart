@@ -2,6 +2,7 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:logging/logging.dart';
+import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
 import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 
 final _logger = Logger('MiniGamesManager');
@@ -68,6 +69,7 @@ class MiniGamesManager {
   Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
     _miniGames[MiniGames.treasureHunt] = TreasureHuntGameManager();
+    _miniGames[MiniGames.blueberryWar] = BlueberryWarGameManager();
     _isInitialized = true;
     _logger.config('Ready');
   }
@@ -75,6 +77,8 @@ class MiniGamesManager {
   final Map<MiniGames, MiniGameManager> _miniGames = {};
   TreasureHuntGameManager get treasureHunt =>
       _miniGames[MiniGames.treasureHunt] as TreasureHuntGameManager;
+  BlueberryWarGameManager get blueberryWar =>
+      _miniGames[MiniGames.blueberryWar] as BlueberryWarGameManager;
 
   ///
   /// Run a mini game, returns

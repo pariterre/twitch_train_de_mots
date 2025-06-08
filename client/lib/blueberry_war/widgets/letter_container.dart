@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/models/letter_agent.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 class LetterContainer extends StatefulWidget {
   const LetterContainer({super.key, required this.letter});

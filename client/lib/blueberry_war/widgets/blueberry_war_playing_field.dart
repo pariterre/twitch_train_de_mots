@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
 import 'package:train_de_mots/blueberry_war/widgets/letter_container.dart';
 import 'package:train_de_mots/blueberry_war/widgets/player_container.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 class BlueberryWarPlayingField extends StatelessWidget {
   const BlueberryWarPlayingField({super.key});

@@ -1,3 +1,4 @@
 enum MiniGames {
-  treasureHunt;
+  treasureHunt,
+  blueberryWar;
 }

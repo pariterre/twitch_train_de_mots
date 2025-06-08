@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_animated_text_overlay.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_header.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_playing_field.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
 class BlueberryWarGameScreen extends StatefulWidget {
