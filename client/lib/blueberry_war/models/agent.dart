@@ -1,4 +1,4 @@
-import 'package:train_de_mots/blueberry_war/to_remove/generic_listener.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:vector_math/vector_math.dart';
 
 enum AgentShape { circle, rectangle }

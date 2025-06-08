@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
+import 'package:train_de_mots/generic/widgets/theme_card.dart';
 
 class BlueberryWarHeader extends StatefulWidget {
   const BlueberryWarHeader({super.key});

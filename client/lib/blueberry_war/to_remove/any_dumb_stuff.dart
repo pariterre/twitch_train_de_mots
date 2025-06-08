@@ -1,31 +1,4 @@
-import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
-
-class ThemeManager {
-  /// Singleton instance of ThemeManager
-  ///
-  /// This class is used to manage the theme of the application, providing
-  /// access to theme-related properties and methods.
-  static final ThemeManager instance = ThemeManager._();
-  ThemeManager._();
-
-  final TextStyle clientMainTextStyle = TextStyle(
-    fontSize: 20,
-    color: Colors.black,
-    fontWeight: FontWeight.w600,
-  );
-  final Color textColor = Colors.black;
-}
-
-class ThemeCard extends StatelessWidget {
-  const ThemeCard({super.key, required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(child: child);
-  }
-}
 
 class TrainManager {
   Duration previousRoundTimeRemaining = Duration(seconds: 10);

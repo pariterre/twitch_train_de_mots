@@ -1,5 +1,5 @@
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:train_de_mots/blueberry_war/models/agent.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/generic_listener.dart';
 
 class LetterAgent extends Agent {
   final bool isBoss;

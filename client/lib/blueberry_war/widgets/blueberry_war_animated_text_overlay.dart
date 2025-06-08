@@ -1,6 +1,7 @@
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/to_remove/any_dumb_stuff.dart';
-import 'package:train_de_mots/blueberry_war/to_remove/bouncy_container.dart';
 
 class BluberryWarAnimatedTextOverlay extends StatefulWidget {
   const BluberryWarAnimatedTextOverlay({super.key});
