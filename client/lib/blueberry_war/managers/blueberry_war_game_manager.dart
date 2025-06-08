@@ -88,8 +88,9 @@ class BlueberryWarGameManager implements MiniGameManager {
   final onGameUpdated = GenericListener<Function()>();
   final onLetterHitByPlayer =
       GenericListener<Function(int letterIndex, bool isDestroyed)>();
-  final onLetterHitByLetter =
-      GenericListener<Function(int firstIndex, int secondIndex)>();
+  final onLetterHitByLetter = GenericListener<
+      Function(int firstIndex, int secondIndex, bool firstIsBoss,
+          bool secondIsBoss)>();
   final onBlueberryDestroyed = GenericListener<Function(int blueberryIndex)>();
   @override
   final onGameEnded = GenericListener<Function(bool)>();
@@ -322,9 +323,13 @@ class BlueberryWarGameManager implements MiniGameManager {
           } else if (agent is PlayerAgent && other is LetterAgent) {
             performHitOfPlayerOnLetter(agent, other);
           } else if (agent is LetterAgent && other is LetterAgent) {
-            // Two letters colliding, notify listeners
             onLetterHitByLetter.notifyListeners(
-              (callback) => callback(agent.problemIndex, other.problemIndex),
+              (callback) => callback(
+                agent.problemIndex,
+                other.problemIndex,
+                agent.isBoss,
+                other.isBoss,
+              ),
             );
           } else if (agent is PlayerAgent && other is PlayerAgent) {
             // Two players colliding, do nothing

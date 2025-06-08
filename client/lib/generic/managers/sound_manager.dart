@@ -23,7 +23,7 @@ class SoundManager {
   int _lastSoundEffectAudioIndex = -1;
 
   Future<void> _playSoundEffect(String source) async {
-    _logger.info('Playing sound effect: $source...');
+    _logger.fine('Playing sound effect: $source...');
     final cm = Managers.instance.configuration;
 
     if (cm.soundVolume == 0) return;
@@ -35,7 +35,7 @@ class SoundManager {
     await soundAudio.setAsset(source);
     await soundAudio.play();
 
-    _logger.info('Sound effect: $source played');
+    _logger.fine('Sound effect: $source played');
   }
 
   ///
@@ -252,9 +252,13 @@ class SoundManager {
   }
 
   DateTime _lastLetterHitByLetterPlayed = DateTime.now();
-  Future<void> _onBlueberryWarLetterHitByLetter(int first, int second) async {
+  Future<void> _onBlueberryWarLetterHitByLetter(
+      int first, int second, bool firstIsBoss, bool secondIsBoss) async {
     final tm = Managers.instance.miniGames.blueberryWar;
     if (tm.isGameOver) return;
+    // If both letters are not bosses, we don't play the sound
+    if (!firstIsBoss && !secondIsBoss) return;
+
     // Prevent spamming the sound effect
     if (_lastLetterHitByLetterPlayed
         .add(const Duration(milliseconds: 100))
