@@ -31,4 +31,5 @@
 - When winning the minigame the golden solution is now garantied to be one of the best solutions
 
 # Word list
-- Add the word "ATOCA"
+- Added the word "ATOCA"
+- Added the word "TORE"
