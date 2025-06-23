@@ -1,4 +1,4 @@
-import 'package:common/blueberry_war/serializable_blueberry_war_game_state.dart';
+import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 

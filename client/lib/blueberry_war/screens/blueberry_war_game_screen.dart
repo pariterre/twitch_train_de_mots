@@ -2,7 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_animated_text_overlay.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_header.dart';
-import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_playing_field.dart';
+import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
@@ -81,7 +81,12 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
 
                             return SizedBox(
                               width: MediaQuery.of(context).size.width,
-                              child: const BlueberryWarPlayingField(),
+                              child: BlueberryWarPlayingField(
+                                players: gm.players,
+                                letters: gm.letters,
+                                isGameOver: gm.isGameOver,
+                                onClockTicked: gm.onClockTicked,
+                              ),
                             );
                           },
                         ),

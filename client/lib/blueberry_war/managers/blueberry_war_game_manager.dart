@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:common/blueberry_war/serializable_blueberry_war_game_state.dart';
+import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/letter_agent.dart';
+import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/blueberry_war/models/agent.dart';
-import 'package:train_de_mots/blueberry_war/models/letter_agent.dart';
-import 'package:train_de_mots/blueberry_war/models/player_agent.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:vector_math/vector_math.dart';
@@ -29,7 +29,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   final Duration _tickDuration = const Duration(milliseconds: 16);
   DateTime _lastTick = DateTime.now();
   Vector2 fieldSize = Vector2(1920, 1080);
-  Vector2 get _playerFieldSize => Vector2(fieldSize.x / 5, fieldSize.y);
+  Vector2 get _playerFieldSizeRatio =>
+      Vector2(1 / 5, 1); // 1/5 of the field is reserved for players
+  Vector2 get _playerFieldSize => Vector2(
+        fieldSize.x * _playerFieldSizeRatio.x,
+        fieldSize.y * _playerFieldSizeRatio.y,
+      );
 
   ///
   /// Whether the game manager is initialized
@@ -75,12 +80,8 @@ class BlueberryWarGameManager implements MiniGameManager {
       allAgents.whereType<PlayerAgent>().toList(growable: false);
 
   ///
-  /// Teleportation duration
-  final teleportationDuration = const Duration(milliseconds: 1000);
-
-  ///
   /// Velocity threshold for teleportation
-  final double velocityThresholdSquared = 400.0;
+  final double velocityThreshold = 20.0;
 
   // Listeners
   @override
@@ -176,6 +177,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           id: i,
           position: _generateRandomStartingPlayerPosition(),
           velocity: Vector2.zero(),
+          velocityThreshold: velocityThreshold,
           radius: _playerRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
@@ -254,12 +256,16 @@ class BlueberryWarGameManager implements MiniGameManager {
   }
 
   @override
-  SerializableBlueberryWarGameState serialize() {
-    return SerializableBlueberryWarGameState(
-      isTimerRunning: _timer != null,
-      timeRemaining: timeRemaining,
-    );
-  }
+  SerializableBlueberryWarGameState serialize() =>
+      SerializableBlueberryWarGameState(
+        isStarted: gameStarted,
+        isOver: _isGameOver,
+        isWon: _hasWon ?? false,
+        timeRemaining: timeRemaining,
+        fieldSize: fieldSize,
+        playerFieldRatio: _playerFieldSizeRatio,
+        allAgents: allAgents,
+      );
 
   ///
   /// The game loop
@@ -294,7 +300,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       // Stop the timer if all the agents have stopped moving
       if (allAgents.every(
         (agent) =>
-            agent.velocity.length2 < velocityThresholdSquared ||
+            agent.velocity.length2 < (velocityThreshold * velocityThreshold) ||
             agent.isDestroyed,
       )) {
         _logger.info('Game over, stopping the timer');
@@ -387,7 +393,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       if (isPlayer) {
         // Teleport back to starting if the player is out of starting block and does not move anymore
         if (agent.position.x > fieldSize.x / 5 &&
-            agent.velocity.length2 < velocityThresholdSquared) {
+            agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
           agent.teleport(to: _generateRandomStartingPlayerPosition());
         }
       }

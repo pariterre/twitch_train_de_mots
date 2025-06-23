@@ -1,13 +1,15 @@
+import 'package:common/blueberry_war/models/letter_agent.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/blueberry_war/models/letter_agent.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
 
 class LetterContainer extends StatefulWidget {
-  const LetterContainer({super.key, required this.letter});
+  const LetterContainer(
+      {super.key, required this.letter, required this.onClockTicked});
 
   final LetterAgent letter;
+  final GenericListener onClockTicked;
 
   @override
   State<LetterContainer> createState() => _LetterContainerState();
@@ -18,14 +20,12 @@ class _LetterContainerState extends State<LetterContainer> {
   void initState() {
     super.initState();
 
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.listen(_clockTicked);
+    widget.onClockTicked.listen(_clockTicked);
   }
 
   @override
   void dispose() {
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.cancel(_clockTicked);
+    widget.onClockTicked.cancel(_clockTicked);
 
     super.dispose();
   }

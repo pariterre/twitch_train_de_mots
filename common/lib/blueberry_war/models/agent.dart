@@ -1,7 +1,18 @@
+import 'package:common/blueberry_war/models/letter_agent.dart';
+import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:vector_math/vector_math.dart';
 
 enum AgentShape { circle, rectangle }
+
+enum AgentType { letter, player }
+
+extension Vector2Extension on Vector2 {
+  List<double> serialize() => [x, y];
+
+  static Vector2 deserialize(data) =>
+      Vector2((data[0] as num).toDouble(), (data[1] as num).toDouble());
+}
 
 abstract class Agent {
   final int id;
@@ -24,6 +35,16 @@ abstract class Agent {
     required this.mass,
     required this.coefficientOfFriction,
   });
+
+  AgentType get agentType;
+
+  Map<String, dynamic> serialize();
+
+  static Agent deserialize(map) =>
+      switch (AgentType.values[map['agent_type']]) {
+        AgentType.letter => LetterAgent.deserialize(map),
+        AgentType.player => PlayerAgent.deserialize(map),
+      };
 
   void update({
     required Duration dt,

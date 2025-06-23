@@ -1,13 +1,18 @@
+import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
-import 'package:train_de_mots/blueberry_war/models/player_agent.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
 class PlayerContainer extends StatefulWidget {
-  const PlayerContainer({super.key, required this.player});
+  const PlayerContainer(
+      {super.key,
+      required this.player,
+      required this.isGameOver,
+      required this.onClockTicked});
 
   final PlayerAgent player;
+  final bool isGameOver;
+  final GenericListener onClockTicked;
 
   @override
   State<PlayerContainer> createState() => _PlayerContainerState();
@@ -24,7 +29,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
   bool get _isFading => _fadingStartTime != null;
   double _fadeAnimationProgress = 0.0;
 
-  BlueberryWarGameManager get _gm => Managers.instance.miniGames.blueberryWar;
+  final teleportationDuration = const Duration(milliseconds: 1000);
 
   @override
   void initState() {
@@ -32,14 +37,14 @@ class _PlayerContainerState extends State<PlayerContainer> {
 
     widget.player.onTeleport.listen(_hasStartedTeleporting);
     widget.player.onDestroyed.listen(_hasBeenDestroyed);
-    _gm.onClockTicked.listen(_clockTicked);
+    widget.onClockTicked.listen(_clockTicked);
   }
 
   @override
   void dispose() {
     widget.player.onTeleport.cancel(_hasStartedTeleporting);
     widget.player.onDestroyed.cancel(_hasBeenDestroyed);
-    _gm.onClockTicked.cancel(_clockTicked);
+    widget.onClockTicked.cancel(_clockTicked);
 
     super.dispose();
   }
@@ -69,7 +74,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
     final elapsedTime = DateTime.now().difference(_fadingStartTime!);
 
     _fadeAnimationProgress =
-        elapsedTime.inMilliseconds / _gm.teleportationDuration.inMilliseconds;
+        elapsedTime.inMilliseconds / teleportationDuration.inMilliseconds;
     if (_fadeAnimationProgress >= 1.0 && _isBeingDestroyed) {
       _fadingStartTime = null;
     } else if (_fadeAnimationProgress >= 2.0) {
@@ -87,9 +92,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
   /// Only allow dragging if not teleporting and not moving
   bool get _canBeDragged => !_cannotBeDragged;
   bool get _cannotBeDragged =>
-      _isFading ||
-      widget.player.velocity.length2 > _gm.velocityThresholdSquared ||
-      _gm.isGameOver;
+      _isFading || widget.player.canBeSlingShot || widget.isGameOver;
 
   void _onDragStart(DragStartDetails details) {
     if (_isDragging) return;
