@@ -1,8 +1,10 @@
+import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
+import 'package:frontend_common/screens/blueberry_war_play_screen.dart';
 import 'package:frontend_common/screens/dragging_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
@@ -225,7 +227,14 @@ class _MainScreenState extends State<_MainScreen> {
       case WordsTrainGameStatus.miniGameEnding:
         return const WaitingScreen();
       case WordsTrainGameStatus.miniGameStarted:
-        return const TreasureHuntPlayScreen();
+        {
+          switch (GameManager.instance.currentMiniGameType!) {
+            case MiniGames.treasureHunt:
+              return const TreasureHuntPlayScreen();
+            case MiniGames.blueberryWar:
+              return const BlueberryWarPlayScreen();
+          }
+        }
     }
   }
 }

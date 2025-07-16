@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
-import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
-import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
+import 'package:vector_math/vector_math.dart';
 
 final _logger = Logger('TwitchManager');
 
@@ -281,7 +282,8 @@ class TwitchManagerMock extends TwitchManager {
   @override
   Future<void> _callTwitchFrontendManagerFactory() async {
     // Uncomment the next line to simulate a connexion of the App with the EBS
-    _requestGameStatus();
+    Future.delayed(const Duration(milliseconds: 100))
+        .then((_) => _requestGameStatus());
 
     // // Uncomment the next line to simulate that the user can pardon in 1 second
     // Future.delayed(const Duration(seconds: 3))
@@ -449,7 +451,7 @@ class TwitchManagerMock extends TwitchManager {
         data: jsonDecode(jsonEncode({
           'type': ToFrontendMessages.gameState.name,
           'game_state': SerializableGameState(
-            status: WordsTrainGameStatus.roundEnding,
+            status: WordsTrainGameStatus.miniGameStarted,
             round: 11,
             isRoundSuccess: true,
             timeRemaining: const Duration(seconds: 83),
@@ -539,12 +541,34 @@ class TwitchManagerMock extends TwitchManager {
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: SerializableTreasureHuntGameState(
-                  grid: Grid.random(
-                      rowCount: 20, columnCount: 10, rewardsCount: 40),
-                  isTimerRunning: false,
+                miniGameState: SerializableBlueberryWarGameState(
+                  isStarted: true,
+                  isOver: false,
+                  isWon: false,
                   timeRemaining: const Duration(seconds: 30),
-                  triesRemaining: 10,
+                  fieldSize: Vector2(1920, 1080),
+                  problem: SerializableLetterProblem(
+                    letters: ['A', 'B'],
+                    scrambleIndices: [3, 1],
+                    uselessLetterStatuses: [
+                      LetterStatus.hidden,
+                      LetterStatus.hidden
+                    ],
+                    hiddenLetterStatuses: [
+                      LetterStatus.hidden,
+                      LetterStatus.revealed
+                    ],
+                  ),
+                  allAgents: [
+                    PlayerAgent(
+                        id: 0,
+                        position: Vector2(40, 50),
+                        velocity: Vector2(0, 0),
+                        radius: Vector2(30.0, 30.0),
+                        velocityThreshold: 20.0,
+                        mass: 3.0,
+                        coefficientOfFriction: 0.8)
+                  ],
                 ),
               ).serialize(),
             })));

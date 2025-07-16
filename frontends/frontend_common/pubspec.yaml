@@ -15,6 +15,7 @@ dependencies:
   common:
   twitch_manager:
     path: ../../common/plugins/twitch_manager
+  vector_math: ^2.1.4
 
 dependency_overrides:
   common:
@@ -33,3 +34,5 @@ flutter:
     - packages/common/assets/images/treasure_hunt/blueberries.png
     - packages/common/assets/images/treasure_hunt/grass.png
     - packages/common/assets/images/treasure_hunt/open_grass.png
+
+    - packages/common/assets/images/blueberry_war/blueberries.png

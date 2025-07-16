@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
+import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/helpers.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
@@ -17,16 +20,20 @@ class GameManager {
   static final _instance = GameManager._();
   static GameManager get instance => _instance;
   GameManager._() {
-    Timer.periodic(const Duration(seconds: 1), (timer) {
-      _gameState.timeRemaining -= const Duration(seconds: 1);
+    Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      final dt = DateTime.now().difference(_lastTick);
+      _lastTick = DateTime.now();
+      _gameState.timeRemaining -= dt;
+
       onGameTicked.notifyListeners((callback) => callback());
 
-      _tickMiniGame();
+      _tickMiniGame(dt: dt);
     });
   }
 
   ///
   /// Callback to know when a round has started or ended
+  var _lastTick = DateTime.now();
   int get currentRound => _gameState.round;
   bool get isRoundRunning =>
       _gameState.status == WordsTrainGameStatus.roundStarted;
@@ -235,13 +242,33 @@ class GameManager {
     onMiniGameStateUpdated.notifyListeners((callback) => callback());
   }
 
-  void _tickMiniGame() {
+  MiniGames? get currentMiniGameType => _gameState.miniGameState?.type;
+  void _tickMiniGame({required Duration dt}) {
     if (_gameState.miniGameState == null) return;
-    final thm = _gameState.miniGameState as SerializableTreasureHuntGameState;
 
-    if (thm.isTimerRunning) {
-      updateMiniGameState(thm.copyWith(
-          timeRemaining: thm.timeRemaining - const Duration(seconds: 1)));
+    late final SerializableMiniGameState newGameState;
+    switch (currentMiniGameType!) {
+      case MiniGames.treasureHunt:
+        {
+          final thm =
+              _gameState.miniGameState as SerializableTreasureHuntGameState;
+          newGameState = thm.copyWith(timeRemaining: thm.timeRemaining - dt);
+          break;
+        }
+      case MiniGames.blueberryWar:
+        {
+          final bwm =
+              _gameState.miniGameState as SerializableBlueberryWarGameState;
+          newGameState = bwm.copyWith(timeRemaining: bwm.timeRemaining - dt);
+
+          BlueberryWarGameManagerHelpers.updateAllAgents(
+              allAgents: bwm.allAgents,
+              dt: dt,
+              fieldSize: bwm.fieldSize,
+              problem: bwm.problem);
+          break;
+        }
     }
+    updateMiniGameState(newGameState);
   }
 }
