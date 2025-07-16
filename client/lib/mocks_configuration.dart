@@ -9,13 +9,13 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
 class MocksConfiguration {
-  // Useful for developpers
+  // Useful for developers
   static bool showDebugOptions = false;
   static bool useLocalEbs = false;
   static bool useDatabaseMock = false;
   static bool useTwitchManagerMock = false;
 
-  // Nice to have for developpers
+  // Nice to have for developers
   static bool useDatabaseEmulators = false;
   static bool useGameManagerMock = false;
   static bool useProblemMock = false;

@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:vector_math/vector_math.dart';
 
 class PlayerAgent extends Agent {
   @override
@@ -59,5 +62,19 @@ class PlayerAgent extends Agent {
     // A player can be slingshot if it is not destroyed and has a velocity
     return !isDestroyed &&
         velocity.length2 > (velocityThreshold * velocityThreshold);
+  }
+
+  static Vector2 generateRandomStartingPosition({
+    required Vector2 playerFieldSize,
+    required Vector2 playerRadius,
+  }) {
+    final random = Random();
+    return Vector2(
+      playerFieldSize.x / 2 +
+          (random.nextDouble() * playerFieldSize.x / 2) -
+          playerRadius.x,
+      playerFieldSize.y / 8 +
+          (random.nextDouble() * playerFieldSize.y * 6 / 8.0),
+    );
   }
 }

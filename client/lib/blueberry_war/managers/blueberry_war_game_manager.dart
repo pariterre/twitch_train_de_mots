@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
@@ -29,12 +30,6 @@ class BlueberryWarGameManager implements MiniGameManager {
   final Duration _tickDuration = const Duration(milliseconds: 16);
   DateTime _lastTick = DateTime.now();
   Vector2 fieldSize = Vector2(1920, 1080);
-  Vector2 get _playerFieldSizeRatio =>
-      Vector2(1 / 5, 1); // 1/5 of the field is reserved for players
-  Vector2 get _playerFieldSize => Vector2(
-        fieldSize.x * _playerFieldSizeRatio.x,
-        fieldSize.y * _playerFieldSizeRatio.y,
-      );
 
   ///
   /// Whether the game manager is initialized
@@ -75,13 +70,8 @@ class BlueberryWarGameManager implements MiniGameManager {
   List<LetterAgent> get letters =>
       allAgents.whereType<LetterAgent>().toList(growable: false);
   final initialPlayerCount = 10;
-  final _playerRadius = Vector2(30.0, 30.0);
   List<PlayerAgent> get players =>
       allAgents.whereType<PlayerAgent>().toList(growable: false);
-
-  ///
-  /// Velocity threshold for teleportation
-  final double velocityThreshold = 20.0;
 
   // Listeners
   @override
@@ -121,16 +111,6 @@ class BlueberryWarGameManager implements MiniGameManager {
     }
 
     _logger.config('Ready');
-  }
-
-  Vector2 _generateRandomStartingPlayerPosition() {
-    return Vector2(
-      _playerFieldSize.x / 2 +
-          (_random.nextDouble() * _playerFieldSize.x / 2) -
-          _playerRadius.x,
-      _playerFieldSize.y / 8 +
-          (_random.nextDouble() * _playerFieldSize.y * 6 / 8.0),
-    );
   }
 
   @override
@@ -175,10 +155,14 @@ class BlueberryWarGameManager implements MiniGameManager {
       allAgents.add(
         PlayerAgent(
           id: i,
-          position: _generateRandomStartingPlayerPosition(),
+          position: PlayerAgent.generateRandomStartingPosition(
+            playerFieldSize:
+                BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
+            playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
+          ),
           velocity: Vector2.zero(),
-          velocityThreshold: velocityThreshold,
-          radius: _playerRadius,
+          velocityThreshold: BlueberryWarGameManagerHelpers.velocityThreshold,
+          radius: BlueberryWarGameManagerHelpers.playerRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
         ),
@@ -263,8 +247,8 @@ class BlueberryWarGameManager implements MiniGameManager {
         isWon: _hasWon ?? false,
         timeRemaining: timeRemaining,
         fieldSize: fieldSize,
-        playerFieldRatio: _playerFieldSizeRatio,
         allAgents: allAgents,
+        problem: _problem!,
       );
 
   ///
@@ -278,7 +262,15 @@ class BlueberryWarGameManager implements MiniGameManager {
     // Check if the game is over
     _manageStartOfGame();
     _manageForGameOver();
-    _updateAgents();
+    BlueberryWarGameManagerHelpers.updateAllAgents(
+      dt: DateTime.now().difference(_lastTick),
+      fieldSize: fieldSize,
+      allAgents: allAgents,
+      problem: _problem!,
+      onBlueberryDestroyed: onBlueberryDestroyed,
+      onLetterHitByPlayer: onLetterHitByPlayer,
+      onLetterHitByLetter: onLetterHitByLetter,
+    );
     _tickClock();
   }
 
@@ -300,7 +292,8 @@ class BlueberryWarGameManager implements MiniGameManager {
       // Stop the timer if all the agents have stopped moving
       if (allAgents.every(
         (agent) =>
-            agent.velocity.length2 < (velocityThreshold * velocityThreshold) ||
+            agent.velocity.length2 <
+                BlueberryWarGameManagerHelpers.velocityThresholdSquared ||
             agent.isDestroyed,
       )) {
         _logger.info('Game over, stopping the timer');
@@ -342,81 +335,6 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(_hasWon!));
-  }
-
-  void _updateAgents() {
-    final dt = DateTime.now().difference(_lastTick);
-
-    for (int i = 0; i < allAgents.length; i++) {
-      // Move all agents
-      final agent = allAgents[i];
-
-      final isPlayer = agent is PlayerAgent;
-      agent.update(
-        dt: dt,
-        horizontalBounds: isPlayer
-            ? Vector2(0, fieldSize.x)
-            : Vector2(fieldSize.x / 5, fieldSize.x),
-        verticalBounds:
-            isPlayer ? Vector2(0, fieldSize.y) : Vector2(0, fieldSize.y),
-      );
-
-      // Check for collisions with other agents.
-      // Do not redo collisions with agents that have already been checked.
-      for (final other in allAgents.sublist(i + 1)) {
-        if (agent.isCollidingWith(other)) {
-          agent.performCollisionWith(other);
-          if (agent is LetterAgent && other is PlayerAgent) {
-            performHitOfPlayerOnLetter(other, agent);
-          } else if (agent is PlayerAgent && other is LetterAgent) {
-            performHitOfPlayerOnLetter(agent, other);
-          } else if (agent is LetterAgent && other is LetterAgent) {
-            onLetterHitByLetter.notifyListeners(
-              (callback) => callback(
-                agent.problemIndex,
-                other.problemIndex,
-                agent.isBoss,
-                other.isBoss,
-              ),
-            );
-          } else if (agent is PlayerAgent && other is PlayerAgent) {
-            // Two players colliding, do nothing
-          } else {
-            _logger.warning(
-              'Collision between ${agent.runtimeType} and ${other.runtimeType} not handled',
-            );
-          }
-        }
-      }
-
-      // Check for teleportation
-      if (isPlayer) {
-        // Teleport back to starting if the player is out of starting block and does not move anymore
-        if (agent.position.x > fieldSize.x / 5 &&
-            agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
-          agent.teleport(to: _generateRandomStartingPlayerPosition());
-        }
-      }
-    }
-  }
-
-  void performHitOfPlayerOnLetter(PlayerAgent player, LetterAgent letter) {
-    if (letter.isBoss) {
-      // Destroy the player
-      player.destroy();
-      onBlueberryDestroyed.notifyListeners((callback) => callback(player.id));
-    } else {
-      letter.hit();
-      if (letter.isDestroyed) {
-        _problem!.hiddenLetterStatuses[letter.problemIndex] =
-            LetterStatus.normal;
-        _problem!.uselessLetterStatuses[letter.problemIndex] =
-            LetterStatus.normal;
-      }
-      onLetterHitByPlayer.notifyListeners(
-        (callback) => callback(letter.problemIndex, letter.isDestroyed),
-      );
-    }
   }
 
   ///

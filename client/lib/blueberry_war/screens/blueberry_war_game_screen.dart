@@ -85,7 +85,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                                 players: gm.players,
                                 letters: gm.letters,
                                 isGameOver: gm.isGameOver,
-                                onClockTicked: gm.onClockTicked,
+                                clockTicker: gm.onClockTicked,
                               ),
                             );
                           },

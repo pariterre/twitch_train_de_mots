@@ -1,5 +1,8 @@
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/letter_agent.dart';
+import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -10,8 +13,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     required this.isWon,
     required this.timeRemaining,
     required this.fieldSize,
-    required this.playerFieldRatio,
     required this.allAgents,
+    required this.problem,
   });
 
   @override
@@ -22,8 +25,10 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   final bool isWon;
   final Duration timeRemaining;
   final Vector2 fieldSize;
-  final Vector2 playerFieldRatio;
   final List<Agent> allAgents;
+  List<PlayerAgent> get players => allAgents.whereType<PlayerAgent>().toList();
+  List<LetterAgent> get letters => allAgents.whereType<LetterAgent>().toList();
+  final SerializableLetterProblem problem;
 
   @override
   Map<String, dynamic> serialize() {
@@ -33,9 +38,9 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       'is_over': isOver,
       'is_won': isWon,
       'time_remaining': timeRemaining.inSeconds,
-      'field_size': fieldSize,
-      'player_field_ratio': playerFieldRatio,
+      'field_size': fieldSize.serialize(),
       'agents': allAgents.map((agent) => agent.serialize()).toList(),
+      'problem': problem.serialize(),
     };
   }
 
@@ -47,11 +52,10 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       isWon: data['is_won'] as bool,
       timeRemaining: Duration(seconds: data['time_remaining'] as int),
       fieldSize: Vector2Extension.deserialize(data['field_size']),
-      playerFieldRatio:
-          Vector2Extension.deserialize(data['player_field_ratio']),
       allAgents: (data['agents'] as List)
           .map((agentData) => Agent.deserialize(agentData))
           .toList(),
+      problem: SerializableLetterProblem.deserialize(data['problem']),
     );
   }
 
@@ -64,6 +68,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     Vector2? fieldSize,
     Vector2? playerFieldRatio,
     List<Agent>? allAgents,
+    SerializableLetterProblem? problem,
   }) {
     return SerializableBlueberryWarGameState(
       isStarted: isStarted ?? this.isStarted,
@@ -71,8 +76,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       isWon: isWon ?? this.isWon,
       timeRemaining: timeRemaining ?? this.timeRemaining,
       fieldSize: fieldSize ?? this.fieldSize,
-      playerFieldRatio: playerFieldRatio ?? this.playerFieldRatio,
       allAgents: allAgents ?? this.allAgents,
+      problem: problem ?? this.problem,
     );
   }
 

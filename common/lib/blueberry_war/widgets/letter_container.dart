@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 
 class LetterContainer extends StatefulWidget {
   const LetterContainer(
-      {super.key, required this.letter, required this.onClockTicked});
+      {super.key, required this.letter, required this.clockTicker});
 
   final LetterAgent letter;
-  final GenericListener onClockTicked;
+  final GenericListener clockTicker;
 
   @override
   State<LetterContainer> createState() => _LetterContainerState();
@@ -20,12 +20,12 @@ class _LetterContainerState extends State<LetterContainer> {
   void initState() {
     super.initState();
 
-    widget.onClockTicked.listen(_clockTicked);
+    widget.clockTicker.listen(_clockTicked);
   }
 
   @override
   void dispose() {
-    widget.onClockTicked.cancel(_clockTicked);
+    widget.clockTicker.cancel(_clockTicked);
 
     super.dispose();
   }

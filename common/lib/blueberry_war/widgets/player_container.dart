@@ -4,15 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
 class PlayerContainer extends StatefulWidget {
-  const PlayerContainer(
-      {super.key,
-      required this.player,
-      required this.isGameOver,
-      required this.onClockTicked});
+  const PlayerContainer({
+    super.key,
+    required this.player,
+    required this.isGameOver,
+    required this.clockTicker,
+  });
 
   final PlayerAgent player;
   final bool isGameOver;
-  final GenericListener onClockTicked;
+  final GenericListener clockTicker;
 
   @override
   State<PlayerContainer> createState() => _PlayerContainerState();
@@ -37,14 +38,14 @@ class _PlayerContainerState extends State<PlayerContainer> {
 
     widget.player.onTeleport.listen(_hasStartedTeleporting);
     widget.player.onDestroyed.listen(_hasBeenDestroyed);
-    widget.onClockTicked.listen(_clockTicked);
+    widget.clockTicker.listen(_clockTicked);
   }
 
   @override
   void dispose() {
     widget.player.onTeleport.cancel(_hasStartedTeleporting);
     widget.player.onDestroyed.cancel(_hasBeenDestroyed);
-    widget.onClockTicked.cancel(_clockTicked);
+    widget.clockTicker.cancel(_clockTicked);
 
     super.dispose();
   }
@@ -70,7 +71,6 @@ class _PlayerContainerState extends State<PlayerContainer> {
   }
 
   void _performFading() {
-    if (!_isFading) return;
     final elapsedTime = DateTime.now().difference(_fadingStartTime!);
 
     _fadeAnimationProgress =
@@ -84,7 +84,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
   }
 
   void _clockTicked() {
-    _performFading();
+    if (_isFading) _performFading();
     setState(() {});
   }
 
