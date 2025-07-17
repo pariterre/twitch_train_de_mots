@@ -4,6 +4,8 @@ import 'package:common/blueberry_war/models/agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class PlayerAgent extends Agent {
+  final double maxVelocity;
+
   @override
   AgentShape get shape => AgentShape.circle;
 
@@ -22,6 +24,7 @@ class PlayerAgent extends Agent {
     required super.position,
     required super.velocity,
     required super.radius,
+    required this.maxVelocity,
     required this.velocityThreshold,
     required super.mass,
     required super.coefficientOfFriction,
@@ -37,6 +40,7 @@ class PlayerAgent extends Agent {
         'agent_type': agentType.index,
         'position': position.serialize(),
         'velocity': velocity.serialize(),
+        'max_velocity': maxVelocity,
         'velocity_threshold': velocityThreshold,
         'radius': radius.serialize(),
         'mass': mass,
@@ -50,6 +54,7 @@ class PlayerAgent extends Agent {
       id: map['id'] as int,
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
+      maxVelocity: (map['max_velocity'] as num).toDouble(),
       velocityThreshold: (map['velocity_threshold'] as num).toDouble(),
       radius: Vector2Extension.deserialize(map['radius']),
       mass: (map['mass'] as num).toDouble(),

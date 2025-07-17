@@ -9,11 +9,14 @@ class PlayerContainer extends StatefulWidget {
     required this.player,
     required this.isGameOver,
     required this.clockTicker,
+    required this.onPlayerSlingShoot,
   });
 
   final PlayerAgent player;
   final bool isGameOver;
   final GenericListener clockTicker;
+  final Function(PlayerAgent player, vector_math.Vector2 newVelocity)
+      onPlayerSlingShoot;
 
   @override
   State<PlayerContainer> createState() => _PlayerContainerState();
@@ -119,17 +122,8 @@ class _PlayerContainerState extends State<PlayerContainer> {
 
     _dragCurrentPosition = details.localPosition;
     final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 10;
-
-    // Ensure the velocity is within a reasonable range
-    final maxVelocity = 2000.0;
-    double scale = 1.0;
-    if (newVelocity.distance > maxVelocity) {
-      scale = maxVelocity / newVelocity.distance;
-    }
-    widget.player.velocity = vector_math.Vector2(
-      newVelocity.dx * scale,
-      newVelocity.dy * scale,
-    );
+    widget.onPlayerSlingShoot(
+        widget.player, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
 
     setState(() {
       _isDragging = false;

@@ -73,8 +73,9 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final gm = Managers.instance.miniGames.blueberryWar;
-                            gm.fieldSize = vector_math.Vector2(
+                            final bwm =
+                                Managers.instance.miniGames.blueberryWar;
+                            bwm.fieldSize = vector_math.Vector2(
                               constraints.maxWidth,
                               constraints.maxHeight,
                             );
@@ -82,10 +83,14 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                             return SizedBox(
                               width: MediaQuery.of(context).size.width,
                               child: BlueberryWarPlayingField(
-                                players: gm.players,
-                                letters: gm.letters,
-                                isGameOver: gm.isGameOver,
-                                clockTicker: gm.onClockTicked,
+                                players: bwm.players,
+                                letters: bwm.letters,
+                                isGameOver: bwm.isGameOver,
+                                clockTicker: bwm.onClockTicked,
+                                onPlayerSlingShoot: (player, newVelocity) {
+                                  bwm.slingShoot(
+                                      player: player, newVelocity: newVelocity);
+                                },
                               ),
                             );
                           },

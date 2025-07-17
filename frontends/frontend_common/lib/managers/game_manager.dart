@@ -66,6 +66,12 @@ class GameManager {
     miniGameState: null,
   );
 
+  ///
+  /// A copy of the current game state. This is slow and should not be used apart
+  /// from debugging purposes.
+  SerializableGameState get gameStateCopy =>
+      SerializableGameState.deserialize(_gameState.serialize());
+
   void updateGameState(SerializableGameState newGameState) {
     if (_gameState.status != newGameState.status) {
       _gameState.status = newGameState.status;

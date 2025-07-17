@@ -13,6 +13,7 @@ dependencies:
   common: 
     path: ../common
   twitch_manager:
+  vector_math: ^2.1.4
 
 dependency_overrides:
   twitch_manager:

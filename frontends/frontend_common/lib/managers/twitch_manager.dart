@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
@@ -98,28 +101,53 @@ class TwitchManager {
     return response.isSuccess ?? false;
   }
 
+  ///
+  /// Request to change lanes during main game.
   Future<bool> changeLane() async {
     TwitchManager.instance.frontendManager.bits.useBits('change_lane');
     // We cannot know if the transaction was successful, so we return true
     return true;
   }
 
+  ///
+  /// Request to attempt the big heist during the break.
   Future<bool> attemptTheBigHeist() async {
     TwitchManager.instance.frontendManager.bits.useBits('big_heist');
     // We cannot know if the transaction was successful, so we return true
     return true;
   }
 
+  ///
+  /// Send a celebration request during the break
   Future<bool> celebrate() async {
     TwitchManager.instance.frontendManager.bits.useBits('celebrate');
     // We cannot know if the transaction was successful, so we return true
     return true;
   }
 
+  ///
+  /// Request to reveal a tile in the Treasure Hunt minigame.
   Future<bool> revealTileAt({required int index}) async {
     final response = await _sendMessageToApp(ToAppMessages.revealTileAt,
             data: {'index': index})
         .timeout(const Duration(seconds: 5),
+            onTimeout: () => MessageProtocol(
+                to: MessageTo.frontend,
+                from: MessageFrom.ebs,
+                type: MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
+  ///
+  /// Request to reveal a tile in the Treasure Hunt minigame.
+  Future<bool> slingShootPlayerAgent(
+      {required PlayerAgent player, required Vector2 requestedVelocity}) async {
+    final response =
+        await _sendMessageToApp(ToAppMessages.slingShootPlayerAgent, data: {
+      'id': player.id,
+      'velocity': [requestedVelocity.x, requestedVelocity.y]
+    }).timeout(const Duration(seconds: 5),
             onTimeout: () => MessageProtocol(
                 to: MessageTo.frontend,
                 from: MessageFrom.ebs,
@@ -418,6 +446,21 @@ class TwitchManagerMock extends TwitchManager {
     //       ),
     //     )));
 
+    // Uncomment the next line to simulate the sling shoot of a player agent in 3 seconds
+    Future.delayed(const Duration(seconds: 3)).then((_) {
+      final oldGameState = GameManager.instance.gameStateCopy;
+      final oldMiniGameState =
+          oldGameState.miniGameState as SerializableBlueberryWarGameState?;
+      final oldAllAgents = [...(oldMiniGameState?.allAgents ?? <Agent>[])];
+      oldAllAgents[0].velocity = Vector2(400, 100);
+
+      final newGameState = oldGameState.copyWith(
+          miniGameState: oldMiniGameState?.copyWith(allAgents: oldAllAgents));
+      GameManager.instance.updateGameState(newGameState);
+    });
+
+    // TODO Find a way to receive the new teleport position
+
     // Uncomment the next line to simulate that the App refused the pardon
     _acceptPardon = false;
 
@@ -493,6 +536,8 @@ class TwitchManagerMock extends TwitchManager {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
   }) async {
+    final random = Random();
+
     switch (request) {
       case ToAppMessages.pardonRequest:
         return MessageProtocol(
@@ -548,27 +593,57 @@ class TwitchManagerMock extends TwitchManager {
                   timeRemaining: const Duration(seconds: 30),
                   fieldSize: Vector2(1920, 1080),
                   problem: SerializableLetterProblem(
-                    letters: ['A', 'B'],
-                    scrambleIndices: [3, 1],
+                    letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                    scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
                     uselessLetterStatuses: [
                       LetterStatus.hidden,
-                      LetterStatus.hidden
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
                     ],
                     hiddenLetterStatuses: [
                       LetterStatus.hidden,
-                      LetterStatus.revealed
+                      LetterStatus.revealed,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
+                      LetterStatus.hidden,
                     ],
                   ),
-                  allAgents: [
-                    PlayerAgent(
-                        id: 0,
-                        position: Vector2(40, 50),
-                        velocity: Vector2(0, 0),
-                        radius: Vector2(30.0, 30.0),
-                        velocityThreshold: 20.0,
-                        mass: 3.0,
-                        coefficientOfFriction: 0.8)
-                  ],
+                  allAgents: List.generate(
+                      20,
+                      (index) => index < 10
+                          ? PlayerAgent(
+                              id: 0,
+                              position: Vector2(random.nextDouble() * 300,
+                                  random.nextDouble() * 1080),
+                              velocity: Vector2(0, 0),
+                              radius: Vector2(30.0, 30.0),
+                              maxVelocity: 2000.0,
+                              velocityThreshold: 20.0,
+                              mass: 3.0,
+                              coefficientOfFriction: 0.8)
+                          : LetterAgent(
+                              letter: 'A',
+                              problemIndex: index - 10,
+                              isBoss: index == 10,
+                              id: 0,
+                              position: Vector2(random.nextDouble() * 300,
+                                  random.nextDouble() * 1080),
+                              velocity: Vector2(0, 0),
+                              radius: Vector2(30.0, 30.0),
+                              mass: 3.0,
+                              coefficientOfFriction: 0.8)),
                 ),
               ).serialize(),
             })));
@@ -586,6 +661,13 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true);
 
       case ToAppMessages.revealTileAt:
+        return MessageProtocol(
+            to: MessageTo.frontend,
+            from: MessageFrom.app,
+            type: MessageTypes.response,
+            isSuccess: true);
+
+      case ToAppMessages.slingShootPlayerAgent:
         return MessageProtocol(
             to: MessageTo.frontend,
             from: MessageFrom.app,

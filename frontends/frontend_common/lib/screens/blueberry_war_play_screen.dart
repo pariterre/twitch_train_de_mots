@@ -4,6 +4,7 @@ import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
+import 'package:frontend_common/managers/twitch_manager.dart';
 
 class BlueberryWarPlayScreen extends StatefulWidget {
   const BlueberryWarPlayScreen({super.key});
@@ -14,9 +15,29 @@ class BlueberryWarPlayScreen extends StatefulWidget {
 
 class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.listen(_onMiniGameStateUpdated);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.cancel(_onMiniGameStateUpdated);
+    super.dispose();
+  }
+
+  void _onMiniGameStateUpdated() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final thm = gm.miniGameState as SerializableBlueberryWarGameState;
+    final twitchManager = TwitchManager.instance;
 
     return Column(
       children: [
@@ -36,6 +57,10 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                   letters: thm.letters,
                   isGameOver: thm.isOver,
                   clockTicker: gm.onGameTicked,
+                  onPlayerSlingShoot: (player, newVelocity) {
+                    twitchManager.slingShootPlayerAgent(
+                        player: player, requestedVelocity: newVelocity);
+                  },
                 ),
               ),
             ),

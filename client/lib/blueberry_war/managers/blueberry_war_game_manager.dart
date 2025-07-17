@@ -161,6 +161,7 @@ class BlueberryWarGameManager implements MiniGameManager {
             playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
           ),
           velocity: Vector2.zero(),
+          maxVelocity: 2000.0,
           velocityThreshold: BlueberryWarGameManagerHelpers.velocityThreshold,
           radius: BlueberryWarGameManagerHelpers.playerRadius,
           mass: 3.0,
@@ -196,6 +197,24 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   Future<void> end() async {
     _forceEndOfGame = true;
+  }
+
+  void slingShoot({required PlayerAgent player, required Vector2 newVelocity}) {
+    if (player.canBeSlingShot) {
+      _logger.info(
+          'Sling shooting player ${player.id} with velocity $newVelocity');
+
+      // Ensure the velocity is within a reasonable range
+      double scale = 1.0;
+      if (newVelocity.length2 > (player.maxVelocity * player.maxVelocity)) {
+        scale = player.maxVelocity / newVelocity.length;
+      }
+
+      player.velocity = newVelocity * scale;
+    } else {
+      _logger
+          .warning('Player ${player.id} cannot be slingshot, ignoring request');
+    }
   }
 
   void trySolution(String sender, String message) {

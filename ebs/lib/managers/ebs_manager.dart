@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
+import 'package:vector_math/vector_math.dart';
 
 final _logger = Logger('GameManager');
 
@@ -166,7 +168,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     return isSuccess;
   }
 
-  Future<bool> _frontendRequestedRevealTileAt(int index, int userId) async {
+  Future<bool> _frontendRequestedRevealTileAt(int userId, int index) async {
     _logger.info('Resquesting to reveal tile at $index');
 
     final playerName = userIdToLogin[userId];
@@ -183,6 +185,29 @@ class EbsManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.revealTileAt.name,
           'player_name': playerName,
           'index': index
+        }));
+    return response.isSuccess ?? false;
+  }
+
+  Future<bool> _frontendRequestedSlingShoot(int userId,
+      {required int id, required Vector2 velocity}) async {
+    _logger.info('Resquesting to slingshoot at $id');
+
+    final playerName = userIdToLogin[userId];
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': ToAppMessages.revealTileAt.name,
+          'player_name': playerName,
+          'id': id,
+          'velocity': velocity.serialize()
         }));
     return response.isSuccess ?? false;
   }
@@ -307,7 +332,20 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
         case ToAppMessages.revealTileAt:
           final isSuccess = await _frontendRequestedRevealTileAt(
-              message.data!['index'] as int, userId);
+              userId, message.data!['index'] as int);
+          communicator.sendReponse(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.ebs,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
+          break;
+
+        case ToAppMessages.slingShootPlayerAgent:
+          final isSuccess = await _frontendRequestedSlingShoot(
+            userId,
+            id: message.data!['id'] as int,
+            velocity: Vector2Extension.deserialize(message.data!['velocity']),
+          );
           communicator.sendReponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
