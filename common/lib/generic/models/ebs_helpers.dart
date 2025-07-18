@@ -1,3 +1,8 @@
+///
+/// This is a mocker for the shared secret used in the Twitch EBS. This is intended
+/// to be used while debugging in local. It should not be used in production.
+const mockedSharedSecret = 'qwertyuiopasdfghjklzxcvbnm1234567890';
+
 enum ToBackendMessages {
   newLetterProblemRequest,
 }

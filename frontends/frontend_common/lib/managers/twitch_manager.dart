@@ -9,9 +9,12 @@ import 'package:common/blueberry_war/models/serializable_blueberry_war_game_stat
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:twitch_manager/abstract/twitch_authenticator.dart';
 import 'package:twitch_manager/ebs/network/communication_protocols.dart';
+import 'package:twitch_manager/frontend/twitch_frontend_info.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
 import 'package:vector_math/vector_math.dart';
 
@@ -33,14 +36,22 @@ class TwitchManager {
   }
 
   final bool useLocalEbs;
+  final bool useMockerAuthenticator;
 
   ///
   /// Initialize the TwitchManager
-  static Future<void> initialize(
-          {bool useMocker = false, bool useLocalEbs = false}) async =>
+  static Future<void> initialize({
+    bool useMocker = false,
+    bool useMockerAuthenticator = false,
+    bool useLocalEbs = false,
+  }) async =>
       useMocker
-          ? _instance = TwitchManagerMock(useLocalEbs: useLocalEbs)
-          : _instance = TwitchManager._(useLocalEbs: useLocalEbs);
+          ? _instance = TwitchManagerMock(
+              useLocalEbs: useLocalEbs,
+              useMockerAuthenticator: useMockerAuthenticator)
+          : _instance = TwitchManager._(
+              useLocalEbs: useLocalEbs,
+              useMockerAuthenticator: useMockerAuthenticator);
 
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
@@ -196,19 +207,23 @@ class TwitchManager {
     return _instance!;
   }
 
-  TwitchManager._({required this.useLocalEbs}) {
+  TwitchManager._(
+      {required this.useLocalEbs, required this.useMockerAuthenticator}) {
     _callTwitchFrontendManagerFactory();
   }
 
   Future<void> _callTwitchFrontendManagerFactory() async {
     _frontendManager = await tm.TwitchFrontendManager.factory(
-        appInfo: tm.TwitchFrontendInfo(
-          appName: 'Train de mots',
-          ebsUri: Uri.parse(useLocalEbs
-              ? 'ws://localhost:3010'
-              : 'wss://twitchserver.pariterre.net:3010'),
-        ),
-        isTwitchUserIdRequired: true);
+      appInfo: tm.TwitchFrontendInfo(
+        appName: 'Train de mots',
+        ebsUri: Uri.parse(useLocalEbs
+            ? 'ws://localhost:3010'
+            : 'wss://twitchserver.pariterre.net:3010'),
+      ),
+      isTwitchUserIdRequired: true,
+      mockedAuthenticator:
+          useMockerAuthenticator ? MockedTwitchJwtAuthenticator() : null,
+    );
 
     await _onFinishedInitializing();
 
@@ -296,7 +311,9 @@ class TwitchManager {
 }
 
 class TwitchManagerMock extends TwitchManager {
-  TwitchManagerMock({required super.useLocalEbs}) : super._() {
+  TwitchManagerMock(
+      {required super.useLocalEbs, required super.useMockerAuthenticator})
+      : super._() {
     _logger.info('WARNING: Using TwitchManagerMock');
     _onFinishedInitializing();
   }
@@ -674,5 +691,63 @@ class TwitchManagerMock extends TwitchManager {
             type: MessageTypes.response,
             isSuccess: true);
     }
+  }
+}
+
+///
+/// The JWT key is for the Frontend of a Twitch extension.
+class MockedTwitchJwtAuthenticator extends TwitchJwtAuthenticator {
+  MockedTwitchJwtAuthenticator();
+
+  ///
+  /// ebsToken is the token that is used to authenticate the EBS to the Twitch API
+  @override
+  String? get ebsToken {
+    return JWT({
+      'channel_id': channelId.toString(),
+      'opaque_user_id': opaqueUserId,
+      'user_id': userId
+    }).sign(SecretKey(mockedSharedSecret, isBase64Encoded: true));
+  }
+
+  ///
+  /// The id of the channel that the frontend is connected to
+  @override
+  int get channelId => 1234567890;
+
+  ///
+  /// The obfuscted user id of the frontend
+  @override
+  String get opaqueUserId => 'MyMockedOpaqueUserId';
+
+  ///
+  /// The non-obfuscated user id of the frontend. This required [isTwitchUserIdRequired]
+  /// to be true when calling the [connect] method
+  final _userId = (Random().nextInt(8000000) + 1000000000).toString();
+  @override
+  String? get userId => _userId;
+
+  @override
+  void requestIdShare() {
+    // Do nothing
+  }
+
+  bool _isConnected = false;
+  @override
+  bool get isConnected => _isConnected;
+  @override
+  Future<void> connect({
+    required TwitchFrontendInfo appInfo,
+    bool isTwitchUserIdRequired = false,
+  }) async {
+    // Do nothing, as this is a mock
+    _isConnected = true;
+    onHasConnected.notifyListeners((callback) => callback());
+  }
+
+  @override
+  Future<void> listenToPubSub(
+      String target, Function(MessageProtocol message) callback) async {
+    // Do nothing, as this is a mock
   }
 }

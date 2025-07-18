@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/ebs_manager.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('TrainDeMotsEbs');
+
+const _useTwitchMocker = true;
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit
@@ -29,7 +32,19 @@ void main(List<String> arguments) async {
   startEbsServer(
       parameters: networkParameters,
       ebsInfo: getTwitchEbsInfo(),
-      twitchEbsManagerFactory: EbsManager.spawn);
+      twitchEbsManagerFactory: ({
+        required broadcasterId,
+        required ebsInfo,
+        required sendPort,
+      }) =>
+          EbsManager.spawn(
+              broadcasterId: broadcasterId,
+              ebsInfo: ebsInfo,
+              sendPort: sendPort,
+              useMockedTwitchApi: _useTwitchMocker));
+
+  _logger.info(
+      'EBS server started on ${networkParameters.host}:${networkParameters.port}');
 }
 
 NetworkParameters _processNetworkArguments(List<String> arguments,
@@ -108,7 +123,9 @@ void _setupLoggerFromArguments(List<String> arguments) {
 }
 
 TwitchEbsInfo getTwitchEbsInfo() {
-  final sharedSecret = Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
+  final sharedSecret = _useTwitchMocker
+      ? mockedSharedSecret
+      : Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
   if (sharedSecret == null) {
     throw ArgumentError(
         'No Twitch shared secret key provided, please provide one by setting '
