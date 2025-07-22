@@ -30,7 +30,7 @@ class GameScreen extends StatelessWidget {
             WordsTrainGameStatus.miniGameReady ||
             WordsTrainGameStatus.miniGameStarted ||
             WordsTrainGameStatus.miniGameEnding =>
-              switch (Managers.instance.miniGames.current!) {
+              switch (Managers.instance.miniGames.currentOrPrevious) {
                 MiniGames.blueberryWar => const BlueberryWarGameScreen(),
                 MiniGames.treasureHunt => const TreasureHuntGameScreen(),
               }

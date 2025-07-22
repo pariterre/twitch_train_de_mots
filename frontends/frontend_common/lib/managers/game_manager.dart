@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
+import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -11,6 +12,7 @@ import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:vector_math/vector_math.dart';
 
 final _logger = Logger('GameManager');
 
@@ -267,11 +269,22 @@ class GameManager {
               _gameState.miniGameState as SerializableBlueberryWarGameState;
           newGameState = bwm.copyWith(timeRemaining: bwm.timeRemaining - dt);
 
+          // TODO: Fix that fieldSizes seems to be not the same between the client and frontends
           BlueberryWarGameManagerHelpers.updateAllAgents(
               allAgents: bwm.allAgents,
               dt: dt,
               fieldSize: bwm.fieldSize,
               problem: bwm.problem);
+          // Check for teleportations
+          for (final agent in bwm.allAgents) {
+            if (agent is! PlayerAgent) continue;
+            // TODO: Fix the teleportation detection on frontend
+            // If we detect a velocity of zero and the position is
+            if (agent.velocity == Vector2.zero()) {
+              agent.onTeleport.notifyListeners(
+                  (callback) => callback(agent.position, agent.position));
+            }
+          }
           break;
         }
     }

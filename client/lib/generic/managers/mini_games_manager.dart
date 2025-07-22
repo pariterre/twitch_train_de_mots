@@ -87,22 +87,20 @@ class MiniGamesManager {
 
   ///
   /// Run a mini game, returns
-  Future<MiniGameManager> initialize(MiniGames game) async {
-    if (_miniGames[game] == null) {
-      throw Exception('Mini game $game is not implemented.');
+  Future<void> initialize(MiniGames game) async {
+    if (_isActive) {
+      throw Exception('Mini game already running: $_currentOrPreviousGame');
     }
-    _currentGame = game;
-    final miniGame = _miniGames[game]!;
-    await miniGame.initialize();
+    _isActive = true;
+    _currentOrPreviousGame = game;
+    await manager!.initialize();
 
     // Register to the mini game events to relay them anything that needs to
     // listen to them too
-    miniGame.onGameUpdated.listen(_notifyThatMiniGameHasUpdated);
+    manager!.onGameUpdated.listen(_notifyThatMiniGameHasUpdated);
 
     // Notify that the mini game is ready to start
     onMinigameStarted.notifyListeners((callback) => callback());
-
-    return miniGame;
   }
 
   void _notifyThatMiniGameHasUpdated() {
@@ -110,21 +108,23 @@ class MiniGamesManager {
   }
 
   Future<void> finalize() async {
-    if (_currentGame == null) {
+    if (!_isActive) {
       throw Exception('No mini game is running.');
     }
-    final miniGame = _miniGames[_currentGame]!;
 
     // Cancel the listeners to avoid memory leaks
-    miniGame.onGameUpdated.cancel(_notifyThatMiniGameHasUpdated);
+    manager!.onGameUpdated.cancel(_notifyThatMiniGameHasUpdated);
 
     // Terminate the mini game
-    await miniGame.end();
-    _currentGame = null;
+    await manager!.end();
+    _isActive = false;
     onMinigameEnded.notifyListeners((callback) => callback());
   }
 
-  MiniGames? _currentGame;
-  MiniGames? get current => _currentGame;
-  MiniGameManager? get manager => _miniGames[_currentGame];
+  bool _isActive = false;
+  MiniGames _currentOrPreviousGame = MiniGames.values[0];
+  MiniGames? get current => _isActive ? _currentOrPreviousGame : null;
+  MiniGames get currentOrPrevious => _currentOrPreviousGame;
+  MiniGameManager? get manager =>
+      _isActive ? _miniGames[_currentOrPreviousGame] : null;
 }

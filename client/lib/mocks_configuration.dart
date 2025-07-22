@@ -102,7 +102,7 @@ class MocksConfiguration {
         shouldAttemptTheBigHeist: false,
         shouldChangeLane: true,
         isNextRoundAMiniGame: true,
-        nextMiniGame: MiniGames.treasureHunt,
+        nextMiniGame: MiniGames.blueberryWar,
       );
 
   static DatabaseManagerMock getDatabaseMocked() => DatabaseManagerMock(

@@ -1,7 +1,6 @@
 import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/player_agent.dart';
-import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:vector_math/vector_math.dart';
@@ -30,8 +29,7 @@ class BlueberryWarGameManagerHelpers {
   /// Velocity threshold for teleportation which is used to determine if a player
   /// is moving or not.
   static double get velocityThreshold => 20.0;
-  static double get velocityThresholdSquared =>
-      velocityThreshold * velocityThreshold;
+  static double get velocityThreshold2 => velocityThreshold * velocityThreshold;
 
   ///
   /// Update all the agents in the list. This method should be called by the
@@ -41,13 +39,9 @@ class BlueberryWarGameManagerHelpers {
     required List<Agent> allAgents,
     required Vector2 fieldSize,
     required SerializableLetterProblem problem,
-    GenericListener<Function(int id)>? onBlueberryDestroyed,
-    GenericListener<Function(int problemIndex, bool isDestroyed)>?
-        onLetterHitByPlayer,
-    GenericListener<
-            Function(int firstIndex, int secondIndex, bool firstIsBoss,
-                bool secondIsBoss)>?
-        onLetterHitByLetter,
+    Function(PlayerAgent)? onBlueberryDestroyed,
+    Function(LetterAgent)? onLetterHitByPlayer,
+    Function(LetterAgent first, LetterAgent second)? onLetterHitByLetter,
   }) {
     for (int i = 0; i < allAgents.length; i++) {
       // Move all agents
@@ -83,14 +77,7 @@ class BlueberryWarGameManagerHelpers {
                 onBlueberryDestroyed: onBlueberryDestroyed,
                 onLetterHitByPlayer: onLetterHitByPlayer);
           } else if (agent is LetterAgent && other is LetterAgent) {
-            onLetterHitByLetter?.notifyListeners(
-              (callback) => callback(
-                agent.problemIndex,
-                other.problemIndex,
-                agent.isBoss,
-                other.isBoss,
-              ),
-            );
+            if (onLetterHitByLetter != null) onLetterHitByLetter(agent, other);
           } else if (agent is PlayerAgent && other is PlayerAgent) {
             // Two players colliding, do nothing
           } else {
@@ -100,19 +87,30 @@ class BlueberryWarGameManagerHelpers {
           }
         }
       }
+    }
+  }
 
-      // Check for teleportation
-      if (isPlayer) {
-        // Teleport back to starting if the player is out of starting block and does not move anymore
-        if (agent.position.x > fieldSize.x / 5 &&
-            agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
-          agent.teleport(
-              to: PlayerAgent.generateRandomStartingPosition(
-            playerFieldSize:
-                BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
-            playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
-          ));
-        }
+  ///
+  /// Check for teleportations
+  static void checkForPlayersTeleportation({
+    required Vector2 fieldSize,
+    required List<Agent> allAgents,
+    Function(PlayerAgent)? onPlayerTeleported,
+  }) {
+    for (final agent in allAgents) {
+      final isPlayer = agent is PlayerAgent;
+      if (!isPlayer) continue;
+
+      // Teleport back to starting if the player is out of starting block and does not move anymore
+      if (agent.position.x > fieldSize.x / 5 &&
+          agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
+        agent.teleport(
+            to: PlayerAgent.generateRandomStartingPosition(
+          playerFieldSize:
+              BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
+          playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
+        ));
+        if (onPlayerTeleported != null) onPlayerTeleported(agent);
       }
     }
   }
@@ -121,14 +119,13 @@ class BlueberryWarGameManagerHelpers {
     required PlayerAgent player,
     required LetterAgent letter,
     required SerializableLetterProblem problem,
-    required GenericListener<Function(int id)>? onBlueberryDestroyed,
-    required GenericListener<Function(int problemIndex, bool isDestroyed)>?
-        onLetterHitByPlayer,
+    required Function(PlayerAgent)? onBlueberryDestroyed,
+    required Function(LetterAgent)? onLetterHitByPlayer,
   }) {
     if (letter.isBoss) {
       // Destroy the player
       player.destroy();
-      onBlueberryDestroyed?.notifyListeners((callback) => callback(player.id));
+      if (onBlueberryDestroyed != null) onBlueberryDestroyed(player);
     } else {
       letter.hit();
       if (letter.isDestroyed) {
@@ -136,9 +133,7 @@ class BlueberryWarGameManagerHelpers {
         problem.uselessLetterStatuses[letter.problemIndex] =
             LetterStatus.normal;
       }
-      onLetterHitByPlayer?.notifyListeners(
-        (callback) => callback(letter.problemIndex, letter.isDestroyed),
-      );
+      if (onLetterHitByPlayer != null) onLetterHitByPlayer(letter);
     }
   }
 }

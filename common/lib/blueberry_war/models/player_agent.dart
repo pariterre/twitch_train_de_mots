@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:vector_math/vector_math.dart';
 
 class PlayerAgent extends Agent {
@@ -15,15 +16,12 @@ class PlayerAgent extends Agent {
     onDestroyed.notifyListeners((callback) => callback());
   }
 
-  final double velocityThreshold;
-
   PlayerAgent({
     required super.id,
     required super.position,
     required super.velocity,
     required super.radius,
     required super.maxVelocity,
-    required this.velocityThreshold,
     required super.mass,
     required super.coefficientOfFriction,
     bool isDestroyed = false,
@@ -39,7 +37,6 @@ class PlayerAgent extends Agent {
         'position': position.serialize(),
         'velocity': velocity.serialize(),
         'max_velocity': maxVelocity,
-        'velocity_threshold': velocityThreshold,
         'radius': radius.serialize(),
         'mass': mass,
         'coefficient_of_friction': coefficientOfFriction,
@@ -53,7 +50,6 @@ class PlayerAgent extends Agent {
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
       maxVelocity: (map['max_velocity'] as num).toDouble(),
-      velocityThreshold: (map['velocity_threshold'] as num).toDouble(),
       radius: Vector2Extension.deserialize(map['radius']),
       mass: (map['mass'] as num).toDouble(),
       coefficientOfFriction: (map['coefficient_of_friction'] as num).toDouble(),
@@ -64,7 +60,7 @@ class PlayerAgent extends Agent {
   bool get canBeSlingShot {
     // A player can be slingshot if it is not destroyed and has a velocity
     return !isDestroyed &&
-        velocity.length2 < (velocityThreshold * velocityThreshold);
+        velocity.length2 < BlueberryWarGameManagerHelpers.velocityThreshold2;
   }
 
   static Vector2 generateRandomStartingPosition({

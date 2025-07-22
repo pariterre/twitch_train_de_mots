@@ -476,8 +476,6 @@ class TwitchManagerMock extends TwitchManager {
       GameManager.instance.updateGameState(newGameState);
     });
 
-    // TODO Find a way to receive the new teleport position
-
     // Uncomment the next line to simulate that the App refused the pardon
     _acceptPardon = false;
 
@@ -647,7 +645,6 @@ class TwitchManagerMock extends TwitchManager {
                               velocity: Vector2(0, 0),
                               radius: Vector2(30.0, 30.0),
                               maxVelocity: 2000.0,
-                              velocityThreshold: 20.0,
                               mass: 3.0,
                               coefficientOfFriction: 0.8)
                           : LetterAgent(

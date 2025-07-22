@@ -163,7 +163,6 @@ class BlueberryWarGameManager implements MiniGameManager {
           ),
           velocity: Vector2.zero(),
           maxVelocity: 2000.0,
-          velocityThreshold: BlueberryWarGameManagerHelpers.velocityThreshold,
           radius: BlueberryWarGameManagerHelpers.playerRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
@@ -283,15 +282,39 @@ class BlueberryWarGameManager implements MiniGameManager {
     // Check if the game is over
     _manageStartOfGame();
     _manageForGameOver();
+    bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
       dt: DateTime.now().difference(_lastTick),
       fieldSize: fieldSize,
       allAgents: allAgents,
       problem: _problem!,
-      onBlueberryDestroyed: onBlueberryDestroyed,
-      onLetterHitByPlayer: onLetterHitByPlayer,
-      onLetterHitByLetter: onLetterHitByLetter,
+      onBlueberryDestroyed: (player) {
+        onBlueberryDestroyed.notifyListeners((callback) => callback(player.id));
+        shouldCallUpdate = true;
+      },
+      onLetterHitByPlayer: (letter) {
+        onLetterHitByPlayer.notifyListeners(
+          (callback) => callback(letter.problemIndex, letter.isDestroyed),
+        );
+        shouldCallUpdate = true;
+      },
+      onLetterHitByLetter: (first, second) {
+        onLetterHitByLetter.notifyListeners(
+          (callback) => callback(first.problemIndex, second.problemIndex,
+              first.isBoss, second.isBoss),
+        );
+      },
     );
+    BlueberryWarGameManagerHelpers.checkForPlayersTeleportation(
+      allAgents: allAgents,
+      fieldSize: fieldSize,
+      onPlayerTeleported: (player) => shouldCallUpdate = true,
+    );
+    if (shouldCallUpdate) {
+      // Notify listeners that the game has been updated with more than just
+      // movement and collisions
+      onGameUpdated.notifyListeners((callback) => callback());
+    }
     _tickClock();
   }
 
@@ -314,7 +337,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       if (allAgents.every(
         (agent) =>
             agent.velocity.length2 <
-                BlueberryWarGameManagerHelpers.velocityThresholdSquared ||
+                BlueberryWarGameManagerHelpers.velocityThreshold2 ||
             agent.isDestroyed,
       )) {
         _logger.info('Game over, stopping the timer');
