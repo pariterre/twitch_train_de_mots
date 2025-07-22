@@ -221,8 +221,8 @@ class TwitchManager {
             : 'wss://twitchserver.pariterre.net:3010'),
       ),
       isTwitchUserIdRequired: true,
-      mockedAuthenticator:
-          useMockerAuthenticator ? MockedTwitchJwtAuthenticator() : null,
+      mockedAuthenticatorInitializer:
+          useMockerAuthenticator ? () => MockedTwitchJwtAuthenticator() : null,
     );
 
     await _onFinishedInitializing();
