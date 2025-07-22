@@ -211,7 +211,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.revealTileAt.name,
+          'type': ToAppMessages.slingShootPlayerAgent.name,
           'player_name': playerName,
           'id': id,
           'velocity': velocity.serialize()

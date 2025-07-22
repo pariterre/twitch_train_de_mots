@@ -4,8 +4,6 @@ import 'package:common/blueberry_war/models/agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class PlayerAgent extends Agent {
-  final double maxVelocity;
-
   @override
   AgentShape get shape => AgentShape.circle;
 
@@ -24,7 +22,7 @@ class PlayerAgent extends Agent {
     required super.position,
     required super.velocity,
     required super.radius,
-    required this.maxVelocity,
+    required super.maxVelocity,
     required this.velocityThreshold,
     required super.mass,
     required super.coefficientOfFriction,
@@ -66,7 +64,7 @@ class PlayerAgent extends Agent {
   bool get canBeSlingShot {
     // A player can be slingshot if it is not destroyed and has a velocity
     return !isDestroyed &&
-        velocity.length2 > (velocityThreshold * velocityThreshold);
+        velocity.length2 < (velocityThreshold * velocityThreshold);
   }
 
   static Vector2 generateRandomStartingPosition({

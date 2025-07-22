@@ -95,7 +95,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
   /// Only allow dragging if not teleporting and not moving
   bool get _canBeDragged => !_cannotBeDragged;
   bool get _cannotBeDragged =>
-      _isFading || widget.player.canBeSlingShot || widget.isGameOver;
+      _isFading || !widget.player.canBeSlingShot || widget.isGameOver;
 
   void _onDragStart(DragStartDetails details) {
     if (_isDragging) return;

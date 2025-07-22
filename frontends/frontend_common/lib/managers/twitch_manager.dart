@@ -658,6 +658,7 @@ class TwitchManagerMock extends TwitchManager {
                               position: Vector2(random.nextDouble() * 300,
                                   random.nextDouble() * 1080),
                               velocity: Vector2(0, 0),
+                              maxVelocity: 6000.0,
                               radius: Vector2(30.0, 30.0),
                               mass: 3.0,
                               coefficientOfFriction: 0.8)),

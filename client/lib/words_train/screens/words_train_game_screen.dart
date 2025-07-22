@@ -265,7 +265,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
-    final mgm = Managers.instance.miniGames.current;
+    final mgm = Managers.instance.miniGames.manager;
 
     late String text;
     switch (gm.gameStatus) {

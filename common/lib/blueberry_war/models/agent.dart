@@ -17,7 +17,8 @@ extension Vector2Extension on Vector2 {
 abstract class Agent {
   final int id;
   Vector2 position;
-  Vector2 velocity;
+  Vector2 _velocity;
+  final double maxVelocity;
   final Vector2 radius;
   final double mass;
   double coefficientOfFriction;
@@ -30,11 +31,12 @@ abstract class Agent {
   Agent({
     required this.id,
     required this.position,
-    required this.velocity,
+    required Vector2 velocity,
+    required this.maxVelocity,
     required this.radius,
     required this.mass,
     required this.coefficientOfFriction,
-  });
+  }) : _velocity = velocity;
 
   AgentType get agentType;
 
@@ -46,6 +48,15 @@ abstract class Agent {
         AgentType.player => PlayerAgent.deserialize(map),
       };
 
+  Vector2 get velocity => _velocity;
+  set velocity(Vector2 value) {
+    if (value.length2 > maxVelocity * maxVelocity) {
+      _velocity = value.normalized() * maxVelocity;
+    } else {
+      _velocity = value;
+    }
+  }
+
   void update({
     required Duration dt,
     required Vector2 horizontalBounds,
@@ -54,7 +65,7 @@ abstract class Agent {
     if (isDestroyed) return;
 
     // Update position
-    position += velocity * (dt.inMilliseconds / 1000.0);
+    position += _velocity * (dt.inMilliseconds / 1000.0);
 
     // Add some friction to the velocity
     velocity *= (1 - coefficientOfFriction * dt.inMilliseconds / 1000.0);

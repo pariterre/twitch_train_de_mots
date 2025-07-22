@@ -100,17 +100,17 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 
   void _connectMiniGame() {
-    final minigame = Managers.instance.miniGames.current;
-    minigame?.onGameIsReady.listen(_sendGameStateToEbs);
-    minigame?.onGameUpdated.listen(_sendGameStateToEbs);
-    minigame?.onGameEnded.listen(_sendGameStateToEbssWithParameter);
+    final mgm = Managers.instance.miniGames.manager;
+    mgm?.onGameIsReady.listen(_sendGameStateToEbs);
+    mgm?.onGameUpdated.listen(_sendGameStateToEbs);
+    mgm?.onGameEnded.listen(_sendGameStateToEbssWithParameter);
   }
 
   void _disconnectMiniGame() {
-    final minigame = Managers.instance.miniGames.current;
-    minigame?.onGameIsReady.cancel(_sendGameStateToEbs);
-    minigame?.onGameUpdated.cancel(_sendGameStateToEbs);
-    minigame?.onGameEnded.cancel(_sendGameStateToEbssWithParameter);
+    final mgm = Managers.instance.miniGames.manager;
+    mgm?.onGameIsReady.cancel(_sendGameStateToEbs);
+    mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
+    mgm?.onGameEnded.cancel(_sendGameStateToEbssWithParameter);
   }
 
   ///
@@ -172,7 +172,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       {Map<String, Duration> newCooldowns = const {}}) {
     final cm = Managers.instance.configuration;
     final gm = Managers.instance.train;
-    final mgm = Managers.instance.miniGames.current;
+    final mgm = Managers.instance.miniGames.manager;
 
     return SerializableGameState(
       status: gm.gameStatus,

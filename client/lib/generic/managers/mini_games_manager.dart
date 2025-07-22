@@ -57,6 +57,11 @@ class MiniGamesManager {
   final onMinigameStarted = GenericListener<Function()>();
 
   ///
+  /// Callback when the minigame updated. This connects to the `onGameUpdated`
+  /// of the current mini game manager and relays the event to the listeners
+  final onMinigameUpdated = GenericListener<Function()>();
+
+  ///
   /// Callback when a minigame ended
   final onMinigameEnded = GenericListener<Function()>();
 
@@ -82,25 +87,44 @@ class MiniGamesManager {
 
   ///
   /// Run a mini game, returns
-  Future<void> initialize(MiniGames game) async {
+  Future<MiniGameManager> initialize(MiniGames game) async {
     if (_miniGames[game] == null) {
       throw Exception('Mini game $game is not implemented.');
     }
     _currentGame = game;
-    await _miniGames[_currentGame]!.initialize();
+    final miniGame = _miniGames[game]!;
+    await miniGame.initialize();
 
+    // Register to the mini game events to relay them anything that needs to
+    // listen to them too
+    miniGame.onGameUpdated.listen(_notifyThatMiniGameHasUpdated);
+
+    // Notify that the mini game is ready to start
     onMinigameStarted.notifyListeners((callback) => callback());
+
+    return miniGame;
+  }
+
+  void _notifyThatMiniGameHasUpdated() {
+    onMinigameUpdated.notifyListeners((callback) => callback());
   }
 
   Future<void> finalize() async {
     if (_currentGame == null) {
       throw Exception('No mini game is running.');
     }
-    await _miniGames[_currentGame]!.end();
+    final miniGame = _miniGames[_currentGame]!;
+
+    // Cancel the listeners to avoid memory leaks
+    miniGame.onGameUpdated.cancel(_notifyThatMiniGameHasUpdated);
+
+    // Terminate the mini game
+    await miniGame.end();
     _currentGame = null;
     onMinigameEnded.notifyListeners((callback) => callback());
   }
 
   MiniGames? _currentGame;
-  MiniGameManager? get current => _miniGames[_currentGame];
+  MiniGames? get current => _currentGame;
+  MiniGameManager? get manager => _miniGames[_currentGame];
 }

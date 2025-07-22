@@ -93,7 +93,7 @@ class WordsTrainGameManager {
 
     if (_gameStatus == WordsTrainGameStatus.roundPreparing ||
         _gameStatus == WordsTrainGameStatus.roundReady) {
-      return Managers.instance.miniGames.current?.isReady == false
+      return Managers.instance.miniGames.manager?.isReady == false
           ? WordsTrainGameStatus.miniGameReady
           : WordsTrainGameStatus.miniGamePreparing;
     } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
@@ -446,13 +446,13 @@ class WordsTrainGameManager {
       _isNextRoundAMiniGame = false;
 
       Managers.instance.miniGames.initialize(_currentMiniGame!);
-      final miniGame = Managers.instance.miniGames.current!;
-      while (!miniGame.isReady) {
+      final mgm = Managers.instance.miniGames.manager!;
+      while (!mgm.isReady) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      miniGame.onGameEnded.listen(_miniGameEnded);
+      mgm.onGameEnded.listen(_miniGameEnded);
       _roundSuccesses.clear();
-      miniGame.start();
+      mgm.start();
     } else {
       _logger.info('Preparing a normal round...');
       _isRoundAMiniGame = false;
@@ -486,7 +486,7 @@ class WordsTrainGameManager {
 
     String? message;
     if (_isRoundAMiniGame) {
-      message = Managers.instance.miniGames.current?.instructions;
+      message = Managers.instance.miniGames.manager?.instructions;
     } else {
       message = _currentDifficulty.message;
     }
@@ -984,7 +984,7 @@ class WordsTrainGameManager {
     if (_isRoundAMiniGame) {
       _logger.fine('Mini game is running, so nothing to do unless forced');
       if (_forceEndTheRound) {
-        Managers.instance.miniGames.current!.end();
+        Managers.instance.miniGames.manager?.end();
         _forceEndTheRound = false;
       }
       return false;
@@ -1158,7 +1158,7 @@ class WordsTrainGameManager {
 
   void _miniGameEnded(bool hasWon) {
     _logger.info('Mini game ended');
-    Managers.instance.miniGames.current!.onGameEnded.cancel(_miniGameEnded);
+    Managers.instance.miniGames.manager?.onGameEnded.cancel(_miniGameEnded);
     Managers.instance.miniGames.finalize();
 
     // Give some perks based on the mini game

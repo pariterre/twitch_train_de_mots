@@ -143,6 +143,7 @@ class BlueberryWarGameManager implements MiniGameManager {
                   _random.nextDouble() * 1500 - 750,
                   _random.nextDouble() * 1500 - 750,
                 ),
+          maxVelocity: 6000.0,
           radius: Vector2(40.0, 50.0),
           mass: 1.0,
           coefficientOfFriction: (isBoss ? -0.2 : 0.5),
@@ -154,7 +155,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     for (int i = 0; i < initialPlayerCount; i++) {
       allAgents.add(
         PlayerAgent(
-          id: i,
+          id: i + 1000,
           position: PlayerAgent.generateRandomStartingPosition(
             playerFieldSize:
                 BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
@@ -211,6 +212,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       }
 
       player.velocity = newVelocity * scale;
+      onGameUpdated.notifyListeners((callback) => callback());
     } else {
       _logger
           .warning('Player ${player.id} cannot be slingshot, ignoring request');
