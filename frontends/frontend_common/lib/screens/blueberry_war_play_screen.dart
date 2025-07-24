@@ -48,11 +48,9 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
             child: FittedBox(
               fit: BoxFit.contain,
               child: SizedBox(
-                width: thm.fieldSize.x *
-                    BlueberryWarGameManagerHelpers.playerFieldSizeRatio.x,
-                height: thm.fieldSize.y *
-                    BlueberryWarGameManagerHelpers.playerFieldSizeRatio.y,
-                child: BlueberryWarPlayingField(
+                width: BlueberryWarGameManagerHelpers.playerFieldSize.x,
+                height: BlueberryWarGameManagerHelpers.playerFieldSize.y,
+                child: BlueberryWarFieldAgentsOverlay(
                   players: thm.players,
                   letters: thm.letters,
                   isGameOver: thm.isOver,

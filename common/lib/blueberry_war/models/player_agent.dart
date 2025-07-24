@@ -71,7 +71,7 @@ class PlayerAgent extends Agent {
     return Vector2(
       playerFieldSize.x / 2 +
           (random.nextDouble() * playerFieldSize.x / 2) -
-          playerRadius.x,
+          5 * playerRadius.x,
       playerFieldSize.y / 8 +
           (random.nextDouble() * playerFieldSize.y * 6 / 8.0),
     );

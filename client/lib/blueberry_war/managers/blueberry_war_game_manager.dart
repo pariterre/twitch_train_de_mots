@@ -29,7 +29,6 @@ class BlueberryWarGameManager implements MiniGameManager {
   /// Duration of each game tick (16ms for 60 FPS)
   final Duration _tickDuration = const Duration(milliseconds: 16);
   DateTime _lastTick = DateTime.now();
-  Vector2 fieldSize = Vector2(1920, 1080);
 
   ///
   /// Whether the game manager is initialized
@@ -136,7 +135,10 @@ class BlueberryWarGameManager implements MiniGameManager {
           isBoss: isBoss,
           problemIndex: i,
           letter: _problem!.letters[i],
-          position: Vector2(fieldSize.x * 2 / 3, fieldSize.y * 2 / 5),
+          position: Vector2(
+            BlueberryWarGameManagerHelpers.fieldSize.x * 2 / 3,
+            BlueberryWarGameManagerHelpers.fieldSize.y * 2 / 5,
+          ),
           velocity: isBoss
               ? Vector2.zero()
               : Vector2(
@@ -157,8 +159,7 @@ class BlueberryWarGameManager implements MiniGameManager {
         PlayerAgent(
           id: i + 1000,
           position: PlayerAgent.generateRandomStartingPosition(
-            playerFieldSize:
-                BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
+            playerFieldSize: BlueberryWarGameManagerHelpers.playerFieldSize,
             playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
           ),
           velocity: Vector2.zero(),
@@ -266,7 +267,6 @@ class BlueberryWarGameManager implements MiniGameManager {
         isOver: _isGameOver,
         isWon: _hasWon ?? false,
         timeRemaining: timeRemaining,
-        fieldSize: fieldSize,
         allAgents: allAgents,
         problem: _problem!,
       );
@@ -285,7 +285,6 @@ class BlueberryWarGameManager implements MiniGameManager {
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
       dt: DateTime.now().difference(_lastTick),
-      fieldSize: fieldSize,
       allAgents: allAgents,
       problem: _problem!,
       onBlueberryDestroyed: (player) {
@@ -307,7 +306,6 @@ class BlueberryWarGameManager implements MiniGameManager {
     );
     BlueberryWarGameManagerHelpers.checkForPlayersTeleportation(
       allAgents: allAgents,
-      fieldSize: fieldSize,
       onPlayerTeleported: (player) => shouldCallUpdate = true,
     );
     if (shouldCallUpdate) {

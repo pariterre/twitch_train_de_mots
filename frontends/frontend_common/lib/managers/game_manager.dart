@@ -269,12 +269,8 @@ class GameManager {
               _gameState.miniGameState as SerializableBlueberryWarGameState;
           newGameState = bwm.copyWith(timeRemaining: bwm.timeRemaining - dt);
 
-          // TODO: Fix that fieldSizes seems to be not the same between the client and frontends
           BlueberryWarGameManagerHelpers.updateAllAgents(
-              allAgents: bwm.allAgents,
-              dt: dt,
-              fieldSize: bwm.fieldSize,
-              problem: bwm.problem);
+              allAgents: bwm.allAgents, dt: dt, problem: bwm.problem);
           // Check for teleportations
           for (final agent in bwm.allAgents) {
             if (agent is! PlayerAgent) continue;

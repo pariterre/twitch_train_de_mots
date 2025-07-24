@@ -12,7 +12,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     required this.isOver,
     required this.isWon,
     required this.timeRemaining,
-    required this.fieldSize,
     required this.allAgents,
     required this.problem,
   });
@@ -24,7 +23,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   final bool isOver;
   final bool isWon;
   final Duration timeRemaining;
-  final Vector2 fieldSize;
   final List<Agent> allAgents;
   List<PlayerAgent> get players => allAgents.whereType<PlayerAgent>().toList();
   List<LetterAgent> get letters => allAgents.whereType<LetterAgent>().toList();
@@ -38,7 +36,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       'is_over': isOver,
       'is_won': isWon,
       'time_remaining': timeRemaining.inSeconds,
-      'field_size': fieldSize.serialize(),
       'agents': allAgents.map((agent) => agent.serialize()).toList(),
       'problem': problem.serialize(),
     };
@@ -51,7 +48,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       isOver: data['is_over'] as bool,
       isWon: data['is_won'] as bool,
       timeRemaining: Duration(seconds: data['time_remaining'] as int),
-      fieldSize: Vector2Extension.deserialize(data['field_size']),
       allAgents: (data['agents'] as List)
           .map((agentData) => Agent.deserialize(agentData))
           .toList(),
@@ -65,7 +61,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     Duration? timeRemaining,
     bool? isOver,
     bool? isWon,
-    Vector2? fieldSize,
     Vector2? playerFieldRatio,
     List<Agent>? allAgents,
     SerializableLetterProblem? problem,
@@ -75,7 +70,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       isOver: isOver ?? this.isOver,
       isWon: isWon ?? this.isWon,
       timeRemaining: timeRemaining ?? this.timeRemaining,
-      fieldSize: fieldSize ?? this.fieldSize,
       allAgents: allAgents ?? this.allAgents,
       problem: problem ?? this.problem,
     );

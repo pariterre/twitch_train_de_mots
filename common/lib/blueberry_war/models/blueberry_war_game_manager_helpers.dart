@@ -14,16 +14,20 @@ class BlueberryWarGameManagerHelpers {
   static Vector2 get playerRadius => Vector2(30.0, 30.0);
 
   ///
+  /// Default field size for the game.
+  /// This is the size of the field where the players can play.
+  static final Vector2 fieldSize = Vector2(1920, 1080);
+
+  ///
   /// Field ratio is the part of the field reserved for players
   static Vector2 get playerFieldSizeRatio => Vector2(1 / 5, 1);
 
   ///
   /// Calculate the player field size based on the total field size.
   /// This is the area where players can play.
-  static Vector2 playerFieldSize(Vector2 fieldSize) => Vector2(
-        fieldSize.x * playerFieldSizeRatio.x,
-        fieldSize.y * playerFieldSizeRatio.y,
-      );
+  static Vector2 get playerFieldSize => Vector2(
+      fieldSize.x * playerFieldSizeRatio.x,
+      fieldSize.y * playerFieldSizeRatio.y);
 
   ///
   /// Velocity threshold for teleportation which is used to determine if a player
@@ -37,7 +41,6 @@ class BlueberryWarGameManagerHelpers {
   static void updateAllAgents({
     required Duration dt,
     required List<Agent> allAgents,
-    required Vector2 fieldSize,
     required SerializableLetterProblem problem,
     Function(PlayerAgent)? onBlueberryDestroyed,
     Function(LetterAgent)? onLetterHitByPlayer,
@@ -93,7 +96,6 @@ class BlueberryWarGameManagerHelpers {
   ///
   /// Check for teleportations
   static void checkForPlayersTeleportation({
-    required Vector2 fieldSize,
     required List<Agent> allAgents,
     Function(PlayerAgent)? onPlayerTeleported,
   }) {
@@ -106,8 +108,7 @@ class BlueberryWarGameManagerHelpers {
           agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
         agent.teleport(
             to: PlayerAgent.generateRandomStartingPosition(
-          playerFieldSize:
-              BlueberryWarGameManagerHelpers.playerFieldSize(fieldSize),
+          playerFieldSize: BlueberryWarGameManagerHelpers.playerFieldSize,
           playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
         ));
         if (onPlayerTeleported != null) onPlayerTeleported(agent);

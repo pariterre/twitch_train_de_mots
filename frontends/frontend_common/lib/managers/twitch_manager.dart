@@ -606,7 +606,6 @@ class TwitchManagerMock extends TwitchManager {
                   isOver: false,
                   isWon: false,
                   timeRemaining: const Duration(seconds: 30),
-                  fieldSize: Vector2(1920, 1080),
                   problem: SerializableLetterProblem(
                     letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                     scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],

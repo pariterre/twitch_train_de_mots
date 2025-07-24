@@ -1,9 +1,9 @@
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_animated_text_overlay.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_header.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:vector_math/vector_math.dart' as vector_math;
 
 class BlueberryWarGameScreen extends StatefulWidget {
   const BlueberryWarGameScreen({super.key});
@@ -36,6 +36,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bwm = Managers.instance.miniGames.blueberryWar;
     final headerHeight = 180.0;
 
     return Stack(
@@ -47,46 +48,54 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
             child: const BlueberryWarHeader(),
           ),
         ),
-        Positioned(
-          top: headerHeight,
-          left: MediaQuery.of(context).size.width / 5,
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height - headerHeight,
-            child: VerticalDivider(
-              thickness: 2,
-              endIndent: 10,
-              color: Colors.white.withAlpha(100),
+        ColorFiltered(
+          colorFilter:
+              ColorFilter.mode(Colors.black.withAlpha(50), BlendMode.srcIn),
+          child: Container(
+            color: Colors.black,
+            child: Center(
+              child: Column(
+                children: [
+                  Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          backgroundBlendMode: BlendMode.dstOut),
+                      height: headerHeight),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            backgroundBlendMode: BlendMode.dstOut),
+                        child: SizedBox(
+                          width: BlueberryWarGameManagerHelpers.fieldSize.x,
+                          height: BlueberryWarGameManagerHelpers.fieldSize.y,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        Align(
-          alignment: Alignment.topLeft,
+        Center(
           child: Column(
             children: [
-              SizedBox(height: headerHeight),
+              Container(height: headerHeight),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final bwm = Managers.instance.miniGames.blueberryWar;
-                    bwm.fieldSize = vector_math.Vector2(
-                      constraints.maxWidth,
-                      constraints.maxHeight,
-                    );
-
-                    return SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: BlueberryWarPlayingField(
-                        players: bwm.players,
-                        letters: bwm.letters,
-                        isGameOver: bwm.isGameOver,
-                        clockTicker: bwm.onClockTicked,
-                        onPlayerSlingShoot: (player, newVelocity) {
-                          bwm.slingShoot(
-                              player: player, newVelocity: newVelocity);
-                        },
-                      ),
-                    );
-                  },
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: BlueberryWarPlayingField(
+                    players: bwm.players,
+                    letters: bwm.letters,
+                    isGameOver: bwm.isGameOver,
+                    clockTicker: bwm.onClockTicked,
+                    onPlayerSlingShoot: (player, newVelocity) {
+                      bwm.slingShoot(player: player, newVelocity: newVelocity);
+                    },
+                  ),
                 ),
               ),
             ],
