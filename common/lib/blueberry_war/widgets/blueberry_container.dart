@@ -1,28 +1,28 @@
-import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 
-class PlayerContainer extends StatefulWidget {
-  const PlayerContainer({
+class BlueberryContainer extends StatefulWidget {
+  const BlueberryContainer({
     super.key,
-    required this.player,
+    required this.blueberry,
     required this.isGameOver,
     required this.clockTicker,
-    required this.onPlayerSlingShoot,
+    required this.onBlueberrySlingShoot,
   });
 
-  final PlayerAgent player;
+  final BlueberryAgent blueberry;
   final bool isGameOver;
   final GenericListener clockTicker;
-  final Function(PlayerAgent player, vector_math.Vector2 newVelocity)
-      onPlayerSlingShoot;
+  final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
+      onBlueberrySlingShoot;
 
   @override
-  State<PlayerContainer> createState() => _PlayerContainerState();
+  State<BlueberryContainer> createState() => _BlueberryContainerState();
 }
 
-class _PlayerContainerState extends State<PlayerContainer> {
+class _BlueberryContainerState extends State<BlueberryContainer> {
   vector_math.Vector2 previousPosition = vector_math.Vector2.zero();
   bool _isBeingDestroyed = false;
   bool _isDragging = false;
@@ -39,15 +39,15 @@ class _PlayerContainerState extends State<PlayerContainer> {
   void initState() {
     super.initState();
 
-    widget.player.onTeleport.listen(_hasStartedTeleporting);
-    widget.player.onDestroyed.listen(_hasBeenDestroyed);
+    widget.blueberry.onTeleport.listen(_hasStartedTeleporting);
+    widget.blueberry.onDestroyed.listen(_hasBeenDestroyed);
     widget.clockTicker.listen(_clockTicked);
   }
 
   @override
   void dispose() {
-    widget.player.onTeleport.cancel(_hasStartedTeleporting);
-    widget.player.onDestroyed.cancel(_hasBeenDestroyed);
+    widget.blueberry.onTeleport.cancel(_hasStartedTeleporting);
+    widget.blueberry.onDestroyed.cancel(_hasBeenDestroyed);
     widget.clockTicker.cancel(_clockTicked);
 
     super.dispose();
@@ -95,7 +95,7 @@ class _PlayerContainerState extends State<PlayerContainer> {
   /// Only allow dragging if not teleporting and not moving
   bool get _canBeDragged => !_cannotBeDragged;
   bool get _cannotBeDragged =>
-      _isFading || !widget.player.canBeSlingShot || widget.isGameOver;
+      _isFading || !widget.blueberry.canBeSlingShot || widget.isGameOver;
 
   void _onDragStart(DragStartDetails details) {
     if (_isDragging) return;
@@ -104,8 +104,8 @@ class _PlayerContainerState extends State<PlayerContainer> {
       _isDragging = true;
       // Start at the middle of the widget
       _dragStartPosition = Offset(
-        widget.player.radius.x,
-        widget.player.radius.y,
+        widget.blueberry.radius.x,
+        widget.blueberry.radius.y,
       );
     });
   }
@@ -122,8 +122,8 @@ class _PlayerContainerState extends State<PlayerContainer> {
 
     _dragCurrentPosition = details.localPosition;
     final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 10;
-    widget.onPlayerSlingShoot(
-        widget.player, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
+    widget.onBlueberrySlingShoot(
+        widget.blueberry, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
 
     setState(() {
       _isDragging = false;
@@ -132,9 +132,9 @@ class _PlayerContainerState extends State<PlayerContainer> {
     });
   }
 
-  vector_math.Vector2 _getPlayerPosition() {
+  vector_math.Vector2 _getBlueberryPosition() {
     if (!_isFading || _fadeAnimationProgress >= 1.0) {
-      previousPosition = widget.player.position - widget.player.radius;
+      previousPosition = widget.blueberry.position - widget.blueberry.radius;
     }
     return previousPosition;
   }
@@ -152,16 +152,16 @@ class _PlayerContainerState extends State<PlayerContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final position = _getPlayerPosition();
+    final position = _getBlueberryPosition();
     final alpha = _computeAlpha();
 
-    if (widget.player.isDestroyed && !_isFading) {
+    if (widget.blueberry.isDestroyed && !_isFading) {
       return const SizedBox.shrink();
     }
 
     final mainWidget = Container(
-      width: widget.player.radius.x * 2,
-      height: widget.player.radius.y * 2,
+      width: widget.blueberry.radius.x * 2,
+      height: widget.blueberry.radius.y * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.transparent,
@@ -172,8 +172,9 @@ class _PlayerContainerState extends State<PlayerContainer> {
         opacity: AlwaysStoppedAnimation<double>(
           alpha / 255.0,
         ),
-        color:
-            widget.player.isDestroyed ? Color.fromARGB(alpha, 255, 0, 0) : null,
+        color: widget.blueberry.isDestroyed
+            ? Color.fromARGB(alpha, 255, 0, 0)
+            : null,
       ),
     );
 

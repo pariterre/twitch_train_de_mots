@@ -94,7 +94,7 @@ class SoundManager {
     while (true) {
       try {
         final bwm = Managers.instance.miniGames.blueberryWar;
-        bwm.onLetterHitByPlayer.listen(_onBlueberryWarLetterHitByPlayer);
+        bwm.onLetterHitByBlueberry.listen(_onBlueberryWarLetterHitByBlueberry);
         bwm.onLetterHitByLetter.listen(_onBlueberryWarLetterHitByLetter);
         bwm.onBlueberryDestroyed.listen(_onBlueberryWarBlueberryDestroyed);
         bwm.onTrySolution.listen(_onSolutionTried);
@@ -271,7 +271,7 @@ class SoundManager {
         'packages/common/assets/sounds/blueberry_war/letter_knock.mp3');
   }
 
-  Future<void> _onBlueberryWarLetterHitByPlayer(
+  Future<void> _onBlueberryWarLetterHitByBlueberry(
       int letterIndex, bool isDestroyed) async {
     final tm = Managers.instance.miniGames.blueberryWar;
     if (tm.isGameOver) return;

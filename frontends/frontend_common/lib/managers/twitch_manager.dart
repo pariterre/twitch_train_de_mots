@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
@@ -152,11 +152,12 @@ class TwitchManager {
 
   ///
   /// Request to reveal a tile in the Treasure Hunt minigame.
-  Future<bool> slingShootPlayerAgent(
-      {required PlayerAgent player, required Vector2 requestedVelocity}) async {
+  Future<bool> slingShootBlueberry(
+      {required BlueberryAgent blueberry,
+      required Vector2 requestedVelocity}) async {
     final response =
-        await _sendMessageToApp(ToAppMessages.slingShootPlayerAgent, data: {
-      'id': player.id,
+        await _sendMessageToApp(ToAppMessages.slingShootBlueberry, data: {
+      'id': blueberry.id,
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
             onTimeout: () => MessageProtocol(
@@ -637,7 +638,7 @@ class TwitchManagerMock extends TwitchManager {
                   allAgents: List.generate(
                       20,
                       (index) => index < 10
-                          ? PlayerAgent(
+                          ? BlueberryAgent(
                               id: 0,
                               position: Vector2(random.nextDouble() * 300,
                                   random.nextDouble() * 1080),
@@ -681,7 +682,7 @@ class TwitchManagerMock extends TwitchManager {
             type: MessageTypes.response,
             isSuccess: true);
 
-      case ToAppMessages.slingShootPlayerAgent:
+      case ToAppMessages.slingShootBlueberry:
         return MessageProtocol(
             to: MessageTo.frontend,
             from: MessageFrom.app,

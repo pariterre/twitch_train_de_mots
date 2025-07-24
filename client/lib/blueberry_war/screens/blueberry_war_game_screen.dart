@@ -68,8 +68,8 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                         decoration: BoxDecoration(
                             color: Colors.white,
                             backgroundBlendMode: BlendMode.dstOut),
-                        width: BlueberryWarGameManagerHelpers.fieldSize.x,
-                        height: BlueberryWarGameManagerHelpers.fieldSize.y,
+                        width: BlueberryWarConfig.fieldSize.x,
+                        height: BlueberryWarConfig.fieldSize.y,
                       ),
                     ),
                   ),
@@ -86,12 +86,13 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: BlueberryWarPlayingField(
-                    players: bwm.players,
+                    blueberries: bwm.blueberries,
                     letters: bwm.letters,
                     isGameOver: bwm.isGameOver,
                     clockTicker: bwm.onClockTicked,
-                    onPlayerSlingShoot: (player, newVelocity) {
-                      bwm.slingShoot(player: player, newVelocity: newVelocity);
+                    onBlueberrySlingShoot: (blueberry, newVelocity) {
+                      bwm.slingShoot(
+                          blueberry: blueberry, newVelocity: newVelocity);
                     },
                   ),
                 ),

@@ -1,8 +1,8 @@
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/blueberry_war/widgets/blueberry_container.dart';
 import 'package:common/blueberry_war/widgets/letter_container.dart';
-import 'package:common/blueberry_war/widgets/player_container.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
@@ -10,34 +10,34 @@ import 'package:vector_math/vector_math.dart' as vector_math;
 class BlueberryWarPlayingField extends StatelessWidget {
   const BlueberryWarPlayingField({
     super.key,
-    required this.players,
+    required this.blueberries,
     required this.letters,
     required this.isGameOver,
     required this.clockTicker,
-    required this.onPlayerSlingShoot,
-    this.drawPlayerFieldOnly = false,
+    required this.onBlueberrySlingShoot,
+    this.drawBlueberryFieldOnly = false,
   });
 
-  final List<PlayerAgent> players;
+  final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
   final bool isGameOver;
   final GenericListener clockTicker;
-  final Function(PlayerAgent player, vector_math.Vector2 newVelocity)
-      onPlayerSlingShoot;
-  final bool drawPlayerFieldOnly;
+  final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
+      onBlueberrySlingShoot;
+  final bool drawBlueberryFieldOnly;
 
   @override
   Widget build(BuildContext context) {
-    final fieldSize = BlueberryWarGameManagerHelpers.fieldSize;
-    final playerFieldSize = BlueberryWarGameManagerHelpers.playerFieldSize;
+    final fieldSize = BlueberryWarConfig.fieldSize;
+    final blueberryFieldSize = BlueberryWarConfig.blueberryFieldSize;
 
     return SizedBox(
-      width: drawPlayerFieldOnly ? playerFieldSize.x : fieldSize.x,
+      width: drawBlueberryFieldOnly ? blueberryFieldSize.x : fieldSize.x,
       height: fieldSize.y,
       child: Stack(
         children: [
           Positioned(
-            left: playerFieldSize.x,
+            left: blueberryFieldSize.x,
             child: SizedBox(
               height: fieldSize.y,
               child: VerticalDivider(
@@ -48,11 +48,11 @@ class BlueberryWarPlayingField extends StatelessWidget {
             ),
           ),
           BlueberryWarFieldAgentsOverlay(
-            players: players,
+            blueberries: blueberries,
             letters: letters,
             isGameOver: isGameOver,
             clockTicker: clockTicker,
-            onPlayerSlingShoot: onPlayerSlingShoot,
+            onBlueberrySlingShoot: onBlueberrySlingShoot,
           ),
         ],
       ),
@@ -63,29 +63,29 @@ class BlueberryWarPlayingField extends StatelessWidget {
 class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
   const BlueberryWarFieldAgentsOverlay({
     super.key,
-    required this.players,
+    required this.blueberries,
     required this.letters,
     required this.isGameOver,
     required this.clockTicker,
-    required this.onPlayerSlingShoot,
+    required this.onBlueberrySlingShoot,
   });
 
-  final List<PlayerAgent> players;
+  final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
   final bool isGameOver;
   final GenericListener clockTicker;
-  final Function(PlayerAgent player, vector_math.Vector2 newVelocity)
-      onPlayerSlingShoot;
+  final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
+      onBlueberrySlingShoot;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ...players.map((e) => PlayerContainer(
-            player: e,
+        ...blueberries.map((e) => BlueberryContainer(
+            blueberry: e,
             isGameOver: isGameOver,
             clockTicker: clockTicker,
-            onPlayerSlingShoot: onPlayerSlingShoot)),
+            onBlueberrySlingShoot: onBlueberrySlingShoot)),
         ...letters
             .map((e) => LetterContainer(letter: e, clockTicker: clockTicker)),
       ],

@@ -4,7 +4,7 @@ import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:vector_math/vector_math.dart';
 
-class PlayerAgent extends Agent {
+class BlueberryAgent extends Agent {
   @override
   AgentShape get shape => AgentShape.circle;
 
@@ -16,7 +16,7 @@ class PlayerAgent extends Agent {
     onDestroyed.notifyListeners((callback) => callback());
   }
 
-  PlayerAgent({
+  BlueberryAgent({
     required super.id,
     required super.position,
     required super.velocity,
@@ -28,7 +28,7 @@ class PlayerAgent extends Agent {
   }) : _isDestroyed = isDestroyed;
 
   @override
-  AgentType get agentType => AgentType.player;
+  AgentType get agentType => AgentType.blueberry;
 
   @override
   Map<String, dynamic> serialize() => {
@@ -44,8 +44,8 @@ class PlayerAgent extends Agent {
         'is_destroyed': isDestroyed,
       };
 
-  static PlayerAgent deserialize(Map<String, dynamic> map) {
-    return PlayerAgent(
+  static BlueberryAgent deserialize(Map<String, dynamic> map) {
+    return BlueberryAgent(
       id: map['id'] as int,
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
@@ -58,22 +58,22 @@ class PlayerAgent extends Agent {
   }
 
   bool get canBeSlingShot {
-    // A player can be slingshot if it is not destroyed and has a velocity
+    // A blueberry can be slingshot if it is not destroyed and has a velocity
     return !isDestroyed &&
-        velocity.length2 < BlueberryWarGameManagerHelpers.velocityThreshold2;
+        velocity.length2 < BlueberryWarConfig.velocityThreshold2;
   }
 
   static Vector2 generateRandomStartingPosition({
-    required Vector2 playerFieldSize,
-    required Vector2 playerRadius,
+    required Vector2 blueberryFieldSize,
+    required Vector2 blueberryRadius,
   }) {
     final random = Random();
     return Vector2(
-      playerFieldSize.x / 2 +
-          (random.nextDouble() * playerFieldSize.x / 2) -
-          5 * playerRadius.x,
-      playerFieldSize.y / 8 +
-          (random.nextDouble() * playerFieldSize.y * 6 / 8.0),
+      blueberryFieldSize.x / 2 +
+          (random.nextDouble() * blueberryFieldSize.x / 2) -
+          5 * blueberryRadius.x,
+      blueberryFieldSize.y / 8 +
+          (random.nextDouble() * blueberryFieldSize.y * 6 / 8.0),
     );
   }
 }

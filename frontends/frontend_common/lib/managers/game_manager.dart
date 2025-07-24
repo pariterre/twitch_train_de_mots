@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -273,7 +273,7 @@ class GameManager {
               allAgents: bwm.allAgents, dt: dt, problem: bwm.problem);
           // Check for teleportations
           for (final agent in bwm.allAgents) {
-            if (agent is! PlayerAgent) continue;
+            if (agent is! BlueberryAgent) continue;
             // TODO: Fix the teleportation detection on frontend
             // TODO: Fix state corruption when hitting the red target
             // If we detect a velocity of zero and the position is

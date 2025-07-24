@@ -1,11 +1,11 @@
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:vector_math/vector_math.dart';
 
 enum AgentShape { circle, rectangle }
 
-enum AgentType { letter, player }
+enum AgentType { letter, blueberry }
 
 extension Vector2Extension on Vector2 {
   List<double> serialize() => [x, y];
@@ -45,7 +45,7 @@ abstract class Agent {
   static Agent deserialize(map) =>
       switch (AgentType.values[map['agent_type']]) {
         AgentType.letter => LetterAgent.deserialize(map),
-        AgentType.player => PlayerAgent.deserialize(map),
+        AgentType.blueberry => BlueberryAgent.deserialize(map),
       };
 
   Vector2 get velocity => _velocity;

@@ -16,7 +16,7 @@ enum ToAppMessages {
   attemptTheBigHeist,
   changeLaneRequest,
   revealTileAt,
-  slingShootPlayerAgent,
+  slingShootBlueberry,
 }
 
 enum ToFrontendMessages {

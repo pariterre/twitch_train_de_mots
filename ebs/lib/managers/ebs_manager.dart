@@ -211,7 +211,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.slingShootPlayerAgent.name,
+          'type': ToAppMessages.slingShootBlueberry.name,
           'player_name': playerName,
           'id': id,
           'velocity': velocity.serialize()
@@ -347,7 +347,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
               isSuccess: isSuccess));
           break;
 
-        case ToAppMessages.slingShootPlayerAgent:
+        case ToAppMessages.slingShootBlueberry:
           final isSuccess = await _frontendRequestedSlingShoot(
             userId,
             id: message.data!['id'] as int,

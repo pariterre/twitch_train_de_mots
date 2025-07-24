@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
@@ -64,13 +64,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   SerializableLetterProblem get problem => _problem!;
 
   ///
-  /// List of agents in the game (players and letters)
+  /// List of agents in the game (blueberries and letters)
   final allAgents = <Agent>[];
   List<LetterAgent> get letters =>
       allAgents.whereType<LetterAgent>().toList(growable: false);
-  final initialPlayerCount = 10;
-  List<PlayerAgent> get players =>
-      allAgents.whereType<PlayerAgent>().toList(growable: false);
+  List<BlueberryAgent> get blueberries =>
+      allAgents.whereType<BlueberryAgent>().toList(growable: false);
 
   // Listeners
   @override
@@ -78,7 +77,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   final onClockTicked = GenericListener<Function()>();
   @override
   final onGameUpdated = GenericListener<Function()>();
-  final onLetterHitByPlayer =
+  final onLetterHitByBlueberry =
       GenericListener<Function(int letterIndex, bool isDestroyed)>();
   final onLetterHitByLetter = GenericListener<
       Function(int firstIndex, int secondIndex, bool firstIsBoss,
@@ -136,8 +135,8 @@ class BlueberryWarGameManager implements MiniGameManager {
           problemIndex: i,
           letter: _problem!.letters[i],
           position: Vector2(
-            BlueberryWarGameManagerHelpers.fieldSize.x * 2 / 3,
-            BlueberryWarGameManagerHelpers.fieldSize.y * 2 / 5,
+            BlueberryWarConfig.fieldSize.x * 2 / 3,
+            BlueberryWarConfig.fieldSize.y * 2 / 5,
           ),
           velocity: isBoss
               ? Vector2.zero()
@@ -153,18 +152,18 @@ class BlueberryWarGameManager implements MiniGameManager {
       );
     }
 
-    // Populate players with random agents
-    for (int i = 0; i < initialPlayerCount; i++) {
+    // Populate blueberries with random agents
+    for (int i = 0; i < BlueberryWarConfig.initialBlueberryCount; i++) {
       allAgents.add(
-        PlayerAgent(
+        BlueberryAgent(
           id: i + 1000,
-          position: PlayerAgent.generateRandomStartingPosition(
-            playerFieldSize: BlueberryWarGameManagerHelpers.playerFieldSize,
-            playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
+          position: BlueberryAgent.generateRandomStartingPosition(
+            blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,
+            blueberryRadius: BlueberryWarConfig.blueberryRadius,
           ),
           velocity: Vector2.zero(),
           maxVelocity: 2000.0,
-          radius: BlueberryWarGameManagerHelpers.playerRadius,
+          radius: BlueberryWarConfig.blueberryRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
         ),
@@ -200,22 +199,24 @@ class BlueberryWarGameManager implements MiniGameManager {
     _forceEndOfGame = true;
   }
 
-  void slingShoot({required PlayerAgent player, required Vector2 newVelocity}) {
-    if (player.canBeSlingShot) {
+  void slingShoot(
+      {required BlueberryAgent blueberry, required Vector2 newVelocity}) {
+    if (blueberry.canBeSlingShot) {
       _logger.info(
-          'Sling shooting player ${player.id} with velocity $newVelocity');
+          'Sling shooting blueberry ${blueberry.id} with velocity $newVelocity');
 
       // Ensure the velocity is within a reasonable range
       double scale = 1.0;
-      if (newVelocity.length2 > (player.maxVelocity * player.maxVelocity)) {
-        scale = player.maxVelocity / newVelocity.length;
+      if (newVelocity.length2 >
+          (blueberry.maxVelocity * blueberry.maxVelocity)) {
+        scale = blueberry.maxVelocity / newVelocity.length;
       }
 
-      player.velocity = newVelocity * scale;
+      blueberry.velocity = newVelocity * scale;
       onGameUpdated.notifyListeners((callback) => callback());
     } else {
-      _logger
-          .warning('Player ${player.id} cannot be slingshot, ignoring request');
+      _logger.warning(
+          'Blueberry ${blueberry.id} cannot be slingshot, ignoring request');
     }
   }
 
@@ -287,12 +288,13 @@ class BlueberryWarGameManager implements MiniGameManager {
       dt: DateTime.now().difference(_lastTick),
       allAgents: allAgents,
       problem: _problem!,
-      onBlueberryDestroyed: (player) {
-        onBlueberryDestroyed.notifyListeners((callback) => callback(player.id));
+      onBlueberryDestroyed: (blueberry) {
+        onBlueberryDestroyed
+            .notifyListeners((callback) => callback(blueberry.id));
         shouldCallUpdate = true;
       },
-      onLetterHitByPlayer: (letter) {
-        onLetterHitByPlayer.notifyListeners(
+      onLetterHitByBlueberry: (letter) {
+        onLetterHitByBlueberry.notifyListeners(
           (callback) => callback(letter.problemIndex, letter.isDestroyed),
         );
         shouldCallUpdate = true;
@@ -304,9 +306,9 @@ class BlueberryWarGameManager implements MiniGameManager {
         );
       },
     );
-    BlueberryWarGameManagerHelpers.checkForPlayersTeleportation(
+    BlueberryWarGameManagerHelpers.checkForBlueberriesTeleportation(
       allAgents: allAgents,
-      onPlayerTeleported: (player) => shouldCallUpdate = true,
+      onBlueberryTeleported: (blueberry) => shouldCallUpdate = true,
     );
     if (shouldCallUpdate) {
       // Notify listeners that the game has been updated with more than just
@@ -320,7 +322,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     if (_startTime != null) return;
 
     for (final agent in allAgents) {
-      if (agent is! PlayerAgent) continue;
+      if (agent is! BlueberryAgent) continue;
       if (agent.velocity.length2 != 0.0) {
         _logger.info('Blueberry war timer started');
         _startTime = DateTime.now();
@@ -334,8 +336,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       // Stop the timer if all the agents have stopped moving
       if (allAgents.every(
         (agent) =>
-            agent.velocity.length2 <
-                BlueberryWarGameManagerHelpers.velocityThreshold2 ||
+            agent.velocity.length2 < BlueberryWarConfig.velocityThreshold2 ||
             agent.isDestroyed,
       )) {
         _logger.info('Game over, stopping the timer');
@@ -357,8 +358,8 @@ class BlueberryWarGameManager implements MiniGameManager {
       _logger.info('Blueberry war game over due to time running out');
       _isGameOver = true;
       _hasWon = false;
-    } else if (players.every((player) => player.isDestroyed)) {
-      _logger.info('All players destroyed in blueberry war, you lose!');
+    } else if (blueberries.every((blueberry) => blueberry.isDestroyed)) {
+      _logger.info('All blueberries are destroyed, you lose!');
       _isGameOver = true;
       _hasWon = false;
     }

@@ -1,40 +1,45 @@
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:vector_math/vector_math.dart';
 
-final _logger = Logger('Agent');
+final _logger = Logger('BlueberryWarGameManagerHelpers');
 
-class BlueberryWarGameManagerHelpers {
-  ///
-  /// Radius of the player agent.
-  /// This is used to calculate the collision detection and the teleportation.
-  static Vector2 get playerRadius => Vector2(30.0, 30.0);
-
+class BlueberryWarConfig {
   ///
   /// Default field size for the game.
-  /// This is the size of the field where the players can play.
+  /// This is the total size of the game field.
   static final Vector2 fieldSize = Vector2(1920, 1080);
 
   ///
-  /// Field ratio is the part of the field reserved for players
-  static Vector2 get playerFieldSizeRatio => Vector2(1 / 5, 1);
+  /// Field ratio is the part of the field reserved for blueberries
+  static Vector2 get _blueberryFieldSizeRatio => Vector2(1 / 5, 1);
 
   ///
-  /// Calculate the player field size based on the total field size.
-  /// This is the area where players can play.
-  static Vector2 get playerFieldSize => Vector2(
-      fieldSize.x * playerFieldSizeRatio.x,
-      fieldSize.y * playerFieldSizeRatio.y);
+  /// This is the area where blueberries starts.
+  static Vector2 get blueberryFieldSize => Vector2(
+      fieldSize.x * _blueberryFieldSizeRatio.x,
+      fieldSize.y * _blueberryFieldSizeRatio.y);
 
   ///
-  /// Velocity threshold for teleportation which is used to determine if a player
+  /// Initial number of blueberries in the game.
+  static const int initialBlueberryCount = 10;
+
+  ///
+  /// Radius of the blueberry agent.
+  /// This is used to calculate the collision detection and the teleportation.
+  static Vector2 get blueberryRadius => Vector2(30.0, 30.0);
+
+  ///
+  /// Velocity threshold for teleportation which is used to determine if an agent
   /// is moving or not.
   static double get velocityThreshold => 20.0;
   static double get velocityThreshold2 => velocityThreshold * velocityThreshold;
+}
 
+class BlueberryWarGameManagerHelpers {
   ///
   /// Update all the agents in the list. This method should be called by the
   /// game loop.
@@ -42,22 +47,24 @@ class BlueberryWarGameManagerHelpers {
     required Duration dt,
     required List<Agent> allAgents,
     required SerializableLetterProblem problem,
-    Function(PlayerAgent)? onBlueberryDestroyed,
-    Function(LetterAgent)? onLetterHitByPlayer,
+    Function(BlueberryAgent)? onBlueberryDestroyed,
+    Function(LetterAgent)? onLetterHitByBlueberry,
     Function(LetterAgent first, LetterAgent second)? onLetterHitByLetter,
   }) {
     for (int i = 0; i < allAgents.length; i++) {
       // Move all agents
       final agent = allAgents[i];
 
-      final isPlayer = agent is PlayerAgent;
+      final isBlueberry = agent is BlueberryAgent;
       agent.update(
         dt: dt,
-        horizontalBounds: isPlayer
-            ? Vector2(0, fieldSize.x)
-            : Vector2(fieldSize.x / 5, fieldSize.x),
-        verticalBounds:
-            isPlayer ? Vector2(0, fieldSize.y) : Vector2(0, fieldSize.y),
+        horizontalBounds: isBlueberry
+            ? Vector2(0, BlueberryWarConfig.fieldSize.x)
+            : Vector2(BlueberryWarConfig.fieldSize.x / 5,
+                BlueberryWarConfig.fieldSize.x),
+        verticalBounds: isBlueberry
+            ? Vector2(0, BlueberryWarConfig.fieldSize.y)
+            : Vector2(0, BlueberryWarConfig.fieldSize.y),
       );
 
       // Check for collisions with other agents.
@@ -65,24 +72,24 @@ class BlueberryWarGameManagerHelpers {
       for (final other in allAgents.sublist(i + 1)) {
         if (agent.isCollidingWith(other)) {
           agent.performCollisionWith(other);
-          if (agent is LetterAgent && other is PlayerAgent) {
-            _performHitOfPlayerOnLetter(
-                player: other,
+          if (agent is LetterAgent && other is BlueberryAgent) {
+            _performHitOfBlueberryOnLetter(
+                blueberry: other,
                 letter: agent,
                 problem: problem,
                 onBlueberryDestroyed: onBlueberryDestroyed,
-                onLetterHitByPlayer: onLetterHitByPlayer);
-          } else if (agent is PlayerAgent && other is LetterAgent) {
-            _performHitOfPlayerOnLetter(
-                player: agent,
+                onLetterHitByBlueberry: onLetterHitByBlueberry);
+          } else if (agent is BlueberryAgent && other is LetterAgent) {
+            _performHitOfBlueberryOnLetter(
+                blueberry: agent,
                 letter: other,
                 problem: problem,
                 onBlueberryDestroyed: onBlueberryDestroyed,
-                onLetterHitByPlayer: onLetterHitByPlayer);
+                onLetterHitByBlueberry: onLetterHitByBlueberry);
           } else if (agent is LetterAgent && other is LetterAgent) {
             if (onLetterHitByLetter != null) onLetterHitByLetter(agent, other);
-          } else if (agent is PlayerAgent && other is PlayerAgent) {
-            // Two players colliding, do nothing
+          } else if (agent is BlueberryAgent && other is BlueberryAgent) {
+            // Two blueberries colliding, do nothing
           } else {
             _logger.warning(
               'Collision between ${agent.runtimeType} and ${other.runtimeType} not handled',
@@ -95,38 +102,40 @@ class BlueberryWarGameManagerHelpers {
 
   ///
   /// Check for teleportations
-  static void checkForPlayersTeleportation({
+  static void checkForBlueberriesTeleportation({
     required List<Agent> allAgents,
-    Function(PlayerAgent)? onPlayerTeleported,
+    Function(BlueberryAgent)? onBlueberryTeleported,
   }) {
     for (final agent in allAgents) {
-      final isPlayer = agent is PlayerAgent;
-      if (!isPlayer) continue;
+      final isBlueberry = agent is BlueberryAgent;
+      if (!isBlueberry) continue;
 
-      // Teleport back to starting if the player is out of starting block and does not move anymore
-      if (agent.position.x > fieldSize.x / 5 &&
-          agent.velocity.length2 < (velocityThreshold * velocityThreshold)) {
+      // Teleport back to starting if the blueberry is out of starting block and does not move anymore
+      if (agent.position.x > BlueberryWarConfig.fieldSize.x / 5 &&
+          agent.velocity.length2 <
+              (BlueberryWarConfig.velocityThreshold *
+                  BlueberryWarConfig.velocityThreshold)) {
         agent.teleport(
-            to: PlayerAgent.generateRandomStartingPosition(
-          playerFieldSize: BlueberryWarGameManagerHelpers.playerFieldSize,
-          playerRadius: BlueberryWarGameManagerHelpers.playerRadius,
+            to: BlueberryAgent.generateRandomStartingPosition(
+          blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,
+          blueberryRadius: BlueberryWarConfig.blueberryRadius,
         ));
-        if (onPlayerTeleported != null) onPlayerTeleported(agent);
+        if (onBlueberryTeleported != null) onBlueberryTeleported(agent);
       }
     }
   }
 
-  static void _performHitOfPlayerOnLetter({
-    required PlayerAgent player,
+  static void _performHitOfBlueberryOnLetter({
+    required BlueberryAgent blueberry,
     required LetterAgent letter,
     required SerializableLetterProblem problem,
-    required Function(PlayerAgent)? onBlueberryDestroyed,
-    required Function(LetterAgent)? onLetterHitByPlayer,
+    required Function(BlueberryAgent)? onBlueberryDestroyed,
+    required Function(LetterAgent)? onLetterHitByBlueberry,
   }) {
     if (letter.isBoss) {
-      // Destroy the player
-      player.destroy();
-      if (onBlueberryDestroyed != null) onBlueberryDestroyed(player);
+      // Destroy the blueberry
+      blueberry.destroy();
+      if (onBlueberryDestroyed != null) onBlueberryDestroyed(blueberry);
     } else {
       letter.hit();
       if (letter.isDestroyed) {
@@ -134,7 +143,7 @@ class BlueberryWarGameManagerHelpers {
         problem.uselessLetterStatuses[letter.problemIndex] =
             LetterStatus.normal;
       }
-      if (onLetterHitByPlayer != null) onLetterHitByPlayer(letter);
+      if (onLetterHitByBlueberry != null) onLetterHitByBlueberry(letter);
     }
   }
 }

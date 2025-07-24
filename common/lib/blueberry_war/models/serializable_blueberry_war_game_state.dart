@@ -1,10 +1,9 @@
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
-import 'package:vector_math/vector_math.dart';
 
 class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   SerializableBlueberryWarGameState({
@@ -24,7 +23,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   final bool isWon;
   final Duration timeRemaining;
   final List<Agent> allAgents;
-  List<PlayerAgent> get players => allAgents.whereType<PlayerAgent>().toList();
+  List<BlueberryAgent> get blueberries =>
+      allAgents.whereType<BlueberryAgent>().toList();
   List<LetterAgent> get letters => allAgents.whereType<LetterAgent>().toList();
   final SerializableLetterProblem problem;
 
@@ -61,7 +61,6 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     Duration? timeRemaining,
     bool? isOver,
     bool? isWon,
-    Vector2? playerFieldRatio,
     List<Agent>? allAgents,
     SerializableLetterProblem? problem,
   }) {

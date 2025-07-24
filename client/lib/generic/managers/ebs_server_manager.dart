@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:common/blueberry_war/models/agent.dart';
-import 'package:common/blueberry_war/models/player_agent.dart';
+import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -292,15 +292,15 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               type: MessageTypes.response,
               isSuccess: isSuccess));
 
-        case ToAppMessages.slingShootPlayerAgent:
+        case ToAppMessages.slingShootBlueberry:
           final bwm = Managers.instance.miniGames.blueberryWar;
-          final playerAgentId = message.data!['id'] as int;
-          final playerAgent = bwm.allAgents
-              .firstWhere((agent) => agent.id == playerAgentId) as PlayerAgent;
+          final blueberryId = message.data!['id'] as int;
+          final blueberry = bwm.allAgents
+              .firstWhere((agent) => agent.id == blueberryId) as BlueberryAgent;
 
           final velocity =
               Vector2Extension.deserialize(message.data!['velocity']);
-          bwm.slingShoot(player: playerAgent, newVelocity: velocity);
+          bwm.slingShoot(blueberry: blueberry, newVelocity: velocity);
 
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(
