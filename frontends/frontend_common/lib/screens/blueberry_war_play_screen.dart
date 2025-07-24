@@ -38,30 +38,64 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
     final gm = GameManager.instance;
     final thm = gm.miniGameState as SerializableBlueberryWarGameState;
     final twitchManager = TwitchManager.instance;
+    const headerHeight = 70.0;
 
-    return Column(
+    return Stack(
       children: [
-        const Center(child: _Header()),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FittedBox(
-              fit: BoxFit.contain,
-              child: SizedBox(
-                width: BlueberryWarGameManagerHelpers.playerFieldSize.x,
-                height: BlueberryWarGameManagerHelpers.playerFieldSize.y,
-                child: BlueberryWarFieldAgentsOverlay(
-                  players: thm.players,
-                  letters: thm.letters,
-                  isGameOver: thm.isOver,
-                  clockTicker: gm.onGameTicked,
-                  onPlayerSlingShoot: (player, newVelocity) {
-                    twitchManager.slingShootPlayerAgent(
-                        player: player, requestedVelocity: newVelocity);
-                  },
+        const Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(height: headerHeight, child: _Header())),
+        ColorFiltered(
+            colorFilter:
+                ColorFilter.mode(Colors.black.withAlpha(50), BlendMode.srcIn),
+            child: Container(
+              color: Colors.black,
+              child: Center(
+                child: Column(
+                  children: [
+                    Container(
+                        decoration: const BoxDecoration(
+                            color: Colors.white,
+                            backgroundBlendMode: BlendMode.dstOut),
+                        height: headerHeight),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                              color: Colors.white,
+                              backgroundBlendMode: BlendMode.dstOut),
+                          width:
+                              BlueberryWarGameManagerHelpers.playerFieldSize.x,
+                          height: BlueberryWarGameManagerHelpers.fieldSize.y,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            )),
+        Center(
+          child: Column(
+            children: [
+              Container(height: headerHeight),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: BlueberryWarPlayingField(
+                    players: thm.players,
+                    letters: thm.letters,
+                    isGameOver: thm.isOver,
+                    clockTicker: gm.onGameTicked,
+                    onPlayerSlingShoot: (player, newVelocity) {
+                      twitchManager.slingShootPlayerAgent(
+                          player: player, requestedVelocity: newVelocity);
+                    },
+                    drawPlayerFieldOnly: true,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

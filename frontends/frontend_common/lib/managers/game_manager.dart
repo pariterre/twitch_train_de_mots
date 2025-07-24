@@ -275,6 +275,7 @@ class GameManager {
           for (final agent in bwm.allAgents) {
             if (agent is! PlayerAgent) continue;
             // TODO: Fix the teleportation detection on frontend
+            // TODO: Fix state corruption when hitting the red target
             // If we detect a velocity of zero and the position is
             if (agent.velocity == Vector2.zero()) {
               agent.onTeleport.notifyListeners(

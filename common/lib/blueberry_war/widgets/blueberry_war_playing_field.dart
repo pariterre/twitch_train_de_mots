@@ -15,6 +15,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
     required this.isGameOver,
     required this.clockTicker,
     required this.onPlayerSlingShoot,
+    this.drawPlayerFieldOnly = false,
   });
 
   final List<PlayerAgent> players;
@@ -23,18 +24,20 @@ class BlueberryWarPlayingField extends StatelessWidget {
   final GenericListener clockTicker;
   final Function(PlayerAgent player, vector_math.Vector2 newVelocity)
       onPlayerSlingShoot;
+  final bool drawPlayerFieldOnly;
 
   @override
   Widget build(BuildContext context) {
     final fieldSize = BlueberryWarGameManagerHelpers.fieldSize;
+    final playerFieldSize = BlueberryWarGameManagerHelpers.playerFieldSize;
 
     return SizedBox(
-      width: fieldSize.x,
+      width: drawPlayerFieldOnly ? playerFieldSize.x : fieldSize.x,
       height: fieldSize.y,
       child: Stack(
         children: [
           Positioned(
-            left: fieldSize.x / 5,
+            left: playerFieldSize.x,
             child: SizedBox(
               height: fieldSize.y,
               child: VerticalDivider(

@@ -68,10 +68,8 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                         decoration: BoxDecoration(
                             color: Colors.white,
                             backgroundBlendMode: BlendMode.dstOut),
-                        child: SizedBox(
-                          width: BlueberryWarGameManagerHelpers.fieldSize.x,
-                          height: BlueberryWarGameManagerHelpers.fieldSize.y,
-                        ),
+                        width: BlueberryWarGameManagerHelpers.fieldSize.x,
+                        height: BlueberryWarGameManagerHelpers.fieldSize.y,
                       ),
                     ),
                   ),
