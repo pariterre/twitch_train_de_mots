@@ -302,6 +302,12 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               Vector2Extension.deserialize(message.data!['velocity']);
           bwm.slingShoot(blueberry: blueberry, newVelocity: velocity);
 
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: true));
+
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(
               'Bits redeemed should be handled by the EBS and rerouted properly');

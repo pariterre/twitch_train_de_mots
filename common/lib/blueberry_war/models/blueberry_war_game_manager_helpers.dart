@@ -33,6 +33,14 @@ class BlueberryWarConfig {
   static Vector2 get blueberryRadius => Vector2(30.0, 30.0);
 
   ///
+  /// The maximum velocity of the blueberry agent.
+  static double get blueberryMaxVelocity => 4000.0;
+
+  ///
+  /// The maximum velocity of the letter agent.
+  static double get letterMaxVelocity => 6000.0;
+
+  ///
   /// Velocity threshold for teleportation which is used to determine if an agent
   /// is moving or not.
   static double get velocityThreshold => 20.0;
@@ -54,22 +62,14 @@ class BlueberryWarGameManagerHelpers {
     for (int i = 0; i < allAgents.length; i++) {
       // Move all agents
       final agent = allAgents[i];
-
-      final isBlueberry = agent is BlueberryAgent;
-      agent.update(
-        dt: dt,
-        horizontalBounds: isBlueberry
-            ? Vector2(0, BlueberryWarConfig.fieldSize.x)
-            : Vector2(BlueberryWarConfig.fieldSize.x / 5,
-                BlueberryWarConfig.fieldSize.x),
-        verticalBounds: isBlueberry
-            ? Vector2(0, BlueberryWarConfig.fieldSize.y)
-            : Vector2(0, BlueberryWarConfig.fieldSize.y),
-      );
+      agent.update(dt: dt);
 
       // Check for collisions with other agents.
       // Do not redo collisions with agents that have already been checked.
       for (final other in allAgents.sublist(i + 1)) {
+        // Do not collide Blueberry with Blueberry
+        if (agent is BlueberryAgent && other is BlueberryAgent) continue;
+
         if (agent.isCollidingWith(other)) {
           agent.performCollisionWith(other);
           if (agent is LetterAgent && other is BlueberryAgent) {
@@ -111,7 +111,7 @@ class BlueberryWarGameManagerHelpers {
       if (!isBlueberry) continue;
 
       // Teleport back to starting if the blueberry is out of starting block and does not move anymore
-      if (agent.position.x > BlueberryWarConfig.fieldSize.x / 5 &&
+      if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&
           agent.velocity.length2 <
               (BlueberryWarConfig.velocityThreshold *
                   BlueberryWarConfig.velocityThreshold)) {

@@ -312,12 +312,13 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:
-          communicator.sendReponse((await _frontendRequestedGameState())
-              .copyWith(
-                  to: MessageTo.frontend,
-                  from: MessageFrom.ebs,
-                  type: MessageTypes.response,
-                  isSuccess: true));
+          final response = await _frontendRequestedGameState();
+          communicator.sendReponse(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.ebs,
+              type: MessageTypes.response,
+              data: response.data,
+              isSuccess: true));
           break;
 
         case ToAppMessages.pardonRequest:

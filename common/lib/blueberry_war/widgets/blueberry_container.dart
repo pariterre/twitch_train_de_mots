@@ -155,10 +155,6 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
     final position = _getBlueberryPosition();
     final alpha = _computeAlpha();
 
-    if (widget.blueberry.isDestroyed && !_isFading) {
-      return const SizedBox.shrink();
-    }
-
     final mainWidget = Container(
       width: widget.blueberry.radius.x * 2,
       height: widget.blueberry.radius.y * 2,
@@ -166,16 +162,18 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
         shape: BoxShape.circle,
         color: Colors.transparent,
       ),
-      child: Image.asset(
-        'packages/common/assets/images/blueberry_war/blueberries.png',
-        fit: BoxFit.cover,
-        opacity: AlwaysStoppedAnimation<double>(
-          alpha / 255.0,
-        ),
-        color: widget.blueberry.isDestroyed
-            ? Color.fromARGB(alpha, 255, 0, 0)
-            : null,
-      ),
+      child: widget.blueberry.isDestroyed && !_isFading
+          ? null
+          : Image.asset(
+              'packages/common/assets/images/blueberry_war/blueberries.png',
+              fit: BoxFit.cover,
+              opacity: AlwaysStoppedAnimation<double>(
+                alpha / 255.0,
+              ),
+              color: widget.blueberry.isDestroyed
+                  ? Color.fromARGB(alpha, 255, 0, 0)
+                  : null,
+            ),
     );
 
     return Positioned(

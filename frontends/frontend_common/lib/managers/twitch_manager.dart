@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
@@ -643,8 +644,10 @@ class TwitchManagerMock extends TwitchManager {
                               position: Vector2(random.nextDouble() * 300,
                                   random.nextDouble() * 1080),
                               velocity: Vector2(0, 0),
+                              isInField: false,
                               radius: Vector2(30.0, 30.0),
-                              maxVelocity: 2000.0,
+                              maxVelocity:
+                                  BlueberryWarConfig.blueberryMaxVelocity,
                               mass: 3.0,
                               coefficientOfFriction: 0.8)
                           : LetterAgent(
@@ -655,7 +658,7 @@ class TwitchManagerMock extends TwitchManager {
                               position: Vector2(random.nextDouble() * 300,
                                   random.nextDouble() * 1080),
                               velocity: Vector2(0, 0),
-                              maxVelocity: 6000.0,
+                              maxVelocity: BlueberryWarConfig.letterMaxVelocity,
                               radius: Vector2(30.0, 30.0),
                               mass: 3.0,
                               coefficientOfFriction: 0.8)),

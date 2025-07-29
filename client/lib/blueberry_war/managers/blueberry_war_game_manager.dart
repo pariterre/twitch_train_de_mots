@@ -144,7 +144,7 @@ class BlueberryWarGameManager implements MiniGameManager {
                   _random.nextDouble() * 1500 - 750,
                   _random.nextDouble() * 1500 - 750,
                 ),
-          maxVelocity: 6000.0,
+          maxVelocity: BlueberryWarConfig.letterMaxVelocity,
           radius: Vector2(40.0, 50.0),
           mass: 1.0,
           coefficientOfFriction: (isBoss ? -0.2 : 0.5),
@@ -162,7 +162,8 @@ class BlueberryWarGameManager implements MiniGameManager {
             blueberryRadius: BlueberryWarConfig.blueberryRadius,
           ),
           velocity: Vector2.zero(),
-          maxVelocity: 2000.0,
+          isInField: false,
+          maxVelocity: BlueberryWarConfig.blueberryMaxVelocity,
           radius: BlueberryWarConfig.blueberryRadius,
           mass: 3.0,
           coefficientOfFriction: 0.8,
@@ -213,6 +214,10 @@ class BlueberryWarGameManager implements MiniGameManager {
       }
 
       blueberry.velocity = newVelocity * scale;
+
+      // Start the timer if it is not started already
+      _startTime ??= DateTime.now();
+
       onGameUpdated.notifyListeners((callback) => callback());
     } else {
       _logger.warning(
@@ -281,7 +286,6 @@ class BlueberryWarGameManager implements MiniGameManager {
     }
 
     // Check if the game is over
-    _manageStartOfGame();
     _manageForGameOver();
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
@@ -316,19 +320,6 @@ class BlueberryWarGameManager implements MiniGameManager {
       onGameUpdated.notifyListeners((callback) => callback());
     }
     _tickClock();
-  }
-
-  void _manageStartOfGame() {
-    if (_startTime != null) return;
-
-    for (final agent in allAgents) {
-      if (agent is! BlueberryAgent) continue;
-      if (agent.velocity.length2 != 0.0) {
-        _logger.info('Blueberry war timer started');
-        _startTime = DateTime.now();
-        break;
-      }
-    }
   }
 
   void _manageForGameOver() {

@@ -8,6 +8,9 @@ class BlueberryAgent extends Agent {
   @override
   AgentShape get shape => AgentShape.circle;
 
+  bool _isInField;
+  bool get isInField => _isInField;
+  bool get isNotInField => !_isInField;
   bool _isDestroyed;
   @override
   bool get isDestroyed => _isDestroyed;
@@ -20,12 +23,14 @@ class BlueberryAgent extends Agent {
     required super.id,
     required super.position,
     required super.velocity,
+    required bool isInField,
     required super.radius,
     required super.maxVelocity,
     required super.mass,
     required super.coefficientOfFriction,
     bool isDestroyed = false,
-  }) : _isDestroyed = isDestroyed;
+  })  : _isInField = isInField,
+        _isDestroyed = isDestroyed;
 
   @override
   AgentType get agentType => AgentType.blueberry;
@@ -36,6 +41,7 @@ class BlueberryAgent extends Agent {
         'agent_type': agentType.index,
         'position': position.serialize(),
         'velocity': velocity.serialize(),
+        'is_in_field': isInField,
         'max_velocity': maxVelocity,
         'radius': radius.serialize(),
         'mass': mass,
@@ -49,6 +55,7 @@ class BlueberryAgent extends Agent {
       id: map['id'] as int,
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
+      isInField: map['is_in_field'] as bool? ?? false,
       maxVelocity: (map['max_velocity'] as num).toDouble(),
       radius: Vector2Extension.deserialize(map['radius']),
       mass: (map['mass'] as num).toDouble(),
@@ -60,7 +67,8 @@ class BlueberryAgent extends Agent {
   bool get canBeSlingShot {
     // A blueberry can be slingshot if it is not destroyed and has a velocity
     return !isDestroyed &&
-        velocity.length2 < BlueberryWarConfig.velocityThreshold2;
+        velocity.length2 < BlueberryWarConfig.velocityThreshold2 &&
+        isNotInField;
   }
 
   static Vector2 generateRandomStartingPosition({
@@ -76,4 +84,25 @@ class BlueberryAgent extends Agent {
           (random.nextDouble() * blueberryFieldSize.y * 6 / 8.0),
     );
   }
+
+  @override
+  void update({required Duration dt}) {
+    final out = super.update(dt: dt);
+
+    // Flag the blueberry as in the field
+    if (position.x > BlueberryWarConfig.blueberryFieldSize.x) _isInField = true;
+
+    return out;
+  }
+
+  @override
+  void teleport({required Vector2 to}) {
+    super.teleport(to: to);
+    _isInField = false;
+  }
+
+  @override
+  Vector2 get horizontalBounds => isInField
+      ? super.horizontalBounds
+      : Vector2(0, BlueberryWarConfig.fieldSize.x);
 }

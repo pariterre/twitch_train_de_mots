@@ -1,4 +1,5 @@
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:vector_math/vector_math.dart';
@@ -57,11 +58,7 @@ abstract class Agent {
     }
   }
 
-  void update({
-    required Duration dt,
-    required Vector2 horizontalBounds,
-    required Vector2 verticalBounds,
-  }) {
+  void update({required Duration dt}) {
     if (isDestroyed) return;
 
     // Update position
@@ -77,13 +74,17 @@ abstract class Agent {
           : horizontalBounds.y - radius.x;
       velocity.x = -velocity.x;
     }
-    if (isOutOfVerticlaBounds(verticalBounds)) {
+    if (isOutOfVerticalBounds(verticalBounds)) {
       position.y = topBorder < verticalBounds.x
           ? verticalBounds.x + radius.y
           : verticalBounds.y - radius.y;
       velocity.y = -velocity.y;
     }
   }
+
+  Vector2 get horizontalBounds => Vector2(
+      BlueberryWarConfig.blueberryFieldSize.x, BlueberryWarConfig.fieldSize.x);
+  Vector2 get verticalBounds => Vector2(0, BlueberryWarConfig.fieldSize.y);
 
   void performCollisionWith(Agent other) {
     if (isDestroyed || other.isDestroyed) return;
@@ -150,18 +151,12 @@ abstract class Agent {
   }
 
   ///
-  /// Check if this agent is out of the bounds
-  bool isOutOfBounds(Vector2 horizontalBounds, Vector2 verticalBounds) =>
-      isOutOfHorizontalBounds(horizontalBounds) ||
-      isOutOfVerticlaBounds(verticalBounds);
-
-  ///
   /// Check if this agent is out of the bounds on the X axis
   bool isOutOfHorizontalBounds(Vector2 bounds) =>
       leftBorder < bounds.x || rightBorder > bounds.y;
 
   ///
   /// Check if this agent is out of the bounds on the Y axis
-  bool isOutOfVerticlaBounds(Vector2 bounds) =>
+  bool isOutOfVerticalBounds(Vector2 bounds) =>
       topBorder < bounds.x || bottomBorder > bounds.y;
 }

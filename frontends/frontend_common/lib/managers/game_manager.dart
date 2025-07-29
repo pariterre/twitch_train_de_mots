@@ -267,17 +267,18 @@ class GameManager {
         {
           final bwm =
               _gameState.miniGameState as SerializableBlueberryWarGameState;
-          newGameState = bwm.copyWith(timeRemaining: bwm.timeRemaining - dt);
+          newGameState = bwm.copyWith(
+              timeRemaining:
+                  bwm.isStarted ? bwm.timeRemaining - dt : bwm.timeRemaining);
 
           BlueberryWarGameManagerHelpers.updateAllAgents(
               allAgents: bwm.allAgents, dt: dt, problem: bwm.problem);
           // Check for teleportations
           for (final agent in bwm.allAgents) {
             if (agent is! BlueberryAgent) continue;
-            // TODO: Fix the teleportation detection on frontend
-            // TODO: Fix state corruption when hitting the red target
-            // If we detect a velocity of zero and the position is
-            if (agent.velocity == Vector2.zero()) {
+            // If we detect a velocity of zero and when the blueberry is in starting block
+            if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&
+                agent.velocity == Vector2.zero()) {
               agent.onTeleport.notifyListeners(
                   (callback) => callback(agent.position, agent.position));
             }
