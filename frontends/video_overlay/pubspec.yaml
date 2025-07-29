@@ -34,3 +34,6 @@ flutter:
     - family: BaskervvilleSC
       fonts:
         - asset: packages/common/assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
+    - family: Roboto
+      fonts:
+        - asset: packages/common/assets/fonts/Roboto/Roboto.woff2
