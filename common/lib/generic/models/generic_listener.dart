@@ -46,4 +46,11 @@ class GenericListener<T extends Function> {
   ///
   /// List of active listeners to notify.
   final List<T> _listeners = [];
+
+  ///
+  /// Copy the listeners from another GenericListener.
+  void copyListenersFrom(GenericListener<T> other) {
+    _listeners.clear();
+    _listeners.addAll(other._listeners);
+  }
 }

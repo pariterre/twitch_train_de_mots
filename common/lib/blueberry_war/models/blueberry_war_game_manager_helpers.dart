@@ -34,7 +34,7 @@ class BlueberryWarConfig {
 
   ///
   /// The maximum velocity of the blueberry agent.
-  static double get blueberryMaxVelocity => 4000.0;
+  static double get blueberryMaxVelocity => 3000.0;
 
   ///
   /// The maximum velocity of the letter agent.
@@ -112,9 +112,7 @@ class BlueberryWarGameManagerHelpers {
 
       // Teleport back to starting if the blueberry is out of starting block and does not move anymore
       if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&
-          agent.velocity.length2 <
-              (BlueberryWarConfig.velocityThreshold *
-                  BlueberryWarConfig.velocityThreshold)) {
+          agent.velocity.length2 < BlueberryWarConfig.velocityThreshold2) {
         agent.teleport(
             to: BlueberryAgent.generateRandomStartingPosition(
           blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,

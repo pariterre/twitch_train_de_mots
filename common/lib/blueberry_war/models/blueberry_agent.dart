@@ -87,12 +87,14 @@ class BlueberryAgent extends Agent {
 
   @override
   void update({required Duration dt}) {
-    final out = super.update(dt: dt);
-
     // Flag the blueberry as in the field
-    if (position.x > BlueberryWarConfig.blueberryFieldSize.x) _isInField = true;
+    if (position.x >
+        BlueberryWarConfig.blueberryFieldSize.x +
+            BlueberryWarConfig.blueberryRadius.x) {
+      _isInField = true;
+    }
 
-    return out;
+    return super.update(dt: dt);
   }
 
   @override

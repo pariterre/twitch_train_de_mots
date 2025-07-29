@@ -12,7 +12,6 @@ import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:vector_math/vector_math.dart';
 
 final _logger = Logger('GameManager');
 
@@ -160,6 +159,21 @@ class GameManager {
     }
 
     if (_gameState.miniGameState != newGameState.miniGameState) {
+      if (_gameState.miniGameState is SerializableBlueberryWarGameState &&
+          newGameState.miniGameState is SerializableBlueberryWarGameState) {
+        // Keep the listeners of the blueberry agents
+        for (final agent
+            in (newGameState.miniGameState as SerializableBlueberryWarGameState)
+                .allAgents) {
+          if (agent is! BlueberryAgent) continue;
+          final currentAgent =
+              (_gameState.miniGameState as SerializableBlueberryWarGameState)
+                  .allAgents
+                  .firstWhere((a) => a.id == agent.id);
+          agent.onTeleport.copyListenersFrom(currentAgent.onTeleport);
+          agent.onDestroyed.copyListenersFrom(currentAgent.onDestroyed);
+        }
+      }
       _gameState.miniGameState = newGameState.miniGameState;
       _logger.info('Mini game state changed');
       onMiniGameStateUpdated.notifyListeners((callback) => callback());
@@ -278,7 +292,8 @@ class GameManager {
             if (agent is! BlueberryAgent) continue;
             // If we detect a velocity of zero and when the blueberry is in starting block
             if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&
-                agent.velocity == Vector2.zero()) {
+                agent.velocity.length2 <
+                    BlueberryWarConfig.velocityThreshold2 + 1.0) {
               agent.onTeleport.notifyListeners(
                   (callback) => callback(agent.position, agent.position));
             }
