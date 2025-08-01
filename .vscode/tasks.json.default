@@ -18,7 +18,30 @@
                 "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
             }
         }
+      },
+    {
+      "label": "Build Client release",
+      "type": "shell",
+      "command": "make",
+      "args": [ "client" ],
+      "problemMatcher": [],
+      "isBackground": false,
+      "options": {
+        "env": {
+          "SSH_USER": "USER_FOR_SSH_SERVICE",
+          "SSH_SERVER": "SERVER_URL",
+          "SSH_FOLDER_CLIENT": "FOLDER_IN_SERVER"
+        }
       }
+    },
+    {
+      "label": "Build Extensions release",
+      "type": "shell",
+      "command": "make",
+      "args": [ "extensions" ],
+      "problemMatcher": [ ],
+      "isBackground": false
+    }
     ]
   }
   

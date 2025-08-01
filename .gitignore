@@ -3,5 +3,7 @@
 
 
 .vscode/tasks.json
-
 .vscode/launch.json
+
+# Build directories
+/build/
