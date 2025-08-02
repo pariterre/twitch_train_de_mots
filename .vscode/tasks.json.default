@@ -1,24 +1,24 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "Run Dart Server",
-        "type": "shell",
-        "command": "dart",
-        "args": ["ebs/bin/train_de_mots_ebs.dart"],
-        "problemMatcher": [],
-        "isBackground": true,
-        "group": {
-          "kind": "build",
-          "isDefault": true
-        }, 
-        "options": {
-          "env": {
-                "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
-                "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
-            }
-        }
-      },
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Dart Server",
+      "type": "shell",
+      "command": "dart",
+      "args": ["ebs/bin/train_de_mots_ebs.dart"],
+      "problemMatcher": [],
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }, 
+      "options": {
+        "env": {
+              "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
+              "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
+          }
+      }
+    },
     {
       "label": "Build Client release",
       "type": "shell",
@@ -39,9 +39,9 @@
       "type": "shell",
       "command": "make",
       "args": [ "extensions" ],
-      "problemMatcher": [ ],
+      "problemMatcher": [],
       "isBackground": false
     }
-    ]
-  }
+  ]
+}
   

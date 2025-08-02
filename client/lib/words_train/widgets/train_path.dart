@@ -288,7 +288,7 @@ class _Hallmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSuccess = controller.currentStep >= starPosition;
+    final isSuccess = controller.currentStep > starPosition;
     final color = isSuccess ? Colors.amber : Colors.grey;
 
     final starWidget = Icon(Icons.star,
