@@ -483,5 +483,17 @@ const List<ReleaseNotes> releaseNotes = [
               'ATTENTION: vous devez avoir activé l\'extension Twitch pour que '
               'vos chemino\u00b7t\u00b7e\u00b7s puissent y jouer!'),
     ],
-  )
+  ),
+  ReleaseNotes(
+      version: '1.4.1',
+      codeName: 'Promenons-nous (encore) dans les bois',
+      notes: 'Juste quelques petites réparations de bogues!',
+      features: [
+        FeatureNotes(
+            description:
+                'L\'étoile ne change plus de couleur avant que le train n\'arrive à la station'),
+        FeatureNotes(
+            description:
+                'Le boost est maintenant collecté durant le jeu plutôt qu\'à la fin de la manche.'),
+      ]),
 ];
