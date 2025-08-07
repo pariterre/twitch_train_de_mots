@@ -899,11 +899,11 @@ class WordsTrainGameManager {
         }
         if (_forceGoldenSolution) {
           // When forcing the golden solution, pick a solution with the highest score value
-          // and that is not found yet. If there is no solution with the highest score,
+          // that is not found yet. If there is no solution with the highest score,
           // then pick a solution with the next best score that is not found yet until
           // there is no more solution to pick. If there is no solution to pick,
           // then break the loop and do not set a golden solution.
-          int highestScore = _currentProblem!.solutionWithHighestScore;
+          int highestScore = _currentProblem!.solutions.highestScore;
 
           while (true) {
             final bestSolutions = _currentProblem!.solutions
@@ -1046,7 +1046,7 @@ class WordsTrainGameManager {
     }
     _isAttemptingTheBigHeist = false;
 
-    if (_currentProblem!.teamScore >= _currentProblem!.maximumPossibleScore) {
+    if (_currentProblem!.teamScore >= _currentProblem!.solutions.totalScore) {
       _roundSuccesses.add(RoundSuccess.maxPoints);
       _remainingBoosts += 1;
       onNewBoostGranted.notifyListeners((callback) => callback());
@@ -1141,7 +1141,7 @@ class WordsTrainGameManager {
   }
 
   int pointsToObtain(SuccessLevel level) {
-    final maxScore = problem?.maximumPossibleScore ?? 0;
+    final maxScore = problem?.solutions.totalScore ?? 0;
     switch (level) {
       case SuccessLevel.oneStar:
         return (maxScore * _currentDifficulty.thresholdFactorOneStar).toInt();
@@ -1202,6 +1202,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     bool shouldChangeLane = false,
     bool isNextRoundAMiniGame = false,
     MiniGames? nextMiniGame,
+    bool? forceGoldenSolution,
   }) : super(deltaTime: Duration(milliseconds: 100)) {
     if (players != null) {
       for (final player in players) {
@@ -1251,6 +1252,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     _previousRoundTimeRemaining = Duration(seconds: 100);
     _isNextRoundAMiniGame = isNextRoundAMiniGame;
     _currentMiniGame = nextMiniGame;
+    _forceGoldenSolution = forceGoldenSolution ?? false;
 
     _asyncInitializations();
   }

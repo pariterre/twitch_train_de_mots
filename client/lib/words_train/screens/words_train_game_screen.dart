@@ -127,7 +127,7 @@ class _HeaderState extends State<_Header> {
 
     final gm = Managers.instance.train;
     int currentScore = min(Managers.instance.train.problem!.teamScore,
-        gm.problem?.maximumPossibleScore ?? 1);
+        gm.problem?.solutions.totalScore ?? 1);
     if (_previousScore < currentScore) {
       for (int i = _previousScore; i < currentScore; i++) {
         _trainPath.moveForward();
@@ -146,7 +146,7 @@ class _HeaderState extends State<_Header> {
     final gm = Managers.instance.train;
 
     _previousScore = 0;
-    _trainPath.nbSteps = gm.problem?.maximumPossibleScore ?? 1;
+    _trainPath.nbSteps = gm.problem?.solutions.totalScore ?? 1;
     _trainPath.hallMarks = gm.isAttemptingTheBigHeist
         ? [gm.pointsToObtain(SuccessLevel.threeStars)]
         : [

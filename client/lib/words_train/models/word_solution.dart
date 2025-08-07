@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
@@ -113,7 +115,10 @@ class WordSolutions extends DelegatingList<WordSolution> {
           : element.word.length);
 
   ///
-  /// Get the maximum possible score for this solution
-  int get maximumPossibleScore =>
-      _solutions.fold(0, (prev, e) => prev + e.wordValue);
+  /// Get the score of the solution with the highest score
+  int get highestScore => _solutions.fold(0, (prev, e) => max(prev, e.value));
+
+  ///
+  /// Get the maximum possible score obtained by finding all the solutions
+  int get totalScore => _solutions.fold(0, (prev, e) => prev + e.wordValue);
 }
