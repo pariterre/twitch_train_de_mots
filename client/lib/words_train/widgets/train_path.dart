@@ -6,7 +6,8 @@ import 'package:train_de_mots/generic/managers/managers.dart';
 
 class TrainPathController {
   int _nbSteps = 1;
-  final List<int> _hallMarks = [];
+  final List<int> _starHallMarks = [];
+  int _boostHallMarks = -1;
   final int millisecondsPerStep;
 
   TrainPathController({required this.millisecondsPerStep});
@@ -17,25 +18,29 @@ class TrainPathController {
     steps = List.generate(_nbSteps, (index) => index / _nbSteps);
   }
 
-  set hallMarks(List<int> hallMarks) {
+  set starHallMarks(List<int> hallMarks) {
     nextMoves.clear();
     _controller?.animateTo(1, duration: Duration.zero);
     _isMoving = false;
 
-    _hallMarks.clear();
-    _hallMarks.addAll(hallMarks);
+    _starHallMarks.clear();
+    _starHallMarks.addAll(hallMarks);
 
-    _hallMarks.sort();
-    _resetFireworks();
+    _starHallMarks.sort();
+    _resetStarFireworks();
   }
 
-  void _resetFireworks() {
-    for (final firework in _fireworksControllers) {
+  set boostHallMark(int boostHallMark) {
+    _boostHallMarks = boostHallMark;
+  }
+
+  void _resetStarFireworks() {
+    for (final firework in _starFireworksControllers) {
       firework.dispose();
     }
-    _fireworksControllers.clear();
-    for (final _ in _hallMarks) {
-      _fireworksControllers.add(FireworksController(
+    _starFireworksControllers.clear();
+    for (final _ in _starHallMarks) {
+      _starFireworksControllers.add(FireworksController(
           minColor: const Color.fromARGB(185, 255, 155, 0),
           maxColor: const Color.fromARGB(185, 255, 255, 50)));
     }
@@ -53,7 +58,10 @@ class TrainPathController {
 
   AnimationController? _controller;
   late Animation<double> _animation;
-  final List<FireworksController> _fireworksControllers = [];
+  final List<FireworksController> _starFireworksControllers = [];
+  final FireworksController _boostFireworksController = FireworksController(
+      minColor: const Color.fromARGB(184, 109, 58, 1),
+      maxColor: const Color.fromARGB(184, 255, 145, 0));
 
   double get position =>
       _reversed ? _getReversedPosition() : _getForwardPosition();
@@ -106,10 +114,15 @@ class TrainPathController {
 
     _reversed = false;
     await _controller?.forward(from: 0.0);
-    if (_hallMarks.contains(_currentStep)) {
-      _fireworksControllers[_hallMarks.indexOf(_currentStep)].trigger();
+    if (_starHallMarks.contains(_currentStep)) {
+      _starFireworksControllers[_starHallMarks.indexOf(_currentStep)].trigger();
       Managers.instance.sound.playTrainReachedStation();
     }
+
+    if (_boostHallMarks == _currentStep) {
+      _boostFireworksController.trigger();
+    }
+
     if (_refreshCallback != null) _refreshCallback!();
   }
 
@@ -124,8 +137,8 @@ class TrainPathController {
 
     _reversed = true;
     await _controller?.reverse(from: 1.0);
-    if (_hallMarks.contains(_currentStep + 1)) {
-      _fireworksControllers[_hallMarks.indexOf(_currentStep + 1)]
+    if (_starHallMarks.contains(_currentStep + 1)) {
+      _starFireworksControllers[_starHallMarks.indexOf(_currentStep + 1)]
           .triggerReversed();
       Managers.instance.sound.playTrainLostStation();
     }
@@ -133,6 +146,10 @@ class TrainPathController {
   }
 
   void dispose() {
+    for (final firework in _starFireworksControllers) {
+      firework.dispose();
+    }
+    _boostFireworksController.dispose();
     _controller?.dispose();
   }
 
@@ -185,7 +202,9 @@ class _TrainPathState extends State<TrainPath>
 
   @override
   Widget build(BuildContext context) {
+    final gm = Managers.instance.train;
     final hallmarkSize = widget.height * 0.6;
+    final boostSize = hallmarkSize * 3 / 4;
 
     return Stack(
       alignment: Alignment.centerLeft,
@@ -196,27 +215,63 @@ class _TrainPathState extends State<TrainPath>
             pathToComeHeight: widget.height * 0.10,
             pathLength: widget.pathLength,
             controller: widget.controller),
-        ...widget.controller._hallMarks.map((starPosition) => _Hallmark(
-              controller: widget.controller,
-              pathLength: widget.pathLength,
-              hallmarkSize: hallmarkSize,
-              starPosition: starPosition,
-            )),
+        ...widget.controller._starHallMarks.map((starPosition) {
+          final starColor = widget.controller.currentStep > starPosition
+              ? Colors.amber
+              : Colors.grey;
+          return _Hallmark(
+            controller: widget.controller,
+            icon: Icon(Icons.star,
+                color: starColor,
+                size: hallmarkSize,
+                shadows: [
+                  Shadow(
+                      color: starColor.shade300,
+                      blurRadius: hallmarkSize * 0.15)
+                ]),
+            pathLength: widget.pathLength,
+            hallmarkSize: hallmarkSize,
+            hallmarkPosition: starPosition,
+          );
+        }),
+        if (!gm.boostWasGrantedThisRound)
+          _Hallmark(
+            icon: Icon(Icons.bolt_sharp,
+                size: boostSize,
+                color: Colors.amber,
+                shadows: [
+                  Shadow(
+                      color: Colors.amber.shade300,
+                      blurRadius: boostSize * 0.15)
+                ]),
+            controller: widget.controller,
+            pathLength: widget.pathLength,
+            hallmarkSize: boostSize,
+            hallmarkPosition: widget.controller._boostHallMarks,
+          ),
         _Train(
             iconSize: widget.height,
             pathLength: widget.pathLength,
             controller: widget.controller),
-        ...widget.controller._hallMarks.asMap().entries.map((e) {
+        ...widget.controller._starHallMarks.asMap().entries.map((e) {
           final index = e.key;
           final starPosition = e.value;
           return _HallmarkFireworks(
             trainController: widget.controller,
-            fireworksController: widget.controller._fireworksControllers[index],
+            fireworksController:
+                widget.controller._starFireworksControllers[index],
             pathLength: widget.pathLength,
             hallmarkSize: widget.height * 0.6,
-            starPosition: starPosition,
+            hallmarkPosition: starPosition,
           );
         }),
+        _HallmarkFireworks(
+          trainController: widget.controller,
+          fireworksController: widget.controller._boostFireworksController,
+          pathLength: widget.pathLength,
+          hallmarkSize: widget.height * 0.6,
+          hallmarkPosition: widget.controller._boostHallMarks,
+        )
       ],
     );
   }
@@ -276,38 +331,32 @@ class _Rail extends StatelessWidget {
 class _Hallmark extends StatelessWidget {
   const _Hallmark({
     required this.controller,
-    required this.starPosition,
+    required this.icon,
+    required this.hallmarkPosition,
     required this.pathLength,
     required this.hallmarkSize,
   });
 
   final TrainPathController controller;
+  final Icon icon;
   final double pathLength;
-  final int starPosition;
+  final int hallmarkPosition;
   final double hallmarkSize;
 
   @override
   Widget build(BuildContext context) {
-    final isSuccess = controller.currentStep > starPosition;
-    final color = isSuccess ? Colors.amber : Colors.grey;
-
-    final starWidget = Icon(Icons.star,
-        color: color,
-        size: hallmarkSize,
-        shadows: [
-          Shadow(color: color.shade300, blurRadius: hallmarkSize * 0.15)
-        ]);
+    final isSuccess = controller.currentStep > hallmarkPosition;
 
     return Positioned(
-        left:
-            starPosition * pathLength / controller._nbSteps - hallmarkSize / 2,
+        left: hallmarkPosition * pathLength / controller._nbSteps -
+            hallmarkSize / 2,
         top: hallmarkSize * 0.25,
         child: isSuccess
             ? GrowingWidget(
                 growingFactor: 0.9,
                 duration: const Duration(milliseconds: 750),
-                child: starWidget)
-            : starWidget);
+                child: icon)
+            : icon);
   }
 }
 
@@ -316,20 +365,20 @@ class _HallmarkFireworks extends StatelessWidget {
     required this.trainController,
     required this.fireworksController,
     required this.pathLength,
-    required this.starPosition,
+    required this.hallmarkPosition,
     required this.hallmarkSize,
   });
 
   final TrainPathController trainController;
   final FireworksController fireworksController;
   final double pathLength;
-  final int starPosition;
+  final int hallmarkPosition;
   final double hallmarkSize;
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-        left: starPosition * pathLength / trainController._nbSteps -
+        left: hallmarkPosition * pathLength / trainController._nbSteps -
             hallmarkSize / 2,
         top: hallmarkSize * 0.25,
         child: SizedBox(

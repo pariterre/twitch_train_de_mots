@@ -2,6 +2,7 @@ class Difficulty {
   final double thresholdFactorOneStar;
   final double thresholdFactorTwoStars;
   final double thresholdFactorThreeStars;
+  final double newBoostThreshold;
 
   final bool hasUselessLetter;
   final int revealUselessLetterAtTimeLeft;
@@ -24,6 +25,7 @@ class Difficulty {
     required this.thresholdFactorOneStar,
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
+    required this.newBoostThreshold,
     this.message,
     required this.hasUselessLetter,
     this.revealUselessLetterAtTimeLeft = -1,

@@ -539,6 +539,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
+        newBoostThreshold: 0.8,
         hasUselessLetter: false,
         hasHiddenLetter: false,
         bigHeistProbability: 0,
@@ -553,6 +554,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
+        newBoostThreshold: 0.9,
         message: 'Vous vous enfoncez de plus en plus au Nord et les stations '
             's\'éloignent les unes des autres...\n'
             'Le travail d\'équipe de vos cheminot\u00b7e\u00b7s sera de la plus '
@@ -571,6 +573,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
+        newBoostThreshold: 0.9,
         message: 'Faites attention, cheminot\u00b7e\u00b7s, vous arrivez dans '
             'terres non défrichées!\n'
             'Malgré tous nos efforts, nous ne pouvons vous '
@@ -590,6 +593,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
+        newBoostThreshold: 0.9,
         message:
             'Votre chemin est tout bonnement incroyable, cheminot\u00b7e\u00b7s! '
             'Vous avez réussi à vous frayer un chemin dans des terres inconnues!\n'
@@ -611,6 +615,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.55,
         thresholdFactorTwoStars: 0.70,
         thresholdFactorThreeStars: 0.85,
+        newBoostThreshold: 0.9,
         message:
             'Encore une fois, toutes mes félicitations, cheminot\u00b7e\u00b7s! '
             'Vous avez emmené le Petit Train du Nord où nul autre n\'a osé aller, enfin depuis longtemps!\n'
@@ -632,6 +637,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
+        newBoostThreshold: 0.8,
         message:
             'Ô malheur cheminot\u00b7e\u00b7s! Le carburant se raréfie et les '
             'et les réserves s\'épuisent... Nous ne pouvons plus nous permettre '
@@ -654,6 +660,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
+        newBoostThreshold: 0.9,
         message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
             'cheminot\u00b7e\u00b7s, et les communications deviennent difficiles...\n'
             'Notre équipe continue de faire de son mieux pour vous aider, mais '
@@ -673,6 +680,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
+        newBoostThreshold: 0.95,
         message:
             'Cheminot\u00b7e\u00b7s, vou... atteignez maintenant la limit... '
             'de nos communicat... À partir d\'ici, vo... êtes seul\u00b7e\u00b7s '
@@ -693,6 +701,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.7,
         thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.95,
+        newBoostThreshold: 0.98,
         message: '... .., ... ..\n..... ... ..!',
         hasUselessLetter: true,
         hasHiddenLetter: true,
@@ -709,6 +718,7 @@ class ConfigurationManager {
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,
+        newBoostThreshold: 1.0,
         message: 'OH! OH! OH!\n'
             'Bonjour cheminot\u00b7e\u00b7s! Que faites vous ici? Mon rennes '
             'vous a vu passer il y a quelques instants! OH! OH! OH!\n'

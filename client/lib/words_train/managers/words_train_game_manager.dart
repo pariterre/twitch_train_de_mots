@@ -200,6 +200,9 @@ class WordsTrainGameManager {
   int get remainingPardon => _remainingPardons;
 
   int _remainingBoosts = 0;
+  bool _boostWasGrantedThisRound = false;
+  bool get boostWasGrantedThisRound => _boostWasGrantedThisRound;
+  double _currentNewBoostThreshold = -1.0;
   int get remainingBoosts => _remainingBoosts;
   bool get isTrainBoosted => _boostStartedAt != null;
   Duration? get trainBoostRemainingTime => _boostStartedAt
@@ -519,6 +522,9 @@ class WordsTrainGameManager {
     }
 
     _roundHasGoldenSolution = false;
+    _boostWasGrantedThisRound = false;
+    _currentNewBoostThreshold = _currentDifficulty.newBoostThreshold +
+        _random.nextDouble() * (1.0 - _currentDifficulty.newBoostThreshold);
     _hasPlayedAtLeastOnce = true;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
@@ -970,7 +976,16 @@ class WordsTrainGameManager {
       onRevealHiddenLetter.notifyListeners((callback) => callback());
     }
 
-    // Manage boost of the train
+    // Manage if the train got to a new boost
+    _logger.fine('Managing if the train got to a new boost...');
+    if (!_boostWasGrantedThisRound && _trainHasReachedNewBoost()) {
+      _logger.info('Train got a new boost');
+      _boostWasGrantedThisRound = true;
+      _remainingBoosts += 1;
+      onNewBoostGranted.notifyListeners((callback) => callback());
+    }
+
+    // Manage if the train is boosted
     _logger.fine('Managing train boost...');
     if (isTrainBoosted && (trainBoostRemainingTime?.inSeconds ?? -1) <= 0) {
       _logger.info('Train boost ended');
@@ -1048,8 +1063,6 @@ class WordsTrainGameManager {
 
     if (_currentProblem!.teamScore >= _currentProblem!.solutions.totalScore) {
       _roundSuccesses.add(RoundSuccess.maxPoints);
-      _remainingBoosts += 1;
-      onNewBoostGranted.notifyListeners((callback) => callback());
     }
 
     if (_currentProblem!.noSolutionWasStolenOrPardoned &&
@@ -1155,6 +1168,13 @@ class WordsTrainGameManager {
         throw Exception('Failed is not a valid level');
     }
   }
+
+  int pointsToObtainBoost() =>
+      ((problem?.solutions.totalScore ?? 0) * _currentNewBoostThreshold)
+          .toInt();
+
+  bool _trainHasReachedNewBoost() =>
+      (problem?.teamScore ?? -1) >= pointsToObtainBoost();
 
   void _miniGameEnded(bool hasWon) {
     _logger.info('Mini game ended');

@@ -55,6 +55,7 @@ flutter:
     - packages/common/assets/sounds/RoundIsOver.mp3
     - packages/common/assets/sounds/SolutionFound.mp3
     - packages/common/assets/sounds/SolutionStolen.mp3
+    - packages/common/assets/sounds/NewBoostGranted.mp3
     - packages/common/assets/sounds/TelegramReceived.mp3
     - packages/common/assets/sounds/TheSwindler.mp3
     - packages/common/assets/sounds/TrainLostStation.mp3

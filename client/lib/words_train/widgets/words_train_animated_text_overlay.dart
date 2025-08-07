@@ -46,6 +46,15 @@ class _WordsTrainAnimatedTextOverlayState
       bouncyScale: 1.2,
       maxScale: 1.3,
       maxOpacity: 0.9);
+  final _newBoostGrantedController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1500,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
   final _trainGotBoostedController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
@@ -93,6 +102,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.listen(_showStealerWasPardoned);
     gm.onRoundIsOver.listen(_showRoundIsOver);
+    gm.onNewBoostGranted.listen(_showNewBoostGranted);
     gm.onTrainGotBoosted.listen(_showTrainGotBoosted);
     gm.onBigHeistSuccess.listen(_showBigHeistSuccess);
     gm.onBigHeistFailed.listen(_showBigHeistFailed);
@@ -105,6 +115,7 @@ class _WordsTrainAnimatedTextOverlayState
     _pardonedController.dispose();
     _newGoldenController.dispose();
     _roundIsOverController.dispose();
+    _newBoostGrantedController.dispose();
     _trainGotBoostedController.dispose();
     _bigHeistSuccessController.dispose();
     _bigHeistFailedController.dispose();
@@ -116,6 +127,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.cancel(_showStealerWasPardoned);
     gm.onRoundIsOver.cancel(_showRoundIsOver);
+    gm.onNewBoostGranted.cancel(_showNewBoostGranted);
     gm.onTrainGotBoosted.cancel(_showTrainGotBoosted);
     gm.onBigHeistSuccess.cancel(_showBigHeistSuccess);
     gm.onBigHeistFailed.cancel(_showBigHeistFailed);
@@ -146,6 +158,10 @@ class _WordsTrainAnimatedTextOverlayState
       _roundIsOverController.triggerAnimation(const _RoundIsOver());
     }
     _hasShownRoundIsOver = true;
+  }
+
+  void _showNewBoostGranted() {
+    _newBoostGrantedController.triggerAnimation(_NewBoostGranted());
   }
 
   void _showTrainGotBoosted(int boostRemaining) {
@@ -188,6 +204,10 @@ class _WordsTrainAnimatedTextOverlayState
           Positioned(
             top: MediaQuery.of(context).size.height * 0.4,
             child: BouncyContainer(controller: _roundIsOverController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.165,
+            child: BouncyContainer(controller: _newBoostGrantedController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
@@ -358,6 +378,41 @@ class _RoundIsOver extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             message,
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _NewBoostGranted extends StatelessWidget {
+  const _NewBoostGranted();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez trouvé une caisse de charbon ultra-performant!\n'
+            'Utilisez-la pour booster le Petit Train du Nord!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,

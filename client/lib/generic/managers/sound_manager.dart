@@ -58,6 +58,7 @@ class SoundManager {
         gm.onRoundStarted.listen(_onRoundStarted);
         gm.onSolutionFound.listen(_onSolutionFound);
         gm.onStealerPardoned.listen(_onSolutionFound);
+        gm.onNewBoostGranted.listen(_onNewBoostGranted);
         gm.onTrainGotBoosted.listen(_onTrainGotBoosted);
         gm.onScrablingLetters.listen(_onLettersScrambled);
         gm.onRevealUselessLetter.listen(_onLettersScrambled);
@@ -178,6 +179,10 @@ class SoundManager {
 
   Future<void> _onSolutionStolen(WordSolution solution) async {
     _playSoundEffect('packages/common/assets/sounds/SolutionStolen.mp3');
+  }
+
+  Future<void> _onNewBoostGranted() async {
+    _playSoundEffect('packages/common/assets/sounds/NewBoostGranted.mp3');
   }
 
   Future<void> _onTrainGotBoosted(int boostNeeded) async {
