@@ -53,7 +53,7 @@ extensions:
 	# 	exit 1; \
 	# fi; \
 	echo "Building extensions..."; \
-	cd $${CONFIGURATION_FOLDER}             && flutter clean && flutter pub get     && flutter build web; \
+	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/video_overlay 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${BASE_FOLDER}; \
