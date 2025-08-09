@@ -1,5 +1,6 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
 import 'package:common/generic/widgets/themed_elevated_button.dart';
@@ -169,7 +170,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     String buttonText = '';
     if (gm.isNextRoundAMiniGame) {
-      buttonText += 'Aller aux bleuets';
+      buttonText += switch (gm.nextRoundMiniGame!) {
+        MiniGames.treasureHunt => 'Aller aux bleuets!',
+        MiniGames.blueberryWar => 'À l\'attaque des bleuets!',
+      };
     } else {
       if (!gm.canProceedToNextRound) {
         buttonText += 'Aiguillage du train en cours...';

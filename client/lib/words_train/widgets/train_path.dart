@@ -119,7 +119,8 @@ class TrainPathController {
       Managers.instance.sound.playTrainReachedStation();
     }
 
-    if (_boostHallMarks == _currentStep) {
+    final gm = Managers.instance.train;
+    if (!gm.boostWasGrantedThisRound && _boostHallMarks == _currentStep) {
       _boostFireworksController.trigger();
     }
 

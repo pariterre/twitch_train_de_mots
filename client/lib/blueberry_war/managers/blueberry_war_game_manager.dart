@@ -112,8 +112,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   }
 
   @override
-  // TODO: implement instructions
-  String? get instructions => null;
+  String? get instructions =>
+      'Un mot s\'est enfuit et tente de vous narguer dans le champ de bleuets!\n'
+      'Lancer lui tout ce que vous pouvez pour le récupérer et gagner une étoile.\n\n'
+      'Utilisez l\'extension dans votre écran pour lancer les bleuets sur les lettres,\n'
+      'et ainsi le révéler.\n'
+      'La guerre des bleuets est ouverte!';
 
   ///
   /// Initialize the game manager
@@ -364,7 +368,13 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     // Reveal the problem
     for (int i = 0; i < _problem!.hiddenLetterStatuses.length; i++) {
-      _problem!.hiddenLetterStatuses[i] = LetterStatus.revealed;
+      if (hasWon) {
+        _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
+        _problem!.uselessLetterStatuses[i] = LetterStatus.normal;
+        onLetterHitByBlueberry.notifyListeners((callback) => callback(i, true));
+      } else {
+        _problem!.hiddenLetterStatuses[i] = LetterStatus.revealed;
+      }
     }
 
     _finalTime = DateTime.now();

@@ -1,8 +1,8 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/words_train/models/round_success.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class WordsTrainAnimatedTextOverlay extends StatefulWidget {
@@ -16,7 +16,6 @@ class WordsTrainAnimatedTextOverlay extends StatefulWidget {
 class _WordsTrainAnimatedTextOverlayState
     extends State<WordsTrainAnimatedTextOverlay> {
   // Words train messages
-  bool _hasShownRoundIsOver = false;
   final _stolenController = BouncyContainerController(
       minScale: 0.5, bouncyScale: 1.4, maxScale: 1.5, maxOpacity: 0.9);
   final _pardonedController = BouncyContainerController(
@@ -37,7 +36,7 @@ class _WordsTrainAnimatedTextOverlayState
       bouncyScale: 1.0,
       maxScale: 1.1,
       maxOpacity: 0.9);
-  final _roundIsOverController = BouncyContainerController(
+  final _miniGameGrantedController = BouncyContainerController(
       bounceCount: 5,
       easingInDuration: 300,
       bouncingDuration: 1000,
@@ -97,11 +96,10 @@ class _WordsTrainAnimatedTextOverlayState
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.listen(_resetRound);
     gm.onSolutionWasStolen.listen(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.listen(_showStealerWasPardoned);
-    gm.onRoundIsOver.listen(_showRoundIsOver);
+    gm.onMiniGameGranted.listen(_showGoToMinigame);
     gm.onNewBoostGranted.listen(_showNewBoostGranted);
     gm.onTrainGotBoosted.listen(_showTrainGotBoosted);
     gm.onBigHeistSuccess.listen(_showBigHeistSuccess);
@@ -114,7 +112,7 @@ class _WordsTrainAnimatedTextOverlayState
     _stolenController.dispose();
     _pardonedController.dispose();
     _newGoldenController.dispose();
-    _roundIsOverController.dispose();
+    _miniGameGrantedController.dispose();
     _newBoostGrantedController.dispose();
     _trainGotBoostedController.dispose();
     _bigHeistSuccessController.dispose();
@@ -122,11 +120,10 @@ class _WordsTrainAnimatedTextOverlayState
     _changeLaneController.dispose();
 
     final gm = Managers.instance.train;
-    gm.onRoundStarted.cancel(_resetRound);
     gm.onSolutionWasStolen.cancel(_showSolutionWasStolen);
     gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.cancel(_showStealerWasPardoned);
-    gm.onRoundIsOver.cancel(_showRoundIsOver);
+    gm.onMiniGameGranted.cancel(_showGoToMinigame);
     gm.onNewBoostGranted.cancel(_showNewBoostGranted);
     gm.onTrainGotBoosted.cancel(_showTrainGotBoosted);
     gm.onBigHeistSuccess.cancel(_showBigHeistSuccess);
@@ -134,10 +131,6 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onChangingLane.cancel(_showChangeLane);
 
     super.dispose();
-  }
-
-  void _resetRound() {
-    _hasShownRoundIsOver = false;
   }
 
   void _showSolutionWasStolen(WordSolution solution) {
@@ -153,11 +146,9 @@ class _WordsTrainAnimatedTextOverlayState
         .triggerAnimation(_AStealerWasPardoned(solution: solution));
   }
 
-  void _showRoundIsOver() {
-    if (!_hasShownRoundIsOver) {
-      _roundIsOverController.triggerAnimation(const _RoundIsOver());
-    }
-    _hasShownRoundIsOver = true;
+  void _showGoToMinigame(MiniGames miniGame) {
+    _miniGameGrantedController
+        .triggerAnimation(_MiniGameGranted(miniGame: miniGame));
   }
 
   void _showNewBoostGranted() {
@@ -203,7 +194,7 @@ class _WordsTrainAnimatedTextOverlayState
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.4,
-            child: BouncyContainer(controller: _roundIsOverController),
+            child: BouncyContainer(controller: _miniGameGrantedController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.165,
@@ -345,25 +336,14 @@ class _AStealerWasPardoned extends StatelessWidget {
   }
 }
 
-class _RoundIsOver extends StatelessWidget {
-  const _RoundIsOver();
+class _MiniGameGranted extends StatelessWidget {
+  const _MiniGameGranted({required this.miniGame});
+
+  final MiniGames miniGame;
 
   @override
   Widget build(BuildContext context) {
-    final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
-
-    String message = '';
-    if (gm.roundSuccesses.contains(RoundSuccess.maxPoints)) {
-      message += 'Vous avez atteint le bout du rail, ça mérite un boost!';
-    }
-    if (gm.roundSuccesses.contains(RoundSuccess.foundAll)) {
-      if (message.isNotEmpty) message += '\n\n';
-      message +=
-          'Toutes les solutions ont été trouvées!\nAllons cueillir des bleuets!';
-    }
-
-    if (message.isEmpty) return Container();
 
     return Container(
       decoration: BoxDecoration(
@@ -377,7 +357,13 @@ class _RoundIsOver extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            message,
+            'Bravo cheminot\u00b7e\u00b7s! Votre efficacité vous laisse le temps de relaxer un peu!\n'
+            '${switch (miniGame) {
+              MiniGames.blueberryWar =>
+                'Affûtez vos armes, la guerre des bleuets est lancée!',
+              MiniGames.treasureHunt =>
+                'Partez à la grande cueillette de bleuets!',
+            }}',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,
@@ -411,8 +397,8 @@ class _NewBoostGranted extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Vous avez trouvé une caisse de charbon ultra-performant!\n'
-            'Utilisez-la pour booster le Petit Train du Nord!',
+            'Vous avez trouvé du charbon ultra-performant!\n'
+            'Utilisez-le pour booster le Petit Train du Nord!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,

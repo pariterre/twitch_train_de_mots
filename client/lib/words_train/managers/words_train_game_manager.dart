@@ -226,6 +226,8 @@ class WordsTrainGameManager {
   bool _isRoundAMiniGame = false;
   bool get isRoundAMiniGame => _isRoundAMiniGame;
   MiniGames? _currentMiniGame;
+  MiniGames? get nextRoundMiniGame =>
+      _isNextRoundAMiniGame ? _currentMiniGame : null;
 
   bool _areCongratulationFireworksFiring = false;
 
@@ -307,13 +309,13 @@ class WordsTrainGameManager {
   final onGoldenSolutionAppeared = GenericListener<Function(WordSolution)>();
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
+  final onMiniGameGranted = GenericListener<Function(MiniGames)>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onAttemptingTheBigHeist = GenericListener<Function()>();
   final onBigHeistSuccess = GenericListener<Function()>();
   final onBigHeistFailed = GenericListener<Function()>();
   final onChangingLane = GenericListener<Function()>();
-  final onAllSolutionsFound = GenericListener<Function()>();
   final onShowcaseSolutionsRequest = GenericListener<Function()>();
   final onPlayerUpdate = GenericListener<Function()>();
   final onCongratulationFireworks =
@@ -982,6 +984,9 @@ class WordsTrainGameManager {
       _logger.info('Train got a new boost');
       _boostWasGrantedThisRound = true;
       _remainingBoosts += 1;
+
+      // Notify that a new boost was granted. This triggers the message overlay
+      // but was decided is a good idea since the boost can be used immediately
       onNewBoostGranted.notifyListeners((callback) => callback());
     }
 
@@ -1037,21 +1042,10 @@ class WordsTrainGameManager {
   /// Clear the current round
   Future<void> _endingRound() async {
     _logger.info('Round is over, ending the round...');
-
     final cm = Managers.instance.configuration;
 
+    // Finishing the round
     _successLevel = _numberOfStarObtained(problem!.teamScore);
-    _roundCount += _successLevel.toInt();
-    _currentDifficulty = cm.difficulty(_roundCount);
-
-    Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
-    _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
-
-    _previousRoundTimeRemaining = timeRemaining!;
-    _forceEndTheRound = false;
-    _roundDuration = null;
-    _roundStartedAt = null;
-    _boostStartedAt = null;
     if (_isAttemptingTheBigHeist) {
       if (_successLevel == SuccessLevel.bigHeist) {
         onBigHeistSuccess.notifyListeners((callback) => callback());
@@ -1059,46 +1053,61 @@ class WordsTrainGameManager {
         onBigHeistFailed.notifyListeners((callback) => callback());
       }
     }
-    _isAttemptingTheBigHeist = false;
+    _gameStatus = WordsTrainGameStatus.roundEnding;
+    onRoundIsOver.notifyListeners((callback) => callback());
+    _showCaseAnswers();
 
-    if (_currentProblem!.teamScore >= _currentProblem!.solutions.totalScore) {
-      _roundSuccesses.add(RoundSuccess.maxPoints);
+    // Distribute round successes
+    if (_successLevel != SuccessLevel.failed) {
+      if (_currentProblem!.teamScore >= _currentProblem!.solutions.totalScore) {
+        _roundSuccesses.add(RoundSuccess.maxPoints);
+      }
+      if (_currentProblem!.areAllSolutionsFound) {
+        _roundSuccesses.add(RoundSuccess.foundAll);
+      }
+      if (_currentProblem!.noSolutionWasStolenOrPardoned) {
+        _roundSuccesses.add(RoundSuccess.noSteal);
+      }
     }
 
-    if (_currentProblem!.noSolutionWasStolenOrPardoned &&
-        _successLevel != SuccessLevel.failed) {
-      _roundSuccesses.add(RoundSuccess.noSteal);
+    // Distribute perks
+    if (roundSuccesses.contains(RoundSuccess.noSteal)) {
       _remainingPardons += 1;
       onNewPardonGranted.notifyListeners((callback) => callback());
     }
+    if (roundSuccesses.contains(RoundSuccess.foundAll) ||
+        roundSuccesses.contains(RoundSuccess.maxPoints)) {
+      _isNextRoundAMiniGame = true;
+      _currentMiniGame = _selectNextMiniGame();
+      onMiniGameGranted
+          .notifyListeners((callback) => callback(_currentMiniGame!));
+    }
 
+    // Prepare next round
+    _previousRoundTimeRemaining = timeRemaining!;
+    _forceEndTheRound = false;
+    _roundDuration = null;
+    _roundStartedAt = null;
+    _boostStartedAt = null;
     _canAttemptTheBigHeist = false;
+    _isAttemptingTheBigHeist = false;
+    _isNextRoundAMiniGame = false;
+    _currentMiniGame = null;
+    _roundCount += _successLevel.toInt();
+    _currentDifficulty = cm.difficulty(_roundCount);
+    Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
+    _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
     if (_successLevel != SuccessLevel.failed) {
       if (_random.nextDouble() < _currentDifficulty.bigHeistProbability) {
         _canAttemptTheBigHeist = true;
       }
     }
 
-    // Select the mini game to play if allowed
-    _isNextRoundAMiniGame = false;
-    _currentMiniGame = null;
-    if (_currentProblem!.areAllSolutionsFound) {
-      _roundSuccesses.add(RoundSuccess.foundAll);
-      _isNextRoundAMiniGame = true;
-      _currentMiniGame = MiniGames.treasureHunt;
-      onAllSolutionsFound.notifyListeners((callback) => callback());
-    }
-
-    _gameStatus = WordsTrainGameStatus.roundEnding;
-    onRoundIsOver.notifyListeners((callback) => callback());
-    _showCaseAnswers();
-
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
       _nextRoundStartAt = DateTime.now()
           .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
     }
-
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
       Managers.instance.database.sendResults(
@@ -1175,6 +1184,10 @@ class WordsTrainGameManager {
 
   bool _trainHasReachedNewBoost() =>
       (problem?.teamScore ?? -1) >= pointsToObtainBoost();
+
+  MiniGames? _selectNextMiniGame() {
+    return MiniGames.values[_random.nextInt(MiniGames.values.length)];
+  }
 
   void _miniGameEnded(bool hasWon) {
     _logger.info('Mini game ended');
