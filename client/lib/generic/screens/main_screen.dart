@@ -20,12 +20,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
-    await Managers.instance.twitch
-        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
@@ -43,9 +37,6 @@ class _MainScreenState extends State<MainScreen> {
     final dm = Managers.instance.database;
     dm.onFullyLoggedIn.listen(_refresh);
     dm.onLoggedOut.listen(_refresh);
-
-    Managers.instance.twitch.onTwitchManagerHasDisconnected
-        .listen(_reconnectedAfterDisconnect);
   }
 
   @override
@@ -63,14 +54,8 @@ class _MainScreenState extends State<MainScreen> {
     dm.onFullyLoggedIn.cancel(_refresh);
     dm.onLoggedOut.cancel(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasDisconnected
-        .cancel(_reconnectedAfterDisconnect);
-
     super.dispose();
   }
-
-  void _reconnectedAfterDisconnect() =>
-      _setTwitchManager(reloadIfPossible: false);
 
   Future<void> _showMessageDialog(String message) async {
     final cm = Managers.instance.configuration;
@@ -93,15 +78,6 @@ class _MainScreenState extends State<MainScreen> {
         });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (Managers.instance.twitch.isNotConnected) {
-      WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _setTwitchManager(reloadIfPossible: true));
-    }
-  }
-
   void _refresh() => setState(() {});
 
   void _onClickedBegin() => Managers.instance.train.requestStartNewRound();
@@ -110,7 +86,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final dm = Managers.instance.database;
-    final tm = ThemeManager.instance;
 
     return Scaffold(
       body: Background(
@@ -120,45 +95,40 @@ class _MainScreenState extends State<MainScreen> {
           opacity: const AlwaysStoppedAnimation(0.05),
           fit: BoxFit.cover,
         ),
-        child: Managers.instance.twitch.isNotConnected
-            ? Center(child: CircularProgressIndicator(color: tm.mainColor))
-            : Stack(
-                children: [
-                  dm.isLoggedOut ||
-                          gm.gameStatus == WordsTrainGameStatus.initializing
-                      ? SplashScreen(onClickStart: _onClickedBegin)
-                      : Stack(
-                          children: [
-                            GameScreen(),
-                            if (gm.gameStatus ==
-                                    WordsTrainGameStatus.roundPreparing ||
-                                gm.gameStatus ==
-                                    WordsTrainGameStatus.roundReady ||
-                                gm.gameStatus ==
-                                    WordsTrainGameStatus.miniGamePreparing ||
-                                gm.gameStatus ==
-                                    WordsTrainGameStatus.miniGameReady)
-                              const BetweenRoundsOverlay(),
-                            const CongratulationLayer(),
-                          ],
-                        ),
-                  Builder(builder: (context) {
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: IconButton(
-                            onPressed: () => Scaffold.of(context).openDrawer(),
-                            icon: const Icon(
-                              Icons.menu,
-                              color: Colors.black,
-                              size: 32,
-                            )),
-                      ),
-                    );
-                  })
-                ],
-              ),
+        child: Stack(
+          children: [
+            dm.isLoggedOut || gm.gameStatus == WordsTrainGameStatus.initializing
+                ? SplashScreen(onClickStart: _onClickedBegin)
+                : Stack(
+                    children: [
+                      GameScreen(),
+                      if (gm.gameStatus ==
+                              WordsTrainGameStatus.roundPreparing ||
+                          gm.gameStatus == WordsTrainGameStatus.roundReady ||
+                          gm.gameStatus ==
+                              WordsTrainGameStatus.miniGamePreparing ||
+                          gm.gameStatus == WordsTrainGameStatus.miniGameReady)
+                        const BetweenRoundsOverlay(),
+                      const CongratulationLayer(),
+                    ],
+                  ),
+            Builder(builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      icon: const Icon(
+                        Icons.menu,
+                        color: Colors.black,
+                        size: 32,
+                      )),
+                ),
+              );
+            })
+          ],
+        ),
       ),
       drawer: const ConfigurationDrawer(),
     );

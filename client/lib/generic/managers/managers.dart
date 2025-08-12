@@ -43,7 +43,7 @@ class Managers {
 
     // Initialize the Twitch manager
     _instance._twitch = MocksConfiguration.useTwitchManagerMock
-        ? TwitchManagerMock(appInfo: twtichAppInfo)
+        ? TwitchManagerMocked(appInfo: twtichAppInfo)
         : TwitchManager(appInfo: twtichAppInfo);
 
     // Initialize the configuration manager

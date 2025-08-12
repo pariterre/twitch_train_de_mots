@@ -20,13 +20,16 @@ class TwitchManager {
   Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
     _isInitialized = true;
+    _tryAutomaticConnect();
     _logger.config('Ready');
   }
 
   ///
   /// Get if the manager is connected or not
-  bool get isConnected => _manager != null;
+  bool get isConnected => _manager != null && _manager!.isConnected;
   bool get isNotConnected => !isConnected;
+  bool _isConnecting = false;
+  bool get isConnecting => _isConnecting;
 
   ///
   /// Call all the listeners when a message is received
@@ -40,37 +43,54 @@ class TwitchManager {
   TwitchAppDebugOverlay debugOverlay({required child}) =>
       TwitchAppDebugOverlay(manager: _manager!, child: child);
 
+  Future<void> _tryAutomaticConnect() async {
+    _isConnecting = true;
+    _manager = await (_useMocker
+        ? TwitchManagerMock.factory(
+            appInfo: appInfo,
+            debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions)
+        : TwitchAppManager.factory(appInfo: appInfo, reload: true));
+    _isConnecting = false;
+    if (_manager!.isNotConnected) return;
+    _finalizeConnexion();
+  }
+
   ///
   /// Provide an easy access to the TwitchManager connect dialog
   Future<bool> showConnectManagerDialog(BuildContext context,
       {bool reloadIfPossible = true}) async {
     _logger.info('Showing connect manager dialog...');
 
-    if (_manager != null) {
+    if (isConnected) {
       // Already connected
       _logger.warning('TwitchManager already connected');
       return true;
     }
+    _isConnecting = true;
 
-    final manager = await showDialog<TwitchAppManager>(
-        context: context,
-        builder: (context) => TwitchAppAuthenticationDialog(
-              useMocker: _useMocker,
-              debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
-              onConnexionEstablished: (manager) {
-                if (context.mounted) Navigator.of(context).pop(manager);
-              },
-              appInfo: appInfo,
-              reload: reloadIfPossible,
-            ));
-    if (manager == null) return false;
+    _manager = await showTwitchAppAuthenticationDialog(
+      context,
+      useMocker: _useMocker,
+      debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
+      onConnexionEstablished: (manager) {
+        if (context.mounted) Navigator.of(context).pop(manager);
+      },
+      onCancelConnexion: () => Navigator.of(context).pop(),
+      appInfo: appInfo,
+      reload: reloadIfPossible,
+    );
+    _isConnecting = false;
+    _finalizeConnexion();
+    return true;
+  }
 
-    _manager = manager;
+  void _finalizeConnexion() {
+    if (isNotConnected) return;
+
     _manager!.chat.onMessageReceived.listen(_onMessageReceived);
     onTwitchManagerHasConnected.notifyListeners((callback) => callback());
 
     _logger.info('TwitchManager connected');
-    return true;
   }
 
   Future<bool> disconnect() {
@@ -109,8 +129,8 @@ class TwitchManager {
       _chatListeners.notifyListeners((callback) => callback(sender, message));
 }
 
-class TwitchManagerMock extends TwitchManager {
-  TwitchManagerMock({required super.appInfo}) {
+class TwitchManagerMocked extends TwitchManager {
+  TwitchManagerMocked({required super.appInfo}) {
     _useMocker = true;
   }
 }

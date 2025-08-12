@@ -16,6 +16,15 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
+    await Managers.instance.twitch
+        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
+    setState(() {});
+  }
+
+  void _reconnectedAfterDisconnect() =>
+      _setTwitchManager(reloadIfPossible: false);
+
   bool _isGameReadyToPlay = false;
 
   @override
@@ -38,6 +47,10 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     _prepareReleaseNotesIfNeeded();
+
+    final twitch = Managers.instance.twitch;
+    twitch.onTwitchManagerHasConnected.listen(_refresh);
+    twitch.onTwitchManagerHasDisconnected.listen(_reconnectedAfterDisconnect);
   }
 
   @override
@@ -53,6 +66,10 @@ class _SplashScreenState extends State<SplashScreen> {
     final dm = Managers.instance.database;
     dm.onLoggedIn.cancel(_startSearchingForNextProblem);
     dm.onLoggedOut.cancel(_refresh);
+
+    final twitch = Managers.instance.twitch;
+    twitch.onTwitchManagerHasConnected.cancel(_refresh);
+    twitch.onTwitchManagerHasDisconnected.cancel(_reconnectedAfterDisconnect);
   }
 
   void _onNextProblemReady() {
@@ -91,6 +108,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
+    final twitchManager = Managers.instance.twitch;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height,
@@ -128,7 +146,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                   const SizedBox(height: 30.0),
                   Text(
-                    'C\'est un départ! Tchou Tchou!!',
+                    twitchManager.isConnected
+                        ? 'C\'est un départ! Tchou Tchou!!'
+                        : 'Mais avant de partir, vous devez vous connecter',
                     style: tm.clientMainTextStyle.copyWith(
                       fontSize: 24.0,
                       color: tm.textColor,
@@ -136,12 +156,21 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
                   const SizedBox(height: 30.0),
-                  ThemedElevatedButton(
-                    onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
-                    buttonText: _isGameReadyToPlay
-                        ? 'Direction première station!'
-                        : 'Préparation du train...',
-                  ),
+                  if (twitchManager.isNotConnected)
+                    ThemedElevatedButton(
+                      onPressed: twitchManager.isConnecting
+                          ? null
+                          : () => _setTwitchManager(reloadIfPossible: true),
+                      buttonText: 'Connexion à Twitch',
+                    )
+                  else
+                    ThemedElevatedButton(
+                      onPressed:
+                          _isGameReadyToPlay ? widget.onClickStart : null,
+                      buttonText: _isGameReadyToPlay
+                          ? 'Direction première station!'
+                          : 'Préparation du train...',
+                    ),
                 ],
               )
             : const _ConnexionTile(),

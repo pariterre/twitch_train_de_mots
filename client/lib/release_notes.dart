@@ -496,4 +496,16 @@ const List<ReleaseNotes> releaseNotes = [
             description:
                 'Le boost est maintenant collecté durant le jeu plutôt qu\'à la fin de la manche.'),
       ]),
+  ReleaseNotes(
+    version: '1.5.0',
+    codeName: 'Dégât royale',
+    notes:
+        'Après des semaines et des mois d\'attente, le mini-jeu de la guerre des bleuets est enfin arrivé! '
+        'Vos chemino\u00b7t\u00b7e\u00b7s pourront maintenant s\'amuser à tirer des bleuets sur un mot qui s\'échappent dans un champ de bleuets. '
+        'Attraper le mot vous fera gagner une étoile supplémentaire lors de la manche suivante!\n\n'
+        'N\'oubliez pas d\'installer l\'extension Twitch pour profiter pleinement de cette nouvelle fonctionnalité!',
+    features: [
+      FeatureNotes(description: 'Ajout du mini-jeu de la guerre des bleuets!'),
+    ],
+  )
 ];
