@@ -103,6 +103,18 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                     ),
                     const Divider(),
                     ListTile(
+                      leading: Image.asset(
+                        'assets/images/youtube_logo.png',
+                        width: 24,
+                      ),
+                      title: const Text('Tutoriel du Train de mots'),
+                      onTap: () {
+                        launchUrl(Uri.parse(
+                            'https://www.youtube.com/watch?v=UvnS3X_7LAs/'));
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
                       leading: const Icon(Icons.settings_applications_sharp),
                       title: const Text('Configuration avancée'),
                       onTap: () {
