@@ -19,7 +19,7 @@ class HelpFromTheControllerCard extends StatelessWidget {
             'Aides du contrôleur :',
             style: tm.clientMainTextStyle.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: tm.titleSize * 0.6,
+                fontSize: tm.titleSize * 0.8,
                 color: tm.textColor),
           ),
           const SizedBox(
@@ -104,13 +104,13 @@ class _PardonState extends State<_Pardon> {
             '!pardon${_lastStealer == null ? '' : ' ($_lastStealer)'}',
             overflow: TextOverflow.ellipsis,
             style: tm.clientMainTextStyle
-                .copyWith(fontSize: tm.titleSize * 0.6, color: tm.textColor),
+                .copyWith(fontSize: tm.titleSize * 0.8, color: tm.textColor),
           ),
         ),
         Text('x ${gm.remainingPardon}',
             style: tm.clientMainTextStyle.copyWith(
                 fontStyle: FontStyle.italic,
-                fontSize: tm.titleSize * 0.6,
+                fontSize: tm.titleSize * 0.8,
                 color: tm.textColor)),
       ],
     );
@@ -159,7 +159,7 @@ class _BoostState extends State<_Boost> {
         Text(
           '!boost',
           style: tm.clientMainTextStyle
-              .copyWith(fontSize: tm.titleSize * 0.6, color: tm.textColor),
+              .copyWith(fontSize: tm.titleSize * 0.8, color: tm.textColor),
         ),
         Text(
             gm.isTrainBoosted
@@ -167,7 +167,7 @@ class _BoostState extends State<_Boost> {
                 : 'x ${gm.remainingBoosts}',
             style: tm.clientMainTextStyle.copyWith(
                 fontStyle: FontStyle.italic,
-                fontSize: tm.titleSize * 0.6,
+                fontSize: tm.titleSize * 0.8,
                 color: tm.textColor)),
       ],
     );

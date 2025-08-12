@@ -235,7 +235,7 @@ class _FireworksWrapper extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         ...solutions.map((solution) {
-          final controller = fireworksControllers[solution]!;
+          final controller = fireworksControllers[solution];
           return _SolutionTile(solution: solution, fireworks: controller);
         })
       ],
