@@ -17,3 +17,55 @@ dependencies:
 dev_dependencies:
   lints: ^3.0.0
   test: ^1.24.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/train.png
+    - assets/images/parchment.png
+
+    - assets/images/treasure_hunt/blueberries.png
+    - assets/images/treasure_hunt/grass.png
+    - assets/images/treasure_hunt/open_grass.png
+
+    - assets/images/blueberry_war/blueberries.png
+
+    - assets/sounds/BestSolutionFound.mp3
+    - assets/sounds/GameStarted.mp3
+    - assets/sounds/GoldenSolutionAppeared.mp3
+    - assets/sounds/LettersScrambling.mp3
+    - assets/sounds/RoundIsOver.mp3
+    - assets/sounds/SolutionFound.mp3
+    - assets/sounds/SolutionStolen.mp3
+    - assets/sounds/NewBoostGranted.mp3
+    - assets/sounds/TelegramReceived.mp3
+    - assets/sounds/TheSwindler.mp3
+    - assets/sounds/TrainLostStation.mp3
+    - assets/sounds/TrainReachedStation.mp3
+    - assets/sounds/Fireworks1.mp3
+    - assets/sounds/Fireworks2.mp3
+    - assets/sounds/Fireworks3.mp3
+    - assets/sounds/Fireworks4.mp3
+    - assets/sounds/Fireworks5.mp3
+    - assets/sounds/Fireworks6.mp3
+    - assets/sounds/TheBigHeist.mp3
+    - assets/sounds/BigHeistSuccess.mp3
+    - assets/sounds/BigHeistFailed.mp3
+    - assets/sounds/ChangingLane.mp3
+
+    - assets/sounds/treasure_hunt/picking_treasure.mp3
+    - assets/sounds/treasure_hunt/pluck_grass1.mp3 
+    - assets/sounds/treasure_hunt/pluck_grass2.mp3 
+    - assets/sounds/treasure_hunt/pluck_grass3.mp3
+    - assets/sounds/treasure_hunt/pluck_grass4.mp3 
+
+    - assets/sounds/blueberry_war/letter_hit.mp3
+    - assets/sounds/blueberry_war/letter_knock.mp3
+
+  fonts:
+    - family: BaskervvilleSC
+      fonts:
+        - asset: assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto/Roboto.woff2  

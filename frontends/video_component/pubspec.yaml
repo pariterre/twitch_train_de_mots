@@ -26,14 +26,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-  assets:
-    - packages/common/assets/images/train.png
-
-  fonts:
-    - family: BaskervvilleSC
-      fonts:
-        - asset: packages/common/assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
-    - family: Roboto
-      fonts:
-        - asset: packages/common/assets/fonts/Roboto/Roboto.woff2

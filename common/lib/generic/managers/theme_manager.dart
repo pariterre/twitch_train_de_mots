@@ -36,12 +36,16 @@ class ThemeManager {
   }
 
   late final clientMainTextStyle = TextStyle().copyWith(
-      fontFamily: 'BaskervvilleSC', color: textColor, fontSize: textSize);
+      fontFamily: 'BaskervvilleSC',
+      color: textColor,
+      fontSize: textSize,
+      package: 'common');
   late final textFrontendSc = TextStyle().copyWith(
       fontFamily: 'BaskervvilleSC',
       fontFeatures: [FontFeature.enable('smcp')],
       color: textColor,
-      fontSize: textSize);
+      fontSize: textSize,
+      package: 'common');
 
   final titleSize = 32.0;
 

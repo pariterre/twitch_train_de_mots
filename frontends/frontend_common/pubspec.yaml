@@ -31,9 +31,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - packages/common/assets/images/treasure_hunt/blueberries.png
-    - packages/common/assets/images/treasure_hunt/grass.png
-    - packages/common/assets/images/treasure_hunt/open_grass.png
-
-    - packages/common/assets/images/blueberry_war/blueberries.png
