@@ -4,6 +4,7 @@ import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/screens/main_screen.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:twitch_manager/twitch_app.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   Logger.root.level = Level.INFO;
@@ -42,6 +43,14 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: MainScreen());
+    return const MaterialApp(
+      home: MainScreen(),
+      supportedLocales: [Locale('fr', '')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+    );
   }
 }

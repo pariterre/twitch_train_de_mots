@@ -26,6 +26,8 @@ dependencies:
   common: 
     path: ../common
   vector_math: ^2.1.4
+  flutter_localizations:
+    sdk: flutter
 
 dependency_overrides:
   twitch_manager:
@@ -38,49 +40,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - packages/common/assets/images/train.png
-    - packages/common/assets/images/parchment.png
-
-    - packages/common/assets/images/treasure_hunt/blueberries.png
-    - packages/common/assets/images/treasure_hunt/grass.png
-    - packages/common/assets/images/treasure_hunt/open_grass.png
-
-    - packages/common/assets/images/blueberry_war/blueberries.png
-
-    - packages/common/assets/sounds/BestSolutionFound.mp3
-    - packages/common/assets/sounds/GameStarted.mp3
-    - packages/common/assets/sounds/GoldenSolutionAppeared.mp3
-    - packages/common/assets/sounds/LettersScrambling.mp3
-    - packages/common/assets/sounds/RoundIsOver.mp3
-    - packages/common/assets/sounds/SolutionFound.mp3
-    - packages/common/assets/sounds/SolutionStolen.mp3
-    - packages/common/assets/sounds/NewBoostGranted.mp3
-    - packages/common/assets/sounds/TelegramReceived.mp3
-    - packages/common/assets/sounds/TheSwindler.mp3
-    - packages/common/assets/sounds/TrainLostStation.mp3
-    - packages/common/assets/sounds/TrainReachedStation.mp3
-    - packages/common/assets/sounds/Fireworks1.mp3
-    - packages/common/assets/sounds/Fireworks2.mp3
-    - packages/common/assets/sounds/Fireworks3.mp3
-    - packages/common/assets/sounds/Fireworks4.mp3
-    - packages/common/assets/sounds/Fireworks5.mp3
-    - packages/common/assets/sounds/Fireworks6.mp3
-    - packages/common/assets/sounds/TheBigHeist.mp3
-    - packages/common/assets/sounds/BigHeistSuccess.mp3
-    - packages/common/assets/sounds/BigHeistFailed.mp3
-    - packages/common/assets/sounds/ChangingLane.mp3
-
-    - packages/common/assets/sounds/treasure_hunt/picking_treasure.mp3
-    - packages/common/assets/sounds/treasure_hunt/pluck_grass1.mp3 
-    - packages/common/assets/sounds/treasure_hunt/pluck_grass2.mp3 
-    - packages/common/assets/sounds/treasure_hunt/pluck_grass3.mp3
-    - packages/common/assets/sounds/treasure_hunt/pluck_grass4.mp3 
-
-    - packages/common/assets/sounds/blueberry_war/letter_hit.mp3
-    - packages/common/assets/sounds/blueberry_war/letter_knock.mp3
-
-  fonts:
-    - family: BaskervvilleSC
-      fonts:
-        - asset: packages/common/assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
+  
