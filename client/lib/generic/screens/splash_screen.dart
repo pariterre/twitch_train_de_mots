@@ -156,7 +156,9 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
             const SizedBox(height: 30.0),
-            if (dm.isLoggedOut)
+            if (dm.isLoggedOut ||
+                (dm.isLoggedIn && !dm.isEmailVerified) ||
+                !dm.hasTeamName)
               ThemedElevatedButton(
                 onPressed: () {
                   showDialog(
@@ -250,7 +252,13 @@ class _ConnexionDialogState extends State<_ConnexionDialog> {
     }
 
     if (!mounted) return;
-    Navigator.of(context).pop();
+
+    if (Managers.instance.database.hasTeamName) {
+      Navigator.of(context).pop();
+    } else {
+      _isValidating = false;
+      setState(() {});
+    }
   }
 
   Future<void> _signIn() async {
@@ -568,6 +576,8 @@ class _ConnexionDialogState extends State<_ConnexionDialog> {
 
               try {
                 await Managers.instance.database.setTeamName(_teamName!);
+                if (!mounted) return;
+                Navigator.of(context).pop();
               } on AuthenticationException catch (e) {
                 _showError(e.message);
 
