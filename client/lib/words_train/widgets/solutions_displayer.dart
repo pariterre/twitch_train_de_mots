@@ -46,7 +46,7 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     final dm = Managers.instance.database;
     final team = await dm.getCurrentTeamResult();
     _mvpPlayers.clear();
-    _mvpPlayers.addAll(team.mvpScore.map((e) => e.name));
+    _mvpPlayers.addAll((team?.mvpScore ?? []).map((e) => e.name));
   }
 
   @override

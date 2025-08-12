@@ -222,7 +222,7 @@ class DatabaseManager {
 
   ///
   /// Returns the name of the current team
-  String get teamName => FirebaseAuth.instance.currentUser!.displayName!;
+  String? get teamName => FirebaseAuth.instance.currentUser?.displayName;
 
   ///
   /// Returns all the stations for all the teams
@@ -317,6 +317,8 @@ class DatabaseManager {
     required List<PlayerResult> previousMvp,
     required MvpType mvpType,
   }) {
+    if (isLoggedOut) return;
+
     final previousBestValue =
         previousMvp.isEmpty ? -1 : previousMvp.first.value;
     final currentBestValue = currentMvp.isEmpty
@@ -339,7 +341,7 @@ class DatabaseManager {
                 MvpType.score => currentMvp.first.score,
                 MvpType.stars => currentMvp.first.starsCollected
               },
-              teamName: teamName))
+              teamName: teamName!))
           .toList());
     }
     if (previousBestValue >= currentBestValue) {
@@ -359,7 +361,7 @@ class DatabaseManager {
     _isSendingData = true;
 
     // Construct the TeamResult without mvp score and stars
-    final previousTeamResult = await _getResultsOf(teamName: teamName);
+    final previousTeamResult = await _getResultsOf(teamName: teamName!);
     final previousMvpScore =
         List<PlayerResult>.of(previousTeamResult?.mvpScore ?? []);
     final previousMvpStars =
@@ -368,7 +370,7 @@ class DatabaseManager {
     previousTeamResult?.mvpStars.clear();
     final teamResults =
         previousTeamResult == null || stationReached > previousTeamResult.value
-            ? TeamResult(name: teamName, bestStation: stationReached)
+            ? TeamResult(name: teamName!, bestStation: stationReached)
             : previousTeamResult;
 
     // Set the mvp score and stars for the team
@@ -389,10 +391,12 @@ class DatabaseManager {
     _logger.info('Sent results to the database');
   }
 
-  Future<TeamResult> getCurrentTeamResult() async {
+  Future<TeamResult?> getCurrentTeamResult() async {
+    if (isLoggedOut) return null;
+
     _logger.info('Fetching the results of team $teamName...');
-    final results = await _getResultsOf(teamName: teamName) ??
-        TeamResult(name: teamName, bestStation: -1);
+    final results = await _getResultsOf(teamName: teamName!) ??
+        TeamResult(name: teamName!, bestStation: -1);
     _logger.info('Fetched the results of team $teamName');
     return results;
   }
@@ -402,10 +406,11 @@ class DatabaseManager {
   /// The [stationReached] is the station reached by the current team
   /// If the current team is not in the [top], it will be added at the bottom
   /// Otherwise, it will be added at its rank
-  Future<List<TeamResult>> getBestTrainStationsReached({
+  Future<List<TeamResult>?> getBestTrainStationsReached({
     required int top,
     required int? stationReached,
   }) async {
+    if (isLoggedOut) return null;
     _logger.info('Fetching the best train stations reached...');
 
     while (_isSendingData) {
@@ -416,7 +421,7 @@ class DatabaseManager {
     // Add the current results if necessary (only the best one were fetched)
     final currentResult = stationReached == null
         ? null
-        : TeamResult(name: teamName, bestStation: stationReached);
+        : TeamResult(name: teamName!, bestStation: stationReached);
 
     if (currentResult != null) _insertResultInList(currentResult, out);
 
@@ -437,10 +442,11 @@ class DatabaseManager {
   /// Returns the [top] mvp player by score or stars accross all the teams. The [mvp]
   /// is added to the list. If the players are not in the top, they are added at
   /// the bottom. If they are in the top, they are added at their rank.
-  Future<List<PlayerResult>> getBestPlayers(
+  Future<List<PlayerResult>?> getBestPlayers(
       {required int top,
       required List<Player>? mvp,
       required MvpType mvpType}) async {
+    if (isLoggedOut) return null;
     _logger.info('Fetching the best players by ${mvpType.name}...');
 
     while (_isSendingData) {
@@ -456,7 +462,7 @@ class DatabaseManager {
           MvpType.stars => mvpPlayer.starsCollected
         };
         final currentResult = PlayerResult(
-            name: mvpPlayer.name, value: value, teamName: teamName);
+            name: mvpPlayer.name, value: value, teamName: teamName!);
         _insertResultInList(currentResult, out);
       }
     }
@@ -475,7 +481,7 @@ class DatabaseManager {
         _limitNumberOfResults(
             top,
             PlayerResult(
-                name: mvpPlayer.name, value: value, teamName: teamName),
+                name: mvpPlayer.name, value: value, teamName: teamName!),
             out);
       }
     }

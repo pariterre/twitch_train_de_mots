@@ -22,8 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
     setState(() {});
   }
 
-  void _reconnectedAfterDisconnect() =>
-      _setTwitchManager(reloadIfPossible: false);
+  void _reconnectedAfterDisconnect() => Managers.instance.database.isLoggedIn
+      ? _setTwitchManager(reloadIfPossible: false)
+      : null;
 
   bool _isGameReadyToPlay = false;
 
@@ -113,86 +114,94 @@ class _SplashScreenState extends State<SplashScreen> {
     return SizedBox(
       height: MediaQuery.of(context).size.height,
       child: Center(
-        child: dm.isLoggedIn
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Train de mots',
-                    style: tm.clientMainTextStyle.copyWith(
-                      fontSize: 48.0,
-                      color: tm.textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Train de mots',
+              style: tm.clientMainTextStyle.copyWith(
+                fontSize: 48.0,
+                color: tm.textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 30.0),
+            SizedBox(
+              width: 700,
+              child: Text(
+                  'Chères cheminots et cheminotes${dm.teamName == null ? '' : ' de ${dm.teamName}'}, bienvenue à bord!\n'
+                  '\n'
+                  'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
+                  'Trouvez le plus de mots possibles pour emmener le train à destination. '
+                  'Le ou la meilleure cheminot\u00b7e sera couronné\u00b7e de gloire!\n'
+                  '\n'
+                  'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
+                  'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
+                  'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
+                  style: tm.clientMainTextStyle.copyWith(
+                    fontSize: 24.0,
+                    color: tm.textColor,
                   ),
-                  const SizedBox(height: 30.0),
-                  SizedBox(
-                    width: 700,
-                    child: Text(
-                        'Chères cheminots et cheminotes de ${dm.teamName}, bienvenue à bord!\n'
-                        '\n'
-                        'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
-                        'Trouvez le plus de mots possibles pour emmener le train à destination. '
-                        'Le ou la meilleure cheminot\u00b7e sera couronné\u00b7e de gloire!\n'
-                        '\n'
-                        'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
-                        'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
-                        'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
-                        style: tm.clientMainTextStyle.copyWith(
-                          fontSize: 24.0,
-                          color: tm.textColor,
-                        ),
-                        textAlign: TextAlign.justify),
-                  ),
-                  const SizedBox(height: 30.0),
-                  Text(
-                    twitchManager.isConnected
-                        ? 'C\'est un départ! Tchou Tchou!!'
-                        : 'Mais avant de partir, vous devez vous connecter',
-                    style: tm.clientMainTextStyle.copyWith(
-                      fontSize: 24.0,
-                      color: tm.textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 30.0),
-                  if (twitchManager.isNotConnected)
-                    ThemedElevatedButton(
-                      onPressed: twitchManager.isConnecting
-                          ? null
-                          : () => _setTwitchManager(reloadIfPossible: true),
-                      buttonText: 'Connexion à Twitch',
-                    )
-                  else
-                    ThemedElevatedButton(
-                      onPressed:
-                          _isGameReadyToPlay ? widget.onClickStart : null,
-                      buttonText: _isGameReadyToPlay
-                          ? 'Direction première station!'
-                          : 'Préparation du train...',
-                    ),
-                ],
+                  textAlign: TextAlign.justify),
+            ),
+            const SizedBox(height: 30.0),
+            Text(
+              twitchManager.isConnected && dm.isLoggedIn
+                  ? 'C\'est un départ! Tchou Tchou!!'
+                  : 'Mais avant de partir, vous devez vous connecter',
+              style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24.0,
+                color: tm.textColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 30.0),
+            if (dm.isLoggedOut)
+              ThemedElevatedButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (ctx) => const _ConnexionDialog());
+                },
+                buttonText: 'Connexion à votre compte',
               )
-            : const _ConnexionTile(),
+            else if (twitchManager.isNotConnected)
+              ThemedElevatedButton(
+                onPressed: twitchManager.isConnecting
+                    ? null
+                    : () => _setTwitchManager(reloadIfPossible: true),
+                buttonText: 'Connexion à Twitch',
+              )
+            else
+              ThemedElevatedButton(
+                onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
+                buttonText: _isGameReadyToPlay
+                    ? 'Direction première station!'
+                    : 'Préparation du train...',
+              ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ConnexionTile extends StatefulWidget {
-  const _ConnexionTile();
+class _ConnexionDialog extends StatefulWidget {
+  const _ConnexionDialog();
 
   @override
-  State<_ConnexionTile> createState() => _ConnexionTileState();
+  State<_ConnexionDialog> createState() => _ConnexionDialogState();
 }
 
-class _ConnexionTileState extends State<_ConnexionTile> {
+class _ConnexionDialogState extends State<_ConnexionDialog> {
   final _credidentialsFormKey = GlobalKey<FormState>();
   final _teamNameFormKey = GlobalKey<FormState>();
   bool _isTeamNameIsAlreadyUsed = false;
   bool _isLoggingIn = true;
   bool get _isSigningIn => !_isLoggingIn;
 
+  bool _isValidating = false;
   String? _email;
   String? _password;
   String? _teamName;
@@ -222,14 +231,26 @@ class _ConnexionTileState extends State<_ConnexionTile> {
   void _refresh() => setState(() {});
 
   Future<void> _logIn() async {
-    if (!_validateForm(_credidentialsFormKey)) return;
+    _isValidating = true;
+    setState(() {});
+
+    if (!_validateForm(_credidentialsFormKey)) {
+      _isValidating = false;
+      setState(() {});
+      return;
+    }
 
     try {
       await Managers.instance.database
           .logIn(email: _email!, password: _password!);
     } on AuthenticationException catch (e) {
+      _isValidating = false;
+      setState(() {});
       _showError(e.message);
     }
+
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
   Future<void> _signIn() async {
@@ -266,38 +287,64 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
 
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: Colors.white.withValues(alpha: 0.95)),
-      width: 650,
-      child: Form(
-        key: _credidentialsFormKey,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: Text(
-                    'Ô Cheminot\u00b7te! J\'ai une mission pour vous sur le Petit Train du Nord! '
-                    'Mais avant toute chose, veuillez identifier votre équipe!',
-                    style: tm.clientMainTextStyle.copyWith(
-                      fontSize: 24.0,
-                      color: tm.mainColor,
-                      fontWeight: FontWeight.bold,
-                    )),
-              ),
-              const SizedBox(height: 12.0),
-              if (!dm.isSignedIn) _loginBuild(),
-              if (dm.isSignedIn && !dm.isEmailVerified)
-                _buildWaitingForEmailVerification(),
-              if (dm.isSignedIn && dm.isEmailVerified && !dm.hasTeamName)
-                _buildChosingTeamName(),
-              if (dm.isLoggedIn) Container()
-            ],
+    return Dialog(
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            color: Colors.white.withValues(alpha: 0.95)),
+        width: 680,
+        child: Form(
+          key: _credidentialsFormKey,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Text(
+                          _isValidating
+                              ? 'Veuillez patienter pendant que nous validons vos informations...'
+                              : 'Ô Cheminot\u00b7te! J\'ai une mission pour vous sur le Petit Train du Nord! '
+                                  'Mais avant toute chose, veuillez identifier votre équipe!',
+                          style: tm.clientMainTextStyle.copyWith(
+                            fontSize: 24.0,
+                            color: tm.mainColor,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: _isValidating
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        color: tm.mainColor,
+                      ),
+                    ),
+                  ],
+                ),
+                if (!_isValidating)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 12.0),
+                      if (!dm.isSignedIn) _loginBuild(),
+                      if (dm.isSignedIn && !dm.isEmailVerified)
+                        _buildWaitingForEmailVerification(),
+                      if (dm.isSignedIn &&
+                          dm.isEmailVerified &&
+                          !dm.hasTeamName)
+                        _buildChosingTeamName(),
+                    ],
+                  )
+              ],
+            ),
           ),
         ),
       ),
@@ -474,6 +521,7 @@ class _ConnexionTileState extends State<_ConnexionTile> {
     );
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
             'Dernière chose avant de partir, quel est le nom de votre équipe de cheminot\u00b7te\u00b7s?',
