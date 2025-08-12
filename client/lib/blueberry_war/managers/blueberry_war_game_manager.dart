@@ -207,7 +207,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   void slingShoot(
       {required BlueberryAgent blueberry, required Vector2 newVelocity}) {
     if (blueberry.canBeSlingShot) {
-      _logger.info(
+      _logger.fine(
           'Sling shooting blueberry ${blueberry.id} with velocity $newVelocity');
 
       // Ensure the velocity is within a reasonable range

@@ -1081,6 +1081,9 @@ class WordsTrainGameManager {
       _currentMiniGame = _selectNextMiniGame();
       onMiniGameGranted
           .notifyListeners((callback) => callback(_currentMiniGame!));
+    } else {
+      _isNextRoundAMiniGame = false;
+      _currentMiniGame = null;
     }
 
     // Prepare next round
@@ -1091,8 +1094,6 @@ class WordsTrainGameManager {
     _boostStartedAt = null;
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
-    _isNextRoundAMiniGame = false;
-    _currentMiniGame = null;
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
     Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
