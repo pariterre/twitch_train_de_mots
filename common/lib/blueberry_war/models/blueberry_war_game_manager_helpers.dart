@@ -25,7 +25,7 @@ class BlueberryWarConfig {
 
   ///
   /// Initial number of blueberries in the game.
-  static const int initialBlueberryCount = 10;
+  static const int initialBlueberryCount = 8;
 
   ///
   /// Radius of the blueberry agent.
