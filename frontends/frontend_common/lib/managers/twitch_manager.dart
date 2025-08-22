@@ -42,11 +42,11 @@ class TwitchManager {
   ///
   /// Initialize the TwitchManager
   static Future<void> initialize({
-    bool useMocker = false,
+    bool useTwitchEbsMocker = false,
     bool useMockerAuthenticator = false,
     bool useLocalEbs = false,
   }) async =>
-      useMocker
+      useTwitchEbsMocker
           ? _instance = TwitchManagerMock(
               useLocalEbs: useLocalEbs,
               useMockerAuthenticator: useMockerAuthenticator)

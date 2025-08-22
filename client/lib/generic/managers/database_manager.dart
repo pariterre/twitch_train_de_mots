@@ -35,7 +35,7 @@ class DatabaseManager {
       throw 'DatabaseManager is not available on this platform, please use the mock';
     }
 
-    if (MocksConfiguration.useDatabaseEmulators) {
+    if (MocksConfiguration.useFirebaseEmulators) {
       FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
       FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
     }

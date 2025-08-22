@@ -5,8 +5,8 @@
       "label": "Run Dart Server",
       "type": "shell",
       "command": "dart",
-      "args": ["ebs/bin/train_de_mots_ebs.dart"],
-      "problemMatcher": [],
+      "args": [ "ebs/bin/train_de_mots_ebs.dart" ],
+      "problemMatcher": [ ],
       "isBackground": true,
       "group": {
         "kind": "build",
@@ -14,9 +14,9 @@
       }, 
       "options": {
         "env": {
-              "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
-              "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
-          }
+          "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
+          "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE"
+        }
       }
     },
     {
@@ -24,7 +24,7 @@
       "type": "shell",
       "command": "make",
       "args": [ "client" ],
-      "problemMatcher": [],
+      "problemMatcher": [ ],
       "isBackground": false,
       "options": {
         "env": {
@@ -39,7 +39,7 @@
       "type": "shell",
       "command": "make",
       "args": [ "extensions" ],
-      "problemMatcher": [],
+      "problemMatcher": [ ],
       "isBackground": false
     }
   ]

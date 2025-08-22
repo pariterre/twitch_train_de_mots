@@ -9,14 +9,32 @@
             "request": "launch",
             "type": "dart",
             "program": "client/lib/main.dart",
-            "args": ["--web-browser-flag=--disable-web-security"],
+            "args": [
+                "--web-browser-flag=--disable-web-security",
+                "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
+                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
+                "--dart-define=USE_DATABASE_MOCK=< true | [false] >",
+                "--dart-define=USE_TWITCH_MANAGER_MOCK=< true | [false] >",
+                "--dart-define=USE_FIREBASE_EMULATORS=< true | [false] >",
+                "--dart-define=USE_GAME_MANAGER_MOCK=< true | [false] >",
+                "--dart-define=USE_PROBLEM_MOCK=< true | [false] >",
+            ],
         },
         {
             "name": "Game client (with local EBS)",
             "request": "launch",
             "type": "dart",
             "program": "client/lib/main.dart",
-            "args": ["--web-browser-flag=--disable-web-security"],
+            "args": [
+                "--web-browser-flag=--disable-web-security",
+                "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
+                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
+                "--dart-define=USE_DATABASE_MOCK=< true | [false] >",
+                "--dart-define=USE_TWITCH_MANAGER_MOCK=< true | [false] >",
+                "--dart-define=USE_FIREBASE_EMULATORS=< true | [false] >",
+                "--dart-define=USE_GAME_MANAGER_MOCK=< true | [false] >",
+                "--dart-define=USE_PROBLEM_MOCK=< true | [false] >",
+            ],
             "preLaunchTask": "Run Dart Server",
         },
         {
@@ -35,6 +53,11 @@
             "type": "dart",
             "flutterMode": "debug",
             "program": "frontends/video_component/lib/main.dart",
+            "args": [
+                "--dart-define=USE_TWITCH_EBS_MOCKER=false",
+                "--dart-define=USE_MOCKER_AUTHENTICATOR=true",
+                "--dart-define=USE_LOCAL_EBS=true",
+            ],
         },
         {
             "name": "Frontend video overlay",
@@ -42,6 +65,18 @@
             "type": "dart",
             "flutterMode": "debug",
             "program": "frontends/video_overlay/lib/main.dart",
+            "args": [
+                "--dart-define=USE_TWITCH_EBS_MOCKER=false",
+                "--dart-define=USE_MOCKER_AUTHENTICATOR=true",
+                "--dart-define=USE_LOCAL_EBS=true",
+            ],
+        },
+        {
+            "name": "Configuration",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "program": "configuration/lib/main.dart",
         },
         {
             "name": "Release client",
@@ -54,6 +89,6 @@
             "type": "dart",
             "request": "launch",
             "preLaunchTask": "Build Extensions release",
-        }
+        },
     ]
 }

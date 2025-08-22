@@ -9,7 +9,14 @@ void main() async {
     debugPrint(message);
   });
   await TwitchManager.initialize(
-      useMocker: false, useMockerAuthenticator: false, useLocalEbs: false);
+    useTwitchEbsMocker: const bool.fromEnvironment('USE_TWITCH_EBS_MOCKER',
+        defaultValue: false),
+    useMockerAuthenticator: const bool.fromEnvironment(
+        'USE_MOCKER_AUTHENTICATOR',
+        defaultValue: false),
+    useLocalEbs:
+        const bool.fromEnvironment('USE_LOCAL_EBS', defaultValue: false),
+  );
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const MainExtension(

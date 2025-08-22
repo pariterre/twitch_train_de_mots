@@ -10,15 +10,22 @@ import 'package:twitch_manager/twitch_app.dart';
 
 class MocksConfiguration {
   // Useful for developers
-  static bool showDebugOptions = false;
-  static bool useLocalEbs = false;
-  static bool useDatabaseMock = false;
-  static bool useTwitchManagerMock = false;
+  static const showDebugOptions =
+      bool.fromEnvironment('SHOW_DEBUG_OPTIONS', defaultValue: false);
+  static const useLocalEbs =
+      bool.fromEnvironment('USE_LOCAL_EBS', defaultValue: false);
+  static const useDatabaseMock =
+      bool.fromEnvironment('USE_DATABASE_MOCK', defaultValue: false);
+  static const useTwitchManagerMock =
+      bool.fromEnvironment('USE_TWITCH_MANAGER_MOCK', defaultValue: false);
 
   // Nice to have for developers
-  static bool useDatabaseEmulators = false;
-  static bool useGameManagerMock = false;
-  static bool useProblemMock = false;
+  static const useFirebaseEmulators =
+      bool.fromEnvironment('USE_FIREBASE_EMULATORS', defaultValue: false);
+  static const useGameManagerMock =
+      bool.fromEnvironment('USE_GAME_MANAGER_MOCK', defaultValue: false);
+  static const useProblemMock =
+      bool.fromEnvironment('USE_PROBLEM_MOCK', defaultValue: false);
 
   static LetterProblemMock get letterProblemMock => LetterProblemMock(
       letters: 'BJOONUR',

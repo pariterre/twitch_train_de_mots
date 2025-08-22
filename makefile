@@ -28,11 +28,6 @@ client:
 		echo "ERROR -- SSH_USER, SSH_SERVER, or SSH_FOLDER_CLIENT is not set. Please set them before building."; \
 		exit 1; \
 	fi; \
-	# Make sure the client is not build with debug flags \
-	if grep -q 'static bool .* = true;' $${PROJECT_FOLDER}/lib/mocks_configuration.dart; then \
-		echo "ERROR -- Debug flag found in mocks_configuration.dart. Please disable it before building."; \
-		exit 1; \
-	fi; \
 	cd $${PROJECT_FOLDER}; \
 	flutter clean; \
 	flutter pub get; \
@@ -47,11 +42,6 @@ extensions:
 	CONFIGURATION_FOLDER=$(BASE_FOLDER)/configuration; \
 	FRONTENDS_FOLDER=$(BASE_FOLDER)/frontends; \
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
-	# Make sure the frontends are not built with debug flags \
-	# if grep -q 'use.*: true' $${FRONTENDS_FOLDER}/video_component/lib/main.dart; then \
-	# 	echo "ERROR -- Debug flag found in video_component main.dart. Please disable it before building."; \
-	# 	exit 1; \
-	# fi; \
 	echo "Building extensions..."; \
 	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
