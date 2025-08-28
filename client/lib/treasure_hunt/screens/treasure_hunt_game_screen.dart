@@ -31,7 +31,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     gm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasConnected.listen(_refresh);
+    tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
 
     if (tm.isNotConnected) {
       WidgetsBinding.instance.addPostFrameCallback(
@@ -49,11 +49,12 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     gm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasConnected.cancel(_refresh);
+    tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
 
     super.dispose();
   }
 
+  void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
   void _refreshWithOneParameter(_) => setState(() {});
   void _solutionWasTried(String _, String __, bool ___) => setState(() {});

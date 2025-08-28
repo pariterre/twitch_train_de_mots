@@ -43,8 +43,8 @@
             "type": "dart",
             "program": "ebs/bin/train_de_mots_ebs.dart",
             "env": {
-                "TRAIN_DE_MOTS_SHARED_SECRET_KEY": "SHARED_KEY_HERE",
-                "TRAIN_DE_MOTS_EXTENSION_SECRET": "EXTENSION_SECRET_HERE",
+                "TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET": "EXTENSION_SHARED_SECRET_HERE",
+                "TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET": "EXTENSION_API_CLIENT_SECRET_HERE",
             },
         },
         {
@@ -54,9 +54,9 @@
             "flutterMode": "debug",
             "program": "frontends/video_component/lib/main.dart",
             "args": [
-                "--dart-define=USE_TWITCH_EBS_MOCKER=false",
-                "--dart-define=USE_MOCKER_AUTHENTICATOR=true",
-                "--dart-define=USE_LOCAL_EBS=true",
+                "--dart-define=USE_TWITCH_EBS_MOCKER=< true | [false] >",
+                "--dart-define=USE_MOCKER_AUTHENTICATOR=< true | [false] >",
+                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
             ],
         },
         {
@@ -66,9 +66,9 @@
             "flutterMode": "debug",
             "program": "frontends/video_overlay/lib/main.dart",
             "args": [
-                "--dart-define=USE_TWITCH_EBS_MOCKER=false",
-                "--dart-define=USE_MOCKER_AUTHENTICATOR=true",
-                "--dart-define=USE_LOCAL_EBS=true",
+                "--dart-define=USE_TWITCH_EBS_MOCKER=< true | [false] >",
+                "--dart-define=USE_MOCKER_AUTHENTICATOR=< true | [false] >",
+                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
             ],
         },
         {

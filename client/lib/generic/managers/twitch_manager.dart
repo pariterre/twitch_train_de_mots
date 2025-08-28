@@ -8,7 +8,8 @@ import 'package:twitch_manager/twitch_utils.dart';
 final _logger = Logger('TwitchManager');
 
 class TwitchManager {
-  final onTwitchManagerHasConnected = GenericListener();
+  final onTwitchManagerHasTriedConnecting =
+      GenericListener<Function({required bool isSuccess})>();
   final onTwitchManagerHasDisconnected = GenericListener();
 
   bool _isInitialized = false;
@@ -50,8 +51,8 @@ class TwitchManager {
             appInfo: appInfo,
             debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions)
         : TwitchAppManager.factory(appInfo: appInfo, reload: true));
+
     _isConnecting = false;
-    if (_manager!.isNotConnected) return;
     _finalizeConnexion();
   }
 
@@ -85,11 +86,11 @@ class TwitchManager {
   }
 
   void _finalizeConnexion() {
+    onTwitchManagerHasTriedConnecting
+        .notifyListeners((callback) => callback(isSuccess: isConnected));
     if (isNotConnected) return;
 
     _manager!.chat.onMessageReceived.listen(_onMessageReceived);
-    onTwitchManagerHasConnected.notifyListeners((callback) => callback());
-
     _logger.info('TwitchManager connected');
   }
 
@@ -114,7 +115,7 @@ class TwitchManager {
 
   ///
   /// Twitch options
-  bool _useMocker = false;
+  bool get _useMocker => this is TwitchManagerMocked;
   final TwitchAppInfo appInfo;
 
   ///
@@ -130,7 +131,5 @@ class TwitchManager {
 }
 
 class TwitchManagerMocked extends TwitchManager {
-  TwitchManagerMocked({required super.appInfo}) {
-    _useMocker = true;
-  }
+  TwitchManagerMocked({required super.appInfo});
 }

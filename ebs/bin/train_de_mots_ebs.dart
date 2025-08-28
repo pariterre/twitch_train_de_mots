@@ -123,29 +123,29 @@ void _setupLoggerFromArguments(List<String> arguments) {
 }
 
 TwitchEbsInfo getTwitchEbsInfo() {
-  final sharedSecret = _useTwitchMocker
+  final extensionSharedSecret = _useTwitchMocker
       ? mockedSharedSecret
-      : Platform.environment['TRAIN_DE_MOTS_SHARED_SECRET_KEY'];
-  if (sharedSecret == null) {
+      : Platform.environment['TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET'];
+  if (extensionSharedSecret == null) {
     throw ArgumentError(
-        'No Twitch shared secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_SHARED_SECRET_KEY environment variable');
+        'No Twitch extension shared secret provided, please provide one by setting '
+        'TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET environment variable');
   }
 
-  final extensionSecret =
-      Platform.environment['TRAIN_DE_MOTS_EXTENSION_SECRET'];
-  if (extensionSecret == null) {
+  final extensionApiClientSecret =
+      Platform.environment['TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET'];
+  if (extensionApiClientSecret == null) {
     throw ArgumentError(
-        'No Twitch extension secret key provided, please provide one by setting '
-        'TRAIN_DE_MOTS_EXTENSION_SECRET environment variable');
+        'No Twitch extension API client secret key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET environment variable');
   }
 
   return TwitchEbsInfo(
     appName: 'Train de mots',
     twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
-    extensionVersion: '0.3.0',
-    extensionSecret: extensionSecret,
-    sharedSecret: sharedSecret,
+    extensionVersion: '0.4.0',
+    extensionApiClientSecret: extensionApiClientSecret,
+    extensionSharedSecret: extensionSharedSecret,
     isTwitchUserIdRequired: true,
   );
 }

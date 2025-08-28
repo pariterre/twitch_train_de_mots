@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
-import 'package:train_de_mots/words_train/models/letter_problem.dart';
 
 const String _lastReleaseNotesShownDefault = '';
 
@@ -92,27 +91,6 @@ class ConfigurationManager {
   ///
   /// Connect to callback to get notified when hide extension is changed
   final onShowExtensionChanged = GenericListener();
-
-  ///
-  /// The current algorithm used to generate the problems
-  final Future<LetterProblem> Function({
-    required int nbLetterInSmallestWord,
-    required int minLetters,
-    required int maxLetters,
-    required int minimumNbOfWords,
-    required int maximumNbOfWords,
-    required bool addUselessLetter,
-    required Duration maxSearchingTime,
-  }) _problemGenerator = ProblemGenerator.generateFromEbs;
-  Future<LetterProblem> Function({
-    required int nbLetterInSmallestWord,
-    required int minLetters,
-    required int maxLetters,
-    required int minimumNbOfWords,
-    required int maximumNbOfWords,
-    required bool addUselessLetter,
-    required Duration maxSearchingTime,
-  }) get problemGenerator => _problemGenerator;
 
   String _lastReleaseNotesShown = _lastReleaseNotesShownDefault;
   String get lastReleaseNotesShown => _lastReleaseNotesShown;

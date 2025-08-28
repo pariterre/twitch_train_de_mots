@@ -29,7 +29,8 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasConnected.listen(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+        .listen(_hasTriedConnecting);
   }
 
   @override
@@ -39,9 +40,11 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasConnected.cancel(_refresh);
+    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+        .cancel(_hasTriedConnecting);
   }
 
+  void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
 
   @override

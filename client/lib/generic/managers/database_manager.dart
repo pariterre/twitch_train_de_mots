@@ -11,7 +11,6 @@ import 'package:train_de_mots/firebase_options.dart';
 import 'package:train_de_mots/generic/models/exceptions.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/database_result.dart';
-import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
 
 final _logger = Logger('DatabaseManager');
@@ -206,12 +205,6 @@ class DatabaseManager {
 
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
       FirebaseFirestore.instance.collection('teams');
-
-  CollectionReference<Map<String, dynamic>> get _wordProblemCollection =>
-      FirebaseFirestore.instance
-          .collection('results')
-          .doc(_currentDatabaseVersion)
-          .collection('letterProblems');
 
   static const String bestStationKey = 'bestStation';
   static const String teamNameKey = 'teamName';
@@ -489,81 +482,6 @@ class DatabaseManager {
     _logger.info('Fetched the best players');
     return out;
   }
-
-  ////////////////////////////
-  /// WORD PROBLEM RELATED ///
-  ////////////////////////////
-
-  ///
-  /// Returns a random letter problem
-  Future<String?> fetchLetterProblem({
-    required bool withUselessLetter,
-    required int minNbLetters,
-    required int maxNbLetters,
-  }) async {
-    _logger.info('Fetching a letter problem...');
-
-    // find a random number of letters to pick from
-    final databaseKeys = List.generate(
-            maxNbLetters - minNbLetters + 1, (index) => index + minNbLetters)
-        .map((index) => '${index}letters')
-        .toList();
-
-    final random = Random();
-
-    Map<String, dynamic>? words;
-    while (true) {
-      if (databaseKeys.isEmpty) {
-        _logger.info('No letter problem found');
-        return null;
-      }
-
-      final key = databaseKeys.removeAt(random.nextInt(databaseKeys.length));
-      words = (await _wordProblemCollection.doc(key).get()).data();
-      if (words != null) break;
-    }
-
-    if (withUselessLetter) {
-      words.removeWhere((key, value) => !value['hasUseless']);
-    }
-    if (words.isEmpty) {
-      _logger.info('No letter problem found');
-      return null;
-    }
-
-    _logger.info('Fetched a letter problem');
-    return words.keys.toList()[random.nextInt(words.length)];
-  }
-
-  Future<void> sendLetterProblem({required LetterProblem problem}) async {
-    _logger.info('Sending a letter problem to the database...');
-
-    final letters = problem.letters;
-    if (problem.hasUselessLetter) letters.removeAt(problem.uselessLetterIndex);
-
-    if (!problem.hasUselessLetter) {
-      // Do not override the existing problem if it is the same but was already
-      // confirmed to have solutions with useless letters when the current one
-      // does not have any
-      final existing =
-          (await _wordProblemCollection.doc('${letters.length}letters').get())
-              .data();
-
-      if (existing?.containsKey(letters.join()) ?? false) {
-        _logger.info('Letter problem already exists');
-        return;
-      }
-    }
-
-    await _wordProblemCollection.doc('${letters.length}letters').set({
-      letters.join(): {
-        'nbSolutions': problem.solutions.length,
-        'hasUseless': problem.hasUselessLetter
-      }
-    }, SetOptions(merge: true));
-
-    _logger.info('Sent a letter problem to the database');
-  }
 }
 
 class DatabaseManagerMock extends DatabaseManager {
@@ -756,23 +674,6 @@ class DatabaseManagerMock extends DatabaseManager {
     _dummyBestPlayersStars.addAll({
       for (final player in team.mvpStars) player.name: (player.value, team.name)
     });
-  }
-
-  ///////////////////////////////////////
-  //// WORD PROBLEM RELATED MOCKINGS ////
-  ///////////////////////////////////////
-
-  @override
-  Future<String?> fetchLetterProblem({
-    required bool withUselessLetter,
-    required int minNbLetters,
-    required int maxNbLetters,
-  }) async =>
-      null;
-
-  @override
-  Future<void> sendLetterProblem({required LetterProblem problem}) async {
-    // Do nothing
   }
 }
 

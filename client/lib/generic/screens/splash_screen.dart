@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> {
     _prepareReleaseNotesIfNeeded();
 
     final twitch = Managers.instance.twitch;
-    twitch.onTwitchManagerHasConnected.listen(_refresh);
+    twitch.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
     twitch.onTwitchManagerHasDisconnected.listen(_reconnectedAfterDisconnect);
   }
 
@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
     dm.onLoggedOut.cancel(_refresh);
 
     final twitch = Managers.instance.twitch;
-    twitch.onTwitchManagerHasConnected.cancel(_refresh);
+    twitch.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
     twitch.onTwitchManagerHasDisconnected.cancel(_reconnectedAfterDisconnect);
   }
 
@@ -82,6 +82,8 @@ class _SplashScreenState extends State<SplashScreen> {
     Managers.instance.train.requestSearchForNextProblem();
     setState(() {});
   }
+
+  void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
 
   void _refresh() => setState(() {});
 

@@ -52,17 +52,11 @@ class LetterProblem {
   /// Generates a new word problem from a random string of letters.
   /// The [config] is the configuration of the problem to generate.
   /// The [timeout] is the maximum time to generate the problem.
-  factory LetterProblem.generateFromRandom(ProblemConfiguration config,
-      {required Duration timeout}) {
+  factory LetterProblem.generateFromRandom(ProblemConfiguration config) {
     _logger.info('Generating problem from random letters...');
 
-    final now = DateTime.now();
     LetterProblem? finalProblem;
     do {
-      if (DateTime.now().difference(now) > timeout) {
-        throw TimeoutException('Could not generate a problem in time');
-      }
-
       // Generate a first candidate set of letters
       List<String> candidateLetters = DictionaryManager.generateRandomLetters(
           nbLetters: config.lengthLongestSolution.max, useFrequency: false);
@@ -147,17 +141,11 @@ class LetterProblem {
   /// words and picking a new letter available in the remainning words.
   /// The [config] is the configuration of the problem to generate.
   /// The [timeout] is the maximum time to generate the problem.
-  factory LetterProblem.generateFromBuildingUp(ProblemConfiguration config,
-      {required Duration timeout}) {
+  factory LetterProblem.generateFromBuildingUp(ProblemConfiguration config) {
     _logger.info('Generating problem from building up...');
 
-    final now = DateTime.now();
     LetterProblem? finalProblem;
     do {
-      if (DateTime.now().difference(now) > timeout) {
-        throw TimeoutException('Could not generate a problem in time');
-      }
-
       List<String> candidateLetters = [];
       Set<String> solutions =
           DictionaryManager.wordsWithAtLeast(config.lengthShortestSolution.max);
@@ -242,21 +230,15 @@ class LetterProblem {
   /// [LetterProblem.generateFromRandom] method.
   /// The [config] is the configuration of the problem to generate.
   /// The [timeout] is the maximum time to generate the problem.
-  factory LetterProblem.generateFromRandomWord(ProblemConfiguration config,
-      {required Duration timeout}) {
+  factory LetterProblem.generateFromRandomWord(ProblemConfiguration config) {
     _logger.info('Generating problem from random word...');
 
     final wordsToPickFrom =
         DictionaryManager.wordsWithAtLeast(config.lengthLongestSolution.min)
             .where((e) => e.length <= config.lengthLongestSolution.max);
 
-    final now = DateTime.now();
     LetterProblem? finalProblem;
     do {
-      if (DateTime.now().difference(now) > timeout) {
-        throw TimeoutException('Could not generate a problem in time');
-      }
-
       // Generate a first candidate set of letters
       List<String> candidateLetters = wordsToPickFrom
           .elementAt(_random.nextInt(wordsToPickFrom.length))
@@ -343,8 +325,7 @@ class LetterProblem {
     Range forceRangeParse(valueMin, valueMax) =>
         Range(forceIntParse(valueMin), forceIntParse(valueMax));
 
-    LetterProblem Function(ProblemConfiguration, {required Duration timeout})
-        parseAlgorithm(algorithm) {
+    LetterProblem Function(ProblemConfiguration) parseAlgorithm(algorithm) {
       switch (algorithm) {
         case 'fromRandom':
           return LetterProblem.generateFromRandom;
@@ -354,14 +335,6 @@ class LetterProblem {
           return LetterProblem.generateFromRandomWord;
         default:
           throw InvalidAlgorithmException();
-      }
-    }
-
-    Duration parseTimeout(timeout) {
-      try {
-        return Duration(seconds: forceIntParse(timeout));
-      } catch (e) {
-        throw TimeoutException('Could not parse timeout');
       }
     }
 
@@ -389,7 +362,6 @@ class LetterProblem {
     }
 
     final algorithm = parseAlgorithm(request['algorithm']!);
-    final timeout = parseTimeout(request['timeout']);
     final config = parseProblemConfiguration(
       lengthShortestSolutionMin: request['lengthShortestSolutionMin'],
       lengthShortestSolutionMax: request['lengthShortestSolutionMax'],
@@ -400,18 +372,15 @@ class LetterProblem {
       nbUselessLetters: request['nbUselessLetters'],
     );
 
-    _logger.info(
-      'Generating new word\n'
-      'Configuration:\n'
-      '\talgorithm: ${request['algorithm']}\n'
-      '\tlengthShortestSolution: ${config.lengthShortestSolution.min} - ${config.lengthShortestSolution.max}\n'
-      '\tlengthLongestSolution: ${config.lengthLongestSolution.min} - ${config.lengthLongestSolution.max}\n'
-      '\tnbSolutions: ${config.nbSolutions.min} - ${config.nbSolutions.max}\n'
-      '\tnbUselessLetters: ${config.nbUselessLetters}\n'
-      '\tTimeout: ${timeout.inSeconds} seconds',
-    );
+    _logger.info('Generating new word\n'
+        'Configuration:\n'
+        '\talgorithm: ${request['algorithm']}\n'
+        '\tlengthShortestSolution: ${config.lengthShortestSolution.min} - ${config.lengthShortestSolution.max}\n'
+        '\tlengthLongestSolution: ${config.lengthLongestSolution.min} - ${config.lengthLongestSolution.max}\n'
+        '\tnbSolutions: ${config.nbSolutions.min} - ${config.nbSolutions.max}\n'
+        '\tnbUselessLetters: ${config.nbUselessLetters}\n');
 
-    final problem = algorithm(config, timeout: timeout);
+    final problem = algorithm(config);
     _logger.info('Problem generated (${problem.letters.join()})');
     return problem;
   }

@@ -28,7 +28,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     while (true) {
       try {
         final tm = Managers.instance.twitch;
-        tm.onTwitchManagerHasConnected.listen(_twitchManagerHasConnected);
+        tm.onTwitchManagerHasTriedConnecting
+            .listen(_twitchManagerHasTriedConnecting);
+        _twitchManagerHasTriedConnecting(isSuccess: tm.isConnected);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -42,10 +44,11 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     _logger.config('Ready');
   }
 
-  void _twitchManagerHasConnected() {
-    Managers.instance.twitch.onTwitchManagerHasConnected
-        .cancel(_twitchManagerHasConnected);
+  void _twitchManagerHasTriedConnecting({required bool isSuccess}) {
+    if (!isSuccess) return;
 
+    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+        .cancel(_twitchManagerHasTriedConnecting);
     connect(Managers.instance.twitch.broadcasterId);
   }
 
@@ -124,12 +127,11 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     required int minimumNbOfWords,
     required int maximumNbOfWords,
     required bool addUselessLetter,
-    required Duration maxSearchingTime,
   }) async {
     // Create a new completer with a timout of maxSearchingTime
 
     _logger.info('Requesting a new letter problem to EBS server');
-    final response = sendQuestionToEbs(
+    final message = await sendQuestionToEbs(
       MessageProtocol(
         to: MessageTo.ebs,
         from: MessageFrom.app,
@@ -145,17 +147,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
             'nbSolutionsMin': minimumNbOfWords,
             'nbSolutionsMax': maximumNbOfWords,
             'nbUselessLetters': addUselessLetter ? 1 : 0,
-            'timeout': maxSearchingTime.inSeconds,
           }
         },
       ),
     );
-
-    final message = await response.timeout(maxSearchingTime, onTimeout: () {
-      _logger
-          .severe('Failed to get a new letter problem from EBS server in time');
-      throw TimeoutException('Failed to get a new letter problem in time');
-    });
 
     return message.data!['letter_problem'];
   }

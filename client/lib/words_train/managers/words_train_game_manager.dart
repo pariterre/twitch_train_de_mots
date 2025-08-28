@@ -253,10 +253,7 @@ class WordsTrainGameManager {
   Future<void> requestSearchForNextProblem() async {
     _logger.info('Requesting to search for the next problem');
 
-    final cm = Managers.instance.configuration;
-    _generateNextProblem(
-        maxSearchingTime:
-            Duration(seconds: cm.autoplayDuration.inSeconds ~/ 2));
+    _generateNextProblem();
   }
 
   ///
@@ -343,11 +340,7 @@ class WordsTrainGameManager {
     if (shouldRepickProblem) _forceRepickProblem = true;
     if (repickNow && _forceRepickProblem) {
       _logger.info('Rules have changed, repicking a problem...');
-
-      final cm = Managers.instance.configuration;
-      _generateNextProblem(
-          maxSearchingTime: timeRemaining ??
-              Duration(seconds: cm.autoplayDuration.inSeconds ~/ 2));
+      _generateNextProblem();
     }
 
     _logger.info('Rules have been updated');
@@ -373,8 +366,7 @@ class WordsTrainGameManager {
   // This helps calling [_hasAPlayerBeenUpdate] a single frame after a player is out of cooldown
   final Map<String, bool> _playersWasInCooldownLastFrame = {};
 
-  Future<void> _generateNextProblem(
-      {required Duration maxSearchingTime}) async {
+  Future<void> _generateNextProblem() async {
     final round = _successLevel == SuccessLevel.failed ? 0 : roundCount;
     _logger.info('Generating for next problem (round $round...)');
 
@@ -392,14 +384,14 @@ class WordsTrainGameManager {
     LetterProblem? problem;
     final difficulty = cm.difficulty(round);
     while (problem == null) {
-      problem = await cm.problemGenerator(
-          nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
-          minLetters: difficulty.nbLettersMinToDraw,
-          maxLetters: difficulty.nbLettersMaxToDraw,
-          minimumNbOfWords: cm.minimumWordsNumber,
-          maximumNbOfWords: cm.maximumWordsNumber,
-          addUselessLetter: difficulty.hasUselessLetter,
-          maxSearchingTime: maxSearchingTime);
+      problem = await LetterProblem.fetchFromEbs(
+        nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
+        minLetters: difficulty.nbLettersMinToDraw,
+        maxLetters: difficulty.nbLettersMaxToDraw,
+        minimumNbOfWords: cm.minimumWordsNumber,
+        maximumNbOfWords: cm.maximumWordsNumber,
+        addUselessLetter: difficulty.hasUselessLetter,
+      );
 
       if (_playedProblems.contains(problem)) {
         _logger
@@ -1096,8 +1088,8 @@ class WordsTrainGameManager {
     _isAttemptingTheBigHeist = false;
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
-    Managers.instance.database.sendLetterProblem(problem: _currentProblem!);
-    _generateNextProblem(maxSearchingTime: cm.autoplayDuration * 3 ~/ 4);
+
+    _generateNextProblem();
     if (_successLevel != SuccessLevel.failed) {
       if (_random.nextDouble() < _currentDifficulty.bigHeistProbability) {
         _canAttemptTheBigHeist = true;
@@ -1258,7 +1250,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     _initializeTrySolutionCallback();
     if (problem == null) {
-      _generateNextProblem(maxSearchingTime: Duration.zero);
+      _generateNextProblem();
     } else {
       _problemMocker = problem;
       _currentProblem = problem;
@@ -1295,10 +1287,9 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
   bool get hasPlayedAtLeastOnce => true;
 
   @override
-  Future<void> _generateNextProblem(
-      {required Duration maxSearchingTime}) async {
+  Future<void> _generateNextProblem() async {
     if (_problemMocker == null) {
-      await super._generateNextProblem(maxSearchingTime: maxSearchingTime);
+      await super._generateNextProblem();
     } else {
       _nextProblem = _problemMocker;
       _isGeneratingProblem = false;
