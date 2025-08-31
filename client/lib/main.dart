@@ -18,20 +18,22 @@ void main() async {
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
   await Managers.initialize(
-    twtichAppInfo: TwitchAppInfo(
-        appName: 'Train de mots',
-        twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
-        scope: const [
-          TwitchAppScope.chatRead,
-          TwitchAppScope.readFollowers,
-        ],
-        twitchRedirectUri: Uri.https(
-            'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-        authenticationServerUri:
-            Uri.https('twitchserver.pariterre.net:3000', 'token')),
-    ebsUri: MocksConfiguration.useLocalEbs
-        ? Uri.parse('ws://localhost:3010')
-        : Uri.parse('wss://twitchserver.pariterre.net:3010'),
+    twitchAppInfo: TwitchAppInfo(
+      appName: 'Train de mots',
+      twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
+      scope: const [
+        TwitchAppScope.chatRead,
+        TwitchAppScope.readFollowers,
+      ],
+      twitchRedirectUri: Uri.https(
+          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+      authenticationServerUri:
+          Uri.https('twitchserver.pariterre.net:3000', 'token'),
+      authenticationFlow: TwitchAuthenticationFlow.authorizationCode,
+      ebsUri: MocksConfiguration.useLocalEbs
+          ? Uri.parse('ws://localhost:3010')
+          : Uri.parse('wss://twitchserver.pariterre.net:3010'),
+    ),
   );
 
   runApp(const MyApp());

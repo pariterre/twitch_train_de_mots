@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/ebs_manager.dart';
+import 'package:twitch_manager/ebs/twitch_ebs_credentials.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('TrainDeMotsEbs');
@@ -140,6 +141,13 @@ TwitchEbsInfo getTwitchEbsInfo() {
         'TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET environment variable');
   }
 
+  final privateKey = Platform.environment['TRAIN_DE_MOTS_EBS_PRIVATE_KEY'];
+  if (privateKey == null) {
+    throw ArgumentError(
+        'No private key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_EBS_PRIVATE_KEY environment variable');
+  }
+
   return TwitchEbsInfo(
     appName: 'Train de mots',
     twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
@@ -147,5 +155,9 @@ TwitchEbsInfo getTwitchEbsInfo() {
     extensionApiClientSecret: extensionApiClientSecret,
     extensionSharedSecret: extensionSharedSecret,
     isTwitchUserIdRequired: true,
+    authenticationFlow: TwitchAuthenticationFlow.implicit,
+    credentialsStorage:
+        TwitchEbsCredentialsStorageSqlite(databasePath: 'ebs_database.db'),
+    privateKey: privateKey,
   );
 }

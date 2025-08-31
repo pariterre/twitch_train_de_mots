@@ -18,7 +18,12 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   /// EBS server if [ebsUri] is provided.
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  EbsServerManager({required super.ebsUri}) {
+  EbsServerManager({required super.appInfo}) {
+    if (appInfo.ebsUri == null) {
+      throw ManagerNotInitializedException(
+          'EbsServerManager cannot be initialized because no EBS URI is provided in TwitchAppInfo.');
+    }
+
     _asyncInitializations();
   }
 

@@ -703,12 +703,12 @@ class MockedTwitchJwtAuthenticator extends TwitchJwtAuthenticator {
   ///
   /// ebsToken is the token that is used to authenticate the EBS to the Twitch API
   @override
-  String? get ebsToken {
-    return JWT({
+  AccessToken? get ebsToken {
+    return AccessToken.fromSerialized(JWT({
       'channel_id': channelId.toString(),
       'opaque_user_id': opaqueUserId,
       'user_id': userId
-    }).sign(SecretKey(mockedSharedSecret, isBase64Encoded: true));
+    }).sign(SecretKey(mockedSharedSecret, isBase64Encoded: true)));
   }
 
   ///

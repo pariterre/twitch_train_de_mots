@@ -6,18 +6,20 @@ import 'package:twitch_manager/twitch_app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Managers.initialize(
-    twtichAppInfo: TwitchAppInfo(
-        appName: 'Train de mots',
-        twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
-        scope: const [
-          TwitchAppScope.chatRead,
-          TwitchAppScope.readFollowers,
-        ],
-        twitchRedirectUri: Uri.https(
-            'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-        authenticationServerUri:
-            Uri.https('twitchserver.pariterre.net:3000', 'token')),
-    ebsUri: Uri.parse('ws://localhost:3010'),
+    twitchAppInfo: TwitchAppInfo(
+      appName: 'Train de mots',
+      twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+      scope: const [
+        TwitchAppScope.chatRead,
+        TwitchAppScope.readFollowers,
+      ],
+      twitchRedirectUri: Uri.https(
+          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+      authenticationServerUri:
+          Uri.https('twitchserver.pariterre.net:3000', 'token'),
+      authenticationFlow: TwitchAuthenticationFlow.implicit,
+      ebsUri: Uri.parse('ws://localhost:3010'),
+    ),
   );
 
   runApp(const MyApp());

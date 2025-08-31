@@ -26,12 +26,16 @@ class Managers {
   ///
   /// Initialize all the managers
   static Future<void> initialize(
-      {required twitch_app.TwitchAppInfo twtichAppInfo,
-      required Uri ebsUri}) async {
+      {required twitch_app.TwitchAppInfo twitchAppInfo}) async {
     if (_instance._isInitialized) {
       throw ManagerAlreadyInitializedException(
           'Managers are already initialized.');
     }
+    if (twitchAppInfo.ebsUri == null) {
+      throw ManagerNotInitializedException(
+          'EbsServerManager cannot be initialized because no EBS URI is provided in TwitchAppInfo.');
+    }
+
     // We need to allow access to managers already because they need each other
     // to be initialized
     _instance._isInitialized = true;
@@ -43,8 +47,8 @@ class Managers {
 
     // Initialize the Twitch manager
     _instance._twitch = MocksConfiguration.useTwitchManagerMock
-        ? TwitchManagerMocked(appInfo: twtichAppInfo)
-        : TwitchManager(appInfo: twtichAppInfo);
+        ? TwitchManagerMocked(appInfo: twitchAppInfo)
+        : TwitchManager(appInfo: twitchAppInfo);
 
     // Initialize the configuration manager
     _instance._configuration = ConfigurationManager();
@@ -61,7 +65,7 @@ class Managers {
     _instance._sound = SoundManager();
 
     // Initialize the EBS server manager
-    _instance._ebs = EbsServerManager(ebsUri: ebsUri);
+    _instance._ebs = EbsServerManager(appInfo: twitchAppInfo);
 
     // Wait for all the manager to be ready
     while (!(_instance._database?.isInitialized ?? false) ||
