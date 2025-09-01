@@ -29,9 +29,19 @@ void main(List<String> arguments) async {
   final networkParameters = _processNetworkArguments(arguments,
       defaultHost: 'localhost', defaultPort: 3010);
 
+  final databasePrivateKey =
+      Platform.environment['TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY'];
+  if (databasePrivateKey == null) {
+    throw ArgumentError(
+        'No database private key provided, please provide one by setting '
+        'TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY environment variable');
+  }
+
   startEbsServer(
       parameters: networkParameters,
       ebsInfo: getTwitchEbsInfo(),
+      credentialsStorage: TwitchEbsCredentialsStorageSqlite(
+          databasePath: 'ebs_database.db', pragmaKey: databasePrivateKey),
       twitchEbsManagerFactory: ({
         required broadcasterId,
         required ebsInfo,
@@ -155,8 +165,6 @@ TwitchEbsInfo getTwitchEbsInfo() {
     extensionSharedSecret: extensionSharedSecret,
     isTwitchUserIdRequired: true,
     authenticationFlow: TwitchAuthenticationFlow.implicit,
-    credentialsStorage:
-        TwitchEbsCredentialsStorageSqlite(databasePath: 'ebs_database.db'),
     privateKey: privateKey,
   );
 }
