@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/managers/ebs_manager.dart';
-import 'package:twitch_manager/ebs/twitch_ebs_credentials.dart';
 import 'package:twitch_manager/twitch_ebs.dart';
 
 final _logger = Logger('TrainDeMotsEbs');
