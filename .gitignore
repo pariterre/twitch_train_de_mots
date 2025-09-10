@@ -7,4 +7,5 @@
 
 # Build directories
 /build/
-ebs/ebs_database.db
+
+ebs_database.db

@@ -8,7 +8,7 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
-import 'package:twitch_manager/twitch_ebs.dart';
+import 'package:twitch_manager/twitch_app.dart';
 
 final _logger = Logger('EbsServerManager');
 
