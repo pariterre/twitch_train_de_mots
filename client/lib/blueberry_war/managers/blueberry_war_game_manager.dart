@@ -124,7 +124,10 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   Future<void> initialize() async {
     _logger.fine('BlueberryWarGameManager initializing');
+    _forceEndOfGame = false;
+    _isInitialized = false;
     _isGameOver = false;
+    _isReady = false;
     _generateProblem();
 
     // Populate letters with random agents
