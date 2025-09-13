@@ -30,9 +30,9 @@
       "isBackground": false,
       "options": {
         "env": {
-          "SSH_USER": "USER_FOR_SSH_SERVICE",
-          "SSH_SERVER": "SERVER_URL",
-          "SSH_FOLDER_CLIENT": "FOLDER_IN_SERVER"
+          "TRAIN_DE_MOTS_SSH_USER": "USER_FOR_SSH_SERVICE",
+          "TRAIN_DE_MOTS_SSH_SERVER": "SERVER_URL",
+          "TRAIN_DE_MOTS_SSH_FOLDER_CLIENT": "FOLDER_IN_SERVER"
         }
       }
     },
