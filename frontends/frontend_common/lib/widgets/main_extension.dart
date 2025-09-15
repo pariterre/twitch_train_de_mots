@@ -127,13 +127,14 @@ class _MainExtensionState extends State<MainExtension> {
 }
 
 class _MainWindow extends StatelessWidget {
-  const _MainWindow(
-      {required this.initialSize,
-      required this.boxSizeController,
-      required this.child});
+  const _MainWindow({
+    required this.initialSize,
+    required this.boxSizeController,
+    required this.child,
+  });
 
-  final ResizedBoxController? boxSizeController;
   final Size? initialSize;
+  final ResizedBoxController? boxSizeController;
   final Widget child;
 
   @override
@@ -157,6 +158,7 @@ class _MainWindow extends StatelessWidget {
             draggingChild: draggingWidget,
             preserveAspectRatio: true,
             decoration: const BoxDecoration(color: Colors.black),
+            canMinimize: true,
             child: mainWidget,
           );
   }

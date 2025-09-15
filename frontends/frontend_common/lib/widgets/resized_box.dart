@@ -34,6 +34,7 @@ class ResizedBox extends StatefulWidget {
     required this.child,
     this.draggingChild,
     this.preserveAspectRatio = false,
+    this.canMinimize = false,
   });
 
   final ResizedBoxController? sizeController;
@@ -61,12 +62,15 @@ class ResizedBox extends StatefulWidget {
   final Widget? draggingChild;
 
   final bool preserveAspectRatio;
+  final bool canMinimize;
 
   @override
   State<ResizedBox> createState() => _ResizedBoxState();
 }
 
 class _ResizedBoxState extends State<ResizedBox> {
+  bool isMinimized = false;
+
   @override
   void initState() {
     super.initState();
@@ -210,13 +214,38 @@ class _ResizedBoxState extends State<ResizedBox> {
 
   @override
   Widget build(BuildContext context) {
+    final realHeight = isMinimized ? 70.0 : height;
+
     final leftEdge = left;
     final topEdge = top;
     final rightEdge = MediaQuery.of(context).size.width - (left + width);
-    final bottomEdge = MediaQuery.of(context).size.height - (top + height);
+    final bottomEdge = MediaQuery.of(context).size.height - (top + realHeight);
 
     final borderWidth = widget.borderWidth;
     final draggableBorderWidth = widget.draggableBorderWidth;
+
+    final mainWidget = widget.canMinimize
+        ? Stack(children: [
+            isMinimized && widget.draggingChild != null
+                ? widget.draggingChild!
+                : widget.child,
+            Align(
+              alignment: Alignment.topRight,
+              child: LayoutBuilder(
+                  builder: (context, constraints) => IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        setState(() {
+                          isMinimized = !isMinimized;
+                        });
+                      },
+                      icon: Icon(Icons.minimize,
+                          color: Colors.white,
+                          size: constraints.maxWidth * 0.05))),
+            )
+          ])
+        : widget.child;
 
     // Strategy :
     // We draw first the main window
@@ -237,14 +266,17 @@ class _ResizedBoxState extends State<ResizedBox> {
               feedback: Opacity(
                   opacity: 0.5,
                   child: Material(
-                      child: SizedBox(
-                          width: width,
-                          height: height,
-                          child: widget.draggingChild))),
+                      child: ClipRect(
+                    child: SizedBox(
+                        width: width,
+                        height: realHeight,
+                        child: widget.draggingChild),
+                  ))),
               onDragEnd: (details) =>
                   _onDragWindow(details.offset.dx, details.offset.dy),
-              child:
-                  SizedBox(width: width, height: height, child: widget.child),
+              child: ClipRect(
+                  child: SizedBox(
+                      width: width, height: realHeight, child: mainWidget)),
             ),
           ),
           // NON INTERACTABLE - top
