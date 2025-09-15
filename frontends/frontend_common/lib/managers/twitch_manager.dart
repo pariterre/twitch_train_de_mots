@@ -13,9 +13,6 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:twitch_manager/abstract/twitch_authenticator.dart';
-import 'package:twitch_manager/ebs/network/communication_protocols.dart';
-import 'package:twitch_manager/frontend/twitch_frontend_info.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
 import 'package:vector_math/vector_math.dart';
 
@@ -88,10 +85,10 @@ class TwitchManager {
   Future<bool> pardonStealer() async {
     final response = await _sendMessageToApp(ToAppMessages.pardonRequest)
         .timeout(const Duration(seconds: 5),
-            onTimeout: () => MessageProtocol(
-                to: MessageTo.frontend,
-                from: MessageFrom.ebs,
-                type: MessageTypes.response,
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
                 isSuccess: false));
     return response.isSuccess ?? false;
   }
@@ -104,10 +101,10 @@ class TwitchManager {
     final response =
         await _sendMessageToApp(ToAppMessages.boostRequest).timeout(
       const Duration(seconds: 5),
-      onTimeout: () => MessageProtocol(
-          to: MessageTo.frontend,
-          from: MessageFrom.ebs,
-          type: MessageTypes.response,
+      onTimeout: () => tm.MessageProtocol(
+          to: tm.MessageTo.frontend,
+          from: tm.MessageFrom.ebs,
+          type: tm.MessageTypes.response,
           isSuccess: false),
     );
     return response.isSuccess ?? false;
@@ -143,10 +140,10 @@ class TwitchManager {
     final response = await _sendMessageToApp(ToAppMessages.revealTileAt,
             data: {'index': index})
         .timeout(const Duration(seconds: 5),
-            onTimeout: () => MessageProtocol(
-                to: MessageTo.frontend,
-                from: MessageFrom.ebs,
-                type: MessageTypes.response,
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
                 isSuccess: false));
     return response.isSuccess ?? false;
   }
@@ -161,10 +158,10 @@ class TwitchManager {
       'id': blueberry.id,
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
-            onTimeout: () => MessageProtocol(
-                to: MessageTo.frontend,
-                from: MessageFrom.ebs,
-                type: MessageTypes.response,
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
                 isSuccess: false));
     return response.isSuccess ?? false;
   }
@@ -174,10 +171,10 @@ class TwitchManager {
     final response = await _sendMessageToApp(ToAppMessages.bitsRedeemed,
             transaction: transaction)
         .timeout(const Duration(seconds: 5),
-            onTimeout: () => MessageProtocol(
-                to: MessageTo.frontend,
-                from: MessageFrom.ebs,
-                type: MessageTypes.response,
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
                 isSuccess: false));
     return response.isSuccess ?? false;
   }
@@ -243,7 +240,7 @@ class TwitchManager {
     _logger.info('TwitchFrontendManager is ready');
   }
 
-  Future<void> _onPubSubMessageReceived(MessageProtocol message) async {
+  Future<void> _onPubSubMessageReceived(tm.MessageProtocol message) async {
     try {
       switch (ToFrontendMessages.values.byName(message.data!['type'])) {
         case ToFrontendMessages.gameState:
@@ -274,10 +271,10 @@ class TwitchManager {
   Future<void> _requestGameStatus() async {
     final response = await _sendMessageToApp(ToAppMessages.gameStateRequest)
         .timeout(const Duration(seconds: 5),
-            onTimeout: () => MessageProtocol(
-                to: MessageTo.frontend,
-                from: MessageFrom.ebs,
-                type: MessageTypes.response,
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
                 isSuccess: false));
     final isSuccess = response.isSuccess ?? false;
     if (!isSuccess) {
@@ -292,7 +289,7 @@ class TwitchManager {
 
   ///
   /// Send a message to the App based on the [type] of message.
-  Future<MessageProtocol> _sendMessageToApp(
+  Future<tm.MessageProtocol> _sendMessageToApp(
     ToAppMessages request, {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
@@ -303,10 +300,10 @@ class TwitchManager {
     }
 
     return await _frontendManager!.sendMessageToApp(
-        MessageProtocol(
-            to: MessageTo.app,
-            from: MessageFrom.frontend,
-            type: MessageTypes.get,
+        tm.MessageProtocol(
+            to: tm.MessageTo.app,
+            from: tm.MessageFrom.frontend,
+            type: tm.MessageTypes.get,
             data: {'type': request.name}..addAll(data ?? {})),
         transaction: transaction);
   }
@@ -503,10 +500,10 @@ class TwitchManagerMock extends TwitchManager {
 
   @override
   Future<bool> attemptTheBigHeist() async {
-    _onPubSubMessageReceived(MessageProtocol(
-        to: MessageTo.frontend,
-        from: MessageFrom.app,
-        type: MessageTypes.response,
+    _onPubSubMessageReceived(tm.MessageProtocol(
+        to: tm.MessageTo.frontend,
+        from: tm.MessageFrom.app,
+        type: tm.MessageTypes.response,
         isSuccess: true,
         data: jsonDecode(jsonEncode({
           'type': ToFrontendMessages.gameState.name,
@@ -548,7 +545,7 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   @override
-  Future<MessageProtocol> _sendMessageToApp(
+  Future<tm.MessageProtocol> _sendMessageToApp(
     ToAppMessages request, {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
@@ -557,26 +554,26 @@ class TwitchManagerMock extends TwitchManager {
 
     switch (request) {
       case ToAppMessages.pardonRequest:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: _acceptPardon);
       case ToAppMessages.boostRequest:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: _acceptBoost);
       case ToAppMessages.gameStateRequest:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.miniGameStarted,
+                status: WordsTrainGameStatus.roundStarted,
                 round: 1,
                 isRoundSuccess: true,
                 timeRemaining: const Duration(seconds: 83),
@@ -672,24 +669,24 @@ class TwitchManagerMock extends TwitchManager {
             'with the method _redeemBitsTransaction');
 
       case ToAppMessages.bitsRedeemed:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: true);
 
       case ToAppMessages.revealTileAt:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: true);
 
       case ToAppMessages.slingShootBlueberry:
-        return MessageProtocol(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
             isSuccess: true);
     }
   }
@@ -697,14 +694,14 @@ class TwitchManagerMock extends TwitchManager {
 
 ///
 /// The JWT key is for the Frontend of a Twitch extension.
-class MockedTwitchJwtAuthenticator extends TwitchJwtAuthenticator {
+class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   MockedTwitchJwtAuthenticator();
 
   ///
   /// ebsToken is the token that is used to authenticate the EBS to the Twitch API
   @override
-  AppToken? get ebsToken {
-    return AppToken.fromSerialized(JWT({
+  tm.AppToken? get ebsToken {
+    return tm.AppToken.fromSerialized(JWT({
       'channel_id': channelId.toString(),
       'opaque_user_id': opaqueUserId,
       'user_id': userId
@@ -738,7 +735,7 @@ class MockedTwitchJwtAuthenticator extends TwitchJwtAuthenticator {
   bool get isConnected => _isConnected;
   @override
   Future<void> connect({
-    required TwitchFrontendInfo appInfo,
+    required tm.TwitchFrontendInfo appInfo,
     bool isTwitchUserIdRequired = false,
   }) async {
     // Do nothing, as this is a mock
@@ -748,7 +745,7 @@ class MockedTwitchJwtAuthenticator extends TwitchJwtAuthenticator {
 
   @override
   Future<void> listenToPubSub(
-      String target, Function(MessageProtocol message) callback) async {
+      String target, Function(tm.MessageProtocol message) callback) async {
     // Do nothing, as this is a mock
   }
 }
