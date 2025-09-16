@@ -32,7 +32,7 @@ class ResizedBox extends StatefulWidget {
     this.maxWidth,
     this.maxHeight,
     required this.child,
-    this.draggingChild,
+    required this.draggingChild,
     this.preserveAspectRatio = false,
     this.canMinimize = false,
   });
@@ -59,7 +59,7 @@ class ResizedBox extends StatefulWidget {
   final double? maxHeight;
 
   final Widget child;
-  final Widget? draggingChild;
+  final Widget draggingChild;
 
   final bool preserveAspectRatio;
   final bool canMinimize;
@@ -226,20 +226,15 @@ class _ResizedBoxState extends State<ResizedBox> {
 
     final mainWidget = widget.canMinimize
         ? Stack(children: [
-            isMinimized && widget.draggingChild != null
-                ? widget.draggingChild!
-                : widget.child,
+            isMinimized ? widget.draggingChild : widget.child,
             Align(
               alignment: Alignment.topRight,
               child: LayoutBuilder(
                   builder: (context, constraints) => IconButton(
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
-                      onPressed: () {
-                        setState(() {
-                          isMinimized = !isMinimized;
-                        });
-                      },
+                      onPressed: () =>
+                          setState(() => isMinimized = !isMinimized),
                       icon: Icon(Icons.minimize,
                           color: Colors.white,
                           size: constraints.maxWidth * 0.05))),
