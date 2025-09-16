@@ -50,16 +50,16 @@ class _WaitingScreenState extends State<WaitingScreen> {
     late final bool showStar;
     switch (gm.status) {
       case WordsTrainGameStatus.uninitialized:
-        mainText = 'Bien le bonjour cheminot\u00b7e!\n'
+        mainText = 'Bien le bonjour cheminot·e!\n'
             '\n'
             'Nous sommes en attente de\n'
-            'votre cheminot\u00b7e en chef,\n'
+            'votre cheminot·e en chef,\n'
             'veuillez patienter...';
         showStar = false;
         break;
       case WordsTrainGameStatus.initializing:
-        mainText = 'Votre cheminot\u00b7e en chef est\n'
-            'prêt\u00b7e pour le grand départ!\n'
+        mainText = 'Votre cheminot·e en chef est\n'
+            'prêt·e pour le grand départ!\n'
             '\n'
             'Nous attendons son signal pour\n'
             'lancer le Petit Train du Nord';
@@ -70,11 +70,11 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case WordsTrainGameStatus.roundEnding:
       case WordsTrainGameStatus.miniGameEnding:
         mainText = gm.isRoundSuccess
-            ? 'Bravo, cheminot\u00b7e\u00b7s,\n'
+            ? 'Bravo, cheminot·e·s,\n'
                 'vous avancez bien!\n'
                 '\n'
                 'Prochaine station ${gm.currentRound + 1}'
-            : 'Malheur, cheminot\u00b7e\u00b7s!\n'
+            : 'Malheur, cheminot·e·s!\n'
                 'Votre aventure vers le\n'
                 'Nord se termine ici...!\n'
                 '\n'
@@ -188,7 +188,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               children: [
                                 Text(
                                   'Félicitez vos collègues\n'
-                                  'cheminot\u00b7e\u00b7s avec un',
+                                  'cheminot·e·s avec un',
                                   style: tm.textFrontendSc,
                                   textAlign: TextAlign.center,
                                 ),

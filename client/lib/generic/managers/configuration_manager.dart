@@ -535,7 +535,7 @@ class ConfigurationManager {
         newBoostThreshold: 0.9,
         message: 'Vous vous enfoncez de plus en plus au Nord et les stations '
             's\'éloignent les unes des autres...\n'
-            'Le travail d\'équipe de vos cheminot\u00b7e\u00b7s sera de la plus '
+            'Le travail d\'équipe de vos cheminot·e·s sera de la plus '
             'haute importance!',
         hasUselessLetter: false,
         hasHiddenLetter: false,
@@ -552,7 +552,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
         newBoostThreshold: 0.9,
-        message: 'Faites attention, cheminot\u00b7e\u00b7s, vous arrivez dans '
+        message: 'Faites attention, cheminot·e·s, vous arrivez dans '
             'terres non défrichées!\n'
             'Malgré tous nos efforts, nous ne pouvons vous '
             'assurer que les lettres que vous recevrez vous seront toutes utiles!',
@@ -572,8 +572,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
         newBoostThreshold: 0.9,
-        message:
-            'Votre chemin est tout bonnement incroyable, cheminot\u00b7e\u00b7s! '
+        message: 'Votre chemin est tout bonnement incroyable, cheminot·e·s! '
             'Vous avez réussi à vous frayer un chemin dans des terres inconnues!\n'
             'Mais les rails sont de plus en plus difficiles à entretenir... '
             'ne vous surprenez pas s\'il en manque des bouts',
@@ -594,8 +593,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.70,
         thresholdFactorThreeStars: 0.85,
         newBoostThreshold: 0.9,
-        message:
-            'Encore une fois, toutes mes félicitations, cheminot\u00b7e\u00b7s! '
+        message: 'Encore une fois, toutes mes félicitations, cheminot·e·s! '
             'Vous avez emmené le Petit Train du Nord où nul autre n\'a osé aller, enfin depuis longtemps!\n'
             'Il sera de plus en plus difficile de vous aidez, mais nous faisons '
             'au mieux pour encore révéler les lettres qui vous seront utiles!',
@@ -616,8 +614,7 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
         newBoostThreshold: 0.8,
-        message:
-            'Ô malheur cheminot\u00b7e\u00b7s! Le carburant se raréfie et les '
+        message: 'Ô malheur cheminot·e·s! Le carburant se raréfie et les '
             'et les réserves s\'épuisent... Nous ne pouvons plus nous permettre '
             'des petites avancées! Il faudra donc trouver des mots plus longs '
             'pour avancer!\n'
@@ -640,7 +637,7 @@ class ConfigurationManager {
         thresholdFactorThreeStars: 0.85,
         newBoostThreshold: 0.9,
         message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
-            'cheminot\u00b7e\u00b7s, et les communications deviennent difficiles...\n'
+            'cheminot·e·s, et les communications deviennent difficiles...\n'
             'Notre équipe continue de faire de son mieux pour vous aider, mais '
             'ne comptez plus trop sur nous!',
         hasUselessLetter: true,
@@ -659,9 +656,8 @@ class ConfigurationManager {
         thresholdFactorTwoStars: 0.75,
         thresholdFactorThreeStars: 0.9,
         newBoostThreshold: 0.95,
-        message:
-            'Cheminot\u00b7e\u00b7s, vou... atteignez maintenant la limit... '
-            'de nos communicat... À partir d\'ici, vo... êtes seul\u00b7e\u00b7s '
+        message: 'Cheminot·e·s, vou... atteignez maintenant la limit... '
+            'de nos communicat... À partir d\'ici, vo... êtes seul·e·s '
             'dans cette aventu..!\n'
             'Nous vous souh...ons bonne chance dans votre quête du Nord!',
         hasUselessLetter: true,
@@ -698,7 +694,7 @@ class ConfigurationManager {
         thresholdFactorThreeStars: 1.0,
         newBoostThreshold: 1.0,
         message: 'OH! OH! OH!\n'
-            'Bonjour cheminot\u00b7e\u00b7s! Que faites vous ici? Mon rennes '
+            'Bonjour cheminot·e·s! Que faites vous ici? Mon rennes '
             'vous a vu passer il y a quelques instants! OH! OH! OH!\n'
             'Vous entrez dans les terres du Pôle Nord! Le chemin est arride et '
             'difficile ici... Je vous souhaite bonne chance! OH! OH! OH!',

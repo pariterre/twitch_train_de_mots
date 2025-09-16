@@ -34,7 +34,7 @@ const List<ReleaseNotes> releaseNotes = [
     FeatureNotes(
       description: 'Il est maintenant possible d\'enregistrer les scores '
           'des équipes pour les comparer au monde entier! Qui sera la '
-          'meilleure équipe de cheminot\u00b7e\u00b7s?',
+          'meilleure équipe de cheminot·e·s?',
     ),
     FeatureNotes(
       description: 'Travail sur la rapidité de l\'algorithme de génération des '
@@ -62,7 +62,7 @@ const List<ReleaseNotes> releaseNotes = [
         ),
         FeatureNotes(
           description: 'Il est maintenant possible de voler des mots à ses '
-              'cocheminot\u00b7e\u00b7s plus d\'une fois par ronde',
+              'cocheminot·e·s plus d\'une fois par ronde',
           userWhoRequested: 'NghtmrTV',
           urlOfUserWhoRequested: 'https://twitch.tv/nghtmrtv',
         ),
@@ -93,9 +93,9 @@ const List<ReleaseNotes> releaseNotes = [
             'ce qui permet de voir les stations futures',
       ),
       FeatureNotes(
-        description: 'Le score du ou de la meilleur\u00b7e cheminot\u00b7e '
+        description: 'Le score du ou de la meilleure cheminot·e '
             'est maintenant affiché dans le tableau final. Qui sera le ou la '
-            'meilleur\u00b7e?',
+            'meilleur·e?',
         userWhoRequested: 'Kyaroline',
         urlOfUserWhoRequested: 'https://twitch.tv/kyaroline',
       ),
@@ -106,14 +106,14 @@ const List<ReleaseNotes> releaseNotes = [
     codeName: 'Tous pour un et un pour un',
     notes:
         'Oui, la citation est bien "un pour tous", mais maintenant que l\'unique score '
-        'du ou de la meilleure cheminot\u00b7e de l\'équipe est enregistré au '
+        'du ou de la meilleure cheminot·e de l\'équipe est enregistré au '
         'tableau d\'honneur, nous aurons probablement droits à des élans '
         'd\'individualisme! Mais qui saura résister à l\'appel de la gloire '
         'pour faire avancer le train?',
     features: [
       FeatureNotes(
           description:
-              'Le score du ou de la meilleure cheminot\u00b7e de l\'équipe est '
+              'Le score du ou de la meilleure cheminot·e de l\'équipe est '
               'enregistré au tableau d\'honneur'),
       FeatureNotes(
           description:
@@ -126,12 +126,12 @@ const List<ReleaseNotes> releaseNotes = [
   ),
   ReleaseNotes(
     version: '0.3.2',
-    codeName: 'Mes ami\u00b7e\u00b7s sont mes ennemi\u00b7e\u00b7s',
+    codeName: 'Mes ami·e·s sont mes ennemi·e·s',
     notes:
         'Le Train de Mots est un jeu d\'équipe, jusqu\'à ce que ce ne le soit plus! '
         'Le jeu montre maintenant le joueur MVP de votre équipe de façon plus '
         'précise. Vous savez maintenant qui cibler pour devenir le ou la '
-        'meilleur\u00b7e cheminot\u00b7e!',
+        'meilleur·e cheminot·e!',
     features: [
       FeatureNotes(
           description:
@@ -160,15 +160,15 @@ const List<ReleaseNotes> releaseNotes = [
   ReleaseNotes(
     version: '0.3.4',
     codeName: 'Je vAzalée encore plus loin',
-    notes: 'Certain\u00b7e\u00b7s cheminot\u00b7e\u00b7s ont vu le Petit Train'
+    notes: 'Certain·e·s cheminot·e·s ont vu le Petit Train'
         'du Nord les priver de leurs prouesses. On aurait pu accepter cet état '
         'de fait... mais non! Et rendons à César ce qui est Azalee et réparons '
         'ce problème...',
     features: [
       FeatureNotes(
           description:
-              'Réparation du bogue qui supprimait le score du ou de la meilleur\u00b7e '
-              'cheminot\u00b7e de l\'équipe à la fin de la ronde si ce même joueur '
+              'Réparation du bogue qui supprimait le score du ou de la meilleur·e '
+              'cheminot·e de l\'équipe à la fin de la ronde si ce même joueur '
               'est le ou la MVP de la ronde courante',
           userWhoRequested: 'LaLoutreBurlesques',
           urlOfUserWhoRequested: 'https://twitch.tv/laloutreburlesques'),
@@ -243,7 +243,7 @@ const List<ReleaseNotes> releaseNotes = [
         description:
             'Il est maintenant possible de pardonner avec la commande: !pardon. '
             'Un pardon redonne les points à l\'équipe mais laisse les points au voleur. '
-            'Seul le ou la cheminot\u00b7e volé\u00b7e peut pardonner (sans récupérer ses points)',
+            'Seul le ou la cheminot·e volé·e peut pardonner (sans récupérer ses points)',
       ),
       FeatureNotes(
           description:
@@ -386,17 +386,15 @@ const List<ReleaseNotes> releaseNotes = [
   ReleaseNotes(
     version: '1.3.0',
     codeName: 'Les Wagons du Nord',
-    notes:
-        'Chemino\u00b7t\u00b7e\u00b7s, il s\'est passé tant depuis le dernier télégramme! '
+    notes: 'Cheminot·e·s, il s\'est passé tant depuis le dernier télégramme! '
         'Je ne pourrai tout vous résumer ici sans vous perdre complètement... Mais le plus '
         'important est que le train s\'est agrandi, il a subit une extension! Je dirais même '
         'plus, je dirais qu\'il a maintenant une Extension Twitch! Tous les détails de '
         'l\'extension dans \'onglet Extensions Twitch.',
     features: [
       FeatureNotes(
-          description:
-              'Création d\'une interface de jeu pour les chemino\u00b7t\u00b7e\u00b7s '
-              'sous la forme d\'une extension Twitch. Une fois activée, vos chemino\u00b7t\u00b7e\u00b7s '
+          description: 'Création d\'une interface de jeu pour les cheminot·e·s '
+              'sous la forme d\'une extension Twitch. Une fois activée, vos cheminot·e·s '
               'seront en mesure de voir le jeu directement sur leur écran, supprimant '
               'le retard dû à la diffusion.'),
       FeatureNotes(
@@ -415,7 +413,7 @@ const List<ReleaseNotes> releaseNotes = [
       FeatureNotes(
         description:
             'On a également effacé l\'ardoise en ce début de l\'an 2025. Le tableau des '
-            'chemino\u00b7t\u00b7e\u00b7s a été remis à zéro!',
+            'cheminot·e·s a été remis à zéro!',
         userWhoRequested: 'AlchimisteDesMots',
         urlOfUserWhoRequested: 'https://twitch.tv/alchimistedesmots',
       ),
@@ -431,14 +429,14 @@ const List<ReleaseNotes> releaseNotes = [
     features: [
       FeatureNotes(
           description:
-              'L\'animateur\u00b7trice est maintenant en mesure d\'afficher ou cacher '
+              'L\'animateur·trice est maintenant en mesure d\'afficher ou cacher '
               'l\'extension du Train de mots avec un simple clique dans les options du '
               'jeu.'),
       FeatureNotes(
           description: 'L\'extension affiche maintenant le temps restant!'),
       FeatureNotes(
           description:
-              'Le tableau des chemino\u00b7t\u00b7e\u00b7s a été déplacé afin de cesser '
+              'Le tableau des cheminot·e·s a été déplacé afin de cesser '
               'de cacher le jeu. Je suis désolé à la personne qui m\'a proposé ce changement, '
               'je n\'ai plus souvenir qui cela était. Si c\'est vous, vous pouvez m\'écrire '
               'et j\'ajouterai votre pseudo dans cette note!'),
@@ -449,14 +447,14 @@ const List<ReleaseNotes> releaseNotes = [
     codeName: 'La cueilleuse d\'étoiles',
     notes:
         'Depuis longtemps le Train de Mots cueille les étoiles durant son voyage, '
-        'mais les meilleur\u00b7e\u00b7s cueilleurs\u00b7ses étaient ignoré\u00b7e\u00b7! '
+        'mais les meilleur·e·s cueilleurs·ses étaient ignoré·e·s! '
         'Cette époque est révolue! Les étoiles sont maintenant affichées dans le tableau '
-        'des chemino\u00b7t\u00b7e\u00b7s!',
+        'des cheminot·e·s!',
     features: [
       FeatureNotes(
           description:
-              'Ajout des étoiles cueillies par les chemino\u00b7t\u00b7e\u00b7s dans le tableau '
-              'des chemino\u00b7t\u00b7e\u00b7s'),
+              'Ajout des étoiles cueillies par les cheminot·e·s dans le tableau '
+              'des cheminot·e·s'),
       FeatureNotes(
           description:
               'Le bogue où un meilleur score était affiché à la mauvaise '
@@ -470,8 +468,7 @@ const List<ReleaseNotes> releaseNotes = [
   ReleaseNotes(
     version: '1.4.0',
     codeName: 'Promenons-nous dans les bois',
-    notes:
-        'Vos chemino\u00b7t\u00b7e\u00b7s sont si bons qu\'ils et elles permettent '
+    notes: 'Vos cheminot·e·s sont si bons qu\'ils et elles permettent '
         'd\'arriver aux stations bien avant le temps imparti? Alors pourquoi ne pas '
         'profiter de ce temps pour faire une petite promenade dans les bois? '
         'Le mini-jeu de la chasse aux bleuets est maintenant disponible! ',
@@ -481,7 +478,7 @@ const List<ReleaseNotes> releaseNotes = [
               'Ajout du mini-jeu de la chasse aux bleuets! Le jeu se lance '
               'automatiquement si tous les mots sont trouvés avant la fin de la manche. '
               'ATTENTION: vous devez avoir activé l\'extension Twitch pour que '
-              'vos chemino\u00b7t\u00b7e\u00b7s puissent y jouer!'),
+              'vos cheminot·e·s puissent y jouer!'),
     ],
   ),
   ReleaseNotes(
@@ -501,7 +498,7 @@ const List<ReleaseNotes> releaseNotes = [
     codeName: 'Dégât royale',
     notes:
         'Après des semaines et des mois d\'attente, le mini-jeu de la guerre des bleuets est enfin arrivé! '
-        'Vos chemino\u00b7t\u00b7e\u00b7s pourront maintenant s\'amuser à tirer des bleuets sur un mot qui s\'échappent dans un champ de bleuets. '
+        'Vos cheminot·e·s pourront maintenant s\'amuser à tirer des bleuets sur un mot qui s\'échappent dans un champ de bleuets. '
         'Attraper le mot vous fera gagner une étoile supplémentaire lors de la manche suivante!\n\n'
         'N\'oubliez pas d\'installer l\'extension Twitch pour profiter pleinement de cette nouvelle fonctionnalité!',
     features: [

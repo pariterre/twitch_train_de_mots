@@ -25,7 +25,7 @@ class NonAuthorizedScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Bonjour cheminot\u00b7e,\n'
+                    'Bonjour cheminot·e,\n'
                     'Afin de profiter d\'embarquer\n'
                     'dans le train, vous devez\n'
                     'autoriser l\'accès à votre\n'

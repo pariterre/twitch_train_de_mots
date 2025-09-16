@@ -357,7 +357,7 @@ class _MiniGameGranted extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Bravo cheminot\u00b7e\u00b7s! Votre efficacité vous laisse le temps de relaxer un peu!\n'
+            'Bravo cheminot·e·s! Votre efficacité vous laisse le temps de relaxer un peu!\n'
             '${switch (miniGame) {
               MiniGames.blueberryWar =>
                 'Affûtez vos armes, la guerre des bleuets est lancée!',

@@ -438,8 +438,7 @@ class _LeaderBoard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 if (index == 0)
-                                  _buildTitleTile(
-                                      'Meilleur\u00b7e cheminot\u00b7e'),
+                                  _buildTitleTile('Meilleur·e cheminot·e'),
                                 _buildNamedTile(
                                   player.name,
                                   highlightColor: highlightColor,
@@ -451,8 +450,7 @@ class _LeaderBoard extends StatelessWidget {
                                   Column(
                                     children: [
                                       const SizedBox(height: 12.0),
-                                      _buildTitleTile(
-                                          'Autres cheminot\u00b7e\u00b7s')
+                                      _buildTitleTile('Autres cheminot·e·s')
                                     ],
                                   )
                               ]);
@@ -589,7 +587,7 @@ class _LeaderBoard extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitleTile('Meilleur\u00b7e\u00b7s équipes'),
+                        _buildTitleTile('Meilleur·e·s équipes'),
                         ...teams.map(
                           (team) => _buildNamedTile(
                             team.name,
@@ -649,8 +647,7 @@ class _LeaderBoard extends StatelessWidget {
 
           if (players.isEmpty) {
             return Center(
-                child:
-                    _buildTitleTile('Aucun\u00b7e cheminot\u00b7e n\'a joué'));
+                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
           }
 
           return SingleChildScrollView(
@@ -663,8 +660,7 @@ class _LeaderBoard extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitleTile(
-                            'Meilleur\u00b7e\u00b7s cheminot\u00b7e\u00b7s'),
+                        _buildTitleTile('Meilleur·e·s cheminot·e·s'),
                         ...players.map(
                           (player) => _buildNamedTile(
                             '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
@@ -725,8 +721,7 @@ class _LeaderBoard extends StatelessWidget {
 
           if (players.isEmpty) {
             return Center(
-                child:
-                    _buildTitleTile('Aucun\u00b7e cheminot\u00b7e n\'a joué'));
+                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
           }
 
           return SingleChildScrollView(
@@ -739,8 +734,7 @@ class _LeaderBoard extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitleTile(
-                            'Meilleur\u00b7e\u00b7s cueilleurs\u00b7ses'),
+                        _buildTitleTile('Meilleur·e·s cueilleurs·ses'),
                         ...players.map(
                           (player) => _buildNamedTile(
                             '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
@@ -1020,7 +1014,7 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
             ]),
           ),
           Text(
-            'Le tableau des cheminot\u00b7e\u00b7s',
+            'Le tableau des cheminot·e·s',
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
           ),
@@ -1211,7 +1205,7 @@ class _AttemptingTheBigHeist extends StatelessWidget {
         children: [
           const SizedBox(width: 10),
           Text(
-            'Un\u00b7e cheminot\u00b7e a orchestré un Grand Coup! Braquez le train\n'
+            'Un·e cheminot·e a orchestré un Grand Coup! Braquez le train\n'
             'en chemin pour un quitte ou double et parcourir six stations d\'un coup!',
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,

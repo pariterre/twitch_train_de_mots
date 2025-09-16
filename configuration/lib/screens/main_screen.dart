@@ -25,33 +25,47 @@ class MainScreen extends StatelessWidget {
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 160.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Il n\'y a pas de configuration à faire ici. '
-                    'Pour configurer et lancer le jeu, rendez-vous sur ',
-                    textAlign: TextAlign.left,
-                    style: tm.clientMainTextStyle.copyWith(fontSize: 26),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ô cheminot·e en chef, bienvenue au Train de mots !\n'
+                        'Il nous fait grand plaisir de vous accueillir pour ce voyage avec le Petit train du Nord.\n'
+                        '\n'
+                        'Lorsque vous activerez cette extension, pour une expérience optimale, '
+                        'vous êtes invité·e à choisir l\'option "Overlay". Si cela n\'est pas '
+                        'possible, alors le mode "Composant" sera la meilleure alternative.\n\n'
+                        'Il n\'y a pas d\'autres configurations à faire sur cette page! '
+                        'Pour lancer le jeu, rendez-vous sur :',
+                        textAlign: TextAlign.left,
+                        style: tm.clientMainTextStyle.copyWith(fontSize: 26),
+                      ),
+                      const SizedBox(height: 16),
+                      // Change the cursor to a pointer when hovering over the link
+                      Center(
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                              onTap: () => launchUrl(Uri.parse(
+                                  'https://traindemots.pariterre.net')),
+                              child: Text(
+                                'https://traindemots.pariterre.net',
+                                textAlign: TextAlign.left,
+                                style: tm.clientMainTextStyle.copyWith(
+                                  fontSize: 26,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: tm.textColor,
+                                ),
+                              )),
+                        ),
+                      ),
+                    ],
                   ),
-                  // Change the cursor to a pointer when hovering over the link
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                        onTap: () => launchUrl(
-                            Uri.parse('https://traindemots.pariterre.net')),
-                        child: Text(
-                          'https://traindemots.pariterre.net',
-                          textAlign: TextAlign.left,
-                          style: tm.clientMainTextStyle.copyWith(
-                            fontSize: 26,
-                            decoration: TextDecoration.underline,
-                            decorationColor: tm.textColor,
-                          ),
-                        )),
-                  ),
-                ],
+                ),
               ),
             ),
           )

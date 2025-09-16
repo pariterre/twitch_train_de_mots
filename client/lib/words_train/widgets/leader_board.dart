@@ -78,7 +78,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: Text('Tableau des cheminot\u00b7e\u00b7s',
+                      child: Text('Tableau des cheminot·e·s',
                           style: tm.clientMainTextStyle.copyWith(
                             fontSize: 26,
                             color: tm.leaderTextColor,
@@ -119,7 +119,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
   Widget _buildTitleTile() {
     return _buildGenericTile(
-      player: 'Cheminot\u00b7e\u00b7s',
+      player: 'Cheminot·e·s',
       roundScore: 'Points',
       totalScore: 'Total',
       isTitle: true,

@@ -248,7 +248,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                     onChanged: (value) => cm.autoplay = value),
                 const SizedBox(height: 12),
                 _BooleanInputField(
-                    label: 'Afficher le tableau des cheminot\u00b7e\u00b7s',
+                    label: 'Afficher le tableau des cheminot·e·s',
                     value: cm.showLeaderBoard,
                     onChanged: (value) => cm.showLeaderBoard = value),
                 const SizedBox(height: 12),
@@ -426,21 +426,21 @@ void _connectExtension(BuildContext context) async {
             'L\'extension Twitch embelli grandement votre Voyage vers le Nord!\n'
             '\n'
             'Premièrement, celle-ci affiche les lettres à trouver directement sur l\'écran '
-            'des cheminot\u00b7e\u00b7s. Cet affichage est synchrone avec le jeu, effaçant '
+            'des cheminot·e·s. Cet affichage est synchrone avec le jeu, effaçant '
             'le retard occasionné par la diffusion. De plus, toutes les interactions '
-            'des cheminot\u00b7e\u00b7s, commes les boosts ou les pardons, sont '
+            'des cheminot·e·s, commes les boosts ou les pardons, sont '
             'directement cliquable sur l\'extension.\n'
             '\n'
             'Des options d\'échanges de bits sont également disponibles pour une '
-            'expérience encore plus originale pour les cheminot\u00b7e\u00b7s, '
+            'expérience encore plus originale pour les cheminot·e·s, '
             'permettant en même temps de monétiser votre chaîne.\n'
             '\n'
-            'Pour une expérience optimale, vous êtes invité\u00b7e\u00b7s à choisir l\'option '
+            'Pour une expérience optimale, vous êtes invité·e·s à choisir l\'option '
             '\u00ab overlay \u00bb lorsque vous activez l\'extension. Cette option crée une '
-            'fenêtre déplaçable et redimensionnable directement sur l\'écran de vos cheminot\u00b7e\u00b7s.'),
+            'fenêtre déplaçable et redimensionnable directement sur l\'écran de vos cheminot·e·s.'),
         onAccept: () {
           launchUrl(Uri.parse(
-              'https://dashboard.twitch.tv/extensions/539pzk7h6vavyzmklwy6msq6k3068x-0.1.0'));
+              'https://dashboard.twitch.tv/extensions/539pzk7h6vavyzmklwy6msq6k3068x'));
           Navigator.pop(ctx);
         },
         acceptButtonTitle: 'Aller à l\'extension',
@@ -459,7 +459,7 @@ void _showGameDevConfiguration(BuildContext context) async {
               title: 'Mise en garde',
               height: 400,
               width: 500,
-              content: Text('Attention cheminot\u00b7e!\n\n'
+              content: Text('Attention cheminot·e!\n\n'
                   'Les options avancées peuvent être amusantes, mais elles peuvent aussi'
                   's\'avérer dangereuses! Pour cette raison, votre cheminement '
                   'ne sera pas sauvegardé si vous avez modifié ces options.\n\n'
