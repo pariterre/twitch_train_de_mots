@@ -688,6 +688,9 @@ class TwitchManagerMock extends TwitchManager {
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,
             isSuccess: true);
+
+      case ToAppMessages.isExtensionActive:
+        throw 'Request should not come from frontend';
     }
   }
 }

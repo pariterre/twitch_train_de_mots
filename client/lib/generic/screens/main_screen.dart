@@ -37,6 +37,9 @@ class _MainScreenState extends State<MainScreen> {
     final dm = Managers.instance.database;
     dm.onFullyLoggedIn.listen(_refresh);
     dm.onLoggedOut.listen(_refresh);
+
+    final em = Managers.instance.ebs;
+    em.onConfirmationExtensionIsActive.listen(_isExtensionActive);
   }
 
   @override
@@ -54,10 +57,25 @@ class _MainScreenState extends State<MainScreen> {
     dm.onFullyLoggedIn.cancel(_refresh);
     dm.onLoggedOut.cancel(_refresh);
 
+    final em = Managers.instance.ebs;
+    em.onConfirmationExtensionIsActive.cancel(_isExtensionActive);
+
     super.dispose();
   }
 
-  Future<void> _showMessageDialog(String message) async {
+  void _isExtensionActive(bool isActive) {
+    // Show a telegram if the extension is not active
+    if (isActive) return;
+
+    _showMessageDialog(
+        'Vous n\'avez pas activé l\'extension Twitch, par conséquent, les mini-jeux bonus seront désactivés.\n\n'
+        'Vous pouvez activer l\'extension en suivant les explications disponibles dans '
+        'l\'onglet "Extension Twitch" du menu de configuration.',
+        allowAutoplay: false);
+  }
+
+  Future<void> _showMessageDialog(String message,
+      {bool allowAutoplay = true}) async {
     final cm = Managers.instance.configuration;
     final tm = ThemeManager.instance;
 
@@ -71,8 +89,9 @@ class _MainScreenState extends State<MainScreen> {
             width: 500,
             height: 600,
             acceptButtonTitle: 'Merci!',
-            autoAcceptDuration:
-                cm.autoplay ? const Duration(seconds: 10) : null,
+            autoAcceptDuration: allowAutoplay && cm.autoplay
+                ? const Duration(seconds: 10)
+                : null,
             onAccept: () => Navigator.of(context).pop(),
           );
         });

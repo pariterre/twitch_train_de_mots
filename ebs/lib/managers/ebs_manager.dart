@@ -84,6 +84,20 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
     _logger.info('Sending welcome message');
     TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
+
+    // Send if the extension is active to the frontend
+    _sendIfExtensionIsActive();
+  }
+
+  Future<void> _sendIfExtensionIsActive() async {
+    communicator.sendMessage(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': ToAppMessages.isExtensionActive.name,
+          'is_active': await TwitchApi.instance.isExtensionActive()
+        }));
   }
 
   Future<void> _sendGameStateToFrontend() async {
@@ -400,6 +414,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
               from: MessageFrom.ebs,
               type: MessageTypes.response,
               isSuccess: response.isSuccess ?? false));
+          break;
+
+        case ToAppMessages.isExtensionActive:
+          throw 'Request should not come from frontend';
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());

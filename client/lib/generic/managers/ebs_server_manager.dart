@@ -4,6 +4,7 @@ import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -26,6 +27,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
     _asyncInitializations();
   }
+
+  /// If the broadcaster have activated the extension
+  final onConfirmationExtensionIsActive = GenericListener<Function(bool)>();
 
   Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
@@ -218,6 +222,11 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       final gm = Managers.instance.train;
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
+        case ToAppMessages.isExtensionActive:
+          onConfirmationExtensionIsActive.notifyListeners(
+              (callback) => callback(message.data!['is_active'] as bool));
+          break;
+
         case ToAppMessages.gameStateRequest:
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
