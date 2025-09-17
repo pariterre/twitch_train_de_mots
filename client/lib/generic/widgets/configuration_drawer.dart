@@ -224,6 +224,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   Widget build(BuildContext context) {
     final cm = Managers.instance.configuration;
     final tm = ThemeManager.instance;
+    final em = Managers.instance.ebs;
 
     final subtitleStyle = tm.clientMainTextStyle
         .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
@@ -254,7 +255,15 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                 const SizedBox(height: 12),
                 _BooleanInputField(
                     label:
-                        'Afficher l\'extension\n(sans effet si l\'extension overlay n\'est pas activée)',
+                        'Activer les mini-jeux\n(nécessite l\'extension Twitch)',
+                    enabled: em.isExtensionActive,
+                    value: cm.useMinigames,
+                    onChanged: (value) => cm.useMinigames = value),
+                const SizedBox(height: 12),
+                _BooleanInputField(
+                    label:
+                        'Afficher l\'extension\n(sans effet si l\'extension Twitch overlay n\'est pas activée)',
+                    enabled: em.isExtensionActive,
                     value: cm.showExtension,
                     onChanged: (value) => cm.showExtension = value),
                 const SizedBox(height: 12),
@@ -830,7 +839,10 @@ class _BooleanInputField extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(label,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: enabled ? Colors.black : Colors.black54)),
             Checkbox(
               value: value,
               onChanged: enabled ? (_) => onChanged(!value) : null,

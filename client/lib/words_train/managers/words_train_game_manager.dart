@@ -69,17 +69,6 @@ class WordsTrainGameManager {
     // This is triggered if a user sends fireworks to the screen
     onCongratulationFireworks.listen(_requestedFireworks);
 
-    while (true) {
-      try {
-        Managers.instance.ebs.onConfirmationExtensionIsActive
-            .listen(_activateMiniGames);
-        break;
-      } on ManagerNotInitializedException {
-        // Wait and repeat
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    }
-
     _isInitialized = true;
 
     _logger.config('Ready');
@@ -231,7 +220,6 @@ class WordsTrainGameManager {
   bool _isAttemptingTheBigHeist = false;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
-  bool _miniGamesAreActive = false;
   bool _isNextRoundAMiniGame = false;
   bool get isNextRoundAMiniGame => _isNextRoundAMiniGame;
   bool _isRoundAMiniGame = false;
@@ -367,16 +355,6 @@ class WordsTrainGameManager {
     _logger.info('Checking for invalid rules...');
     _isAllowedToSendResults = _isAllowedToSendResults &&
         !Managers.instance.configuration.useCustomAdvancedOptions;
-  }
-
-  ///
-  /// Deactivate mini games if the extension is not active
-  void _activateMiniGames(bool isExtensionActive) {
-    // Activate the minigames only if the extension is active
-    _miniGamesAreActive = isExtensionActive;
-
-    _logger.info(
-        '${_miniGamesAreActive ? 'Activating' : 'Deactivating'} mini games because extension is ${isExtensionActive ? 'active' : 'not active'}');
   }
 
   ///
@@ -1088,7 +1066,7 @@ class WordsTrainGameManager {
       _remainingPardons += 1;
       onNewPardonGranted.notifyListeners((callback) => callback());
     }
-    if (_miniGamesAreActive &&
+    if (cm.useMinigames &&
         (roundSuccesses.contains(RoundSuccess.foundAll) ||
             roundSuccesses.contains(RoundSuccess.maxPoints))) {
       _isNextRoundAMiniGame = true;

@@ -29,6 +29,16 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 
   /// If the broadcaster have activated the extension
+  bool? _isExtensionActive;
+  bool get isExtensionActive => _isExtensionActive ?? false;
+  set isExtensionActive(bool value) {
+    if (_isExtensionActive == value) return;
+
+    _isExtensionActive = value;
+    onConfirmationExtensionIsActive
+        .notifyListeners((callback) => callback(value));
+  }
+
   final onConfirmationExtensionIsActive = GenericListener<Function(bool)>();
 
   Future<void> _asyncInitializations() async {
@@ -223,8 +233,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.isExtensionActive:
-          onConfirmationExtensionIsActive.notifyListeners(
-              (callback) => callback(message.data!['is_active'] as bool));
+          isExtensionActive = message.data!['is_active'] as bool;
+          _logger.info(
+              'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
           break;
 
         case ToAppMessages.gameStateRequest:
@@ -335,5 +346,21 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   Future<void> handlePutRequest(MessageProtocol message) {
     // There is currently no put request to handle
     throw UnimplementedError();
+  }
+}
+
+class EbsServerManagerMocked extends EbsServerManager {
+  EbsServerManagerMocked({required super.appInfo}) {
+    // Simulate receiving extension is active after 2 seconds
+    Future.delayed(const Duration(seconds: 1), () async {
+      handleGetRequest(MessageProtocol(
+          to: MessageTo.app,
+          from: MessageFrom.ebs,
+          type: MessageTypes.get,
+          data: {
+            'type': ToAppMessages.isExtensionActive.name,
+            'is_active': false
+          }));
+    });
   }
 }

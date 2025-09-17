@@ -48,6 +48,7 @@ const _musicVolumeDefault = 0.3;
 const _soundVolumeDefault = 1.0;
 
 const _showExtensionDefault = true;
+const _useMinigamesDefault = true;
 
 final _logger = Logger('ConfigurationManager');
 
@@ -309,10 +310,31 @@ class ConfigurationManager {
   }
 
   bool _showExtension = _showExtensionDefault;
-  bool get showExtension => _showExtension;
+  bool get showExtension {
+    try {
+      return Managers.instance.ebs.isExtensionActive && _showExtension;
+    } catch (e) {
+      return false;
+    }
+  }
+
   set showExtension(bool value) {
     _showExtension = value;
     onShowExtensionChanged.notifyListeners((callback) => callback());
+    _saveConfiguration();
+  }
+
+  bool _useMinigames = _useMinigamesDefault;
+  bool get useMinigames {
+    try {
+      return Managers.instance.ebs.isExtensionActive && _useMinigames;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  set useMinigames(bool value) {
+    _useMinigames = value;
     _saveConfiguration();
   }
 
@@ -351,7 +373,8 @@ class ConfigurationManager {
         'numberOfBoostRequestsNeeded': numberOfBoostRequestsNeeded,
         'musicVolume': musicVolume,
         'soundVolume': soundVolume,
-        'showExtension': showExtension,
+        'showExtension': _showExtension,
+        'useMinigames': _useMinigames,
       };
 
   ///
@@ -435,6 +458,7 @@ class ConfigurationManager {
       _soundVolume = map['soundVolume'] ?? _soundVolumeDefault;
 
       _showExtension = map['showExtension'] ?? _showExtensionDefault;
+      _useMinigames = map['useMinigames'] ?? _useMinigamesDefault;
 
       _tellGameManagerToRepickProblem();
     }
@@ -462,6 +486,7 @@ class ConfigurationManager {
       _soundVolume = _soundVolumeDefault;
 
       _showExtension = _showExtensionDefault;
+      _useMinigames = _useMinigamesDefault;
 
       ThemeManager.instance.reset();
     }

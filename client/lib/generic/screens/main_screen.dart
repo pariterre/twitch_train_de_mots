@@ -2,6 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/screens/between_round_screen.dart';
 import 'package:train_de_mots/generic/screens/congratulation_layer.dart';
@@ -63,15 +64,21 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  void _isExtensionActive(bool isActive) {
+  Future<void> _isExtensionActive(bool isActive) async {
     // Show a telegram if the extension is not active
     if (isActive) return;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final messageWasAlreadyShown =
+        prefs.getBool('is_extension_active_warning_message_shown') ?? false;
+    if (messageWasAlreadyShown) return;
 
     _showMessageDialog(
         'Vous n\'avez pas activé l\'extension Twitch, par conséquent, les mini-jeux bonus seront désactivés.\n\n'
         'Vous pouvez activer l\'extension en suivant les explications disponibles dans '
         'l\'onglet "Extension Twitch" du menu de configuration.',
         allowAutoplay: false);
+    await prefs.setBool('is_extension_active_warning_message_shown', true);
   }
 
   Future<void> _showMessageDialog(String message,

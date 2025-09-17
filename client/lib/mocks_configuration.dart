@@ -12,6 +12,8 @@ class MocksConfiguration {
   // Useful for developers
   static const showDebugOptions =
       bool.fromEnvironment('SHOW_DEBUG_OPTIONS', defaultValue: false);
+  static const useEbsMock =
+      bool.fromEnvironment('USE_EBS_MOCK', defaultValue: false);
   static const useLocalEbs =
       bool.fromEnvironment('USE_LOCAL_EBS', defaultValue: false);
   static const useDatabaseMock =

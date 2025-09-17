@@ -65,7 +65,9 @@ class Managers {
     _instance._sound = SoundManager();
 
     // Initialize the EBS server manager
-    _instance._ebs = EbsServerManager(appInfo: twitchAppInfo);
+    _instance._ebs = MocksConfiguration.useEbsMock
+        ? EbsServerManagerMocked(appInfo: twitchAppInfo)
+        : EbsServerManager(appInfo: twitchAppInfo);
 
     // Wait for all the manager to be ready
     while (!(_instance._database?.isInitialized ?? false) ||

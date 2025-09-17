@@ -12,6 +12,7 @@
             "args": [
                 "--web-browser-flag=--disable-web-security",
                 "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
+                "--dart-define=USE_EBS_MOCK=< true | [false] >",
                 "--dart-define=USE_LOCAL_EBS=< true | [false] >",
                 "--dart-define=USE_DATABASE_MOCK=< true | [false] >",
                 "--dart-define=USE_TWITCH_MANAGER_MOCK=< true | [false] >",
@@ -28,6 +29,7 @@
             "args": [
                 "--web-browser-flag=--disable-web-security",
                 "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
+                "--dart-define=USE_EBS_MOCK=< true | [false] >",
                 "--dart-define=USE_LOCAL_EBS=< true | [false] >",
                 "--dart-define=USE_DATABASE_MOCK=< true | [false] >",
                 "--dart-define=USE_TWITCH_MANAGER_MOCK=< true | [false] >",
