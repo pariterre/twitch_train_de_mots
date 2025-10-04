@@ -495,7 +495,7 @@ const List<ReleaseNotes> releaseNotes = [
       ]),
   ReleaseNotes(
     version: '1.5.0',
-    codeName: 'Dégât royale',
+    codeName: 'Dégât royal',
     notes:
         'Après des semaines et des mois d\'attente, le mini-jeu de la guerre des bleuets est enfin arrivé! '
         'Vos cheminot·e·s pourront maintenant s\'amuser à tirer des bleuets sur un mot qui s\'échappent dans un champ de bleuets. '
