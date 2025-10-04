@@ -81,11 +81,14 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           : const Icon(Icons.star,
                               color: Color.fromARGB(255, 143, 107, 1)),
                       title: Text(gm.hasPlayedAtLeastOnce
-                          ? 'Terminer la rounde actuelle'
+                          ? 'Terminer la ronde actuelle'
                           : 'Afficher le tableau des cheminot·e·s'),
                       enabled: true,
                       onTap: !gm.hasPlayedAtLeastOnce ||
-                              gm.gameStatus == WordsTrainGameStatus.roundStarted
+                              gm.gameStatus ==
+                                  WordsTrainGameStatus.roundStarted ||
+                              gm.gameStatus ==
+                                  WordsTrainGameStatus.miniGameStarted
                           ? () async {
                               await gm.requestTerminateRound();
                               if (context.mounted) Navigator.pop(context);
