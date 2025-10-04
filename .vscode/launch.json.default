@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "EBS",
+            "request": "launch",
+            "type": "dart",
+            "program": "ebs/bin/train_de_mots_ebs.dart",
+            "env": {
+                "TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET": "EXTENSION_SHARED_SECRET_HERE",
+                "TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET": "EXTENSION_API_CLIENT_SECRET_HERE",
+                "TRAIN_DE_MOTS_EBS_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_PRIVATE_KEY_HERE",
+                "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY_HERE",
+            },
+        },
+        {
             "name": "Game client",
             "request": "launch",
             "type": "dart",
@@ -20,36 +32,6 @@
                 "--dart-define=USE_GAME_MANAGER_MOCK=< true | [false] >",
                 "--dart-define=USE_PROBLEM_MOCK=< true | [false] >",
             ],
-        },
-        {
-            "name": "Game client (with local EBS)",
-            "request": "launch",
-            "type": "dart",
-            "program": "client/lib/main.dart",
-            "args": [
-                "--web-browser-flag=--disable-web-security",
-                "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
-                "--dart-define=USE_EBS_MOCK=< true | [false] >",
-                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
-                "--dart-define=USE_DATABASE_MOCK=< true | [false] >",
-                "--dart-define=USE_TWITCH_MANAGER_MOCK=< true | [false] >",
-                "--dart-define=USE_FIREBASE_EMULATORS=< true | [false] >",
-                "--dart-define=USE_GAME_MANAGER_MOCK=< true | [false] >",
-                "--dart-define=USE_PROBLEM_MOCK=< true | [false] >",
-            ],
-            "preLaunchTask": "Run Dart Server",
-        },
-        {
-            "name": "EBS",
-            "request": "launch",
-            "type": "dart",
-            "program": "ebs/bin/train_de_mots_ebs.dart",
-            "env": {
-                "TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET": "EXTENSION_SHARED_SECRET_HERE",
-                "TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET": "EXTENSION_API_CLIENT_SECRET_HERE",
-                "TRAIN_DE_MOTS_EBS_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_PRIVATE_KEY_HERE",
-                "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY_HERE",
-            },
         },
         {
             "name": "Frontend video component",

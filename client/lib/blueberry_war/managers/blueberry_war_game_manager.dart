@@ -52,7 +52,7 @@ class BlueberryWarGameManager implements MiniGameManager {
   bool get gameStarted => _startTime != null;
   DateTime? _finalTime;
   DateTime? get finalTime => _finalTime;
-  Duration _roundDuration = const Duration(seconds: 30);
+  Duration _roundDuration = const Duration(seconds: 35);
   @override
   Duration get timeRemaining =>
       _roundDuration -
@@ -180,7 +180,7 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _roundDuration = Duration(
       seconds:
-          max(25, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
+          max(35, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
     );
 
     // Notify listeners that the game is ready
@@ -354,10 +354,6 @@ class BlueberryWarGameManager implements MiniGameManager {
       _hasWon = true;
     } else if (timeRemaining.isNegative) {
       _logger.info('Blueberry war game over due to time running out');
-      _isGameOver = true;
-      _hasWon = false;
-    } else if (blueberries.every((blueberry) => blueberry.isDestroyed)) {
-      _logger.info('All blueberries are destroyed, you lose!');
       _isGameOver = true;
       _hasWon = false;
     }
