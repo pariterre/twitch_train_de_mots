@@ -203,6 +203,11 @@ class DatabaseManager {
           .doc(_currentDatabaseVersion)
           .collection('teams');
 
+  DocumentReference<Map<String, dynamic>> get _teamCommentsDocument =>
+      FirebaseFirestore.instance
+          .collection('comments')
+          .doc(_currentDatabaseVersion);
+
   CollectionReference<Map<String, dynamic>> get _teamNamesCollection =>
       FirebaseFirestore.instance.collection('teams');
 
@@ -294,6 +299,18 @@ class DatabaseManager {
     _teamResultsCache!.sort((a, b) => b.bestStation.compareTo(a.bestStation));
 
     _logger.info('Sent the results of team ${team.name}');
+  }
+
+  ///
+  /// Put a new comment by the current team
+  Future<void> putTeamComment({required String comment}) async {
+    _logger.info('Sending the comment of team $teamName...');
+    await _teamCommentsDocument
+        .collection(FirebaseAuth.instance.currentUser!.uid)
+        .add(
+      {'comment': comment, 'timestamp': FieldValue.serverTimestamp()},
+    );
+    _logger.info('Sent the comment of team $teamName');
   }
 
   ////////////////////////////////

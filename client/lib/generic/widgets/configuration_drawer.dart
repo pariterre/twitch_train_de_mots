@@ -115,6 +115,17 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                     ),
                     const Divider(),
                     ListTile(
+                      leading: const Icon(Icons.comment,
+                          color: Color.fromARGB(255, 100, 65, 165)),
+                      title: Text('Laisser un commentaire',
+                          style: TextStyle().copyWith(
+                              color: dm.isLoggedIn ? null : Colors.grey)),
+                      onTap: dm.isLoggedIn
+                          ? () => _showLeaveComments(context)
+                          : null,
+                    ),
+                    const Divider(),
+                    ListTile(
                       leading: const Icon(Icons.settings_applications_sharp),
                       title: const Text('Configuration avancée'),
                       onTap: () {
@@ -317,6 +328,60 @@ class _GameConfigurationState extends State<_GameConfiguration> {
 
           cm.resetConfiguration(advancedOptions: false, userOptions: true);
         });
+  }
+}
+
+void _showLeaveComments(context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return const _LeaveCommentsDialog();
+    },
+  );
+}
+
+class _LeaveCommentsDialog extends StatelessWidget {
+  const _LeaveCommentsDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final controlller = TextEditingController();
+    return ParchmentDialog(
+      title: 'Laisser un commentaire',
+      width: 600,
+      height: 700,
+      content: Column(
+        children: [
+          const Text(
+              'Ô maitre·sse du Cheminot·e!\n'
+              'Votre opinion compte! N\'hésitez pas à nous faire part de vos commentaires, '
+              'suggestions ou idées d\'amélioration pour le Train de mots.\n'
+              'Vous pouvez également signaler des bugs, des problèmes que vous avez rencontrés, '
+              'ou même des mots que vous souhaitez faire ajouter!\n'
+              'Merci de contribuer à votre jeu!',
+              style: TextStyle(fontSize: 18)),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controlller,
+            maxLines: 8,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.brown),
+              ),
+              hintText: 'Écrivez votre commentaire ici...',
+            ),
+          ),
+        ],
+      ),
+      cancelButtonTitle: 'Annuler',
+      onCancel: () => Navigator.pop(context),
+      acceptButtonTitle: 'Envoyer',
+      onAccept: () {
+        Managers.instance.database.putTeamComment(comment: controlller.text);
+        Navigator.pop(context);
+      },
+    );
   }
 }
 
