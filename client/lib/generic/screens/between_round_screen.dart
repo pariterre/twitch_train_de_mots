@@ -43,12 +43,12 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = Managers.instance.train;
     gm.onRoundIsOver.cancel(_refresh);
     gm.onAttemptingTheBigHeist.cancel(_showAttemptingTheBigHeist);
     _attemptingTheBigHeist.dispose();
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -135,10 +135,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = Managers.instance.train;
     gm.onClockTicked.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _toggleCanClick(Map<String, dynamic> info) {
@@ -230,27 +230,6 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     ? () => gm.requestStartNewRound()
                     : null,
                 buttonText: generateButtonText()),
-            if (MocksConfiguration.showDebugOptions)
-              Row(
-                children: [
-                  const SizedBox(width: 24),
-                  ThemedElevatedButton(
-                      onPressed: _canClick
-                          ? () => gm.onCongratulationFireworks.notifyListeners(
-                              (callback) => callback({
-                                    'is_congratulating': true,
-                                    'player_name': 'Anynome'
-                                  }))
-                          : null,
-                      buttonText: 'BOOM!'),
-                  const SizedBox(width: 24),
-                  ThemedElevatedButton(
-                      onPressed: _canClick && gm.canAttemptTheBigHeist
-                          ? () => gm.requestTheBigHeist()
-                          : null,
-                      buttonText: 'Le grand coup')
-                ],
-              )
           ],
         ),
         const SizedBox(height: 12),
@@ -271,7 +250,50 @@ class _ContinueSectionState extends State<_ContinueSection> {
                   'Désactiver le démarrage automatique',
                   style: TextStyle(color: tm.textColor),
                 )),
-          )
+          ),
+        if (MocksConfiguration.showDebugOptions)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(width: 24),
+              ThemedElevatedButton(
+                  onPressed: _canClick
+                      ? () => gm.onCongratulationFireworks.notifyListeners(
+                          (callback) => callback({
+                                'is_congratulating': true,
+                                'player_name': 'Anynome'
+                              }))
+                      : null,
+                  buttonText: 'BOOM!'),
+              const SizedBox(width: 24),
+              ThemedElevatedButton(
+                  onPressed: _canClick && gm.canAttemptTheBigHeist
+                      ? () => gm.requestTheBigHeist()
+                      : null,
+                  buttonText: 'Le grand coup'),
+              const SizedBox(width: 24),
+              ThemedElevatedButton(
+                  onPressed: _canClick
+                      ? () => gm.handleCancelNextRoundAsMiniGame()
+                      : null,
+                  buttonText: 'Annuler minijeu'),
+              const SizedBox(width: 24),
+              ThemedElevatedButton(
+                  onPressed: _canClick
+                      ? () => gm.handleNextRoundAsMiniGame(
+                          forceMinigame: MiniGames.treasureHunt)
+                      : null,
+                  buttonText: 'Jouer chercheurs'),
+              const SizedBox(width: 24),
+              ThemedElevatedButton(
+                  onPressed: _canClick
+                      ? () => gm.handleNextRoundAsMiniGame(
+                          forceMinigame: MiniGames.blueberryWar)
+                      : null,
+                  buttonText: 'Jouer guerre'),
+            ],
+          ),
       ],
     );
   }
@@ -890,10 +912,10 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -987,10 +1009,10 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -1051,10 +1073,10 @@ class _BackgroundState extends State<_Background> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -1122,10 +1144,10 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

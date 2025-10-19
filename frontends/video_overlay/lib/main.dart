@@ -21,6 +21,8 @@ void main() async {
 
   runApp(const MainExtension(
     isFullScreen: false,
+    isMobile: false,
+    showTextInput: false,
     alwaysOpaque: true,
     canBeHidden: true,
   ));

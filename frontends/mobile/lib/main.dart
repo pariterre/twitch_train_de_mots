@@ -9,21 +9,28 @@ void main() async {
     debugPrint(message);
   });
   await TwitchManager.initialize(
-    useTwitchEbsMocker: const bool.fromEnvironment('USE_TWITCH_EBS_MOCKER',
-        defaultValue: false),
+    useTwitchEbsMocker: const bool.fromEnvironment(
+      'USE_TWITCH_EBS_MOCKER',
+      defaultValue: false,
+    ),
     useMockerAuthenticator: const bool.fromEnvironment(
-        'USE_MOCKER_AUTHENTICATOR',
-        defaultValue: false),
-    useLocalEbs:
-        const bool.fromEnvironment('USE_LOCAL_EBS', defaultValue: false),
+      'USE_MOCKER_AUTHENTICATOR',
+      defaultValue: false,
+    ),
+    useLocalEbs: const bool.fromEnvironment(
+      'USE_LOCAL_EBS',
+      defaultValue: false,
+    ),
   );
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MainExtension(
-    isFullScreen: true,
-    isMobile: false,
-    showTextInput: false,
-    alwaysOpaque: false,
-    canBeHidden: false,
-  ));
+  runApp(
+    const MainExtension(
+      isFullScreen: true,
+      isMobile: true,
+      showTextInput: true,
+      alwaysOpaque: true,
+      canBeHidden: false,
+    ),
+  );
 }

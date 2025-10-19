@@ -10,6 +10,7 @@ enum ToBackendMessages {
 enum ToAppMessages {
   isExtensionActive,
   gameStateRequest,
+  tryWord,
   pardonRequest,
   boostRequest,
   bitsRedeemed,

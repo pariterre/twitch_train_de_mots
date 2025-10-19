@@ -17,11 +17,15 @@ class MainExtension extends StatefulWidget {
   const MainExtension({
     super.key,
     required this.isFullScreen,
+    required this.isMobile,
+    required this.showTextInput,
     required this.alwaysOpaque,
     required this.canBeHidden,
   });
 
   final bool isFullScreen;
+  final bool isMobile;
+  final bool showTextInput;
   final bool alwaysOpaque;
   final bool canBeHidden;
 
@@ -105,7 +109,8 @@ class _MainExtensionState extends State<MainExtension> {
               return const NonAuthorizedScreen();
             }
 
-            return const _MainScreen();
+            return _MainScreen(
+                isMobile: widget.isMobile, showTextInput: widget.showTextInput);
           }),
     );
 
@@ -188,7 +193,13 @@ class _MainContainer extends StatelessWidget {
 }
 
 class _MainScreen extends StatefulWidget {
-  const _MainScreen();
+  const _MainScreen({
+    required this.isMobile,
+    required this.showTextInput,
+  });
+
+  final bool isMobile;
+  final bool showTextInput;
 
   @override
   State<_MainScreen> createState() => _MainScreenState();
@@ -223,7 +234,8 @@ class _MainScreenState extends State<_MainScreen> {
       case WordsTrainGameStatus.roundEnding:
         return const WaitingScreen();
       case WordsTrainGameStatus.roundStarted:
-        return const PlayScreen();
+        return PlayScreen(
+            isMobile: widget.isMobile, showTextInput: widget.showTextInput);
       case WordsTrainGameStatus.miniGamePreparing:
       case WordsTrainGameStatus.miniGameReady:
       case WordsTrainGameStatus.miniGameEnding:

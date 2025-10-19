@@ -46,6 +46,11 @@ class ThemeManager {
       color: textColor,
       fontSize: textSize,
       package: 'common');
+  late final textInputFrontend = TextStyle().copyWith(
+      fontFamily: 'MedievalSharp',
+      color: textColor,
+      fontSize: textSize,
+      package: 'common');
 
   final titleSize = 32.0;
 

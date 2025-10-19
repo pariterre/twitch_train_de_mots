@@ -78,6 +78,18 @@ class TwitchManager {
     _frontendManager!.authenticator.requestIdShare();
   }
 
+  Future<bool> tryWord(String word) async {
+    final response =
+        await _sendMessageToApp(ToAppMessages.tryWord, data: {'word': word})
+            .timeout(const Duration(seconds: 5),
+                onTimeout: () => tm.MessageProtocol(
+                    to: tm.MessageTo.frontend,
+                    from: tm.MessageFrom.ebs,
+                    type: tm.MessageTypes.response,
+                    isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
   ///
   /// Post a request to pardon the stealer. No confirmation is received from
   /// the EBS. If the request is successful, the stealer is pardoned and a message
@@ -559,6 +571,13 @@ class TwitchManagerMock extends TwitchManager {
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,
             isSuccess: _acceptPardon);
+      case ToAppMessages.tryWord:
+        final word = data?['word'] as String?;
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: word != null && word.length % 2 == 0);
       case ToAppMessages.boostRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,

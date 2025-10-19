@@ -31,8 +31,6 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = Managers.instance.train;
     gm.onRoundStarted.cancel(_refresh);
     gm.onSolutionFound.cancel(_onSolutionFound);
@@ -43,6 +41,8 @@ class _LeaderBoardState extends State<LeaderBoard> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

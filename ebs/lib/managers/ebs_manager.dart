@@ -335,6 +335,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
               isSuccess: true));
           break;
 
+        case ToAppMessages.tryWord:
         case ToAppMessages.pardonRequest:
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebs,

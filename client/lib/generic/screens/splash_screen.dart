@@ -56,8 +56,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = Managers.instance.train;
     gm.onNextProblemReady.cancel(_onNextProblemReady);
 
@@ -71,6 +69,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final twitch = Managers.instance.twitch;
     twitch.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
     twitch.onTwitchManagerHasDisconnected.cancel(_reconnectedAfterDisconnect);
+
+    super.dispose();
   }
 
   void _onNextProblemReady() {
@@ -230,13 +230,13 @@ class _ConnexionDialogState extends State<_ConnexionDialog> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final dm = Managers.instance.database;
     dm.onLoggedIn.cancel(_refresh);
     dm.onEmailVerified.cancel(_refresh);
     dm.onTeamNameSet.cancel(_refresh);
     dm.onLoggedOut.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

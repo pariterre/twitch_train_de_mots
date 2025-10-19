@@ -58,6 +58,18 @@
             ],
         },
         {
+            "name": "Frontend mobile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "program": "frontends/video_overlay/lib/main.dart",
+            "args": [
+                "--dart-define=USE_TWITCH_EBS_MOCKER=< true | [false] >",
+                "--dart-define=USE_MOCKER_AUTHENTICATOR=< true | [false] >",
+                "--dart-define=USE_LOCAL_EBS=< true | [false] >",
+            ],
+        },
+        {
             "name": "Configuration",
             "request": "launch",
             "type": "dart",

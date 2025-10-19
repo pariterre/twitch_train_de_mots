@@ -30,13 +30,13 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -223,13 +223,13 @@ class _GameConfigurationState extends State<_GameConfiguration> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -408,10 +408,10 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -458,10 +458,10 @@ class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});
@@ -575,10 +575,10 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

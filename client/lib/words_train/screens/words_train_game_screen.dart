@@ -35,13 +35,13 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
     Managers.instance.twitch.onTwitchManagerHasTriedConnecting
         .cancel(_hasTriedConnecting);
+
+    super.dispose();
   }
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
@@ -251,8 +251,6 @@ class _HeaderTimerState extends State<_HeaderTimer> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final gm = Managers.instance.train;
     gm.onRoundStarted.cancel(_refresh);
     gm.onNextProblemReady.cancel(_refresh);
@@ -261,6 +259,8 @@ class _HeaderTimerState extends State<_HeaderTimer> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

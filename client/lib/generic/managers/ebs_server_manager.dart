@@ -250,6 +250,20 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               }));
           break;
 
+        case ToAppMessages.tryWord:
+          final playerName = message.data!['player_name'] as String;
+          final attemptedWord = message.data!['word'] as String;
+
+          final isSuccess =
+              await gm.trySolution(playerName: playerName, word: attemptedWord);
+
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
+          break;
+
         case ToAppMessages.pardonRequest:
           final playerName = message.data!['player_name'] as String;
           final player = gm.players.firstWhereOrAdd(playerName);

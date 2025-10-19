@@ -82,9 +82,9 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
     _logger.fine('Fireworks disposed');
 
     _animationController.dispose();
-    super.dispose();
 
     widget.controller.dispose();
+    super.dispose();
   }
 
   void updateParticles() {

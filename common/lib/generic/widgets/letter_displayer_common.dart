@@ -119,10 +119,10 @@ class _LetterWidgetState extends State<LetterWidget> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

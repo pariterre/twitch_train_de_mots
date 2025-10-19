@@ -273,8 +273,6 @@ class _SolutionTileState extends State<_SolutionTile> {
 
   @override
   void dispose() {
-    super.dispose();
-
     final cm = Managers.instance.configuration;
     cm.onChanged.cancel(_refresh);
 
@@ -284,6 +282,8 @@ class _SolutionTileState extends State<_SolutionTile> {
     final gm = Managers.instance.train;
     gm.onRoundIsPreparing.cancel(_refresh);
     gm.onShowcaseSolutionsRequest.cancel(_refresh);
+
+    super.dispose();
   }
 
   void _refresh() => setState(() {});

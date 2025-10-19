@@ -543,56 +543,57 @@ class WordsTrainGameManager {
   }
 
   ///
-  /// Initialize the callbacks from Twitch chat to [_trySolution]
+  /// Initialize the callbacks from Twitch chat to [trySolution]
   Future<void> _initializeTrySolutionCallback() async =>
-      Managers.instance.twitch
-          .addChatListener((sender, message) => _trySolution(sender, message));
+      Managers.instance.twitch.addChatListener(
+          (sender, message) => trySolution(playerName: sender, word: message));
 
   ///
-  /// Try to solve the problem from a [message] sent by a [sender], that is a
-  /// Twitch chatter.
-  Future<void> _trySolution(String sender, String message) async {
+  /// Try a solution proposed by a player. If the solution is valid, it updates
+  /// the player score and notifies the listeners.
+  Future<bool> trySolution(
+      {required String playerName, required String word}) async {
     if (_isRoundAMiniGame) {
       _logger.warning('Cannot try solution while playing a mini game');
-      return;
+      return false;
     }
 
-    _logger.info('Trying solution from $sender: $message');
+    _logger.info('Trying solution from $playerName: $word');
 
     if (problem == null || timeRemaining == null) {
       _logger.warning('Cannot try solution at this time');
-      return;
+      return false;
     }
     final cm = Managers.instance.configuration;
 
     // Get the player from the players list
-    final player = players.firstWhereOrAdd(sender);
+    final player = players.firstWhereOrAdd(playerName);
 
     // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
-      if (message == '!pardon') {
+      if (word == '!pardon') {
         _logger.info('Trying to pardon the last stealer');
         pardonLastStealer(pardonner: player);
-        return;
-      } else if (message == '!boost') {
+        return true;
+      } else if (word == '!boost') {
         _logger.info('Trying to boost the train');
         boostTrain(player: player);
-        return;
+        return true;
       }
     }
 
     // If the player is in cooldown, they are not allowed to answer
     if (player.isInCooldownPeriod) {
       _logger.warning('Solution is invalid because player is in cooldown');
-      return;
+      return false;
     }
 
     // Find if the proposed word is valid
-    final solution = problem!.trySolution(message,
+    final solution = problem!.trySolution(word,
         nbLetterInSmallestWord: _currentDifficulty.nbLettersOfShortestWord);
     if (solution == null) {
       _logger.warning('Solution is invalid because it is not a valid word');
-      return;
+      return false;
     }
 
     // Add to player score
@@ -618,7 +619,7 @@ class WordsTrainGameManager {
           solution.foundBy == player ||
           solution.foundBy.isInCooldownPeriod) {
         _logger.warning('Solution cannot be stolen');
-        return;
+        return false;
       }
       _lastStolenSolution = solution;
 
@@ -646,6 +647,7 @@ class WordsTrainGameManager {
     _playersWasInCooldownLastFrame[player.name] = true;
 
     _logger.info('Solution found');
+    return true;
   }
 
   ///
@@ -1069,10 +1071,7 @@ class WordsTrainGameManager {
     if (cm.useMinigames &&
         (roundSuccesses.contains(RoundSuccess.foundAll) ||
             roundSuccesses.contains(RoundSuccess.maxPoints))) {
-      _isNextRoundAMiniGame = true;
-      _currentMiniGame = _selectNextMiniGame();
-      onMiniGameGranted
-          .notifyListeners((callback) => callback(_currentMiniGame!));
+      handleNextRoundAsMiniGame();
     } else {
       _isNextRoundAMiniGame = false;
       _currentMiniGame = null;
@@ -1177,6 +1176,18 @@ class WordsTrainGameManager {
 
   bool _trainHasReachedNewBoost() =>
       (problem?.teamScore ?? -1) >= pointsToObtainBoost();
+
+  void handleNextRoundAsMiniGame({MiniGames? forceMinigame}) {
+    _isNextRoundAMiniGame = true;
+    _currentMiniGame = forceMinigame ?? _selectNextMiniGame();
+    onMiniGameGranted
+        .notifyListeners((callback) => callback(_currentMiniGame!));
+  }
+
+  void handleCancelNextRoundAsMiniGame() {
+    _isNextRoundAMiniGame = false;
+    _currentMiniGame = null;
+  }
 
   MiniGames? _selectNextMiniGame() {
     return MiniGames.values[_random.nextInt(MiniGames.values.length)];

@@ -26,6 +26,7 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
   void dispose() {
     final gm = GameManager.instance;
     gm.onMiniGameStateUpdated.cancel(_onMiniGameStateUpdated);
+
     super.dispose();
   }
 

@@ -11,24 +11,41 @@ import 'package:logging/logging.dart';
 
 final _logger = Logger('PlayScreen');
 
-class PlayScreen extends StatelessWidget {
-  const PlayScreen({super.key});
+class PlayScreen extends StatefulWidget {
+  const PlayScreen(
+      {super.key, required this.isMobile, required this.showTextInput});
+
+  final bool showTextInput;
+  final bool isMobile;
+
+  @override
+  State<PlayScreen> createState() => _PlayScreenState();
+}
+
+class _PlayScreenState extends State<PlayScreen> {
+  bool _textFieldHasFocus = false;
+  bool get _showReducedUi => widget.isMobile && _textFieldHasFocus;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        FittedBox(
-          fit: BoxFit.contain,
-          child: Header(
-              titleText: 'Le train est en route!\n'
-                  'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
+        Visibility(
+          maintainState: true,
+          visible: !_showReducedUi,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Header(
+                titleText: 'Le train est en route!\n'
+                    'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
+          ),
         ),
         LayoutBuilder(builder: (context, constraints) {
           final tm = ThemeManager.instance;
 
-          return Center(
+          return Align(
+            alignment: _showReducedUi ? Alignment.topCenter : Alignment.center,
             child: FittedBox(
               fit: BoxFit.contain,
               child: SizedBox(
@@ -38,48 +55,67 @@ class PlayScreen extends StatelessWidget {
                       left: 20.0, right: 20.0, bottom: 20.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 90),
+                      Visibility(
+                          maintainState: true,
+                          visible: !_showReducedUi,
+                          child: const SizedBox(height: 90)),
                       const _TimeDisplayer(),
                       const SizedBox(height: 10),
                       SizedBox(
                           width: constraints.maxWidth,
                           child: const _LetterDisplayer()),
                       const SizedBox(height: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Aides du contrôleur :',
-                              style: tm.textFrontendSc),
-                          const SizedBox(height: 4),
-                          const Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _PardonRequest(),
-                              SizedBox(width: 8),
-                              _BoostRequest(),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Soudoyer le contrôleur (bits) :',
-                              style: tm.textFrontendSc),
-                          const SizedBox(height: 4),
-                          const Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _ChangeLaneRequest(),
-                            ],
-                          ),
-                        ],
-                      ),
+                      if (widget.isMobile)
+                        _TextInput(onFocusChanged: (hasFocus) {
+                          setState(() {
+                            _textFieldHasFocus = hasFocus;
+                          });
+                        }),
                       const SizedBox(height: 20),
-                      const _CooldownClock(),
+                      Visibility(
+                        maintainState: true,
+                        visible: !_showReducedUi,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Aides du contrôleur :',
+                                    style: tm.textFrontendSc),
+                                const SizedBox(height: 4),
+                                const Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _PardonRequest(),
+                                    SizedBox(width: 8),
+                                    _BoostRequest(),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 30),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Soudoyer le contrôleur (bits) :',
+                                    style: tm.textFrontendSc),
+                                const SizedBox(height: 4),
+                                const Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _ChangeLaneRequest(),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            const _CooldownClock(),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -162,6 +198,77 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
     return GameManager.instance.problem == null
         ? Container()
         : LetterDisplayerCommon(letterProblem: GameManager.instance.problem!);
+  }
+}
+
+class _TextInput extends StatefulWidget {
+  const _TextInput({required this.onFocusChanged});
+
+  final ValueChanged<bool> onFocusChanged;
+
+  @override
+  State<_TextInput> createState() => _TextInputState();
+}
+
+class _TextInputState extends State<_TextInput> {
+  late final FocusNode _focusNode = FocusNode()
+    ..addListener(() => widget.onFocusChanged(_focusNode.hasFocus));
+  late final TextEditingController _controller = TextEditingController()
+    ..addListener(() {
+      _controller.value = _controller.value.copyWith(
+        text: _controller.text.toUpperCase(),
+        selection: _controller.selection,
+        composing: TextRange.empty,
+      );
+      setState(() {});
+    });
+
+  void _onSendPressed() {
+    final text = _controller.text;
+    _controller.clear();
+
+    TwitchManager.instance.tryWord(text);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            decoration: InputDecoration(
+              enabledBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white)),
+              focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white)),
+              fillColor: Colors.white,
+              labelText: 'Tenter une réponse',
+              labelStyle: tm.textFrontendSc,
+            ),
+            onSubmitted: (value) => _onSendPressed(),
+            cursorColor: Colors.white,
+            style: tm.textInputFrontend.copyWith(letterSpacing: 5.0),
+          ),
+        ),
+        IconButton(
+            onPressed: _controller.text.isNotEmpty ? _onSendPressed : null,
+            icon: Icon(
+              Icons.send,
+              color: _controller.text.isNotEmpty ? Colors.white : Colors.grey,
+            )),
+      ],
+    );
   }
 }
 

@@ -66,6 +66,9 @@ flutter:
     - family: BaskervvilleSC
       fonts:
         - asset: assets/fonts/BaskervvilleSC/BaskervvilleSC-Regular.ttf
+    - family: MedievalSharp
+      fonts:
+        - asset: assets/fonts/MedievalSharp/MedievalSharp-Regular.ttf
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto/Roboto.woff2  
