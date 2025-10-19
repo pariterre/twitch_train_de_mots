@@ -66,11 +66,10 @@ class _PlayScreenState extends State<PlayScreen> {
                           child: const _LetterDisplayer()),
                       const SizedBox(height: 20),
                       if (widget.isMobile)
-                        _TextInput(onFocusChanged: (hasFocus) {
-                          setState(() {
-                            _textFieldHasFocus = hasFocus;
-                          });
-                        }),
+                        _TextInput(
+                          onFocusChanged: (hasFocus) =>
+                              setState(() => _textFieldHasFocus = hasFocus),
+                        ),
                       const SizedBox(height: 20),
                       Visibility(
                         maintainState: true,
@@ -112,7 +111,8 @@ class _PlayScreenState extends State<PlayScreen> {
                               ],
                             ),
                             const SizedBox(height: 20),
-                            const _CooldownClock(),
+                            if (!widget.isMobile)
+                              const _CooldownClock(withTitle: true),
                           ],
                         ),
                       ),
@@ -231,8 +231,14 @@ class _TextInputState extends State<_TextInput> {
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
 
     super.dispose();
   }
@@ -261,12 +267,24 @@ class _TextInputState extends State<_TextInput> {
             style: tm.textInputFrontend.copyWith(letterSpacing: 5.0),
           ),
         ),
-        IconButton(
-            onPressed: _controller.text.isNotEmpty ? _onSendPressed : null,
-            icon: Icon(
-              Icons.send,
-              color: _controller.text.isNotEmpty ? Colors.white : Colors.grey,
-            )),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: IconButton(
+                  onPressed:
+                      _controller.text.isNotEmpty ? _onSendPressed : null,
+                  icon: Icon(
+                    Icons.send,
+                    color: _controller.text.isNotEmpty
+                        ? Colors.white
+                        : Colors.grey,
+                  )),
+            ),
+            const _CooldownClock(withTitle: false),
+          ],
+        ),
       ],
     );
   }
@@ -426,7 +444,9 @@ class _ChangeLaneRequest extends StatelessWidget {
 }
 
 class _CooldownClock extends StatefulWidget {
-  const _CooldownClock();
+  const _CooldownClock({required this.withTitle});
+
+  final bool withTitle;
 
   @override
   State<_CooldownClock> createState() => _CooldownClockState();
@@ -473,23 +493,31 @@ class _CooldownClockState extends State<_CooldownClock> {
     });
   }
 
+  bool get _isOnCooldown => _cooldownRemaining >= Duration.zero;
+
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
     return LayoutBuilder(builder: (context, constraints) {
       return Visibility(
-        visible: _cooldownRemaining >= Duration.zero,
+        visible: _isOnCooldown,
         maintainSize: true,
         maintainAnimation: true,
         maintainState: true,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            FittedBox(
-                fit: BoxFit.fitWidth,
-                child: Text('Petite pause', style: tm.textFrontendSc)),
-            const SizedBox(width: 16),
+            if (widget.withTitle)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FittedBox(
+                      fit: BoxFit.fitWidth,
+                      child: Text('Petite pause', style: tm.textFrontendSc)),
+                  const SizedBox(width: 16),
+                ],
+              ),
             SizedBox(
                 width: 20,
                 height: 20,
