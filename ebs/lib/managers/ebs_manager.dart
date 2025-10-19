@@ -134,6 +134,30 @@ class EbsManager extends TwitchEbsManagerAbstract {
   }
 
   ///
+  /// Relay the try a word request from the frontend to the app
+  /// [userId] the id of the user that is trying the word
+  /// [word] the word that is being tried
+  Future<bool> _frontendTryAWord(int userId, String word) async {
+    _logger.info('Resquesting to try the word $word');
+    final playerName = userIdToLogin[userId];
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': ToAppMessages.tryWord.name,
+          'player_name': playerName,
+          'word': word
+        }));
+    return response.isSuccess ?? false;
+  }
+
+  ///
   /// Handle a message from the frontend to pardon the last stealer
   /// [userId] the id of the user that wants to pardon
   Future<bool> _frontendRequestedToPardon(int userId) async {
@@ -336,6 +360,14 @@ class EbsManager extends TwitchEbsManagerAbstract {
           break;
 
         case ToAppMessages.tryWord:
+          communicator.sendReponse(message.copyWith(
+              from: MessageFrom.ebs,
+              to: MessageTo.frontend,
+              type: MessageTypes.response,
+              isSuccess: await _frontendTryAWord(
+                  userId, message.data!['word'] as String)));
+          break;
+
         case ToAppMessages.pardonRequest:
           communicator.sendReponse(message.copyWith(
               from: MessageFrom.ebs,
