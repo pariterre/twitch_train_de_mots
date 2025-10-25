@@ -72,7 +72,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     required int broadcasterId,
     required super.ebsInfo,
     required super.sendPort,
-    bool useMockedTwitchApi = false,
+    required bool useMockedTwitchApi,
+    required List<String> acceptedExtensionVersions,
   }) : super(
             broadcasterId: broadcasterId,
             twitchApiInitializer: useMockedTwitchApi
@@ -86,17 +87,19 @@ class EbsManager extends TwitchEbsManagerAbstract {
     TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
 
     // Send if the extension is active to the frontend
-    _sendIfExtensionIsActive();
+    _sendIfExtensionIsActive(acceptedExtensionVersions);
   }
 
-  Future<void> _sendIfExtensionIsActive() async {
+  Future<void> _sendIfExtensionIsActive(
+      List<String> acceptedExtensionVersions) async {
     communicator.sendMessage(MessageProtocol(
         to: MessageTo.app,
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
           'type': ToAppMessages.isExtensionActive.name,
-          'is_active': await TwitchApi.instance.isExtensionActive()
+          'is_active': acceptedExtensionVersions
+              .contains(await TwitchApi.instance.activeExtensionVersion()),
         }));
   }
 

@@ -8,6 +8,7 @@ import 'package:twitch_manager/twitch_ebs.dart';
 final _logger = Logger('TrainDeMotsEbs');
 
 const _useTwitchMocker = false;
+const _acceptedExtensionVersions = ['0.4.0', '0.4.1'];
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit
@@ -51,7 +52,8 @@ void main(List<String> arguments) async {
               broadcasterId: broadcasterId,
               ebsInfo: ebsInfo,
               sendPort: sendPort,
-              useMockedTwitchApi: _useTwitchMocker));
+              useMockedTwitchApi: _useTwitchMocker,
+              acceptedExtensionVersions: _acceptedExtensionVersions));
 
   _logger.info(
       'EBS server started on ${networkParameters.host}:${networkParameters.port}');

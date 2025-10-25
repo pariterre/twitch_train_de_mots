@@ -73,10 +73,6 @@ class TwitchManager {
       context,
       useMocker: _useMocker,
       debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions,
-      onConnexionEstablished: (manager) {
-        if (context.mounted) Navigator.of(context).pop(manager);
-      },
-      onCancelConnexion: () => Navigator.of(context).pop(),
       appInfo: appInfo,
       reload: reloadIfPossible,
     );
