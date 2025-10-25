@@ -87,10 +87,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
     TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
 
     // Send if the extension is active to the frontend
-    _sendIfExtensionIsActive(acceptedExtensionVersions);
+    _sendExtensionActiveStatus(acceptedExtensionVersions);
   }
 
-  Future<void> _sendIfExtensionIsActive(
+  Future<void> _sendExtensionActiveStatus(
       List<String> acceptedExtensionVersions) async {
     communicator.sendMessage(MessageProtocol(
         to: MessageTo.app,
@@ -98,8 +98,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': ToAppMessages.isExtensionActive.name,
-          'is_active': acceptedExtensionVersions
-              .contains(await TwitchApi.instance.activeExtensionVersion()),
+          'active_version': await TwitchApi.instance.activeExtensionVersion(),
+          'accepted_versions': acceptedExtensionVersions,
         }));
   }
 

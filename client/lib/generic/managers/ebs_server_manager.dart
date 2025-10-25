@@ -233,7 +233,11 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.isExtensionActive:
-          isExtensionActive = message.data!['is_active'] as bool;
+          final activeVersion = message.data!['active_version'] as String?;
+          final acceptedExtensionVersions =
+              message.data!['accepted_versions'] as List<String>;
+          isExtensionActive = activeVersion != null &&
+              acceptedExtensionVersions.contains(activeVersion);
           _logger.info(
               'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
           break;
@@ -373,7 +377,8 @@ class EbsServerManagerMocked extends EbsServerManager {
           type: MessageTypes.get,
           data: {
             'type': ToAppMessages.isExtensionActive.name,
-            'is_active': false
+            'active_version': null,
+            'accepted_versions': [],
           }));
     });
   }
