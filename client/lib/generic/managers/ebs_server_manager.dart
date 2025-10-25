@@ -235,7 +235,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.isExtensionActive:
           final activeVersion = message.data!['active_version'] as String?;
           final acceptedExtensionVersions =
-              message.data!['accepted_versions'] as List<String>;
+              (message.data!['accepted_versions'] as List).cast<String>();
           isExtensionActive = activeVersion != null &&
               acceptedExtensionVersions.contains(activeVersion);
           _logger.info(
