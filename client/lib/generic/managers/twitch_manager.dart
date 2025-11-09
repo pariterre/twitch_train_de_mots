@@ -116,7 +116,7 @@ class TwitchManager {
 
   ///
   /// Get the broadcaster id
-  int get broadcasterId => _manager!.api.streamerId;
+  String get broadcasterId => _manager!.api.streamerId;
 
   ///
   /// Holds the callback to call when a message is received
