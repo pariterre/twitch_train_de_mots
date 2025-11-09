@@ -26,7 +26,7 @@ client:
 	cd $${PROJECT_FOLDER}; \
 	flutter clean; \
 	flutter pub get; \
-	flutter build web --wasm --release; \
+	flutter build web --release; \
 	cd $(BASE_FOLDER); \
 	# Make sure the authentication are provided (TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, TRAIN_DE_MOTS_SSH_FOLDER_CLIENT) \
 	if [ -z "$${TRAIN_DE_MOTS_SSH_USER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_SERVER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}" ]; then \
