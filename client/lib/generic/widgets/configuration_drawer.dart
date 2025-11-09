@@ -193,7 +193,7 @@ void _buyMeACoffee() async {
   await launchUrl(Uri.parse('https://www.buymeacoffee.com/pariterre?l=fr'));
 }
 
-void _showGameConfiguration(context) {
+void _showGameConfiguration(BuildContext context) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -334,7 +334,7 @@ class _GameConfigurationState extends State<_GameConfiguration> {
   }
 }
 
-void _showLeaveComments(context) {
+void _showLeaveComments(BuildContext context) {
   showDialog(
     context: context,
     barrierDismissible: false,

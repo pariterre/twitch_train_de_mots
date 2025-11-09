@@ -44,7 +44,7 @@ enum Sku {
     }
   }
 
-  static fromString(String value) {
+  static Sku fromString(String value) {
     switch (value) {
       case 'celebrate':
         return Sku.celebrate;
@@ -52,6 +52,8 @@ enum Sku {
         return Sku.bigHeist;
       case 'change_lane':
         return Sku.changeLane;
+      case _:
+        throw Exception('Unknown Sku value: $value');
     }
   }
 }

@@ -46,7 +46,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
   }
 
   void _refresh() => setState(() {});
-  void _onSolutionFound(_) => setState(() {});
+  void _onSolutionFound(dynamic _) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

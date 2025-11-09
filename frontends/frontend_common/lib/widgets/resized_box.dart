@@ -166,14 +166,14 @@ class _ResizedBoxState extends State<ResizedBox> {
     _left = value;
   }
 
-  void _onDragWindow(newLeft, newTop) {
+  void _onDragWindow(double newLeft, double newTop) {
     setState(() {
       top = newTop;
       left = newLeft;
     });
   }
 
-  void _onDragTopLeft(dx, dy) {
+  void _onDragTopLeft(double dx, double dy) {
     final newHeight = height - dy > 0 ? height - dy : 0.0;
     final newWidth = width - dx > 0 ? width - dx : 0.0;
 
@@ -194,7 +194,7 @@ class _ResizedBoxState extends State<ResizedBox> {
     });
   }
 
-  void _onDragBottomRight(dx, dy) {
+  void _onDragBottomRight(double dx, double dy) {
     final newHeight = height + dy > 0 ? height + dy : 0.0;
     final newWidth = width + dx > 0 ? width + dx : 0.0;
 
@@ -452,14 +452,14 @@ class _ManipulatingBorderState extends State<_ManipulatingBorder> {
   late double initX;
   late double initY;
 
-  _handleDrag(DragStartDetails details) {
+  void _handleDrag(DragStartDetails details) {
     setState(() {
       initX = details.globalPosition.dx;
       initY = details.globalPosition.dy;
     });
   }
 
-  _handleUpdate(DragUpdateDetails details) {
+  void _handleUpdate(DragUpdateDetails details) {
     var dx = details.globalPosition.dx - initX;
     var dy = details.globalPosition.dy - initY;
     initX = details.globalPosition.dx;

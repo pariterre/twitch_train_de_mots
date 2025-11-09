@@ -47,7 +47,8 @@ class WordsTrainGameManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
   final Duration _deltaTime;
-  WordsTrainGameManager({deltaTime = const Duration(milliseconds: 1000)})
+  WordsTrainGameManager(
+      {Duration deltaTime = const Duration(milliseconds: 1000)})
       : _deltaTime = deltaTime {
     _asyncInitializations();
     Timer.periodic(_deltaTime, _gameLoop);
@@ -769,7 +770,7 @@ class WordsTrainGameManager {
     }
   }
 
-  void _requestedFireworks(info) {
+  void _requestedFireworks(Map<String, dynamic> info) {
     _areCongratulationFireworksFiring =
         (info['is_congratulating'] as bool?) ?? false;
   }

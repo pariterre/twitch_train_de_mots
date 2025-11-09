@@ -12,13 +12,13 @@ dependencies:
   diacritic: ^0.1.4
   twitch_manager:
   collection: ^1.17.2
-  just_audio: ^0.9.46
+  just_audio: ^0.10.5
   just_audio_mpv: ^0.1.7
   flutter_colorpicker: ^1.0.3
   shared_preferences: ^2.2.0
-  firebase_core: ^3.2.0
-  firebase_auth: ^5.1.2
-  cloud_firestore: ^5.1.0
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
   url_launcher: ^6.2.5
   http: ^1.2.1
   mutex: ^3.1.0
@@ -36,7 +36,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true

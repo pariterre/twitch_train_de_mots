@@ -223,7 +223,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
-  Future<void> _sendGameStateToEbssWithParameter(_) async =>
+  Future<void> _sendGameStateToEbssWithParameter(dynamic _) async =>
       _sendGameStateToEbs();
 
   @override

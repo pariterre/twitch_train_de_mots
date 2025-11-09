@@ -206,7 +206,7 @@ class _SolutionWrapperState extends State<_SolutionWrapper> {
     super.dispose();
   }
 
-  void _onSolutionFound(_) => setState(() {});
+  void _onSolutionFound(dynamic _) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

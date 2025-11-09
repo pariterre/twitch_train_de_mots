@@ -56,7 +56,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
-  void _refreshWithOneParameter(_) => setState(() {});
+  void _refreshWithOneParameter(dynamic _) => setState(() {});
   void _solutionWasTried(String _, String __, bool ___) => setState(() {});
 
   @override

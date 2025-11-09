@@ -320,7 +320,8 @@ class LetterProblem {
     return finalProblem;
   }
 
-  factory LetterProblem.generateProblemFromRequest(request) {
+  factory LetterProblem.generateProblemFromRequest(
+      Map<String, dynamic> request) {
     int forceIntParse(value) => value is int ? value : int.parse(value);
     Range forceRangeParse(valueMin, valueMax) =>
         Range(forceIntParse(valueMin), forceIntParse(valueMax));

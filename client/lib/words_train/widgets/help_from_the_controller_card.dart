@@ -144,7 +144,7 @@ class _BoostState extends State<_Boost> {
   }
 
   void _refresh() => setState(() {});
-  void _refreshWithParameter(_) => setState(() {});
+  void _refreshWithParameter(dynamic _) => setState(() {});
 
   @override
   Widget build(BuildContext context) {

@@ -41,7 +41,7 @@ class TwitchManager {
 
   ///
   /// Provide an easy access to the Debug Overlay Widget
-  TwitchAppDebugOverlay debugOverlay({required child}) =>
+  TwitchAppDebugOverlay debugOverlay({required Widget child}) =>
       TwitchAppDebugOverlay(manager: _manager!, child: child);
 
   Future<void> _tryAutomaticConnect() async {

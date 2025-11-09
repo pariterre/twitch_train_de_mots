@@ -64,7 +64,7 @@ class LetterAgent extends Agent {
         'number_of_hits': _numberOfHits,
       };
 
-  static LetterAgent deserialize(map) {
+  static LetterAgent deserialize(Map<String, dynamic> map) {
     return LetterAgent(
       id: map['id'] as int,
       isBoss: map['is_boss'] as bool,

@@ -291,7 +291,7 @@ class _ConnexionDialogState extends State<_ConnexionDialog> {
     ));
   }
 
-  bool _validateForm(formKey) {
+  bool _validateForm(GlobalKey<FormState> formKey) {
     if (formKey.currentState == null) return false;
     if (!formKey.currentState!.validate()) return false;
 

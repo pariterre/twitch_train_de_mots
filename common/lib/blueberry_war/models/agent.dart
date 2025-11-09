@@ -11,7 +11,7 @@ enum AgentType { letter, blueberry }
 extension Vector2Extension on Vector2 {
   List<double> serialize() => [x, y];
 
-  static Vector2 deserialize(data) =>
+  static Vector2 deserialize(dynamic data) =>
       Vector2((data[0] as num).toDouble(), (data[1] as num).toDouble());
 }
 
@@ -43,7 +43,7 @@ abstract class Agent {
 
   Map<String, dynamic> serialize();
 
-  static Agent deserialize(map) =>
+  static Agent deserialize(Map<String, dynamic> map) =>
       switch (AgentType.values[map['agent_type']]) {
         AgentType.letter => LetterAgent.deserialize(map),
         AgentType.blueberry => BlueberryAgent.deserialize(map),
