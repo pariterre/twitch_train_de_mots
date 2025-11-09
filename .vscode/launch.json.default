@@ -23,6 +23,7 @@
             "program": "client/lib/main.dart",
             "args": [
                 "--web-browser-flag=--disable-web-security",
+                "--wasm",
                 "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
                 "--dart-define=USE_EBS_MOCK=< true | [false] >",
                 "--dart-define=USE_LOCAL_EBS=< true | [false] >",
