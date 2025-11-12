@@ -69,7 +69,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   /// [broadcasterId] the id of the broadcaster.
   /// [ebsInfo] the configuration of the EBS.
   EbsManager.spawn({
-    required int broadcasterId,
+    required String broadcasterId,
     required super.ebsInfo,
     required super.sendPort,
     required bool useMockedTwitchApi,
@@ -140,7 +140,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   /// Relay the try a word request from the frontend to the app
   /// [userId] the id of the user that is trying the word
   /// [word] the word that is being tried
-  Future<bool> _frontendTryAWord(int userId, String word) async {
+  Future<bool> _frontendTryAWord(String userId, String word) async {
     _logger.info('Resquesting to try the word $word');
     final playerName = userIdToLogin[userId];
     if (playerName == null) {
@@ -163,7 +163,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Handle a message from the frontend to pardon the last stealer
   /// [userId] the id of the user that wants to pardon
-  Future<bool> _frontendRequestedToPardon(int userId) async {
+  Future<bool> _frontendRequestedToPardon(String userId) async {
     _logger.info('Resquesting to pardon last stealer');
 
     final playerName = userIdToLogin[userId];
@@ -190,7 +190,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Handle a message from the frontend to boost the train
   /// [userId] the id of the user that wants to pardon
-  Future<bool> _frontendRequestedBoosted(int userId) async {
+  Future<bool> _frontendRequestedBoosted(String userId) async {
     _logger.info('Resquesting to boost the train');
 
     final playerName = userIdToLogin[userId];
@@ -216,7 +216,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     return isSuccess;
   }
 
-  Future<bool> _frontendRequestedRevealTileAt(int userId, int index) async {
+  Future<bool> _frontendRequestedRevealTileAt(String userId, int index) async {
     _logger.info('Resquesting to reveal tile at $index');
 
     final playerName = userIdToLogin[userId];
@@ -237,7 +237,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     return response.isSuccess ?? false;
   }
 
-  Future<bool> _frontendRequestedSlingShoot(int userId,
+  Future<bool> _frontendRequestedSlingShoot(String userId,
       {required int id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshoot at $id');
 
@@ -339,7 +339,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<void> _handleMessageFromFrontend(MessageProtocol message,
       ExtractedTransactionReceipt? transactionReceipt) async {
     // Helper function to send a response to the frontend
-    late final int userId;
+    late final String userId;
     try {
       userId = message.data!['user_id']!;
     } catch (e) {
@@ -463,7 +463,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
 class MockedTwitchApi extends MockedTwitchApiTemplate {
   static Future<void> initialize({
-    required int broadcasterId,
+    required String broadcasterId,
     required TwitchEbsInfo ebsInfo,
   }) async =>
       TwitchApi.initializeMocker(
@@ -478,7 +478,7 @@ class MockedTwitchApi extends MockedTwitchApiTemplate {
   final _players = <Map<String, dynamic>>[];
 
   Map<String, dynamic> _addRandomUser(
-      {int? userId, String? login, String? displayName}) {
+      {String? userId, String? login, String? displayName}) {
     final id = userId ?? _random.nextInt(1000000) + 1000000;
     final name = login ?? 'user$id';
     final display = displayName ?? 'User $id';
@@ -489,17 +489,17 @@ class MockedTwitchApi extends MockedTwitchApiTemplate {
   }
 
   @override
-  Future<int?> userId({required String login}) async =>
+  Future<String?> userId({required String login}) async =>
       _players.firstWhere((player) => player['login'] == login,
           orElse: () => _addRandomUser(login: login))['id'];
 
   @override
-  Future<String?> login({required int userId}) async =>
+  Future<String?> login({required String userId}) async =>
       _players.firstWhere((player) => player['id'] == userId,
           orElse: () => _addRandomUser(userId: userId))['login'];
 
   @override
-  Future<String?> displayName({required int userId}) async =>
+  Future<String?> displayName({required String userId}) async =>
       _players.firstWhere((player) => player['id'] == userId,
           orElse: () => _addRandomUser(userId: userId))['display_name'];
 
