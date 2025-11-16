@@ -216,21 +216,24 @@ class _ContinueSectionState extends State<_ContinueSection> {
                   fontWeight: FontWeight.normal,
                   color: tm.textColor)),
         const SizedBox(height: 12),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (gm.hasPlayedAtLeastOnce)
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (gm.hasPlayedAtLeastOnce)
+                ThemedElevatedButton(
+                  onPressed: _canClick ? gm.requestShowCaseAnswers : null,
+                  buttonText: 'Revoir les réponses',
+                ),
+              const SizedBox(width: 24),
               ThemedElevatedButton(
-                onPressed: _canClick ? gm.requestShowCaseAnswers : null,
-                buttonText: 'Revoir les réponses',
-              ),
-            const SizedBox(width: 24),
-            ThemedElevatedButton(
-                onPressed: _canClick && gm.canProceedToNextRound
-                    ? () => gm.requestStartNewRound()
-                    : null,
-                buttonText: generateButtonText()),
-          ],
+                  onPressed: _canClick && gm.canProceedToNextRound
+                      ? () => gm.requestStartNewRound()
+                      : null,
+                  buttonText: generateButtonText()),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         if (gm.nextRoundStartIn != null)
@@ -252,47 +255,50 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 )),
           ),
         if (MocksConfiguration.showDebugOptions)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(width: 24),
-              ThemedElevatedButton(
-                  onPressed: _canClick
-                      ? () => gm.onCongratulationFireworks.notifyListeners(
-                          (callback) => callback({
-                                'is_congratulating': true,
-                                'player_name': 'Anynome'
-                              }))
-                      : null,
-                  buttonText: 'BOOM!'),
-              const SizedBox(width: 24),
-              ThemedElevatedButton(
-                  onPressed: _canClick && gm.canAttemptTheBigHeist
-                      ? () => gm.requestTheBigHeist()
-                      : null,
-                  buttonText: 'Le grand coup'),
-              const SizedBox(width: 24),
-              ThemedElevatedButton(
-                  onPressed: _canClick
-                      ? () => gm.handleCancelNextRoundAsMiniGame()
-                      : null,
-                  buttonText: 'Annuler minijeu'),
-              const SizedBox(width: 24),
-              ThemedElevatedButton(
-                  onPressed: _canClick
-                      ? () => gm.handleNextRoundAsMiniGame(
-                          forceMinigame: MiniGames.treasureHunt)
-                      : null,
-                  buttonText: 'Jouer chercheurs'),
-              const SizedBox(width: 24),
-              ThemedElevatedButton(
-                  onPressed: _canClick
-                      ? () => gm.handleNextRoundAsMiniGame(
-                          forceMinigame: MiniGames.blueberryWar)
-                      : null,
-                  buttonText: 'Jouer guerre'),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.onCongratulationFireworks.notifyListeners(
+                            (callback) => callback({
+                                  'is_congratulating': true,
+                                  'player_name': 'Anynome'
+                                }))
+                        : null,
+                    buttonText: 'BOOM!'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick && gm.canAttemptTheBigHeist
+                        ? () => gm.requestTheBigHeist()
+                        : null,
+                    buttonText: 'Le grand coup'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.handleCancelNextRoundAsMiniGame()
+                        : null,
+                    buttonText: 'Annuler minijeu'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.handleNextRoundAsMiniGame(
+                            forceMinigame: MiniGames.treasureHunt)
+                        : null,
+                    buttonText: 'Jouer chercheurs'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.handleNextRoundAsMiniGame(
+                            forceMinigame: MiniGames.blueberryWar)
+                        : null,
+                    buttonText: 'Jouer guerre'),
+              ],
+            ),
           ),
       ],
     );
@@ -794,44 +800,47 @@ class _LeaderBoard extends StatelessWidget {
     final gm = Managers.instance.train;
 
     return Expanded(
-      child: Column(
-        children: [
-          if (gm.hasPlayedAtLeastOnce)
-            Expanded(
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: _buildGameScore(width: 600)),
-            ),
-          if ((gm.successLevel == SuccessLevel.failed &&
-                  gm.isAllowedToSendResults) ||
-              !gm.hasPlayedAtLeastOnce)
-            Expanded(
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
-                    child: Divider(thickness: 4),
-                  ),
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildTeamLeaderboardScore(width: 300),
-                        const SizedBox(width: 12.0),
-                        const VerticalDivider(thickness: 1),
-                        const SizedBox(width: 12.0),
-                        _builBestPlayersLeaderboardScore(width: 300),
-                        const SizedBox(width: 12.0),
-                        const VerticalDivider(thickness: 1),
-                        const SizedBox(width: 12.0),
-                        _builBestPlayersLeaderboardStars(width: 300),
-                      ],
-                    ),
-                  ),
-                ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Column(
+          children: [
+            if (gm.hasPlayedAtLeastOnce)
+              Expanded(
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: _buildGameScore(width: 600)),
               ),
-            ),
-        ],
+            if ((gm.successLevel == SuccessLevel.failed &&
+                    gm.isAllowedToSendResults) ||
+                !gm.hasPlayedAtLeastOnce)
+              Expanded(
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
+                      child: Divider(thickness: 4),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildTeamLeaderboardScore(width: 300),
+                          const SizedBox(width: 12.0),
+                          const VerticalDivider(thickness: 1),
+                          const SizedBox(width: 12.0),
+                          _builBestPlayersLeaderboardScore(width: 300),
+                          const SizedBox(width: 12.0),
+                          const VerticalDivider(thickness: 1),
+                          const SizedBox(width: 12.0),
+                          _builBestPlayersLeaderboardStars(width: 300),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1023,31 +1032,42 @@ class _LeaderBoardHeaderState extends State<_LeaderBoardHeader> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GrowingWidget(
-            growingFactor: 0.9,
-            duration: const Duration(milliseconds: 1000),
-            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
-              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
-            ]),
-          ),
-          Text(
-            'Le tableau des cheminot·e·s',
-            style: tm.clientMainTextStyle.copyWith(
-                fontSize: 32, fontWeight: FontWeight.bold, color: tm.textColor),
-          ),
-          GrowingWidget(
-            growingFactor: 0.9,
-            duration: const Duration(milliseconds: 1000),
-            child: Icon(Icons.star, color: Colors.amber, size: 70.0, shadows: [
-              Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
-            ]),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GrowingWidget(
+              growingFactor: 0.9,
+              duration: const Duration(milliseconds: 1000),
+              child: Icon(Icons.star,
+                  color: Colors.amber,
+                  size: 70.0,
+                  shadows: [
+                    Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+                  ]),
+            ),
+            Text(
+              'Le tableau des cheminot·e·s',
+              style: tm.clientMainTextStyle.copyWith(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: tm.textColor),
+            ),
+            GrowingWidget(
+              growingFactor: 0.9,
+              duration: const Duration(milliseconds: 1000),
+              child: Icon(Icons.star,
+                  color: Colors.amber,
+                  size: 70.0,
+                  shadows: [
+                    Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
+                  ]),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1158,52 +1178,58 @@ class _DefeatHeaderState extends State<_DefeatHeader> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GrowingWidget(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GrowingWidget(
+                growingFactor: 0.9,
+                duration: const Duration(milliseconds: 1000),
+                child: Icon(Icons.star,
+                    color: Colors.grey,
+                    size: 70.0,
+                    shadows: [
+                      Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
+                    ])),
+            Column(
+              children: [
+                Text(
+                  'Immobilisé entre deux stations',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: tm.textColor),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Le Petit Train du Nord n\'a pu se rendre à destination',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.normal,
+                      color: tm.textColor),
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                    'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
+                    style: tm.clientMainTextStyle.copyWith(
+                        fontSize: 26,
+                        fontWeight: FontWeight.normal,
+                        color: tm.textColor)),
+                const SizedBox(height: 16.0),
+              ],
+            ),
+            GrowingWidget(
               growingFactor: 0.9,
               duration: const Duration(milliseconds: 1000),
               child: Icon(Icons.star, color: Colors.grey, size: 70.0, shadows: [
                 Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
-              ])),
-          Column(
-            children: [
-              Text(
-                'Immobilisé entre deux stations',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: tm.textColor),
-              ),
-              const SizedBox(height: 16.0),
-              Text(
-                'Le Petit Train du Nord n\'a pu se rendre à destination',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.normal,
-                    color: tm.textColor),
-              ),
-              const SizedBox(height: 8.0),
-              Text(
-                  'La dernière station atteinte était la Station N\u00b0${gm.roundCount}',
-                  style: tm.clientMainTextStyle.copyWith(
-                      fontSize: 26,
-                      fontWeight: FontWeight.normal,
-                      color: tm.textColor)),
-              const SizedBox(height: 16.0),
-            ],
-          ),
-          GrowingWidget(
-            growingFactor: 0.9,
-            duration: const Duration(milliseconds: 1000),
-            child: Icon(Icons.star, color: Colors.grey, size: 70.0, shadows: [
-              Shadow(color: Colors.grey.shade800, blurRadius: 15.0)
-            ]),
-          ),
-        ],
+              ]),
+            ),
+          ],
+        ),
       ),
     );
   }

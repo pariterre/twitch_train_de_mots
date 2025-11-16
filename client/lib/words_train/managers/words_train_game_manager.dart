@@ -353,7 +353,7 @@ class WordsTrainGameManager {
   /// for the results to be sent to the leaderboard either (even if the rules
   /// are valid now).
   void _checkForInvalidRules() {
-    _logger.info('Checking for invalid rules...');
+    _logger.fine('Checking for invalid rules...');
     _isAllowedToSendResults = _isAllowedToSendResults &&
         !Managers.instance.configuration.useCustomAdvancedOptions;
   }
@@ -555,14 +555,14 @@ class WordsTrainGameManager {
   Future<bool> trySolution(
       {required String playerName, required String word}) async {
     if (_isRoundAMiniGame) {
-      _logger.warning('Cannot try solution while playing a mini game');
+      _logger.fine('Cannot try solution while playing a mini game');
       return false;
     }
 
-    _logger.info('Trying solution from $playerName: $word');
+    _logger.fine('Trying solution from $playerName: $word');
 
     if (problem == null || timeRemaining == null) {
-      _logger.warning('Cannot try solution at this time');
+      _logger.fine('Cannot try solution at this time');
       return false;
     }
     final cm = Managers.instance.configuration;
@@ -585,7 +585,7 @@ class WordsTrainGameManager {
 
     // If the player is in cooldown, they are not allowed to answer
     if (player.isInCooldownPeriod) {
-      _logger.warning('Solution is invalid because player is in cooldown');
+      _logger.fine('Solution is invalid because player is in cooldown');
       return false;
     }
 
@@ -593,14 +593,14 @@ class WordsTrainGameManager {
     final solution = problem!.trySolution(word,
         nbLetterInSmallestWord: _currentDifficulty.nbLettersOfShortestWord);
     if (solution == null) {
-      _logger.warning('Solution is invalid because it is not a valid word');
+      _logger.fine('Solution is invalid because it is not a valid word');
       return false;
     }
 
     // Add to player score
-    _logger.info('Solution is valid');
+    _logger.fine('Solution is valid');
     if (solution.isFound) {
-      _logger.info('Solution is valid, but was already found');
+      _logger.fine('Solution is valid, but was already found');
       // If the solution was already found, the player can steal it. It however
       // provides half the score and doubles the cooldown period.
 
@@ -944,7 +944,7 @@ class WordsTrainGameManager {
     _logger.fine('Managing letter swapping...');
     _scramblingLetterTimer -= 1;
     if (_scramblingLetterTimer <= 0) {
-      _logger.info('Scrambling letters...');
+      _logger.fine('Scrambling letters...');
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners((callback) => callback());

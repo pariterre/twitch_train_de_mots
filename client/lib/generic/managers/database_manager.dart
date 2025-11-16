@@ -261,7 +261,7 @@ class DatabaseManager {
     _logger.info('Fetching the results of team $teamName...');
     final results = (await _getTeamsResults())
         .firstWhereOrNull((team) => team.name == teamName);
-    _logger.info('Fetched the results of team $teamName');
+    _logger.fine('Fetched the results of team $teamName');
     return results;
   }
 
@@ -407,7 +407,7 @@ class DatabaseManager {
     _logger.info('Fetching the results of team $teamName...');
     final results = await _getResultsOf(teamName: teamName!) ??
         TeamResult(name: teamName!, bestStation: -1);
-    _logger.info('Fetched the results of team $teamName');
+    _logger.fine('Fetched the results of team $teamName');
     return results;
   }
 

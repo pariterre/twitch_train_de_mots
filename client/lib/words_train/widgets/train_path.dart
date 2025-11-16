@@ -211,11 +211,14 @@ class _TrainPathState extends State<TrainPath>
       alignment: Alignment.centerLeft,
       children: [
         SizedBox(width: widget.pathLength + hallmarkSize / 2, height: 0),
-        _Rail(
-            progressHeight: widget.height * 0.20,
-            pathToComeHeight: widget.height * 0.10,
-            pathLength: widget.pathLength,
-            controller: widget.controller),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: _Rail(
+              progressHeight: widget.height * 0.20,
+              pathToComeHeight: widget.height * 0.10,
+              pathLength: widget.pathLength,
+              controller: widget.controller),
+        ),
         ...widget.controller._starHallMarks.map((starPosition) {
           final starColor = widget.controller.currentStep > starPosition
               ? Colors.amber

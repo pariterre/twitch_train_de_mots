@@ -94,7 +94,7 @@ class LetterProblem {
   /// Returns the solution if the word is a solution, null otherwise
   WordSolution? trySolution(String word,
       {required int nbLetterInSmallestWord}) {
-    _logger.info('Trying solution: $word...');
+    _logger.fine('Trying solution: $word...');
 
     // Do some rapid validation
     if (word.length < nbLetterInSmallestWord) {
@@ -111,7 +111,7 @@ class LetterProblem {
 
     final out = solutions.firstWhereOrNull((WordSolution e) => e.word == word);
 
-    _logger.info('Solution found: ${out != null}');
+    _logger.fine('Solution found: ${out != null}');
     return out;
   }
 
@@ -156,7 +156,8 @@ class LetterProblem {
     _logger.info('Generating problem from EBS...');
 
     // Make sure the EBS is connected
-    while (!Managers.instance.ebs.isConnectedToEbs) {
+    while (!Managers.instance.allManagersInitialized ||
+        !Managers.instance.ebs.isConnectedToEbs) {
       await Future.delayed(Duration(milliseconds: 100));
     }
 

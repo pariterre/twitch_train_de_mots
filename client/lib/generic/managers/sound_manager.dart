@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:web/web.dart';
 
 import 'package:collection/collection.dart';
 import 'package:common/generic/models/exceptions.dart';
@@ -115,14 +116,21 @@ class _AudioPlayerManager {
   bool isAvailable = true;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
+  static final _audioContext = AudioContext();
+
   Future<void> play(AudioSource source, double volume) async {
-    isAvailable = false;
-    await _audioPlayer.setVolume(volume);
-    await _audioPlayer.setAudioSource(source);
-    await _audioPlayer.play();
-    await _audioPlayer.stop();
-    await _audioPlayer.seek(Duration.zero);
-    isAvailable = true;
+    if (_audioContext.state != "running") return;
+
+    try {
+      isAvailable = false;
+      await _audioPlayer.setVolume(volume);
+      await _audioPlayer.setAudioSource(source);
+      await _audioPlayer.play();
+    } finally {
+      await _audioPlayer.stop();
+      await _audioPlayer.seek(Duration.zero);
+      isAvailable = true;
+    }
   }
 }
 
@@ -251,6 +259,9 @@ class SoundManager {
 
     // If we never prepared the game music, we do it now
     if (!_gameMusic.playing) {
+      while (_AudioPlayerManager._audioContext.state != "running") {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
       _gameMusic.play();
     }
 
@@ -394,7 +405,8 @@ class SoundManager {
         : _SoundEffect.treasureHuntPickingTreasure);
   }
 
-  Future<void> _onSolutionTried(String _, String __, bool isCorrect) async {
+  Future<void> _onSolutionTried(
+      String _, String __, bool isCorrect, int ___) async {
     if (isCorrect) {
       // Do nothing as the sound is already played in the game over
     } else {

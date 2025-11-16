@@ -13,6 +13,16 @@ class Managers {
   ///
   /// Singleton instance
   bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+  bool get allManagersInitialized =>
+      _database != null &&
+      _configuration != null &&
+      _train != null &&
+      _miniGames != null &&
+      _sound != null &&
+      _twitch != null &&
+      _ebs != null;
+
   static final Managers _instance = Managers._();
   Managers._();
   static Managers get instance {
