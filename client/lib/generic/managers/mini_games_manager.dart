@@ -47,6 +47,10 @@ abstract class MiniGameManager {
   Future<void> end();
 
   ///
+  /// Get the points each player has earned in the mini game
+  Map<String, int> get playersPoints;
+
+  ///
   /// Get a serialized version of the game state
   SerializableMiniGameState serialize();
 }
@@ -105,6 +109,14 @@ class MiniGamesManager {
 
   void _notifyThatMiniGameHasUpdated() {
     onMinigameUpdated.notifyListeners((callback) => callback());
+  }
+
+  Map<String, int> getPlayersPoints() {
+    if (!_isActive) {
+      throw Exception('No mini game is running.');
+    }
+
+    return manager!.playersPoints;
   }
 
   Future<void> finalize() async {

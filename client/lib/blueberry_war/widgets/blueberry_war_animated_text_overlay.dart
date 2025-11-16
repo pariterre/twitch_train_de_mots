@@ -62,10 +62,11 @@ class _BluberryWarAnimatedTextOverlayState
     super.dispose();
   }
 
-  void _blueberryWarTrySolution(String sender, String word, bool isSuccess) {
+  void _blueberryWarTrySolution(
+      String sender, String word, bool isSuccess, int wordValue) {
     if (isSuccess) {
       _blueberryWarFoundWordController.triggerAnimation(
-        _BlueberryWarFoundWord(sender, word),
+        _BlueberryWarFoundWord(sender, word, wordValue),
       );
     } else {
       _blueberryWarWrongWordController.triggerAnimation(
@@ -111,10 +112,11 @@ class _BluberryWarAnimatedTextOverlayState
 }
 
 class _BlueberryWarFoundWord extends StatelessWidget {
-  const _BlueberryWarFoundWord(this.sender, this.word);
+  const _BlueberryWarFoundWord(this.sender, this.word, this.wordValue);
 
   final String sender;
   final String word;
+  final int wordValue;
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +134,9 @@ class _BlueberryWarFoundWord extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Vous avez gagné!\n$sender a trouvé la solution!',
+            'Vous avez gagné!\n'
+            '$sender a trouvé la solution, et\n'
+            'remporte $wordValue points!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
               fontSize: 24,

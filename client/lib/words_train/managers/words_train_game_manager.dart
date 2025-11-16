@@ -1197,12 +1197,18 @@ class WordsTrainGameManager {
   void _miniGameEnded(bool hasWon) {
     _logger.info('Mini game ended');
     Managers.instance.miniGames.manager?.onGameEnded.cancel(_miniGameEnded);
+    final playerPoints = Managers.instance.miniGames.getPlayersPoints();
     Managers.instance.miniGames.finalize();
 
     // Give some perks based on the mini game
     if (hasWon) {
       _forceGoldenSolution = true;
       _roundSuccesses.add(RoundSuccess.miniGameWon);
+
+      for (final playerName in playerPoints.keys) {
+        final player = players.firstWhereOrAdd(playerName);
+        player.score += playerPoints[playerName]!;
+      }
     }
 
     // Reset some flags

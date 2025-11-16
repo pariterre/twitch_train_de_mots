@@ -59,10 +59,11 @@ class _TreasureHuntAnimatedTextOverlayState
     super.dispose();
   }
 
-  void _treasureHuntTrySolution(String sender, String word, bool isSuccess) {
+  void _treasureHuntTrySolution(
+      String sender, String word, bool isSuccess, int wordValue) {
     if (isSuccess) {
       _treasureHuntFoundWordController
-          .triggerAnimation(_TreasureHuntFoundWord(sender, word));
+          .triggerAnimation(_TreasureHuntFoundWord(sender, word, wordValue));
     } else {
       _treasureHuntWrongWordController
           .triggerAnimation(_TreasureHuntWrongWord(sender, word));
@@ -104,10 +105,11 @@ class _TreasureHuntAnimatedTextOverlayState
 }
 
 class _TreasureHuntFoundWord extends StatelessWidget {
-  const _TreasureHuntFoundWord(this.sender, this.word);
+  const _TreasureHuntFoundWord(this.sender, this.word, this.wordValue);
 
   final String sender;
   final String word;
+  final int wordValue;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +127,9 @@ class _TreasureHuntFoundWord extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Vous avez gagné!\n$sender a trouvé la solution!',
+            'Vous avez gagné!\n'
+            '$sender a trouvé la solution, et\n'
+            'remporte $wordValue points!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24,

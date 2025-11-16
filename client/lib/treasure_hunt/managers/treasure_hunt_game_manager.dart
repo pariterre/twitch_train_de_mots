@@ -5,6 +5,7 @@ import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/valuable_letter.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:logging/logging.dart';
@@ -39,6 +40,12 @@ class TreasureHuntGameManager implements MiniGameManager {
 
     _logger.config('Ready');
   }
+
+  ///
+  /// Players points earned during the game
+  final Map<String, int> _playersPoints = {};
+  @override
+  Map<String, int> get playersPoints => Map.from(_playersPoints);
 
   ///
   /// Time remaining
@@ -79,8 +86,9 @@ class TreasureHuntGameManager implements MiniGameManager {
   @override
   final onGameUpdated = GenericListener<Function()>();
   final onClockTicked = GenericListener<Function(Duration)>();
-  final onTrySolution =
-      GenericListener<Function(String sender, String word, bool isSuccess)>();
+  final onTrySolution = GenericListener<
+      Function(
+          String sender, String word, bool isSuccess, int pointsAwarded)>();
   final onTileRevealed = GenericListener<Function(Tile)>();
   final onRewardFound = GenericListener<Function(Tile)>();
   @override
@@ -129,6 +137,7 @@ class TreasureHuntGameManager implements MiniGameManager {
           max(20, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
     );
     _triesRemaining = 10;
+    _playersPoints.clear();
     _isReady = true;
     _forceEndOfGame = false;
     _autoplayTimeRemaining = Duration(seconds: 10);
@@ -158,13 +167,18 @@ class TreasureHuntGameManager implements MiniGameManager {
     _forceEndOfGame = true;
   }
 
-  void trySolution(String sender, String message) {
+  void trySolution(String playerName, String message) {
     if (!_isMainTimerRunning) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
     if (words.isEmpty || words.length > 1) return;
     final word = words.first.toUpperCase();
+    final wordValue = 5 *
+        word
+            .split('')
+            .map((e) => ValuableLetter.getValueOfLetter(e))
+            .reduce((a, b) => a + b);
 
     final isSolutionRight = word == problem.letters.join();
     if (isSolutionRight) {
@@ -172,11 +186,12 @@ class TreasureHuntGameManager implements MiniGameManager {
         _problem!.uselessLetterStatuses[i] = LetterStatus.normal;
         _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
       }
+      _playersPoints[playerName] = wordValue;
     } else {
       _triesRemaining--;
     }
-    onTrySolution
-        .notifyListeners((callback) => callback(sender, word, isSolutionRight));
+    onTrySolution.notifyListeners(
+        (callback) => callback(playerName, word, isSolutionRight, wordValue));
   }
 
   ///

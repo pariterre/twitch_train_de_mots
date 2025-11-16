@@ -10,6 +10,7 @@ import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/valuable_letter.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -39,6 +40,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   bool get isGameOver => _isGameOver;
   bool? _hasWon = false;
   bool get hasWon => _hasWon!;
+
+  ///
+  /// The points each player has earned in the mini game
+  final Map<String, int> _playersPoints = {};
+  @override
+  Map<String, int> get playersPoints => Map.from(_playersPoints);
 
   ///
   /// Time related stuff for the game
@@ -85,8 +92,9 @@ class BlueberryWarGameManager implements MiniGameManager {
   final onBlueberryDestroyed = GenericListener<Function(int blueberryIndex)>();
   @override
   final onGameEnded = GenericListener<Function(bool)>();
-  final onTrySolution =
-      GenericListener<Function(String sender, String word, bool isSuccess)>();
+  final onTrySolution = GenericListener<
+      Function(
+          String sender, String word, bool isSuccess, int pointsAwarded)>();
 
   ///
   /// Constructor
@@ -128,6 +136,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     _isInitialized = false;
     _isGameOver = false;
     _isReady = false;
+    _playersPoints.clear();
     _generateProblem();
 
     // Populate letters with random agents
@@ -232,22 +241,28 @@ class BlueberryWarGameManager implements MiniGameManager {
     }
   }
 
-  void trySolution(String sender, String message) {
+  void trySolution(String playerName, String message) {
     if (!gameStarted || _isGameOver) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
     if (words.isEmpty || words.length > 1) return;
     final word = words.first.toUpperCase();
+    final wordValue = 5 *
+        word
+            .split('')
+            .map((e) => ValuableLetter.getValueOfLetter(e))
+            .reduce((a, b) => a + b);
 
     final isSolutionRight = word == problem.letters.join();
     if (isSolutionRight) {
       for (int i = 0; i < _problem!.uselessLetterStatuses.length; i++) {
         _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
       }
+      _playersPoints[playerName] = wordValue;
     }
-    onTrySolution
-        .notifyListeners((callback) => callback(sender, word, isSolutionRight));
+    onTrySolution.notifyListeners(
+        (callback) => callback(playerName, word, isSolutionRight, wordValue));
   }
 
   ///
