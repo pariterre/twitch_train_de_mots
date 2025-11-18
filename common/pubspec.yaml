@@ -30,6 +30,9 @@ flutter:
 
     - assets/images/blueberry_war/blueberries.png
 
+    - assets/images/track_fix/grass.png
+    - assets/images/track_fix/open_grass.png
+
     - assets/sounds/BestSolutionFound.mp3
     - assets/sounds/GameStarted.mp3
     - assets/sounds/GoldenSolutionAppeared.mp3

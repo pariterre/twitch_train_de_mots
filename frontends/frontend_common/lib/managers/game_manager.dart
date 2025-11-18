@@ -9,6 +9,7 @@ import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
+import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
@@ -298,6 +299,15 @@ class GameManager {
                   (callback) => callback(agent.position, agent.position));
             }
           }
+          break;
+        }
+      case MiniGames.trackFix:
+        {
+          final ffm = _gameState.miniGameState as SerializableTrackFixGameState;
+          newGameState = ffm.copyWith(
+              timeRemaining: ffm.isTimerRunning
+                  ? ffm.timeRemaining - dt
+                  : ffm.timeRemaining);
           break;
         }
     }

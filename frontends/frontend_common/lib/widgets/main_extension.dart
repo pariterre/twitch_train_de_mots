@@ -6,6 +6,7 @@ import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/screens/blueberry_war_play_screen.dart';
 import 'package:frontend_common/screens/dragging_screen.dart';
+import 'package:frontend_common/screens/track_fix_play_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
 import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
@@ -247,6 +248,8 @@ class _MainScreenState extends State<_MainScreen> {
               return const TreasureHuntPlayScreen();
             case MiniGames.blueberryWar:
               return const BlueberryWarPlayScreen();
+            case MiniGames.trackFix:
+              return const TrackFixPlayScreen();
           }
         }
     }

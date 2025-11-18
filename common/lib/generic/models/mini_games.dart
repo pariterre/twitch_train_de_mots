@@ -1,4 +1,5 @@
 enum MiniGames {
   treasureHunt,
-  blueberryWar;
+  blueberryWar,
+  trackFix;
 }
