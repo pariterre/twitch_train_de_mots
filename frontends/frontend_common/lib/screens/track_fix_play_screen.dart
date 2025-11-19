@@ -4,14 +4,9 @@ import 'package:common/track_fix/widgets/track_fix_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 
-class TrackFixPlayScreen extends StatefulWidget {
+class TrackFixPlayScreen extends StatelessWidget {
   const TrackFixPlayScreen({super.key});
 
-  @override
-  State<TrackFixPlayScreen> createState() => _TrackFixPlayScreenState();
-}
-
-class _TrackFixPlayScreenState extends State<TrackFixPlayScreen> {
   @override
   Widget build(BuildContext context) {
     final thm =
@@ -76,24 +71,11 @@ class _HeaderState extends State<_Header> {
         GameManager.instance.miniGameState as SerializableTrackFixGameState;
     final tm = ThemeManager.instance;
 
-    if (thm.triesRemaining <= 0) {
-      return Text('Vous avez épuisé vos essais!', style: tm.textFrontendSc);
-    }
-
     return LayoutBuilder(builder: (context, constraints) {
       return thm.timeRemaining.inSeconds > 0
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Temps restant ${thm.timeRemaining.inSeconds}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-                const SizedBox(width: 20),
-                Text('Essais restants ${thm.triesRemaining}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-              ],
-            )
+          ? Text('Temps restant ${thm.timeRemaining.inSeconds}',
+              style: tm.textFrontendSc
+                  .copyWith(fontSize: constraints.maxWidth * 0.05))
           : Text('Retournons à la gare!',
               style: tm.textFrontendSc
                   .copyWith(fontSize: constraints.maxWidth * 0.05));

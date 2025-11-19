@@ -1,5 +1,4 @@
 import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/track_fix/models/track_fix_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/widgets/theme_card.dart';
@@ -19,8 +18,6 @@ class _TrackFixHeaderState extends State<TrackFixHeader> {
     final gm = Managers.instance.miniGames.trackFix;
     gm.onGameStarted.listen(_onGameStarted);
     gm.onClockTicked.listen(_onClockTicked);
-    gm.onTileRevealed.listen(_onTileRevealed);
-    gm.onRewardFound.listen(_onRewardFound);
   }
 
   @override
@@ -28,8 +25,6 @@ class _TrackFixHeaderState extends State<TrackFixHeader> {
     final gm = Managers.instance.miniGames.trackFix;
     gm.onGameStarted.cancel(_onGameStarted);
     gm.onClockTicked.cancel(_onClockTicked);
-    gm.onTileRevealed.cancel(_onTileRevealed);
-    gm.onRewardFound.cancel(_onRewardFound);
 
     super.dispose();
   }
@@ -42,45 +37,16 @@ class _TrackFixHeaderState extends State<TrackFixHeader> {
     setState(() {});
   }
 
-  void _onTileRevealed(Tile tile) {
-    setState(() {});
-  }
-
-  void _onRewardFound(Tile tile) {
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ThemeCard(
-              child: Text(
-                'Temps restant: ${Managers.instance.miniGames.trackFix.timeRemaining.inSeconds}',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: tm.textColor),
-              ),
-            ),
-            const SizedBox(width: 100),
-            ThemeCard(
-              child: Text(
-                'Essais restants: ${Managers.instance.miniGames.trackFix.triesRemaining}',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: tm.textColor),
-              ),
-            ),
-          ],
-        ),
-      ],
+    return ThemeCard(
+      child: Text(
+        'Temps restant: ${Managers.instance.miniGames.trackFix.timeRemaining.inSeconds}',
+        style: tm.clientMainTextStyle.copyWith(
+            fontWeight: FontWeight.bold, fontSize: 26, color: tm.textColor),
+      ),
     );
   }
 }

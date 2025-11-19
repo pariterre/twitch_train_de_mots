@@ -14,6 +14,15 @@ class TrackFixAnimatedTextOverlay extends StatefulWidget {
 class _TrackFixAnimatedTextOverlayState
     extends State<TrackFixAnimatedTextOverlay> {
   final _trackFixWrongWordController = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 600,
+      bouncingDuration: 1200,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
+  final _trackFixHasWinController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -22,16 +31,7 @@ class _TrackFixAnimatedTextOverlayState
       bouncyScale: 1.2,
       maxScale: 1.4,
       maxOpacity: 0.9);
-  final _trackFixFoundWordController = BouncyContainerController(
-      bounceCount: 2,
-      easingInDuration: 600,
-      bouncingDuration: 1500,
-      easingOutDuration: 300,
-      minScale: 0.9,
-      bouncyScale: 1.2,
-      maxScale: 1.4,
-      maxOpacity: 0.9);
-  final _trackFixFailedController = BouncyContainerController(
+  final _trackFixHasLostController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -61,19 +61,17 @@ class _TrackFixAnimatedTextOverlayState
 
   void _trackFixTrySolution(
       String sender, String word, bool isSuccess, int wordValue) {
-    if (isSuccess) {
-      _trackFixFoundWordController
-          .triggerAnimation(_TrackFixFoundWord(sender, word, wordValue));
-    } else {
-      _trackFixWrongWordController
-          .triggerAnimation(_TrackFixWrongWord(sender, word));
-    }
+    if (isSuccess) return;
+    _trackFixWrongWordController
+        .triggerAnimation(_TrackFixWrongWord(sender, word));
   }
 
   void _trackFixFailed(bool hasWin) {
-    // Do not write anything if the game was won, as the try solution will
-    if (hasWin) return;
-    _trackFixFailedController.triggerAnimation(const _TrackFixFailed());
+    if (hasWin) {
+      _trackFixHasWinController.triggerAnimation(_TrackFixHasWin());
+    } else {
+      _trackFixHasLostController.triggerAnimation(const _TrackFixHasLost());
+    }
   }
 
   @override
@@ -90,52 +88,12 @@ class _TrackFixAnimatedTextOverlayState
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _trackFixFoundWordController),
+            child: BouncyContainer(controller: _trackFixHasWinController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _trackFixFailedController),
+            child: BouncyContainer(controller: _trackFixHasLostController),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrackFixFoundWord extends StatelessWidget {
-  const _TrackFixFoundWord(this.sender, this.word, this.wordValue);
-
-  final String sender;
-  final String word;
-  final int wordValue;
-
-  @override
-  Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 23, 99, 18),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.star, color: Colors.amber, size: 32),
-          const SizedBox(width: 10),
-          Text(
-            'Vous avez gagné!\n'
-            '$sender a trouvé la solution, et\n'
-            'remporte $wordValue points!',
-            textAlign: TextAlign.center,
-            style: tm.clientMainTextStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: const Color.fromARGB(255, 157, 243, 151)),
-          ),
-          const SizedBox(width: 10),
-          const Icon(Icons.star, color: Colors.amber, size: 32),
         ],
       ),
     );
@@ -164,7 +122,7 @@ class _TrackFixWrongWord extends StatelessWidget {
         children: [
           const SizedBox(width: 10),
           Text(
-            '$sender a proposé $word\nMais ce n\'est pas la solution',
+            'Le mot $word n\'est pas valide...',
             textAlign: TextAlign.center,
             style:
                 tm.clientMainTextStyle.copyWith(fontSize: 24, color: textColor),
@@ -176,8 +134,43 @@ class _TrackFixWrongWord extends StatelessWidget {
   }
 }
 
-class _TrackFixFailed extends StatelessWidget {
-  const _TrackFixFailed();
+class _TrackFixHasWin extends StatelessWidget {
+  const _TrackFixHasWin();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez réparé la voie!\n'
+            'Le train peut continuer son chemin!',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrackFixHasLost extends StatelessWidget {
+  const _TrackFixHasLost();
 
   @override
   Widget build(BuildContext context) {
@@ -196,8 +189,8 @@ class _TrackFixFailed extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${Managers.instance.miniGames.trackFix.timeRemaining.inSeconds <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
-            'On retourne immédiatement au train!',
+            'Vous n\'avez pas pu réparer la voie à temps!\n'
+            'Votre chemin s\'arrête ici...',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),

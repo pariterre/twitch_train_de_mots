@@ -27,7 +27,6 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
     final fgm = Managers.instance.miniGames.trackFix;
     fgm.onGameStarted.listen(_refresh);
     fgm.onGameIsReady.listen(_refresh);
-    fgm.onTileRevealed.listen(_refreshWithOneParameter);
     fgm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -45,7 +44,6 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
     final fgm = Managers.instance.miniGames.trackFix;
     fgm.onGameStarted.cancel(_refresh);
     fgm.onGameIsReady.cancel(_refresh);
-    fgm.onTileRevealed.cancel(_refreshWithOneParameter);
     fgm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -56,7 +54,6 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
-  void _refreshWithOneParameter(dynamic _) => setState(() {});
   void _solutionWasTried(String _, String __, bool ___, int ____) =>
       setState(() {});
 

@@ -7,7 +7,6 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
     required this.grid,
     required this.isTimerRunning,
     required this.timeRemaining,
-    required this.triesRemaining,
   });
 
   @override
@@ -17,7 +16,6 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
 
   final bool isTimerRunning;
   final Duration timeRemaining;
-  final int triesRemaining;
 
   @override
   Map<String, dynamic> serialize() {
@@ -26,7 +24,6 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
       'grid': grid.serialize(),
       'is_timer_running': isTimerRunning,
       'time_remaining': timeRemaining.inSeconds,
-      'tries_remaining': triesRemaining,
     };
   }
 
@@ -35,7 +32,6 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
       grid: Grid.deserialize(data['grid'] as Map<String, dynamic>),
       isTimerRunning: data['is_timer_running'] as bool,
       timeRemaining: Duration(seconds: data['time_remaining'] as int),
-      triesRemaining: data['tries_remaining'] as int,
     );
   }
 
@@ -50,7 +46,6 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
       grid: grid ?? this.grid,
       isTimerRunning: isTimerRunning ?? this.isTimerRunning,
       timeRemaining: timeRemaining ?? this.timeRemaining,
-      triesRemaining: triesRemaining ?? this.triesRemaining,
     );
   }
 
@@ -61,14 +56,10 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
     return other is SerializableTrackFixGameState &&
         other.grid == grid &&
         other.isTimerRunning == isTimerRunning &&
-        other.timeRemaining == timeRemaining &&
-        other.triesRemaining == triesRemaining;
+        other.timeRemaining == timeRemaining;
   }
 
   @override
   int get hashCode =>
-      grid.hashCode ^
-      isTimerRunning.hashCode ^
-      timeRemaining.hashCode ^
-      triesRemaining.hashCode;
+      grid.hashCode ^ isTimerRunning.hashCode ^ timeRemaining.hashCode;
 }
