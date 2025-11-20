@@ -77,7 +77,7 @@ class TrackFixGameManager implements MiniGameManager {
   Duration get timeRemaining => _timeRemaining;
   bool _forceEndOfGame = false;
 
-  Duration _autoplayTimeRemaining = Duration(seconds: 10);
+  Duration _autoplayTimeRemaining = Duration.zero;
 
   // Listeners
   @override
@@ -175,6 +175,7 @@ class TrackFixGameManager implements MiniGameManager {
   }
 
   void trySolution(String playerName, String message) {
+    // TODO: Fix when starting _isMainTimerRunning
     //if (!_isMainTimerRunning) return;
 
     // Transform the message so it is only the first word all in uppercase
@@ -210,6 +211,7 @@ class TrackFixGameManager implements MiniGameManager {
   void _gameLoop() {
     if (_isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
+      // TODO Fix timer not starting the same way if telegram is shown
       if (Managers.instance.configuration.autoplay) {
         _autoplayTimeRemaining -= const Duration(seconds: 1);
         if (_autoplayTimeRemaining.inSeconds <= 0) _isMainTimerRunning = true;
@@ -232,7 +234,7 @@ class TrackFixGameManager implements MiniGameManager {
   ///
   /// Tick the clock by one second
   void _tickClock() {
-    //_timeRemaining -= const Duration(seconds: 1);
+    _timeRemaining -= const Duration(seconds: 1);
     onClockTicked.notifyListeners((callback) => callback(_timeRemaining));
   }
 
