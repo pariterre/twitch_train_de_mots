@@ -1,6 +1,7 @@
 import 'package:common/track_fix/widgets/track_fix_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
 import 'package:train_de_mots/track_fix/widgets/track_fix_animated_text_overlay.dart';
 import 'package:train_de_mots/track_fix/widgets/track_fix_header.dart';
 
@@ -54,8 +55,13 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
-  void _solutionWasTried(String _, String __, bool ___, int ____) =>
-      setState(() {});
+  void _solutionWasTried(
+      {required String playerName,
+      required String word,
+      required SolutionStatus solutionStatus,
+      required int pointsAwarded}) {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {

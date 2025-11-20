@@ -1,41 +1,38 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:common/generic/models/valuable_letter.dart';
+import 'package:logging/logging.dart';
 
 final _random = Random();
+final _logging = Logger('TrackFixGrid');
 
 class Grid {
   final int rowCount;
   final int columnCount;
-  final int minimumSegmentLength; // = 4;
-  final int maximumSegmentLength; // = 8;
-  final int expectedSegmentsCount; // = 9;
 
   int get cellCount => rowCount * columnCount;
 
   final List<Tile> _tiles;
 
   final List<PathSegment> _pathSegments;
+  List<PathSegment> get segments => List.unmodifiable(_pathSegments);
   bool get allSegmentsAreFixed => _pathSegments.every((s) => s.isComplete);
+  PathSegment? get nextEmptySegment =>
+      _pathSegments.firstWhereOrNull((s) => s.isNotComplete);
 
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
-        'minimum_segment_length': minimumSegmentLength,
-        'maximum_segment_length': maximumSegmentLength,
-        'expected_segments_count': expectedSegmentsCount,
         'tiles': _tiles.map((tile) => tile.serialize()).toList(),
         'path_segments':
             _pathSegments.map((segment) => segment.serialize()).toList(),
       };
 
   static Grid deserialize(Map<String, dynamic> json) {
-    return Grid(
+    return Grid._(
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
-      minimumSegmentLength: json['minimum_segment_length'] as int,
-      maximumSegmentLength: json['maximum_segment_length'] as int,
-      expectedSegmentsCount: json['expected_segments_count'] as int,
       tiles: (json['tiles'] as List)
           .map((tile) => Tile.deserialize(tile))
           .toList(growable: false),
@@ -45,26 +42,13 @@ class Grid {
     );
   }
 
-  Grid({
+  Grid._({
     required this.rowCount,
     required this.columnCount,
-    required this.minimumSegmentLength,
-    required this.maximumSegmentLength,
-    required this.expectedSegmentsCount,
     List<Tile>? tiles,
     List<PathSegment>? pathSegments,
   })  : _tiles = tiles ?? [],
-        _pathSegments = pathSegments ?? [] {
-    if (tiles != null && tiles.length != cellCount) {
-      throw ArgumentError(
-          'The number of tiles must be equal to rowCount * columnCount');
-    }
-
-    if (pathSegments != null && pathSegments.length != expectedSegmentsCount) {
-      throw ArgumentError(
-          'The number of path segments must be equal to expectedSegmentsCount');
-    }
-  }
+        _pathSegments = pathSegments ?? [];
 
   Tile? tileAt({int? row, int? col, int? index}) {
     if ((row == null && col == null && index == null) ||
@@ -89,40 +73,6 @@ class Grid {
   }
 
   ///
-  /// Attempt to fix a segment with the given [word]
-  /// Returns true if the segment was successfully fixed
-  bool tryFixSegment(String word) {
-    final segment =
-        _pathSegments.firstWhereOrNull((segment) => segment.isNotComplete);
-    if (segment == null) return false; // No more segments to fix
-
-    // The word must have the correct length
-    if (word.length != segment.length) return false;
-
-    // Check that pre-existing letters match the provided word
-    for (int i = 0; i < segment.length; i++) {
-      final tile = tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return false;
-      if (tile.hasLetter && tile.letter != word[i]) return false;
-    }
-
-    for (final segment in _pathSegments) {
-      // The word must be unique among fixed segments
-      if (segment.isComplete && segment.word == word) return false;
-    }
-
-    // All checks passed, fix the segment
-    segment.word = word;
-    for (int i = 0; i < segment.length; i++) {
-      final tile = tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return false;
-      tile.letter = word[i];
-    }
-
-    return true;
-  }
-
-  ///
   /// Generate a new grid with random paths
   /// [rowCount] Number of rows in the grid
   /// [columnCount] Number of columns in the grid
@@ -132,9 +82,10 @@ class Grid {
   Grid.random({
     required this.rowCount,
     required this.columnCount,
-    required this.minimumSegmentLength,
-    required this.maximumSegmentLength,
-    required this.expectedSegmentsCount,
+    required int minimumSegmentLength,
+    required int maximumSegmentLength,
+    required int expectedSegmentsCount,
+    required int segmentsWithLettersCount,
   })  : _tiles = [],
         _pathSegments = [] {
     int countAttempts = 0;
@@ -155,17 +106,27 @@ class Grid {
       }
 
       try {
-        final isSuccess = _pathGeneration();
+        final isSuccess = _pathGeneration(
+          minimumSegmentLength: minimumSegmentLength,
+          maximumSegmentLength: maximumSegmentLength,
+          expectedSegmentsCount: expectedSegmentsCount,
+          segmentsWithLettersCount: segmentsWithLettersCount,
+        );
         if (isSuccess) break;
       } catch (e) {
         // If it failed for some reason, just restart the process
         continue;
       }
     }
-    print('Grid generated after $countAttempts attempts');
+    _logging.info('Grid generated after $countAttempts attempts');
   }
 
-  bool _pathGeneration() {
+  bool _pathGeneration({
+    required int minimumSegmentLength,
+    required int maximumSegmentLength,
+    required int expectedSegmentsCount,
+    required int segmentsWithLettersCount,
+  }) {
     if (expectedSegmentsCount % 2 == 0) {
       throw ArgumentError('expectedSegmentsCount must be odd');
     }
@@ -173,7 +134,6 @@ class Grid {
     _pathSegments.clear();
 
     var startingTile = tileAt(index: _random.nextInt(columnCount));
-    startingTile!.letter = String.fromCharCode(_random.nextInt(26) + 65);
     var direction = PathDirection.horizontal;
     int safetyCount = 0;
     while (true) {
@@ -190,22 +150,27 @@ class Grid {
         return false;
       }
 
-      // Check for final conditions that should stop the algorithm
+      // Check for STOP conditions that should stop the algorithm
       safetyCount++;
       direction = direction.next();
       if (direction == PathDirection.horizontal &&
           startingTile.row == rowCount - 1) {
         // Only accept paths that generate the expected number of words
-        return _pathSegments.length == expectedSegmentsCount;
+        if (_pathSegments.length != expectedSegmentsCount) return false;
+        break;
       }
 
       // Adjust the length if it does not fit
       final PathSegment? currentPathSegment = _generatePathSegment(
-          startingTile: startingTile, direction: direction);
+        startingTile: startingTile,
+        direction: direction,
+        minimumSegmentLength: minimumSegmentLength,
+        maximumSegmentLength: maximumSegmentLength,
+      );
       if (currentPathSegment == null) return false;
       _pathSegments.add(currentPathSegment);
 
-      // Mark the path tiles as path
+      // Mark the path tiles as path and add random letters
       for (var i = 0; i < currentPathSegment.length; i++) {
         final currentTile =
             tileOfSegmentAt(segment: currentPathSegment, index: i);
@@ -216,11 +181,35 @@ class Grid {
       // Move to cursor to the end (or beginning) of the word
       startingTile = tileAt(index: currentPathSegment.anchorTileIndex);
     }
+
+    // Add a letter randomly to the segments (with the very first segment always with a letter)
+    final segmentsToNotAddLetters =
+        List.generate(expectedSegmentsCount - 1, (int i) => i + 1);
+    for (int i = 0; i < segmentsWithLettersCount - 1; i++) {
+      // -1 to account for always having a letter in the first segment
+      segmentsToNotAddLetters
+          .removeAt(_random.nextInt(segmentsToNotAddLetters.length));
+    }
+    for (int i = 0; i < _pathSegments.length; i++) {
+      if (segmentsToNotAddLetters.contains(i)) continue;
+      final segment = _pathSegments[i];
+
+      // Choose a random index in the segment to add a letter which is not the first or last letter,
+      // except for the first segment which must have a letter at the start
+      int letterIndex = i == 0 ? 0 : _random.nextInt(segment.length - 2) + 1;
+      final tile = tileOfSegmentAt(segment: segment, index: letterIndex);
+      if (tile == null) return false;
+      tile.letter = ValuableLetter.getRandom(maxValue: 3);
+    }
+
+    return true;
   }
 
   PathSegment? _generatePathSegment({
     required Tile? startingTile,
     required PathDirection direction,
+    required int minimumSegmentLength,
+    required int maximumSegmentLength,
   }) {
     if (startingTile == null) return null;
 

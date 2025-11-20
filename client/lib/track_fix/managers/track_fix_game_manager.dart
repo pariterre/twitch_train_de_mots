@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -12,9 +13,29 @@ import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 
 final _logger = Logger('TrackFixGameManager');
 
+final _dictionary = DictionaryManager.wordsWithAtLeast(
+    TrackFixGameManager._minimumSegmentLength);
+
 ///
 /// Easy accessors translating index into row/col pair or row/col pair into
 /// index
+
+enum EndGameStatus {
+  won,
+  lostOnTime,
+  lostOnDeadEnd,
+}
+
+enum SolutionStatus {
+  isValid,
+  isNotTheRightLength,
+  hasMisplacedLetters,
+  isAlreadyUsed,
+  wordIsTooShort,
+  isNotInDictionary,
+  noMoreSegmentsToFix,
+  unknown,
+}
 
 class TrackFixGameManager implements MiniGameManager {
   TrackFixGameManager() {
@@ -58,10 +79,6 @@ class TrackFixGameManager implements MiniGameManager {
 
   Duration _autoplayTimeRemaining = Duration(seconds: 10);
 
-  ///
-  /// Allowed words to fill the grid
-  final _dictionary = DictionaryManager.wordsWithAtLeast(4).toList();
-
   // Listeners
   @override
   final onGameIsReady = GenericListener<Function()>();
@@ -70,41 +87,64 @@ class TrackFixGameManager implements MiniGameManager {
   final onGameUpdated = GenericListener<Function()>();
   final onClockTicked = GenericListener<Function(Duration)>();
   final onTrySolution = GenericListener<
-      Function(
-          String sender, String word, bool isSuccess, int pointsAwarded)>();
+      Function({
+        required String playerName,
+        required String word,
+        required SolutionStatus solutionStatus,
+        required int pointsAwarded,
+      })>();
   @override
   final onGameEnded = GenericListener<Function({required bool hasWon})>();
 
   // Size and content of the grid
-  final int _rowCount = 20;
-  final int _columnCount = 10;
-  final int _minimumSegmentLength = 4;
-  final int _maximumSegmentLength = 8;
-  final int _expectedSegmentsCount = 9;
+  static const int _rowCount = 20;
+  static const int _columnCount = 10;
+  static const int _minimumSegmentLength = 4;
+  static const int _maximumSegmentLength = 8;
+  static const int _expectedSegmentsCount = 9;
+  static const int _expectedSegmentsWithLettersCount = 5;
 
   Grid? _grid;
   Grid get grid => _grid!;
 
   ///
   /// If the game is over
-  bool get hasWon => _grid?.allSegmentsAreFixed ?? false;
-  bool get hasLost => isGameOver && !hasWon;
-  bool get isGameOver =>
-      _forceEndOfGame || hasWon || _timeRemaining.inSeconds <= 0;
+  bool get _hasWon => _grid?.allSegmentsAreFixed ?? false;
+  EndGameStatus? get endGameStatus => !_isGameOver
+      ? null
+      : (_hasWon
+          ? EndGameStatus.won
+          : _timeRemaining.inSeconds <= 0
+              ? EndGameStatus.lostOnTime
+              : EndGameStatus.lostOnDeadEnd);
+
+  bool get _isGameOver =>
+      _forceEndOfGame || _hasWon || _timeRemaining.inSeconds <= 0;
 
   @override
   String? get instructions => null; // TODO Write the telegram
 
   @override
   Future<void> initialize() async {
-    _grid = Grid.random(
+    while (true) {
+      _grid = Grid.random(
         rowCount: _rowCount,
         columnCount: _columnCount,
         minimumSegmentLength: _minimumSegmentLength,
         maximumSegmentLength: _maximumSegmentLength,
-        expectedSegmentsCount: _expectedSegmentsCount);
+        expectedSegmentsCount: _expectedSegmentsCount,
+        segmentsWithLettersCount: _expectedSegmentsWithLettersCount,
+      );
+      // Check that all segments have at least one valid word in the dictionary
+      for (final segment in _grid!.segments) {
+        if (!segmentHasValidWords(segment)) {
+          continue;
+        }
+      }
+      break;
+    }
     _isMainTimerRunning = false;
-    _timeRemaining = Duration(seconds: 40);
+    _timeRemaining = Duration(seconds: 60);
     _playersPoints.clear();
     _isReady = true;
     _forceEndOfGame = false;
@@ -142,24 +182,33 @@ class TrackFixGameManager implements MiniGameManager {
     if (words.isEmpty || words.length > 1) return;
 
     final word = words.first.toUpperCase();
-    if (!_dictionary.contains(word)) return;
     final wordValue = 3 *
         word
             .split('')
             .map((e) => ValuableLetter.getValueOfLetter(e))
             .reduce((a, b) => a + b);
 
-    final isSolutionRight = grid.tryFixSegment(word);
-    if (isSolutionRight) _playersPoints[playerName] = wordValue;
+    final solutionStatus = tryFixSegment(word);
+    if (solutionStatus == SolutionStatus.isValid) {
+      _playersPoints[playerName] = wordValue;
+    }
 
-    onTrySolution.notifyListeners(
-        (callback) => callback(playerName, word, isSolutionRight, wordValue));
+    onTrySolution.notifyListeners((callback) => callback(
+        playerName: playerName,
+        word: word,
+        solutionStatus: solutionStatus,
+        pointsAwarded: wordValue));
+
+    if (!segmentHasValidWords(grid.nextEmptySegment)) {
+      // We got to a dead end, end the game
+      _forceEndOfGame = true;
+    }
   }
 
   ///
   /// The game loop
   void _gameLoop() {
-    if (isGameOver) return _processGameOver();
+    if (_isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
       if (Managers.instance.configuration.autoplay) {
         _autoplayTimeRemaining -= const Duration(seconds: 1);
@@ -185,5 +234,68 @@ class TrackFixGameManager implements MiniGameManager {
   void _tickClock() {
     //_timeRemaining -= const Duration(seconds: 1);
     onClockTicked.notifyListeners((callback) => callback(_timeRemaining));
+  }
+
+  ///
+  /// Attempt to fix a segment with the given [word]
+  /// Returns true if the segment was successfully fixed
+  SolutionStatus tryFixSegment(String word) {
+    if (_grid == null) return SolutionStatus.unknown;
+    if (word.length < _minimumSegmentLength) {
+      return SolutionStatus.wordIsTooShort;
+    }
+    if (!_dictionary.contains(word)) return SolutionStatus.isNotInDictionary;
+
+    final segment = _grid!.nextEmptySegment;
+    if (segment == null) return SolutionStatus.noMoreSegmentsToFix;
+
+    // The word must have the correct length
+    if (word.length != segment.length) {
+      return SolutionStatus.isNotTheRightLength;
+    }
+
+    // Check that pre-existing letters match the provided word
+    for (int i = 0; i < segment.length; i++) {
+      final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
+      if (tile == null) return SolutionStatus.unknown;
+      if (tile.hasLetter && tile.letter != word[i]) {
+        return SolutionStatus.hasMisplacedLetters;
+      }
+    }
+
+    for (final segment in _grid!.segments) {
+      // The word must be unique among fixed segments
+      if (segment.isComplete && segment.word == word) {
+        return SolutionStatus.isAlreadyUsed;
+      }
+    }
+
+    // All checks passed, fix the segment
+    segment.word = word;
+    for (int i = 0; i < segment.length; i++) {
+      final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
+      if (tile == null) return SolutionStatus.unknown;
+      tile.letter = word[i];
+    }
+
+    return SolutionStatus.isValid;
+  }
+
+  bool segmentHasValidWords(PathSegment? segment) {
+    if (_grid == null || segment == null) return false;
+
+    final letterMap = <int, String>{};
+    for (int i = 0; i < segment.length; i++) {
+      final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
+      if (tile == null) return false;
+      if (tile.hasLetter) {
+        letterMap[i] = tile.letter!;
+      }
+    }
+    final hasWordInDictionary = _dictionary.firstWhereOrNull((e) =>
+        e.length == segment.length &&
+        letterMap.entries.every((entry) => e[entry.key] == entry.value));
+    print(hasWordInDictionary);
+    return hasWordInDictionary != null;
   }
 }

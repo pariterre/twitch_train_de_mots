@@ -2,6 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
 
 class TrackFixAnimatedTextOverlay extends StatefulWidget {
   const TrackFixAnimatedTextOverlay({super.key});
@@ -16,13 +17,13 @@ class _TrackFixAnimatedTextOverlayState
   final _trackFixWrongWordController = BouncyContainerController(
       bounceCount: 1,
       easingInDuration: 600,
-      bouncingDuration: 1200,
+      bouncingDuration: 1400,
       easingOutDuration: 300,
       minScale: 0.9,
-      bouncyScale: 1.2,
-      maxScale: 1.4,
+      bouncyScale: 1.1,
+      maxScale: 1.2,
       maxOpacity: 0.9);
-  final _trackFixHasWinController = BouncyContainerController(
+  final _trackFixHasWonController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -59,16 +60,31 @@ class _TrackFixAnimatedTextOverlayState
     super.dispose();
   }
 
-  void _trackFixTrySolution(
-      String sender, String word, bool isSuccess, int wordValue) {
-    if (isSuccess) return;
-    _trackFixWrongWordController
-        .triggerAnimation(_TrackFixWrongWord(sender, word));
+  void _trackFixTrySolution({
+    required String playerName,
+    required String word,
+    required SolutionStatus solutionStatus,
+    required int pointsAwarded,
+  }) {
+    switch (solutionStatus) {
+      case SolutionStatus.isValid:
+      case SolutionStatus.noMoreSegmentsToFix:
+      case SolutionStatus.unknown:
+        return;
+      case SolutionStatus.hasMisplacedLetters:
+      case SolutionStatus.isNotTheRightLength:
+      case SolutionStatus.isAlreadyUsed:
+      case SolutionStatus.isNotInDictionary:
+      case SolutionStatus.wordIsTooShort:
+        _trackFixWrongWordController.triggerAnimation(
+            _TrackFixWrongWord(playerName, word, solutionStatus));
+        break;
+    }
   }
 
-  void _trackFixFailed(bool hasWin) {
-    if (hasWin) {
-      _trackFixHasWinController.triggerAnimation(_TrackFixHasWin());
+  void _trackFixFailed({required bool hasWon}) {
+    if (hasWon) {
+      _trackFixHasWonController.triggerAnimation(_TrackFixHasWon());
     } else {
       _trackFixHasLostController.triggerAnimation(const _TrackFixHasLost());
     }
@@ -88,7 +104,7 @@ class _TrackFixAnimatedTextOverlayState
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _trackFixHasWinController),
+            child: BouncyContainer(controller: _trackFixHasWonController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
@@ -101,10 +117,11 @@ class _TrackFixAnimatedTextOverlayState
 }
 
 class _TrackFixWrongWord extends StatelessWidget {
-  const _TrackFixWrongWord(this.sender, this.word);
+  const _TrackFixWrongWord(this.playerName, this.word, this.solutionStatus);
 
-  final String sender;
+  final String playerName;
   final String word;
+  final SolutionStatus solutionStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +139,16 @@ class _TrackFixWrongWord extends StatelessWidget {
         children: [
           const SizedBox(width: 10),
           Text(
-            'Le mot $word n\'est pas valide...',
+            switch (solutionStatus) {
+              SolutionStatus.hasMisplacedLetters =>
+                '$word contient des lettres mal placées...',
+              SolutionStatus.isNotTheRightLength =>
+                '$word n\'est pas de la bonne longueur...',
+              SolutionStatus.isAlreadyUsed => '$word a déjà été utilisé...',
+              SolutionStatus.isNotInDictionary => '$word n\'existe pas...',
+              SolutionStatus.wordIsTooShort => '$word est trop court...',
+              _ => '$word n\'est pas un mot valide...',
+            },
             textAlign: TextAlign.center,
             style:
                 tm.clientMainTextStyle.copyWith(fontSize: 24, color: textColor),
@@ -134,8 +160,8 @@ class _TrackFixWrongWord extends StatelessWidget {
   }
 }
 
-class _TrackFixHasWin extends StatelessWidget {
-  const _TrackFixHasWin();
+class _TrackFixHasWon extends StatelessWidget {
+  const _TrackFixHasWon();
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +202,7 @@ class _TrackFixHasLost extends StatelessWidget {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 243, 157, 151);
+    final tmg = Managers.instance.miniGames.trackFix;
 
     return Container(
       decoration: BoxDecoration(
@@ -189,7 +216,7 @@ class _TrackFixHasLost extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Vous n\'avez pas pu réparer la voie à temps!\n'
+            '${tmg.endGameStatus == EndGameStatus.lostOnDeadEnd ? 'Il n\'y a plus de mots valides possibles\n' : 'Vous n\'avez pas pu réparer la voie à temps!\n'}'
             'Votre chemin s\'arrête ici...',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
