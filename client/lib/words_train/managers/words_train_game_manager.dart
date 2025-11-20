@@ -5,6 +5,7 @@ import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/random_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -16,32 +17,6 @@ import 'package:train_de_mots/words_train/models/success_level.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
-
-extension RandomExtension on Random {
-  int nextSkewedInt({
-    int min = 0,
-    required int max,
-    required int skewTowards,
-    int stdWidthAdjustment = 6,
-  }) {
-    assert(min < max);
-    assert(skewTowards >= min && skewTowards < max);
-
-    final stdDev =
-        (max - min) / stdWidthAdjustment; // Adjust for bell curve width
-
-    double gaussian = nextGaussian() * stdDev + skewTowards;
-    return gaussian.round().clamp(min, max - 1);
-  }
-
-  double nextGaussian() {
-    // Box-Muller transform to generate a standard normal distribution
-    final u1 = nextDouble();
-    final u2 = nextDouble();
-    final z0 = sqrt(-2.0 * log(u1)) * cos(2.0 * pi * u2);
-    return z0;
-  }
-}
 
 class WordsTrainGameManager {
   bool _isInitialized = false;
@@ -1194,7 +1169,7 @@ class WordsTrainGameManager {
     return MiniGames.values[_random.nextInt(MiniGames.values.length)];
   }
 
-  void _miniGameEnded(bool hasWon) {
+  void _miniGameEnded({required bool hasWon}) {
     _logger.info('Mini game ended');
     Managers.instance.miniGames.manager?.onGameEnded.cancel(_miniGameEnded);
     final playerPoints = Managers.instance.miniGames.getPlayersPoints();
