@@ -16,19 +16,21 @@ class TrackFixGameTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border.all(width: tileSize * 0.03),
-      ),
+      // decoration: BoxDecoration(
+      //   border: Border.all(width: tileSize * 0.03),
+      // ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Container(
-            decoration: const BoxDecoration(
-                // border: Border.all(width: tileSize * 0.02),
-                ),
-            child: Image.asset(tile.isPath
-                ? 'packages/common/assets/images/track_fix/open_grass.png'
-                : 'packages/common/assets/images/track_fix/grass.png'),
+            decoration: BoxDecoration(
+              border: tile.isPath ? Border.all(width: tileSize * 0.03) : null,
+            ),
+            child: tile.isPath
+                ? Image.asset(tile.hasLetter
+                    ? 'packages/common/assets/images/track_fix/open_grass.png'
+                    : 'packages/common/assets/images/track_fix/grass.png')
+                : null,
           ),
           if (tile.hasLetter)
             Text(
