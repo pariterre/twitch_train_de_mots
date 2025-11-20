@@ -125,14 +125,14 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     final mgm = Managers.instance.miniGames.manager;
     mgm?.onGameIsReady.listen(_sendGameStateToEbs);
     mgm?.onGameUpdated.listen(_sendGameStateToEbs);
-    mgm?.onGameEnded.listen(_sendGameStateToEbssWithParameter);
+    mgm?.onGameEnded.listen(_sendMiniGameEndedToEbs);
   }
 
   void _disconnectMiniGame() {
     final mgm = Managers.instance.miniGames.manager;
     mgm?.onGameIsReady.cancel(_sendGameStateToEbs);
     mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
-    mgm?.onGameEnded.cancel(_sendGameStateToEbssWithParameter);
+    mgm?.onGameEnded.cancel(_sendMiniGameEndedToEbs);
   }
 
   ///
@@ -220,6 +220,9 @@ class EbsServerManager extends TwitchAppManagerAbstract {
             'game_state':
                 serializableGameState(newCooldowns: newCooldowns).serialize(),
           }));
+
+  Future<void> _sendMiniGameEndedToEbs({required bool hasWon}) async =>
+      _sendGameStateToEbs();
 
   ///
   /// Send a message to the EBS server to notify that a round has ended

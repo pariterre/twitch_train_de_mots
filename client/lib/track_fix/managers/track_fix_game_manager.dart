@@ -73,7 +73,7 @@ class TrackFixGameManager implements MiniGameManager {
       Function(
           String sender, String word, bool isSuccess, int pointsAwarded)>();
   @override
-  final onGameEnded = GenericListener<Function(bool)>();
+  final onGameEnded = GenericListener<Function({required bool hasWon})>();
 
   // Size and content of the grid
   final int _rowCount = 20;
@@ -177,7 +177,7 @@ class TrackFixGameManager implements MiniGameManager {
     _timer = null;
     _forceEndOfGame = false;
 
-    onGameEnded.notifyListeners((callback) => callback(hasWon));
+    onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon));
   }
 
   ///

@@ -91,7 +91,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           bool secondIsBoss)>();
   final onBlueberryDestroyed = GenericListener<Function(int blueberryIndex)>();
   @override
-  final onGameEnded = GenericListener<Function(bool)>();
+  final onGameEnded = GenericListener<Function({required bool hasWon})>();
   final onTrySolution = GenericListener<
       Function(
           String sender, String word, bool isSuccess, int pointsAwarded)>();
@@ -392,7 +392,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     }
 
     _finalTime = DateTime.now();
-    onGameEnded.notifyListeners((callback) => callback(_hasWon!));
+    onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon!));
   }
 
   ///

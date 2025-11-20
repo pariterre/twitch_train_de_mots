@@ -41,7 +41,7 @@ abstract class MiniGameManager {
 
   ///
   /// Connect to the mini game results
-  GenericListener<Function(bool)> get onGameEnded;
+  GenericListener<Function({required bool hasWon})> get onGameEnded;
 
   ///
   /// Request the immediate end of the mini game

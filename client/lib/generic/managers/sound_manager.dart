@@ -414,7 +414,7 @@ class SoundManager {
     }
   }
 
-  Future<void> _onTreasureHuntGameIsOver(bool hasWon) async {
+  Future<void> _onTreasureHuntGameIsOver({required bool hasWon}) async {
     if (hasWon) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
@@ -456,7 +456,7 @@ class SoundManager {
     _playSoundEffect(_SoundEffect.trainLostStation);
   }
 
-  Future<void> _onBlueberryWarGameIsOver(bool hasWon) async {
+  Future<void> _onBlueberryWarGameIsOver({required bool hasWon}) async {
     if (hasWon) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {

@@ -70,9 +70,9 @@ class _TreasureHuntAnimatedTextOverlayState
     }
   }
 
-  void _treasureHuntFailed(bool hasWin) {
+  void _treasureHuntFailed({required bool hasWon}) {
     // Do not write anything if the game was won, as the try solution will
-    if (hasWin) return;
+    if (hasWon) return;
     _treasureHuntFailedController.triggerAnimation(const _TreasureHuntFailed());
   }
 

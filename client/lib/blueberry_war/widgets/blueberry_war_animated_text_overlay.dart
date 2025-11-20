@@ -75,9 +75,9 @@ class _BluberryWarAnimatedTextOverlayState
     }
   }
 
-  void _blueberryWarFailed(bool hasWin) {
+  void _blueberryWarFailed({required bool hasWon}) {
     // Do not write anything if the game was won, as the try solution will
-    if (hasWin) return;
+    if (hasWon) return;
     _blueberryWarFailedController.triggerAnimation(const _BlueberryWarFailed());
   }
 

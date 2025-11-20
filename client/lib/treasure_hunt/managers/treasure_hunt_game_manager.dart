@@ -92,7 +92,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   final onTileRevealed = GenericListener<Function(Tile)>();
   final onRewardFound = GenericListener<Function(Tile)>();
   @override
-  final onGameEnded = GenericListener<Function(bool)>();
+  final onGameEnded = GenericListener<Function({required bool hasWon})>();
 
   // Size of the grid
   final int _rowCount = 20;
@@ -286,7 +286,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     _forceEndOfGame = false;
 
     _revealSolution();
-    onGameEnded.notifyListeners((callback) => callback(hasWon));
+    onGameEnded.notifyListeners((callback) => callback(hasWon: hasWon));
   }
 
   ///
