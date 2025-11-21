@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
 import 'package:web/web.dart';
 
 import 'package:collection/collection.dart';
@@ -209,7 +210,7 @@ class SoundManager {
         final thm = Managers.instance.miniGames.treasureHunt;
         thm.onTileRevealed.listen(_onTreasureHuntPluckingGrass);
         thm.onRewardFound.listen(_onTreasureHuntLetterFound);
-        thm.onTrySolution.listen(_onSolutionTried);
+        thm.onTrySolution.listen(_onTreasureHuntSolutionTried);
         thm.onGameEnded.listen(_onTreasureHuntGameIsOver);
         break;
       } on ManagerNotInitializedException {
@@ -225,8 +226,21 @@ class SoundManager {
         bwm.onLetterHitByBlueberry.listen(_onBlueberryWarLetterHitByBlueberry);
         bwm.onLetterHitByLetter.listen(_onBlueberryWarLetterHitByLetter);
         bwm.onBlueberryDestroyed.listen(_onBlueberryWarBlueberryDestroyed);
-        bwm.onTrySolution.listen(_onSolutionTried);
+        bwm.onTrySolution.listen(_onBlueberrySolutionTried);
         bwm.onGameEnded.listen(_onBlueberryWarGameIsOver);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    // Minigame Track fix sounds
+    while (true) {
+      try {
+        final tfm = Managers.instance.miniGames.trackFix;
+        tfm.onTrySolution.listen(_onTrackFixSolutionTried);
+        tfm.onGameEnded.listen(_onTrackFixGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -405,9 +419,26 @@ class SoundManager {
         : _SoundEffect.treasureHuntPickingTreasure);
   }
 
-  Future<void> _onSolutionTried(
-      String _, String __, bool isCorrect, int ___) async {
-    if (isCorrect) {
+  Future<void> _onTreasureHuntSolutionTried({
+    required String playerName,
+    required String word,
+    required bool isSolutionRight,
+    required int pointsAwarded,
+  }) async {
+    if (isSolutionRight) {
+      // Do nothing as the sound is already played in the game over
+    } else {
+      _playSoundEffect(_SoundEffect.solutionStolen);
+    }
+  }
+
+  Future<void> _onBlueberrySolutionTried({
+    required String playerName,
+    required String word,
+    required bool isSolutionRight,
+    required int pointsAwarded,
+  }) async {
+    if (isSolutionRight) {
       // Do nothing as the sound is already played in the game over
     } else {
       _playSoundEffect(_SoundEffect.solutionStolen);
@@ -457,6 +488,24 @@ class SoundManager {
   }
 
   Future<void> _onBlueberryWarGameIsOver({required bool hasWon}) async {
+    if (hasWon) {
+      _playSoundEffect(_SoundEffect.bestSolutionFound);
+    } else {
+      _playSoundEffect(_SoundEffect.roundIsOver);
+    }
+  }
+
+  Future<void> _onTrackFixSolutionTried(
+      {required String playerName,
+      required String word,
+      required TrackFixSolutionStatus solutionStatus,
+      required int pointsAwarded}) async {
+    if (solutionStatus == TrackFixSolutionStatus.isValid) {
+      _playSoundEffect(_SoundEffect.solutionFound);
+    }
+  }
+
+  Future<void> _onTrackFixGameIsOver({required bool hasWon}) async {
     if (hasWon) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {

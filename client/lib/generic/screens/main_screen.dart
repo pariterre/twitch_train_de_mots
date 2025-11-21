@@ -112,6 +112,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final dm = Managers.instance.database;
+    final tm = Managers.instance.twitch;
 
     return Scaffold(
       body: Background(
@@ -123,7 +124,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: Stack(
           children: [
-            dm.isLoggedOut || gm.gameStatus == WordsTrainGameStatus.initializing
+            dm.isLoggedOut ||
+                    gm.gameStatus == WordsTrainGameStatus.initializing ||
+                    tm.isNotConnected
                 ? SplashScreen(onClickStart: _onClickedBegin)
                 : Stack(
                     children: [

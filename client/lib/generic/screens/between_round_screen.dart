@@ -298,6 +298,13 @@ class _ContinueSectionState extends State<_ContinueSection> {
                             forceMinigame: MiniGames.blueberryWar)
                         : null,
                     buttonText: 'Jouer guerre'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.handleNextRoundAsMiniGame(
+                            forceMinigame: MiniGames.trackFix)
+                        : null,
+                    buttonText: 'Jouer reparation'),
               ],
             ),
           ),

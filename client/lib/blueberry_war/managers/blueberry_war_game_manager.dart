@@ -8,6 +8,7 @@ import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
@@ -93,8 +94,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   final onGameEnded = GenericListener<Function({required bool hasWon})>();
   final onTrySolution = GenericListener<
-      Function(
-          String sender, String word, bool isSuccess, int pointsAwarded)>();
+      Function({
+        required String playerName,
+        required String word,
+        required bool isSolutionRight,
+        required int pointsAwarded,
+      })>();
 
   ///
   /// Constructor
@@ -231,9 +236,6 @@ class BlueberryWarGameManager implements MiniGameManager {
 
       blueberry.velocity = newVelocity * scale;
 
-      // Start the timer if it is not started already
-      _startTime ??= DateTime.now();
-
       onGameUpdated.notifyListeners((callback) => callback());
     } else {
       _logger.warning(
@@ -261,8 +263,11 @@ class BlueberryWarGameManager implements MiniGameManager {
       }
       _playersPoints[playerName] = wordValue;
     }
-    onTrySolution.notifyListeners(
-        (callback) => callback(playerName, word, isSolutionRight, wordValue));
+    onTrySolution.notifyListeners((callback) => callback(
+        playerName: playerName,
+        word: word,
+        isSolutionRight: isSolutionRight,
+        pointsAwarded: wordValue));
   }
 
   ///
@@ -304,6 +309,15 @@ class BlueberryWarGameManager implements MiniGameManager {
   void _gameLoop() {
     if (!_isInitialized) {
       _logger.warning('Game loop called before initialization');
+      return;
+    }
+    if (_startTime == null) {
+      if (Managers.instance.train.gameStatus ==
+          WordsTrainGameStatus.miniGameStarted) {
+        _startTime = DateTime.now();
+        _lastTick = DateTime.now(); // Prevent the physics from jumping
+        _logger.info('Blueberry war game started at $_startTime');
+      }
       return;
     }
 

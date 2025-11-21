@@ -60,13 +60,16 @@ class _TreasureHuntAnimatedTextOverlayState
   }
 
   void _treasureHuntTrySolution(
-      String sender, String word, bool isSuccess, int wordValue) {
-    if (isSuccess) {
-      _treasureHuntFoundWordController
-          .triggerAnimation(_TreasureHuntFoundWord(sender, word, wordValue));
+      {required String playerName,
+      required String word,
+      required bool isSolutionRight,
+      required int pointsAwarded}) {
+    if (isSolutionRight) {
+      _treasureHuntFoundWordController.triggerAnimation(
+          _TreasureHuntFoundWord(playerName, word, pointsAwarded));
     } else {
       _treasureHuntWrongWordController
-          .triggerAnimation(_TreasureHuntWrongWord(sender, word));
+          .triggerAnimation(_TreasureHuntWrongWord(playerName, word));
     }
   }
 

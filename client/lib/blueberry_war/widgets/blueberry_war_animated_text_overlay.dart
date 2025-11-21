@@ -62,15 +62,19 @@ class _BluberryWarAnimatedTextOverlayState
     super.dispose();
   }
 
-  void _blueberryWarTrySolution(
-      String sender, String word, bool isSuccess, int wordValue) {
-    if (isSuccess) {
+  void _blueberryWarTrySolution({
+    required String playerName,
+    required String word,
+    required bool isSolutionRight,
+    required int pointsAwarded,
+  }) {
+    if (isSolutionRight) {
       _blueberryWarFoundWordController.triggerAnimation(
-        _BlueberryWarFoundWord(sender, word, wordValue),
+        _BlueberryWarFoundWord(playerName, word, pointsAwarded),
       );
     } else {
       _blueberryWarWrongWordController.triggerAnimation(
-        _BlueberryWarWrongWord(sender, word),
+        _BlueberryWarWrongWord(playerName, word),
       );
     }
   }

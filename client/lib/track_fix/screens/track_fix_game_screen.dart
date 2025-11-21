@@ -58,7 +58,7 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
   void _solutionWasTried(
       {required String playerName,
       required String word,
-      required SolutionStatus solutionStatus,
+      required TrackFixSolutionStatus solutionStatus,
       required int pointsAwarded}) {
     setState(() {});
   }

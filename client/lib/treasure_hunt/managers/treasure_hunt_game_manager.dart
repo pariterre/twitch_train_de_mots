@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
@@ -59,8 +60,6 @@ class TreasureHuntGameManager implements MiniGameManager {
   Duration get timeRemaining => _timeRemaining;
   bool _forceEndOfGame = false;
 
-  Duration _autoplayTimeRemaining = Duration(seconds: 10);
-
   ///
   /// Current problem
   final _dictionary = DictionaryManager.wordsWithAtLeast(6).toList();
@@ -88,7 +87,10 @@ class TreasureHuntGameManager implements MiniGameManager {
   final onClockTicked = GenericListener<Function(Duration)>();
   final onTrySolution = GenericListener<
       Function(
-          String sender, String word, bool isSuccess, int pointsAwarded)>();
+          {required String playerName,
+          required String word,
+          required bool isSolutionRight,
+          required int pointsAwarded})>();
   final onTileRevealed = GenericListener<Function(Tile)>();
   final onRewardFound = GenericListener<Function(Tile)>();
   @override
@@ -140,7 +142,6 @@ class TreasureHuntGameManager implements MiniGameManager {
     _playersPoints.clear();
     _isReady = true;
     _forceEndOfGame = false;
-    _autoplayTimeRemaining = Duration(seconds: 10);
     onGameIsReady.notifyListeners((callback) => callback());
   }
 
@@ -190,8 +191,11 @@ class TreasureHuntGameManager implements MiniGameManager {
     } else {
       _triesRemaining--;
     }
-    onTrySolution.notifyListeners(
-        (callback) => callback(playerName, word, isSolutionRight, wordValue));
+    onTrySolution.notifyListeners((callback) => callback(
+        playerName: playerName,
+        word: word,
+        isSolutionRight: isSolutionRight,
+        pointsAwarded: wordValue));
   }
 
   ///
@@ -248,9 +252,9 @@ class TreasureHuntGameManager implements MiniGameManager {
   void _gameLoop() {
     if (isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
-      if (Managers.instance.configuration.autoplay) {
-        _autoplayTimeRemaining -= const Duration(seconds: 1);
-        if (_autoplayTimeRemaining.inSeconds <= 0) _isMainTimerRunning = true;
+      if (Managers.instance.train.gameStatus ==
+          WordsTrainGameStatus.miniGameStarted) {
+        _isMainTimerRunning = true;
       }
       return;
     }

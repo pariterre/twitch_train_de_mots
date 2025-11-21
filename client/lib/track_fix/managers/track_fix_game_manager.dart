@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
+import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
@@ -26,7 +27,7 @@ enum EndGameStatus {
   lostOnDeadEnd,
 }
 
-enum SolutionStatus {
+enum TrackFixSolutionStatus {
   isValid,
   isNotTheRightLength,
   hasMisplacedLetters,
@@ -77,8 +78,6 @@ class TrackFixGameManager implements MiniGameManager {
   Duration get timeRemaining => _timeRemaining;
   bool _forceEndOfGame = false;
 
-  Duration _autoplayTimeRemaining = Duration.zero;
-
   // Listeners
   @override
   final onGameIsReady = GenericListener<Function()>();
@@ -90,7 +89,7 @@ class TrackFixGameManager implements MiniGameManager {
       Function({
         required String playerName,
         required String word,
-        required SolutionStatus solutionStatus,
+        required TrackFixSolutionStatus solutionStatus,
         required int pointsAwarded,
       })>();
   @override
@@ -122,7 +121,12 @@ class TrackFixGameManager implements MiniGameManager {
       _forceEndOfGame || _hasWon || _timeRemaining.inSeconds <= 0;
 
   @override
-  String? get instructions => null; // TODO Write the telegram
+  String? get instructions =>
+      'Le train s\'est arrêté devant des rails brisés, mais nous avons une dernière chance de le remettre en marche!\n'
+      '\n'
+      'Réparons les rails en remplissant les segments avec des mots valides. '
+      'Mais attention, si aucun mot valide n\'existe pour un segment, ou si nous '
+      'n\'arrivons pas à atteindre la fin du rail dans le temps imparti, le train restera bloqué!\n';
 
   @override
   Future<void> initialize() async {
@@ -148,7 +152,6 @@ class TrackFixGameManager implements MiniGameManager {
     _playersPoints.clear();
     _isReady = true;
     _forceEndOfGame = false;
-    _autoplayTimeRemaining = Duration(seconds: 10);
     onGameIsReady.notifyListeners((callback) => callback());
   }
 
@@ -175,7 +178,6 @@ class TrackFixGameManager implements MiniGameManager {
   }
 
   void trySolution(String playerName, String message) {
-    // TODO: Fix when starting _isMainTimerRunning
     //if (!_isMainTimerRunning) return;
 
     // Transform the message so it is only the first word all in uppercase
@@ -190,7 +192,7 @@ class TrackFixGameManager implements MiniGameManager {
             .reduce((a, b) => a + b);
 
     final solutionStatus = tryFixSegment(word);
-    if (solutionStatus == SolutionStatus.isValid) {
+    if (solutionStatus == TrackFixSolutionStatus.isValid) {
       _playersPoints[playerName] = wordValue;
     }
 
@@ -211,10 +213,9 @@ class TrackFixGameManager implements MiniGameManager {
   void _gameLoop() {
     if (_isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
-      // TODO Fix timer not starting the same way if telegram is shown
-      if (Managers.instance.configuration.autoplay) {
-        _autoplayTimeRemaining -= const Duration(seconds: 1);
-        if (_autoplayTimeRemaining.inSeconds <= 0) _isMainTimerRunning = true;
+      if (Managers.instance.train.gameStatus ==
+          WordsTrainGameStatus.miniGameStarted) {
+        _isMainTimerRunning = true;
       }
       return;
     }
@@ -241,34 +242,36 @@ class TrackFixGameManager implements MiniGameManager {
   ///
   /// Attempt to fix a segment with the given [word]
   /// Returns true if the segment was successfully fixed
-  SolutionStatus tryFixSegment(String word) {
-    if (_grid == null) return SolutionStatus.unknown;
+  TrackFixSolutionStatus tryFixSegment(String word) {
+    if (_grid == null) return TrackFixSolutionStatus.unknown;
     if (word.length < _minimumSegmentLength) {
-      return SolutionStatus.wordIsTooShort;
+      return TrackFixSolutionStatus.wordIsTooShort;
     }
-    if (!_dictionary.contains(word)) return SolutionStatus.isNotInDictionary;
+    if (!_dictionary.contains(word)) {
+      return TrackFixSolutionStatus.isNotInDictionary;
+    }
 
     final segment = _grid!.nextEmptySegment;
-    if (segment == null) return SolutionStatus.noMoreSegmentsToFix;
+    if (segment == null) return TrackFixSolutionStatus.noMoreSegmentsToFix;
 
     // The word must have the correct length
     if (word.length != segment.length) {
-      return SolutionStatus.isNotTheRightLength;
+      return TrackFixSolutionStatus.isNotTheRightLength;
     }
 
     // Check that pre-existing letters match the provided word
     for (int i = 0; i < segment.length; i++) {
       final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return SolutionStatus.unknown;
+      if (tile == null) return TrackFixSolutionStatus.unknown;
       if (tile.hasLetter && tile.letter != word[i]) {
-        return SolutionStatus.hasMisplacedLetters;
+        return TrackFixSolutionStatus.hasMisplacedLetters;
       }
     }
 
     for (final segment in _grid!.segments) {
       // The word must be unique among fixed segments
       if (segment.isComplete && segment.word == word) {
-        return SolutionStatus.isAlreadyUsed;
+        return TrackFixSolutionStatus.isAlreadyUsed;
       }
     }
 
@@ -276,11 +279,11 @@ class TrackFixGameManager implements MiniGameManager {
     segment.word = word;
     for (int i = 0; i < segment.length; i++) {
       final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return SolutionStatus.unknown;
+      if (tile == null) return TrackFixSolutionStatus.unknown;
       tile.letter = word[i];
     }
 
-    return SolutionStatus.isValid;
+    return TrackFixSolutionStatus.isValid;
   }
 
   bool segmentHasValidWords(PathSegment? segment) {
@@ -297,7 +300,7 @@ class TrackFixGameManager implements MiniGameManager {
     final hasWordInDictionary = _dictionary.firstWhereOrNull((e) =>
         e.length == segment.length &&
         letterMap.entries.every((entry) => e[entry.key] == entry.value));
-    print(hasWordInDictionary);
+
     return hasWordInDictionary != null;
   }
 }

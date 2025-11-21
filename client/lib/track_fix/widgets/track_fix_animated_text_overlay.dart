@@ -63,19 +63,19 @@ class _TrackFixAnimatedTextOverlayState
   void _trackFixTrySolution({
     required String playerName,
     required String word,
-    required SolutionStatus solutionStatus,
+    required TrackFixSolutionStatus solutionStatus,
     required int pointsAwarded,
   }) {
     switch (solutionStatus) {
-      case SolutionStatus.isValid:
-      case SolutionStatus.noMoreSegmentsToFix:
-      case SolutionStatus.unknown:
+      case TrackFixSolutionStatus.isValid:
+      case TrackFixSolutionStatus.noMoreSegmentsToFix:
+      case TrackFixSolutionStatus.unknown:
         return;
-      case SolutionStatus.hasMisplacedLetters:
-      case SolutionStatus.isNotTheRightLength:
-      case SolutionStatus.isAlreadyUsed:
-      case SolutionStatus.isNotInDictionary:
-      case SolutionStatus.wordIsTooShort:
+      case TrackFixSolutionStatus.hasMisplacedLetters:
+      case TrackFixSolutionStatus.isNotTheRightLength:
+      case TrackFixSolutionStatus.isAlreadyUsed:
+      case TrackFixSolutionStatus.isNotInDictionary:
+      case TrackFixSolutionStatus.wordIsTooShort:
         _trackFixWrongWordController.triggerAnimation(
             _TrackFixWrongWord(playerName, word, solutionStatus));
         break;
@@ -121,7 +121,7 @@ class _TrackFixWrongWord extends StatelessWidget {
 
   final String playerName;
   final String word;
-  final SolutionStatus solutionStatus;
+  final TrackFixSolutionStatus solutionStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -140,13 +140,16 @@ class _TrackFixWrongWord extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             switch (solutionStatus) {
-              SolutionStatus.hasMisplacedLetters =>
+              TrackFixSolutionStatus.hasMisplacedLetters =>
                 '$word contient des lettres mal placées...',
-              SolutionStatus.isNotTheRightLength =>
+              TrackFixSolutionStatus.isNotTheRightLength =>
                 '$word n\'est pas de la bonne longueur...',
-              SolutionStatus.isAlreadyUsed => '$word a déjà été utilisé...',
-              SolutionStatus.isNotInDictionary => '$word n\'existe pas...',
-              SolutionStatus.wordIsTooShort => '$word est trop court...',
+              TrackFixSolutionStatus.isAlreadyUsed =>
+                '$word a déjà été utilisé...',
+              TrackFixSolutionStatus.isNotInDictionary =>
+                '$word n\'existe pas...',
+              TrackFixSolutionStatus.wordIsTooShort =>
+                '$word est trop court...',
               _ => '$word n\'est pas un mot valide...',
             },
             textAlign: TextAlign.center,

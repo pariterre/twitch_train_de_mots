@@ -43,7 +43,7 @@ class _TrackFixHeaderState extends State<TrackFixHeader> {
   void _onSolutionTried(
       {required String playerName,
       required String word,
-      required SolutionStatus solutionStatus,
+      required TrackFixSolutionStatus solutionStatus,
       required int pointsAwarded}) {
     setState(() {});
   }
