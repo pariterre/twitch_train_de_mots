@@ -34,7 +34,7 @@ class GameScreen extends StatelessWidget {
               switch (Managers.instance.miniGames.currentOrPrevious) {
                 MiniGames.blueberryWar => const BlueberryWarGameScreen(),
                 MiniGames.treasureHunt => const TreasureHuntGameScreen(),
-                MiniGames.trackFix => const TrackFixGameScreen(),
+                // MiniGames.trackFix => const TrackFixGameScreen(),
               }
           });
   }

@@ -1,0 +1,19 @@
+# Correct MIME types for Flutter Web with WASM renderer
+AddType text/javascript .js
+AddType text/javascript .mjs
+AddType application/wasm .wasm
+AddType text/css .css
+AddType text/html .html
+
+# Enable compression (optional but good)
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/wasm
+</IfModule>
+
+# SPA routing support (important if you use Navigator 2.0)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

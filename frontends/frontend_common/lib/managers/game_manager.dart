@@ -301,15 +301,15 @@ class GameManager {
           }
           break;
         }
-      case MiniGames.trackFix:
-        {
-          final ffm = _gameState.miniGameState as SerializableTrackFixGameState;
-          newGameState = ffm.copyWith(
-              timeRemaining: ffm.isTimerRunning
-                  ? ffm.timeRemaining - dt
-                  : ffm.timeRemaining);
-          break;
-        }
+      // case MiniGames.trackFix:
+      //   {
+      //     final ffm = _gameState.miniGameState as SerializableTrackFixGameState;
+      //     newGameState = ffm.copyWith(
+      //         timeRemaining: ffm.isTimerRunning
+      //             ? ffm.timeRemaining - dt
+      //             : ffm.timeRemaining);
+      //     break;
+      //   }
     }
     updateMiniGameState(newGameState);
   }

@@ -80,7 +80,7 @@ class MiniGamesManager {
     _logger.config('Initializing...');
     _miniGames[MiniGames.treasureHunt] = TreasureHuntGameManager();
     _miniGames[MiniGames.blueberryWar] = BlueberryWarGameManager();
-    _miniGames[MiniGames.trackFix] = TrackFixGameManager();
+    // _miniGames[MiniGames.trackFix] = TrackFixGameManager();
     _isInitialized = true;
     _logger.config('Ready');
   }
@@ -90,8 +90,8 @@ class MiniGamesManager {
       _miniGames[MiniGames.treasureHunt] as TreasureHuntGameManager;
   BlueberryWarGameManager get blueberryWar =>
       _miniGames[MiniGames.blueberryWar] as BlueberryWarGameManager;
-  TrackFixGameManager get trackFix =>
-      _miniGames[MiniGames.trackFix] as TrackFixGameManager;
+  // TrackFixGameManager get trackFix =>
+  //     _miniGames[MiniGames.trackFix] as TrackFixGameManager;
 
   ///
   /// Run a mini game, returns

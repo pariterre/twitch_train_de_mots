@@ -173,7 +173,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
       buttonText += switch (gm.nextRoundMiniGame!) {
         MiniGames.treasureHunt => 'Aller aux bleuets!',
         MiniGames.blueberryWar => 'À l\'attaque des bleuets!',
-        MiniGames.trackFix => 'Réparons la voie!',
+        // MiniGames.trackFix => 'Réparons la voie!',
       };
     } else {
       if (!gm.canProceedToNextRound) {
@@ -298,13 +298,13 @@ class _ContinueSectionState extends State<_ContinueSection> {
                             forceMinigame: MiniGames.blueberryWar)
                         : null,
                     buttonText: 'Jouer guerre'),
-                const SizedBox(width: 24),
-                ThemedElevatedButton(
-                    onPressed: _canClick
-                        ? () => gm.handleNextRoundAsMiniGame(
-                            forceMinigame: MiniGames.trackFix)
-                        : null,
-                    buttonText: 'Jouer reparation'),
+                // const SizedBox(width: 24),
+                // ThemedElevatedButton(
+                //     onPressed: _canClick
+                //         ? () => gm.handleNextRoundAsMiniGame(
+                //             forceMinigame: MiniGames.trackFix)
+                //         : null,
+                //     buttonText: 'Jouer reparation'),
               ],
             ),
           ),
