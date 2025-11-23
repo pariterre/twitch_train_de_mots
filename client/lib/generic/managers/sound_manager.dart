@@ -235,18 +235,18 @@ class SoundManager {
       }
     }
 
-    // // Minigame Track fix sounds
-    // while (true) {
-    //   try {
-    //     final tfm = Managers.instance.miniGames.trackFix;
-    //     tfm.onTrySolution.listen(_onTrackFixSolutionTried);
-    //     tfm.onGameEnded.listen(_onTrackFixGameIsOver);
-    //     break;
-    //   } on ManagerNotInitializedException {
-    //     // Retry until the manager is initialized
-    //     await Future.delayed(const Duration(milliseconds: 100));
-    //   }
-    // }
+    // Minigame Track fix sounds
+    while (true) {
+      try {
+        final tfm = Managers.instance.miniGames.trackFix;
+        tfm.onTrySolution.listen(_onTrackFixSolutionTried);
+        tfm.onGameEnded.listen(_onTrackFixGameIsOver);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
 
     while (true) {
       try {
@@ -495,21 +495,21 @@ class SoundManager {
     }
   }
 
-  // Future<void> _onTrackFixSolutionTried(
-  //     {required String playerName,
-  //     required String word,
-  //     required TrackFixSolutionStatus solutionStatus,
-  //     required int pointsAwarded}) async {
-  //   if (solutionStatus == TrackFixSolutionStatus.isValid) {
-  //     _playSoundEffect(_SoundEffect.solutionFound);
-  //   }
-  // }
+  Future<void> _onTrackFixSolutionTried(
+      {required String playerName,
+      required String word,
+      required TrackFixSolutionStatus solutionStatus,
+      required int pointsAwarded}) async {
+    if (solutionStatus == TrackFixSolutionStatus.isValid) {
+      _playSoundEffect(_SoundEffect.solutionFound);
+    }
+  }
 
-  // Future<void> _onTrackFixGameIsOver({required bool hasWon}) async {
-  //   if (hasWon) {
-  //     _playSoundEffect(_SoundEffect.bestSolutionFound);
-  //   } else {
-  //     _playSoundEffect(_SoundEffect.roundIsOver);
-  //   }
-  // }
+  Future<void> _onTrackFixGameIsOver({required bool hasWon}) async {
+    if (hasWon) {
+      _playSoundEffect(_SoundEffect.bestSolutionFound);
+    } else {
+      _playSoundEffect(_SoundEffect.roundIsOver);
+    }
+  }
 }

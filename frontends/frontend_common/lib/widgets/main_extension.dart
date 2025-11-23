@@ -248,8 +248,8 @@ class _MainScreenState extends State<_MainScreen> {
               return const TreasureHuntPlayScreen();
             case MiniGames.blueberryWar:
               return const BlueberryWarPlayScreen();
-            // case MiniGames.trackFix:
-            //   return const TrackFixPlayScreen();
+            case MiniGames.trackFix:
+              return const TrackFixPlayScreen();
           }
         }
     }

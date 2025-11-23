@@ -1166,7 +1166,8 @@ class WordsTrainGameManager {
   }
 
   MiniGames? _selectNextMiniGame() {
-    return MiniGames.values[_random.nextInt(MiniGames.values.length)];
+    return MiniGames.betweenRoundsGames[
+        _random.nextInt(MiniGames.betweenRoundsGames.length)];
   }
 
   void _miniGameEnded({required bool hasWon}) {

@@ -14,8 +14,8 @@ abstract class SerializableMiniGameState {
         return SerializableTreasureHuntGameState.deserialize(data);
       case MiniGames.blueberryWar:
         return SerializableBlueberryWarGameState.deserialize(data);
-      // case MiniGames.trackFix:
-      //   return SerializableTrackFixGameState.deserialize(data);
+      case MiniGames.trackFix:
+        return SerializableTrackFixGameState.deserialize(data);
     }
   }
 

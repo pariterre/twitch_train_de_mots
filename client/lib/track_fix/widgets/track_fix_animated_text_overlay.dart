@@ -1,234 +1,234 @@
-// import 'package:common/generic/managers/theme_manager.dart';
-// import 'package:common/generic/widgets/bouncy_container.dart';
-// import 'package:flutter/material.dart';
-// import 'package:train_de_mots/generic/managers/managers.dart';
-// import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
+import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/bouncy_container.dart';
+import 'package:flutter/material.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
 
-// class TrackFixAnimatedTextOverlay extends StatefulWidget {
-//   const TrackFixAnimatedTextOverlay({super.key});
+class TrackFixAnimatedTextOverlay extends StatefulWidget {
+  const TrackFixAnimatedTextOverlay({super.key});
 
-//   @override
-//   State<TrackFixAnimatedTextOverlay> createState() =>
-//       _TrackFixAnimatedTextOverlayState();
-// }
+  @override
+  State<TrackFixAnimatedTextOverlay> createState() =>
+      _TrackFixAnimatedTextOverlayState();
+}
 
-// class _TrackFixAnimatedTextOverlayState
-//     extends State<TrackFixAnimatedTextOverlay> {
-//   final _trackFixWrongWordController = BouncyContainerController(
-//       bounceCount: 1,
-//       easingInDuration: 600,
-//       bouncingDuration: 1400,
-//       easingOutDuration: 300,
-//       minScale: 0.9,
-//       bouncyScale: 1.1,
-//       maxScale: 1.2,
-//       maxOpacity: 0.9);
-//   final _trackFixHasWonController = BouncyContainerController(
-//       bounceCount: 2,
-//       easingInDuration: 600,
-//       bouncingDuration: 1500,
-//       easingOutDuration: 300,
-//       minScale: 0.9,
-//       bouncyScale: 1.2,
-//       maxScale: 1.4,
-//       maxOpacity: 0.9);
-//   final _trackFixHasLostController = BouncyContainerController(
-//       bounceCount: 2,
-//       easingInDuration: 600,
-//       bouncingDuration: 1500,
-//       easingOutDuration: 300,
-//       minScale: 0.9,
-//       bouncyScale: 1.2,
-//       maxScale: 1.4,
-//       maxOpacity: 0.9);
+class _TrackFixAnimatedTextOverlayState
+    extends State<TrackFixAnimatedTextOverlay> {
+  final _trackFixWrongWordController = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 600,
+      bouncingDuration: 1400,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.1,
+      maxScale: 1.2,
+      maxOpacity: 0.9);
+  final _trackFixHasWonController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1500,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
+  final _trackFixHasLostController = BouncyContainerController(
+      bounceCount: 2,
+      easingInDuration: 600,
+      bouncingDuration: 1500,
+      easingOutDuration: 300,
+      minScale: 0.9,
+      bouncyScale: 1.2,
+      maxScale: 1.4,
+      maxOpacity: 0.9);
 
-//   @override
-//   void initState() {
-//     super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-//     final fgm = Managers.instance.miniGames.trackFix;
-//     fgm.onTrySolution.listen(_trackFixTrySolution);
-//     fgm.onGameEnded.listen(_trackFixFailed);
-//   }
+    final fgm = Managers.instance.miniGames.trackFix;
+    fgm.onTrySolution.listen(_trackFixTrySolution);
+    fgm.onGameEnded.listen(_trackFixFailed);
+  }
 
-//   @override
-//   void dispose() {
-//     final fgm = Managers.instance.miniGames.trackFix;
-//     fgm.onTrySolution.cancel(_trackFixTrySolution);
-//     fgm.onGameEnded.cancel(_trackFixFailed);
+  @override
+  void dispose() {
+    final fgm = Managers.instance.miniGames.trackFix;
+    fgm.onTrySolution.cancel(_trackFixTrySolution);
+    fgm.onGameEnded.cancel(_trackFixFailed);
 
-//     super.dispose();
-//   }
+    super.dispose();
+  }
 
-//   void _trackFixTrySolution({
-//     required String playerName,
-//     required String word,
-//     required TrackFixSolutionStatus solutionStatus,
-//     required int pointsAwarded,
-//   }) {
-//     switch (solutionStatus) {
-//       case TrackFixSolutionStatus.isValid:
-//       case TrackFixSolutionStatus.noMoreSegmentsToFix:
-//       case TrackFixSolutionStatus.unknown:
-//         return;
-//       case TrackFixSolutionStatus.hasMisplacedLetters:
-//       case TrackFixSolutionStatus.isNotTheRightLength:
-//       case TrackFixSolutionStatus.isAlreadyUsed:
-//       case TrackFixSolutionStatus.isNotInDictionary:
-//       case TrackFixSolutionStatus.wordIsTooShort:
-//         _trackFixWrongWordController.triggerAnimation(
-//             _TrackFixWrongWord(playerName, word, solutionStatus));
-//         break;
-//     }
-//   }
+  void _trackFixTrySolution({
+    required String playerName,
+    required String word,
+    required TrackFixSolutionStatus solutionStatus,
+    required int pointsAwarded,
+  }) {
+    switch (solutionStatus) {
+      case TrackFixSolutionStatus.isValid:
+      case TrackFixSolutionStatus.noMoreSegmentsToFix:
+      case TrackFixSolutionStatus.unknown:
+        return;
+      case TrackFixSolutionStatus.hasMisplacedLetters:
+      case TrackFixSolutionStatus.isNotTheRightLength:
+      case TrackFixSolutionStatus.isAlreadyUsed:
+      case TrackFixSolutionStatus.isNotInDictionary:
+      case TrackFixSolutionStatus.wordIsTooShort:
+        _trackFixWrongWordController.triggerAnimation(
+            _TrackFixWrongWord(playerName, word, solutionStatus));
+        break;
+    }
+  }
 
-//   void _trackFixFailed({required bool hasWon}) {
-//     if (hasWon) {
-//       _trackFixHasWonController.triggerAnimation(_TrackFixHasWon());
-//     } else {
-//       _trackFixHasLostController.triggerAnimation(const _TrackFixHasLost());
-//     }
-//   }
+  void _trackFixFailed({required bool hasWon}) {
+    if (hasWon) {
+      _trackFixHasWonController.triggerAnimation(_TrackFixHasWon());
+    } else {
+      _trackFixHasLostController.triggerAnimation(const _TrackFixHasLost());
+    }
+  }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox(
-//       width: MediaQuery.of(context).size.width,
-//       height: MediaQuery.of(context).size.height,
-//       child: Stack(
-//         alignment: Alignment.center,
-//         children: [
-//           Positioned(
-//             top: MediaQuery.of(context).size.height * 0.35,
-//             child: BouncyContainer(controller: _trackFixWrongWordController),
-//           ),
-//           Positioned(
-//             top: MediaQuery.of(context).size.height * 0.25,
-//             child: BouncyContainer(controller: _trackFixHasWonController),
-//           ),
-//           Positioned(
-//             top: MediaQuery.of(context).size.height * 0.25,
-//             child: BouncyContainer(controller: _trackFixHasLostController),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.35,
+            child: BouncyContainer(controller: _trackFixWrongWordController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _trackFixHasWonController),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            child: BouncyContainer(controller: _trackFixHasLostController),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-// class _TrackFixWrongWord extends StatelessWidget {
-//   const _TrackFixWrongWord(this.playerName, this.word, this.solutionStatus);
+class _TrackFixWrongWord extends StatelessWidget {
+  const _TrackFixWrongWord(this.playerName, this.word, this.solutionStatus);
 
-//   final String playerName;
-//   final String word;
-//   final TrackFixSolutionStatus solutionStatus;
+  final String playerName;
+  final String word;
+  final TrackFixSolutionStatus solutionStatus;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final tm = ThemeManager.instance;
-//     const textColor = Color.fromARGB(255, 243, 157, 151);
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+    const textColor = Color.fromARGB(255, 243, 157, 151);
 
-//     return Container(
-//       decoration: BoxDecoration(
-//         color: const Color.fromARGB(255, 99, 23, 18),
-//         borderRadius: BorderRadius.circular(10),
-//       ),
-//       padding: const EdgeInsets.all(20),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           const SizedBox(width: 10),
-//           Text(
-//             switch (solutionStatus) {
-//               TrackFixSolutionStatus.hasMisplacedLetters =>
-//                 '$word contient des lettres mal placées...',
-//               TrackFixSolutionStatus.isNotTheRightLength =>
-//                 '$word n\'est pas de la bonne longueur...',
-//               TrackFixSolutionStatus.isAlreadyUsed =>
-//                 '$word a déjà été utilisé...',
-//               TrackFixSolutionStatus.isNotInDictionary =>
-//                 '$word n\'existe pas...',
-//               TrackFixSolutionStatus.wordIsTooShort =>
-//                 '$word est trop court...',
-//               _ => '$word n\'est pas un mot valide...',
-//             },
-//             textAlign: TextAlign.center,
-//             style:
-//                 tm.clientMainTextStyle.copyWith(fontSize: 24, color: textColor),
-//           ),
-//           const SizedBox(width: 10),
-//         ],
-//       ),
-//     );
-//   }
-// }
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 23, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 10),
+          Text(
+            switch (solutionStatus) {
+              TrackFixSolutionStatus.hasMisplacedLetters =>
+                '$word contient des lettres mal placées...',
+              TrackFixSolutionStatus.isNotTheRightLength =>
+                '$word n\'est pas de la bonne longueur...',
+              TrackFixSolutionStatus.isAlreadyUsed =>
+                '$word a déjà été utilisé...',
+              TrackFixSolutionStatus.isNotInDictionary =>
+                '$word n\'existe pas...',
+              TrackFixSolutionStatus.wordIsTooShort =>
+                '$word est trop court...',
+              _ => '$word n\'est pas un mot valide...',
+            },
+            textAlign: TextAlign.center,
+            style:
+                tm.clientMainTextStyle.copyWith(fontSize: 24, color: textColor),
+          ),
+          const SizedBox(width: 10),
+        ],
+      ),
+    );
+  }
+}
 
-// class _TrackFixHasWon extends StatelessWidget {
-//   const _TrackFixHasWon();
+class _TrackFixHasWon extends StatelessWidget {
+  const _TrackFixHasWon();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final tm = ThemeManager.instance;
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
 
-//     return Container(
-//       decoration: BoxDecoration(
-//         color: const Color.fromARGB(255, 23, 99, 18),
-//         borderRadius: BorderRadius.circular(10),
-//       ),
-//       padding: const EdgeInsets.all(20),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           const Icon(Icons.star, color: Colors.amber, size: 32),
-//           const SizedBox(width: 10),
-//           Text(
-//             'Vous avez réparé la voie!\n'
-//             'Le train peut continuer son chemin!',
-//             textAlign: TextAlign.center,
-//             style: tm.clientMainTextStyle.copyWith(
-//                 fontSize: 24,
-//                 fontWeight: FontWeight.bold,
-//                 color: const Color.fromARGB(255, 157, 243, 151)),
-//           ),
-//           const SizedBox(width: 10),
-//           const Icon(Icons.star, color: Colors.amber, size: 32),
-//         ],
-//       ),
-//     );
-//   }
-// }
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 23, 99, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            'Vous avez réparé la voie!\n'
+            'Le train peut continuer son chemin!',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: const Color.fromARGB(255, 157, 243, 151)),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: Colors.amber, size: 32),
+        ],
+      ),
+    );
+  }
+}
 
-// class _TrackFixHasLost extends StatelessWidget {
-//   const _TrackFixHasLost();
+class _TrackFixHasLost extends StatelessWidget {
+  const _TrackFixHasLost();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final tm = ThemeManager.instance;
-//     const textColor = Color.fromARGB(255, 243, 157, 151);
-//     final tmg = Managers.instance.miniGames.trackFix;
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+    const textColor = Color.fromARGB(255, 243, 157, 151);
+    final tmg = Managers.instance.miniGames.trackFix;
 
-//     return Container(
-//       decoration: BoxDecoration(
-//         color: const Color.fromARGB(255, 99, 23, 18),
-//         borderRadius: BorderRadius.circular(10),
-//       ),
-//       padding: const EdgeInsets.all(20),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           const Icon(Icons.star, color: textColor, size: 32),
-//           const SizedBox(width: 10),
-//           Text(
-//             '${tmg.endGameStatus == EndGameStatus.lostOnDeadEnd ? 'Il n\'y a plus de mots valides possibles\n' : 'Vous n\'avez pas pu réparer la voie à temps!\n'}'
-//             'Votre chemin s\'arrête ici...',
-//             textAlign: TextAlign.center,
-//             style: tm.clientMainTextStyle.copyWith(
-//                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
-//           ),
-//           const SizedBox(width: 10),
-//           const Icon(Icons.star, color: textColor, size: 32),
-//         ],
-//       ),
-//     );
-//   }
-// }
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 23, 18),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star, color: textColor, size: 32),
+          const SizedBox(width: 10),
+          Text(
+            '${tmg.endGameStatus == EndGameStatus.lostOnDeadEnd ? 'Il n\'y a plus de mots valides possibles\n' : 'Vous n\'avez pas pu réparer la voie à temps!\n'}'
+            'Votre chemin s\'arrête ici...',
+            textAlign: TextAlign.center,
+            style: tm.clientMainTextStyle.copyWith(
+                fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.star, color: textColor, size: 32),
+        ],
+      ),
+    );
+  }
+}
