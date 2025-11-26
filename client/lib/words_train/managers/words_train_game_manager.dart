@@ -196,6 +196,11 @@ class WordsTrainGameManager {
   bool _isAttemptingTheBigHeist = false;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
+  bool _isAttemptingEndOfRailwayMiniGame = false;
+  bool get isAttemptingEndOfRailwayMiniGame =>
+      _isAttemptingEndOfRailwayMiniGame;
+  int _railwayMiniGamesAttempted = 0;
+
   bool _isNextRoundAMiniGame = false;
   bool get isNextRoundAMiniGame => _isNextRoundAMiniGame;
   bool _isRoundAMiniGame = false;
@@ -282,6 +287,7 @@ class WordsTrainGameManager {
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
   final onMiniGameGranted = GenericListener<Function(MiniGames)>();
+  final onRailwayMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onAttemptingTheBigHeist = GenericListener<Function()>();
@@ -729,6 +735,28 @@ class WordsTrainGameManager {
     return true;
   }
 
+  bool get canAttemptEndOfRailwayMiniGame {
+    return (_gameStatus == WordsTrainGameStatus.roundPreparing ||
+            _gameStatus == WordsTrainGameStatus.roundReady) &&
+        _successLevel == SuccessLevel.failed &&
+        _railwayMiniGamesAttempted <= 0;
+  }
+
+  bool requestEndOfRailwayMiniGame() {
+    _logger.info('Requesting an end of railway mini game...');
+
+    if (!canAttemptEndOfRailwayMiniGame) return false;
+    _railwayMiniGamesAttempted += 1;
+
+    _isAttemptingEndOfRailwayMiniGame = true;
+    _isNextRoundAMiniGame = true;
+    _currentMiniGame = MiniGames.endOfRailwayGames[
+        Random().nextInt(MiniGames.endOfRailwayGames.length)];
+
+    onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
+    return true;
+  }
+
   Future<void> _performChangeOfLane() async {
     // Perform a huge scramble of the letters
     bool hasNotified = false;
@@ -770,6 +798,8 @@ class WordsTrainGameManager {
 
     // There is no mini game at the start
     _isNextRoundAMiniGame = false;
+    _isAttemptingEndOfRailwayMiniGame = false;
+    _railwayMiniGamesAttempted = 0;
     _isRoundAMiniGame = false;
     _currentMiniGame = null;
     _forceGoldenSolution = false;
@@ -799,11 +829,14 @@ class WordsTrainGameManager {
       return false;
     }
     if (_areCongratulationFireworksFiring) {
+      _logger
+          .fine('Congratulation fireworks are firing, so we delay the start');
       _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
       return false;
     }
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
-      _logger.fine('Round is not preparing, so cannot start automatically');
+      _logger.fine('Round is not preparing, so we delay the start');
+      _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
       return false;
     }
     if (!isNextProblemReady) {
@@ -1073,8 +1106,11 @@ class WordsTrainGameManager {
 
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
-      _nextRoundStartAt = DateTime.now()
-          .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
+      _nextRoundStartAt = DateTime.now().add(
+          (_successLevel == SuccessLevel.failed
+                  ? cm.autoplayFailedDuration
+                  : cm.autoplayDuration) +
+              Duration(seconds: 1));
     }
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
@@ -1163,6 +1199,8 @@ class WordsTrainGameManager {
   void handleCancelNextRoundAsMiniGame() {
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
+    _isAttemptingEndOfRailwayMiniGame = false;
+    onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
   }
 
   MiniGames? _selectNextMiniGame() {
@@ -1178,12 +1216,18 @@ class WordsTrainGameManager {
 
     // Give some perks based on the mini game
     if (hasWon) {
-      _forceGoldenSolution = true;
-      _roundSuccesses.add(RoundSuccess.miniGameWon);
+      // If we played an end of railway mini game successfully, we can retried the
+      // failed round. Otherwise, the players get perks
+      if (_isAttemptingEndOfRailwayMiniGame) {
+        _successLevel = SuccessLevel.oneStar;
+      } else {
+        _forceGoldenSolution = true;
+        _roundSuccesses.add(RoundSuccess.miniGameWon);
 
-      for (final playerName in playerPoints.keys) {
-        final player = players.firstWhereOrAdd(playerName);
-        player.score += playerPoints[playerName]!;
+        for (final playerName in playerPoints.keys) {
+          final player = players.firstWhereOrAdd(playerName);
+          player.score += playerPoints[playerName]!;
+        }
       }
     }
 
@@ -1203,6 +1247,7 @@ class WordsTrainGameManager {
           .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
     }
 
+    _isAttemptingEndOfRailwayMiniGame = false;
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
     _startNewRound();

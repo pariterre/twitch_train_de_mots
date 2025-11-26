@@ -17,6 +17,7 @@ const _useCustomAdvancedOptionsDefault = false;
 const _autoplayDefault = true;
 const _shouldShowAutoplayDialogDefault = false;
 const _autoplayDurationDefault = 25;
+const _autoplayFailedDurationDefault = 50;
 
 const _showAnswersTooltipDefault = false;
 const _showLeaderBoardDefault = false;
@@ -127,6 +128,14 @@ class ConfigurationManager {
   Duration get autoplayDuration => _autoplayDuration;
   set autoplayDuration(Duration value) {
     _autoplayDuration = value;
+    _saveConfiguration();
+  }
+
+  Duration _autoplayFailedDuration =
+      const Duration(seconds: _autoplayFailedDurationDefault);
+  Duration get autoplayFailedDuration => _autoplayFailedDuration;
+  set autoplayFailedDuration(Duration value) {
+    _autoplayFailedDuration = value;
     _saveConfiguration();
   }
 
@@ -351,6 +360,7 @@ class ConfigurationManager {
         'autoplay': autoplay,
         'shouldShowAutoplayDialog': shouldShowAutoplayDialog,
         'autoplayDuration': autoplayDuration.inSeconds,
+        'autoplayFailedDuration': autoplayFailedDuration.inSeconds,
         'showAnswersTooltip': showAnswersTooltip,
         'showLeaderBoard': showLeaderBoard,
         'roundDuration': roundDuration.inSeconds,
@@ -410,6 +420,9 @@ class ConfigurationManager {
           map['shouldShowAutoplayDialog'] ?? _shouldShowAutoplayDialogDefault;
       _autoplayDuration = Duration(
           seconds: map['autoplayDuration'] ?? _autoplayDurationDefault);
+      _autoplayFailedDuration = Duration(
+          seconds:
+              map['autoplayFailedDuration'] ?? _autoplayFailedDurationDefault);
 
       _showAnswersTooltip = false;
       _showLeaderBoard = map['showLeaderBoard'] ?? _showLeaderBoardDefault;
@@ -478,6 +491,8 @@ class ConfigurationManager {
       _autoplay = _autoplayDefault;
       _shouldShowAutoplayDialog = _shouldShowAutoplayDialogDefault;
       _autoplayDuration = const Duration(seconds: _autoplayDurationDefault);
+      _autoplayFailedDuration =
+          const Duration(seconds: _autoplayFailedDurationDefault);
 
       _showAnswersTooltip = _showAnswersTooltipDefault;
       _showLeaderBoard = _showLeaderBoardDefault;

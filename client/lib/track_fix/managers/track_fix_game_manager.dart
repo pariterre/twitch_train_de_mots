@@ -178,7 +178,7 @@ class TrackFixGameManager implements MiniGameManager {
   }
 
   void trySolution(String playerName, String message) {
-    //if (!_isMainTimerRunning) return;
+    if (!_isMainTimerRunning) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');

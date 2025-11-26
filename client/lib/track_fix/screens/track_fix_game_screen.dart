@@ -84,11 +84,6 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ElevatedButton(
-                    onPressed: () async {
-                      await Managers.instance.miniGames.trackFix.initialize();
-                    },
-                    child: const Text('Button')),
                 const SizedBox(height: 12),
                 const TrackFixHeader(),
                 const SizedBox(height: 20),

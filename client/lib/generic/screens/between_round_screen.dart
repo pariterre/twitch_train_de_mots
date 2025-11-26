@@ -39,6 +39,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     final gm = Managers.instance.train;
     gm.onRoundIsOver.listen(_refresh);
     gm.onAttemptingTheBigHeist.listen(_showAttemptingTheBigHeist);
+    gm.onRailwayMiniGameUpdated.listen(onRailwayMiniGameUpdated);
   }
 
   @override
@@ -47,6 +48,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     gm.onRoundIsOver.cancel(_refresh);
     gm.onAttemptingTheBigHeist.cancel(_showAttemptingTheBigHeist);
     _attemptingTheBigHeist.dispose();
+    gm.onRailwayMiniGameUpdated.cancel(onRailwayMiniGameUpdated);
 
     super.dispose();
   }
@@ -56,6 +58,8 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
   void _showAttemptingTheBigHeist() {
     _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());
   }
+
+  void onRailwayMiniGameUpdated() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +96,8 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                     const SizedBox(height: 24.0),
                     if (!gm.hasPlayedAtLeastOnce) const _LeaderBoardHeader(),
                     if (gm.hasPlayedAtLeastOnce)
-                      gm.successLevel == SuccessLevel.failed
+                      gm.successLevel == SuccessLevel.failed &&
+                              !gm.isAttemptingEndOfRailwayMiniGame
                           ? const _DefeatHeader()
                           : const _VictoryHeader(),
                     const _LeaderBoard(),
@@ -284,6 +289,12 @@ class _ContinueSectionState extends State<_ContinueSection> {
                         ? () => gm.handleCancelNextRoundAsMiniGame()
                         : null,
                     buttonText: 'Annuler minijeu'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick && gm.canAttemptEndOfRailwayMiniGame
+                        ? () => gm.requestEndOfRailwayMiniGame()
+                        : null,
+                    buttonText: 'Track fix'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick
@@ -956,45 +967,66 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
             ]),
           ),
-          Column(
-            children: [
-              Text(
-                'Entrée en gare à la Station N\u00b0${gm.roundCount}!',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: tm.textColor),
-              ),
-              const SizedBox(height: 16.0),
-              Text(
-                'Félicitation! Nous avons traversé '
-                '${gm.successLevel.toInt()} station${gm.successLevel.toInt() > 1 ? 's' : ''}!',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontSize: 26,
-                    fontWeight: FontWeight.normal,
-                    color: tm.textColor),
-              ),
-              if (gm.roundSuccesses.contains(RoundSuccess.noSteal))
+          if (gm.isAttemptingEndOfRailwayMiniGame)
+            Column(
+              children: [
                 Text(
-                    'Le contrôleur est impressionné par votre honnêteté.\n'
-                    'Il vous accorde un pardon supplémentaire!',
-                    textAlign: TextAlign.center,
-                    style: tm.clientMainTextStyle.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.normal,
-                        color: tm.textColor)),
-              if (gm.roundSuccesses.contains(RoundSuccess.miniGameWon))
+                  'Vos cheminot·e·s mettent la main à la pâte!',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: tm.textColor),
+                ),
+                const SizedBox(height: 16.0),
                 Text(
-                    'Vous avez cueilli tous les bleuets! Pour vous remercier\n'
-                    'de sa belle tarte, le controleur vous offre une étoile',
-                    textAlign: TextAlign.center,
-                    style: tm.clientMainTextStyle.copyWith(
-                        fontSize: 20,
-                        fontWeight: FontWeight.normal,
-                        color: tm.textColor)),
-              const SizedBox(height: 16.0),
-            ],
-          ),
+                  'Vous tentez de réparer la voie pour sauver le Petit Train du Nord',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.normal,
+                      color: tm.textColor),
+                ),
+              ],
+            )
+          else
+            Column(
+              children: [
+                Text(
+                  'Entrée en gare à la Station N\u00b0${gm.roundCount}!',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: tm.textColor),
+                ),
+                const SizedBox(height: 16.0),
+                Text(
+                  'Félicitation! Nous avons traversé '
+                  '${gm.successLevel.toInt()} station${gm.successLevel.toInt() > 1 ? 's' : ''}!',
+                  style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 26,
+                      fontWeight: FontWeight.normal,
+                      color: tm.textColor),
+                ),
+                if (gm.roundSuccesses.contains(RoundSuccess.noSteal))
+                  Text(
+                      'Le contrôleur est impressionné par votre honnêteté.\n'
+                      'Il vous accorde un pardon supplémentaire!',
+                      textAlign: TextAlign.center,
+                      style: tm.clientMainTextStyle.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.normal,
+                          color: tm.textColor)),
+                if (gm.roundSuccesses.contains(RoundSuccess.miniGameWon))
+                  Text(
+                      'Vous avez cueilli tous les bleuets! Pour vous remercier\n'
+                      'de sa belle tarte, le controleur vous offre une étoile',
+                      textAlign: TextAlign.center,
+                      style: tm.clientMainTextStyle.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.normal,
+                          color: tm.textColor)),
+                const SizedBox(height: 16.0),
+              ],
+            ),
           GrowingWidget(
             growingFactor: 0.9,
             duration: const Duration(milliseconds: 1000),
