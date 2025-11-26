@@ -12,7 +12,7 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.trackFix;
 
-  final Grid grid;
+  final TrackFixGrid grid;
 
   final bool isTimerRunning;
   final Duration timeRemaining;
@@ -29,7 +29,7 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
 
   static SerializableTrackFixGameState deserialize(Map<String, dynamic> data) {
     return SerializableTrackFixGameState(
-      grid: Grid.deserialize(data['grid'] as Map<String, dynamic>),
+      grid: TrackFixGrid.deserialize(data['grid'] as Map<String, dynamic>),
       isTimerRunning: data['is_timer_running'] as bool,
       timeRemaining: Duration(seconds: data['time_remaining'] as int),
     );
@@ -37,7 +37,7 @@ class SerializableTrackFixGameState implements SerializableMiniGameState {
 
   @override
   SerializableTrackFixGameState copyWith({
-    Grid? grid,
+    TrackFixGrid? grid,
     bool? isTimerRunning,
     Duration? timeRemaining,
     int? triesRemaining,

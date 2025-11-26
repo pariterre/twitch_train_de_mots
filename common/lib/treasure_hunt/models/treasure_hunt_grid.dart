@@ -68,7 +68,7 @@ enum TileValue {
   }
 }
 
-class Grid {
+class TreasureHuntGrid {
   final int rowCount;
   final int columnCount;
   int get cellCount => rowCount * columnCount;
@@ -83,8 +83,8 @@ class Grid {
         'tiles': _tiles.map((tile) => tile.serialize()).toList(),
       };
 
-  static Grid deserialize(Map<String, dynamic> json) {
-    return Grid(
+  static TreasureHuntGrid deserialize(Map<String, dynamic> json) {
+    return TreasureHuntGrid(
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
       rewardsCount: json['rewards_count'] as int,
@@ -94,7 +94,7 @@ class Grid {
     );
   }
 
-  Grid({
+  TreasureHuntGrid({
     required this.rowCount,
     required this.columnCount,
     required this.rewardsCount,
@@ -130,7 +130,7 @@ class Grid {
 
   ///
   /// Generate a new grid with randomly positionned rewards
-  Grid.random({
+  TreasureHuntGrid.random({
     required this.rowCount,
     required this.columnCount,
     required this.rewardsCount,

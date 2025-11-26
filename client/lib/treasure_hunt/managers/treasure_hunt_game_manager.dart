@@ -100,8 +100,8 @@ class TreasureHuntGameManager implements MiniGameManager {
   final int _rowCount = 20;
   final int _columnCount = 10;
   final int _rewardsCount = 40;
-  Grid? _grid;
-  Grid get grid => _grid!;
+  TreasureHuntGrid? _grid;
+  TreasureHuntGrid get grid => _grid!;
 
   ///
   /// Get the number of letters that were found
@@ -128,7 +128,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   @override
   Future<void> initialize() async {
     _generateProblem();
-    _grid = Grid.random(
+    _grid = TreasureHuntGrid.random(
         rowCount: _rowCount,
         columnCount: _columnCount,
         rewardsCount: _rewardsCount,

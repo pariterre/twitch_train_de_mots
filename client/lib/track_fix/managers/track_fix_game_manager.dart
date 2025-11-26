@@ -103,8 +103,8 @@ class TrackFixGameManager implements MiniGameManager {
   static const int _expectedSegmentsCount = 9;
   static const int _expectedSegmentsWithLettersCount = 5;
 
-  Grid? _grid;
-  Grid get grid => _grid!;
+  TrackFixGrid? _grid;
+  TrackFixGrid get grid => _grid!;
 
   ///
   /// If the game is over
@@ -131,12 +131,12 @@ class TrackFixGameManager implements MiniGameManager {
   @override
   Future<void> initialize() async {
     while (true) {
-      _grid = Grid.random(
+      _grid = TrackFixGrid.random(
         rowCount: _rowCount,
         columnCount: _columnCount,
         minimumSegmentLength: _minimumSegmentLength,
         maximumSegmentLength: _maximumSegmentLength,
-        expectedSegmentsCount: _expectedSegmentsCount,
+        segmentsCount: _expectedSegmentsCount,
         segmentsWithLettersCount: _expectedSegmentsWithLettersCount,
       );
       // Check that all segments have at least one valid word in the dictionary

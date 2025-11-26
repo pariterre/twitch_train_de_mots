@@ -13,7 +13,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.treasureHunt;
 
-  final Grid grid;
+  final TreasureHuntGrid grid;
 
   final bool isTimerRunning;
   final Duration timeRemaining;
@@ -33,7 +33,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
   static SerializableTreasureHuntGameState deserialize(
       Map<String, dynamic> data) {
     return SerializableTreasureHuntGameState(
-      grid: Grid.deserialize(data['grid'] as Map<String, dynamic>),
+      grid: TreasureHuntGrid.deserialize(data['grid'] as Map<String, dynamic>),
       isTimerRunning: data['is_timer_running'] as bool,
       timeRemaining: Duration(seconds: data['time_remaining'] as int),
       triesRemaining: data['tries_remaining'] as int,
@@ -42,7 +42,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
 
   @override
   SerializableTreasureHuntGameState copyWith({
-    Grid? grid,
+    TreasureHuntGrid? grid,
     bool? isTimerRunning,
     Duration? timeRemaining,
     int? triesRemaining,

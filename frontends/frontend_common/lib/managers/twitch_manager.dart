@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
-import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
-import 'package:common/blueberry_war/models/letter_agent.dart';
-import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
+import 'package:common/track_fix/models/track_fix_grid.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
@@ -474,16 +472,30 @@ class TwitchManagerMock extends TwitchManager {
     //       ),
     //     )));
 
-    // Uncomment the next line to simulate the sling shoot of a player agent in 3 seconds
+    // // Uncomment the next line to simulate the sling shoot of a player agent in 3 seconds
+    // Future.delayed(const Duration(seconds: 3)).then((_) {
+    //   final oldGameState = GameManager.instance.gameStateCopy;
+    //   final oldMiniGameState =
+    //       oldGameState.miniGameState as SerializableBlueberryWarGameState?;
+    //   final oldAllAgents = [...(oldMiniGameState?.allAgents ?? <Agent>[])];
+    //   oldAllAgents[0].velocity = Vector2(400, 100);
+
+    //   final newGameState = oldGameState.copyWith(
+    //       miniGameState: oldMiniGameState?.copyWith(allAgents: oldAllAgents));
+    //   GameManager.instance.updateGameState(newGameState);
+    // });
+
+    // Uncomment the next line to simulate the new grid in track fix
     Future.delayed(const Duration(seconds: 3)).then((_) {
       final oldGameState = GameManager.instance.gameStateCopy;
       final oldMiniGameState =
-          oldGameState.miniGameState as SerializableBlueberryWarGameState?;
-      final oldAllAgents = [...(oldMiniGameState?.allAgents ?? <Agent>[])];
-      oldAllAgents[0].velocity = Vector2(400, 100);
+          oldGameState.miniGameState as SerializableTrackFixGameState?;
+
+      oldMiniGameState?.grid.segments[0].word;
 
       final newGameState = oldGameState.copyWith(
-          miniGameState: oldMiniGameState?.copyWith(allAgents: oldAllAgents));
+          miniGameState:
+              oldMiniGameState?.copyWith(grid: oldMiniGameState.grid));
       GameManager.instance.updateGameState(newGameState);
     });
 
@@ -562,8 +574,6 @@ class TwitchManagerMock extends TwitchManager {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
   }) async {
-    final random = Random();
-
     switch (request) {
       case ToAppMessages.pardonRequest:
         return tm.MessageProtocol(
@@ -592,7 +602,7 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.roundStarted,
+                status: WordsTrainGameStatus.miniGameStarted,
                 round: 1,
                 isRoundSuccess: true,
                 timeRemaining: const Duration(seconds: 83),
@@ -619,66 +629,17 @@ class TwitchManagerMock extends TwitchManager {
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: SerializableBlueberryWarGameState(
-                  isStarted: true,
-                  isOver: false,
-                  isWon: false,
-                  timeRemaining: const Duration(seconds: 30),
-                  problem: SerializableLetterProblem(
-                    letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                    scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                    uselessLetterStatuses: [
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                    ],
-                    hiddenLetterStatuses: [
-                      LetterStatus.hidden,
-                      LetterStatus.revealed,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                      LetterStatus.hidden,
-                    ],
-                  ),
-                  allAgents: List.generate(
-                      20,
-                      (index) => index < 10
-                          ? BlueberryAgent(
-                              id: 0,
-                              position: Vector2(random.nextDouble() * 300,
-                                  random.nextDouble() * 1080),
-                              velocity: Vector2(0, 0),
-                              isInField: false,
-                              radius: Vector2(30.0, 30.0),
-                              maxVelocity:
-                                  BlueberryWarConfig.blueberryMaxVelocity,
-                              mass: 3.0,
-                              coefficientOfFriction: 0.8)
-                          : LetterAgent(
-                              letter: 'A',
-                              problemIndex: index - 10,
-                              isBoss: index == 10,
-                              id: 0,
-                              position: Vector2(random.nextDouble() * 300,
-                                  random.nextDouble() * 1080),
-                              velocity: Vector2(0, 0),
-                              maxVelocity: BlueberryWarConfig.letterMaxVelocity,
-                              radius: Vector2(30.0, 30.0),
-                              mass: 3.0,
-                              coefficientOfFriction: 0.8)),
-                ),
+                miniGameState: SerializableTrackFixGameState(
+                    isTimerRunning: true,
+                    timeRemaining: const Duration(seconds: 30),
+                    grid: TrackFixGrid.random(
+                      rowCount: 20,
+                      columnCount: 10,
+                      minimumSegmentLength: 4,
+                      maximumSegmentLength: 8,
+                      segmentsCount: 9,
+                      segmentsWithLettersCount: 5,
+                    )),
               ).serialize(),
             })));
       case ToAppMessages.fireworksRequest:

@@ -7,7 +7,7 @@ import 'package:logging/logging.dart';
 final _random = Random();
 final _logging = Logger('TrackFixGrid');
 
-class Grid {
+class TrackFixGrid {
   final int rowCount;
   final int columnCount;
 
@@ -29,8 +29,8 @@ class Grid {
             _pathSegments.map((segment) => segment.serialize()).toList(),
       };
 
-  static Grid deserialize(Map<String, dynamic> json) {
-    return Grid._(
+  static TrackFixGrid deserialize(Map<String, dynamic> json) {
+    return TrackFixGrid._(
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
       tiles: (json['tiles'] as List)
@@ -42,7 +42,7 @@ class Grid {
     );
   }
 
-  Grid._({
+  TrackFixGrid._({
     required this.rowCount,
     required this.columnCount,
     List<Tile>? tiles,
@@ -78,13 +78,13 @@ class Grid {
   /// [columnCount] Number of columns in the grid
   /// [minimumSegmentLength] Minimum length of each path segment
   /// [maximumSegmentLength] Maximum length of each path segment
-  /// [expectedSegmentsCount] Expected number of path segments (must be odd)
-  Grid.random({
+  /// [segmentsCount] Expected number of path segments (must be odd)
+  TrackFixGrid.random({
     required this.rowCount,
     required this.columnCount,
     required int minimumSegmentLength,
     required int maximumSegmentLength,
-    required int expectedSegmentsCount,
+    required int segmentsCount,
     required int segmentsWithLettersCount,
   })  : _tiles = [],
         _pathSegments = [] {
@@ -109,7 +109,7 @@ class Grid {
         final isSuccess = _pathGeneration(
           minimumSegmentLength: minimumSegmentLength,
           maximumSegmentLength: maximumSegmentLength,
-          expectedSegmentsCount: expectedSegmentsCount,
+          expectedSegmentsCount: segmentsCount,
           segmentsWithLettersCount: segmentsWithLettersCount,
         );
         if (isSuccess) break;
@@ -311,7 +311,7 @@ class Tile {
       index: data['index'] as int,
       row: data['row'] as int,
       col: data['col'] as int,
-      isPath: data['isPath'] as bool,
+      isPath: data['is_path'] as bool,
       letter: data['letter'] as String?,
     );
   }
