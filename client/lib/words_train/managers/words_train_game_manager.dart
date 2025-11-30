@@ -42,9 +42,6 @@ class WordsTrainGameManager {
       }
     }
 
-    // This is triggered if a user sends fireworks to the screen
-    onCongratulationFireworks.listen(_requestedFireworks);
-
     _isInitialized = true;
 
     _logger.config('Ready');
@@ -125,7 +122,11 @@ class WordsTrainGameManager {
   bool _isGeneratingProblem = false;
   bool get isNextProblemReady =>
       (!_isGeneratingProblem && _nextProblem != null);
-  bool get canProceedToNextRound => isNextProblemReady || _isNextRoundAMiniGame;
+  bool get canProceedToNextRound =>
+      isNextProblemReady ||
+      _isNextRoundAMiniGame ||
+      _areCongratulationFireworksFiring ||
+      _areCongratulationFireworksPreparing;
 
   LetterProblem? get problem => _currentProblem;
   List<LetterStatus> get uselessLetterStatuses => problem == null
@@ -209,6 +210,14 @@ class WordsTrainGameManager {
   MiniGames? get nextRoundMiniGame =>
       _isNextRoundAMiniGame ? _currentMiniGame : null;
 
+  bool get canRequestCongratulationFireworks {
+    return !_areCongratulationFireworksFiring &&
+        !_areCongratulationFireworksPreparing &&
+        (_gameStatus == WordsTrainGameStatus.roundPreparing ||
+            _gameStatus == WordsTrainGameStatus.roundReady);
+  }
+
+  bool _areCongratulationFireworksPreparing = false;
   bool _areCongratulationFireworksFiring = false;
 
   /// ----------- ///
@@ -223,6 +232,8 @@ class WordsTrainGameManager {
   /// Provide a way to request the start of a new round, if the game is not
   /// already started or if the game is not already over.
   Future<void> requestStartNewRound() async {
+    if (!canProceedToNextRound) return;
+
     _logger.info('Requesting to start a new round');
     _startNewRound();
   }
@@ -296,8 +307,10 @@ class WordsTrainGameManager {
   final onChangingLane = GenericListener<Function()>();
   final onShowcaseSolutionsRequest = GenericListener<Function()>();
   final onPlayerUpdate = GenericListener<Function()>();
-  final onCongratulationFireworks =
-      GenericListener<Function(Map<String, dynamic>)>();
+  final onCongratulationFireworksPreparing = GenericListener<
+      Function({required String playerName, required bool isActive})>();
+  final onCongratulationFireworks = GenericListener<
+      Function({required String playerName, required bool isActive})>();
   Future<void> Function(String)? onShowTelegram;
 
   /// -------- ///
@@ -773,9 +786,47 @@ class WordsTrainGameManager {
     }
   }
 
-  void _requestedFireworks(Map<String, dynamic> info) {
-    _areCongratulationFireworksFiring =
-        (info['is_congratulating'] as bool?) ?? false;
+  ///
+  /// Request a stop in countdown or capability to launch the game, so a player
+  /// who is currenly redeeming a firework can do it
+  Future<void> requestPrepareFireworks({required String playerName}) async {
+    if (!canRequestCongratulationFireworks) return;
+
+    _areCongratulationFireworksPreparing = true;
+    onCongratulationFireworksPreparing.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: true));
+
+    // Give 15 seconds to actually redeem the fireworks
+    await Future.delayed(Duration(seconds: 15));
+
+    if (!_areCongratulationFireworksPreparing) return;
+    _areCongratulationFireworksPreparing = false;
+    onCongratulationFireworksPreparing.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: false));
+  }
+
+  ///
+  /// Request the actual firework process
+  Future<void> requestStartFireworks({required String playerName}) async {
+    _areCongratulationFireworksPreparing = false;
+    _areCongratulationFireworksFiring = true;
+
+    // This is triggered if a user sends fireworks to the screen
+    onCongratulationFireworks.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: true));
+    await Future.delayed(Duration(seconds: 10));
+    // This should be stopped before that, but just in case we call stop anyway
+    await requestStopFireworks(playerName: playerName);
+  }
+
+  ///
+  /// Request the stop of the fireworks
+  Future<void> requestStopFireworks({required String playerName}) async {
+    if (!_areCongratulationFireworksFiring) return;
+
+    _areCongratulationFireworksFiring = false;
+    onCongratulationFireworks.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: false));
   }
 
   ///
@@ -828,7 +879,8 @@ class WordsTrainGameManager {
       _logger.fine('No automatic start of the round planned');
       return false;
     }
-    if (_areCongratulationFireworksFiring) {
+    if (_areCongratulationFireworksFiring ||
+        _areCongratulationFireworksPreparing) {
       _logger
           .fine('Congratulation fireworks are firing, so we delay the start');
       _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);

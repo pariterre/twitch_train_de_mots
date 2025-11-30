@@ -64,15 +64,14 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     super.dispose();
   }
 
-  void _launchFireworks(Map<String, dynamic> info) {
-    bool isCongratulating = (info['is_congratulating'] as bool?) ?? false;
-    if (!isCongratulating) return;
+  void _launchFireworks({required String playerName, required bool isActive}) {
+    if (!isActive) return;
 
     final now = DateTime.now();
     setState(() => _isFiring = true);
 
-    _congratulationMessageController.triggerAnimation(_CongratulationMessage(
-        congratulerName: info['player_name'] ?? 'Anonymous'));
+    _congratulationMessageController
+        .triggerAnimation(_CongratulationMessage(congratulerName: playerName));
 
     Random random = Random();
     for (int i = 0; i < widget.maxFireworkCount; i++) {
@@ -96,8 +95,8 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     Future.delayed(widget.duration + const Duration(milliseconds: 6000))
         .then((_) => setState(() {
               _isFiring = false;
-              Managers.instance.train.onCongratulationFireworks.notifyListeners(
-                  (callback) => callback({'is_congratulating': false}));
+              Managers.instance.train
+                  .requestStopFireworks(playerName: playerName);
             }));
   }
 

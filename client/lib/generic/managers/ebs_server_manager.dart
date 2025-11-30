@@ -297,13 +297,23 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
         case ToAppMessages.fireworksRequest:
           final playerName = message.data!['player_name'] as String;
+          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
+          final canShowFireworks = gm.canRequestCongratulationFireworks;
+
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: true));
-          gm.onCongratulationFireworks.notifyListeners((callback) =>
-              callback({'player_name': playerName, 'is_congratulating': true}));
+              isSuccess: canShowFireworks));
+
+          if (canShowFireworks) {
+            if (isRedeemed) {
+              gm.requestStartFireworks(playerName: playerName);
+            } else {
+              gm.requestPrepareFireworks(playerName: playerName);
+            }
+          }
+
           break;
 
         case ToAppMessages.attemptTheBigHeist:
@@ -350,7 +360,6 @@ class EbsServerManager extends TwitchAppManagerAbstract {
               from: MessageFrom.app,
               type: MessageTypes.response,
               isSuccess: true));
-
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(
               'Bits redeemed should be handled by the EBS and rerouted properly');

@@ -426,26 +426,21 @@ class EbsManager extends TwitchEbsManagerAbstract {
           final playerName = message.transaction!.displayName;
           final sku = Sku.fromString(transactionReceipt.product.sku);
 
-          late ToAppMessages type;
-          switch (sku) {
-            case Sku.celebrate:
-              type = ToAppMessages.fireworksRequest;
-              break;
-
-            case Sku.bigHeist:
-              type = ToAppMessages.attemptTheBigHeist;
-              break;
-
-            case Sku.changeLane:
-              type = ToAppMessages.changeLaneRequest;
-              break;
-          }
+          ToAppMessages type = switch (sku) {
+            Sku.celebrate => ToAppMessages.fireworksRequest,
+            Sku.bigHeist => ToAppMessages.attemptTheBigHeist,
+            Sku.changeLane => ToAppMessages.changeLaneRequest,
+          };
 
           final response = await communicator.sendQuestion(MessageProtocol(
               to: MessageTo.app,
               from: MessageFrom.ebs,
               type: MessageTypes.get,
-              data: {'type': type.name, 'player_name': playerName}));
+              data: {
+                'type': type.name,
+                'player_name': playerName,
+                'is_redeemed': true
+              }));
 
           communicator.sendReponse(message.copyWith(
               to: MessageTo.frontend,

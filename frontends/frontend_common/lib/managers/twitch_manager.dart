@@ -124,34 +124,63 @@ class TwitchManager {
   ///
   /// Request to change lanes during main game.
   Future<bool> changeLane() async {
+    // TODO Add a precheck to ensure it is possible
+
     TwitchManager.instance.frontendManager.bits.useBits('change_lane');
-    // We cannot know if the transaction was successful, so we return true
+
+    // When the transaction is successful, onTransactionCompleted is called
+    // So for now, return immediately
     return true;
   }
 
   ///
   /// Request to attempt the big heist during the break.
   Future<bool> attemptTheBigHeist() async {
+    // TODO Add a precheck to ensure it is possible
+
     TwitchManager.instance.frontendManager.bits.useBits('big_heist');
-    // We cannot know if the transaction was successful, so we return true
+
+    // When the transaction is successful, onTransactionCompleted is called
+    // So for now, return immediately
     return true;
   }
 
   ///
   /// Request to attempt the end of railway minigame during the break.
   Future<bool> attemptEndOfRailwayMiniGame() async {
+    // TODO Add a precheck to ensure it is possible
+
     TwitchManager.instance.frontendManager.bits
         .useBits('end_of_railway_mini_game');
-    // TODO Check this next comment
-    // We cannot know if the transaction was successful, so we return true
+
+    // When the transaction is successful, onTransactionCompleted is called
+    // So for now, return immediately
     return true;
   }
 
   ///
   /// Send a celebration request during the break
   Future<bool> celebrate() async {
-    TwitchManager.instance.frontendManager.bits.useBits('celebrate');
-    // We cannot know if the transaction was successful, so we return true
+    final sku = Sku.celebrate;
+
+    // Annonce to App that a celebrate request is being redeemed
+    // TODO Test this
+    final response =
+        await _sendMessageToApp(ToAppMessages.fireworksRequest).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => tm.MessageProtocol(
+          to: tm.MessageTo.frontend,
+          from: tm.MessageFrom.ebs,
+          type: tm.MessageTypes.response,
+          isSuccess: false),
+    );
+    if (!(response.isSuccess ?? false)) return false;
+
+    // The user has 15 seconds to redeem and be sure it will work
+    TwitchManager.instance.frontendManager.bits.useBits(sku.toString());
+
+    // When the transaction is successful, onTransactionCompleted is called
+    // So for now, return immediately
     return true;
   }
 

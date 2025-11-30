@@ -135,6 +135,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
 
     final gm = Managers.instance.train;
     gm.onClockTicked.listen(_refresh);
+    gm.onCongratulationFireworksPreparing.listen(_toggleCanClick);
     gm.onCongratulationFireworks.listen(_toggleCanClick);
   }
 
@@ -142,13 +143,14 @@ class _ContinueSectionState extends State<_ContinueSection> {
   void dispose() {
     final gm = Managers.instance.train;
     gm.onClockTicked.cancel(_refresh);
+    gm.onCongratulationFireworksPreparing.cancel(_toggleCanClick);
+    gm.onCongratulationFireworks.cancel(_toggleCanClick);
 
     super.dispose();
   }
 
-  void _toggleCanClick(Map<String, dynamic> info) {
-    bool isCongratulating = (info['is_congratulating'] as bool?) ?? false;
-    if (mounted) setState(() => _canClick = !isCongratulating);
+  void _toggleCanClick({required String playerName, required bool isActive}) {
+    if (mounted) setState(() => _canClick = !isActive);
   }
 
   void _refresh() => setState(() {});
@@ -270,11 +272,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick
-                        ? () => gm.onCongratulationFireworks.notifyListeners(
-                            (callback) => callback({
-                                  'is_congratulating': true,
-                                  'player_name': 'Anynome'
-                                }))
+                        ? () => gm.requestStartFireworks(playerName: 'Anonyme')
                         : null,
                     buttonText: 'BOOM!'),
                 const SizedBox(width: 24),
