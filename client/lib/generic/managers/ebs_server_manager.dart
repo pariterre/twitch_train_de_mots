@@ -76,10 +76,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     final gm = Managers.instance.train;
     gm.onRoundStarted.listen(_sendGameStateToEbs);
     gm.onRoundIsOver.listen(_sendGameStateToEbs);
-    gm.onStealerPardoned.listen(_sendGameStateToEbssWithParameter);
+    gm.onStealerPardoned.listen(_sendGameStateToEbsWithParameter);
     gm.onSolutionFound.listen(_sendCooldownToEbs);
     gm.onSolutionWasStolen.listen(_sendCooldownToEbs);
-    gm.onAttemptingTheBigHeist.listen(_sendGameStateToEbs);
+    gm.onAttemptingTheBigHeist.listen(_sendGameStateToEbsWithPlayerName);
     gm.onScrablingLetters.listen(_sendGameStateToEbs);
     gm.onRevealUselessLetter.listen(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.listen(_sendGameStateToEbs);
@@ -104,10 +104,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
     final gm = Managers.instance.train;
     gm.onRoundStarted.cancel(_sendGameStateToEbs);
     gm.onRoundIsOver.cancel(_sendGameStateToEbs);
-    gm.onStealerPardoned.cancel(_sendGameStateToEbssWithParameter);
+    gm.onStealerPardoned.cancel(_sendGameStateToEbsWithParameter);
     gm.onSolutionFound.cancel(_sendCooldownToEbs);
     gm.onSolutionWasStolen.cancel(_sendCooldownToEbs);
-    gm.onAttemptingTheBigHeist.cancel(_sendGameStateToEbs);
+    gm.onAttemptingTheBigHeist.cancel(_sendGameStateToEbsWithPlayerName);
     gm.onScrablingLetters.cancel(_sendGameStateToEbs);
     gm.onRevealUselessLetter.cancel(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.cancel(_sendGameStateToEbs);
@@ -228,7 +228,13 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
-  Future<void> _sendGameStateToEbssWithParameter(dynamic _) async =>
+  Future<void> _sendGameStateToEbsWithParameter(dynamic _) async =>
+      _sendGameStateToEbs();
+
+  ///
+  /// Send a message to the EBS server to notify that a round has ended
+  Future<void> _sendGameStateToEbsWithPlayerName(
+          {required String playerName}) async =>
       _sendGameStateToEbs();
 
   @override
@@ -298,15 +304,15 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.fireworksRequest:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canShowFireworks = gm.canRequestCongratulationFireworks;
+          final canRequest = gm.canRequestCongratulationFireworks;
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: canShowFireworks));
+              isSuccess: canRequest));
 
-          if (canShowFireworks) {
+          if (canRequest) {
             if (isRedeemed) {
               gm.requestStartFireworks(playerName: playerName);
             } else {
@@ -317,19 +323,36 @@ class EbsServerManager extends TwitchAppManagerAbstract {
           break;
 
         case ToAppMessages.attemptTheBigHeist:
+          final playerName = message.data!['player_name'] as String;
+          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
+          final canRequest = gm.canAttemptTheBigHeist;
+
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: gm.requestTheBigHeist()));
+              isSuccess: canRequest));
+
+          if (canRequest && isRedeemed) {
+            gm.requestTheBigHeist(playerName: playerName);
+          }
+
           break;
 
         case ToAppMessages.changeLaneRequest:
+          final playerName = message.data!['player_name'] as String;
+          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
+          final canRequest = gm.canAttemptTheBigHeist;
+
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: gm.requestChangeOfLane()));
+              isSuccess: canRequest));
+
+          if (canRequest && isRedeemed) {
+            gm.requestChangeOfLane(playerName: playerName);
+          }
           break;
 
         case ToAppMessages.revealTileAt:

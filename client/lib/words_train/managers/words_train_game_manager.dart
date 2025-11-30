@@ -192,6 +192,9 @@ class WordsTrainGameManager {
     return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
   }
 
+  bool _canChangeLane = false;
+  bool get canChangeLane => _canChangeLane;
+
   bool _canAttemptTheBigHeist = false;
   bool get canAttemptTheBigHeist => _canAttemptTheBigHeist;
   bool _isAttemptingTheBigHeist = false;
@@ -210,12 +213,9 @@ class WordsTrainGameManager {
   MiniGames? get nextRoundMiniGame =>
       _isNextRoundAMiniGame ? _currentMiniGame : null;
 
-  bool get canRequestCongratulationFireworks {
-    return !_areCongratulationFireworksFiring &&
-        !_areCongratulationFireworksPreparing &&
-        (_gameStatus == WordsTrainGameStatus.roundPreparing ||
-            _gameStatus == WordsTrainGameStatus.roundReady);
-  }
+  bool _canRequestCongratulationFireworks = false;
+  bool get canRequestCongratulationFireworks =>
+      _canRequestCongratulationFireworks;
 
   bool _areCongratulationFireworksPreparing = false;
   bool _areCongratulationFireworksFiring = false;
@@ -301,7 +301,8 @@ class WordsTrainGameManager {
   final onRailwayMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
-  final onAttemptingTheBigHeist = GenericListener<Function()>();
+  final onAttemptingTheBigHeist =
+      GenericListener<Function({required String playerName})>();
   final onBigHeistSuccess = GenericListener<Function()>();
   final onBigHeistFailed = GenericListener<Function()>();
   final onChangingLane = GenericListener<Function()>();
@@ -531,7 +532,9 @@ class WordsTrainGameManager {
     _boostStartedAt = null;
     _requestedBoost.clear();
 
-    // We can only attempt the big heist during the pause
+    // Change flags that are (not-)allowed during the round
+    _canChangeLane = true;
+    _canRequestCongratulationFireworks = false;
     _canAttemptTheBigHeist = false;
 
     _logger.info('Values set at the start of the round');
@@ -721,7 +724,7 @@ class WordsTrainGameManager {
     return true;
   }
 
-  bool requestTheBigHeist() {
+  bool requestTheBigHeist({required String playerName}) {
     _logger.info('Requesting the big heist...');
     if (!_canAttemptTheBigHeist) {
       _logger.warning('Big heist cannot be attempted');
@@ -730,16 +733,17 @@ class WordsTrainGameManager {
 
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = true;
-    onAttemptingTheBigHeist.notifyListeners((callback) => callback());
+    onAttemptingTheBigHeist
+        .notifyListeners((callback) => callback(playerName: playerName));
 
     _logger.info('Big heist is attempted');
     return true;
   }
 
-  bool requestChangeOfLane() {
+  bool requestChangeOfLane({required String playerName}) {
     _logger.info('Requesting the change of lane...');
 
-    if (gameStatus != WordsTrainGameStatus.roundStarted) {
+    if (!canChangeLane) {
       _logger.warning('Cannot change lane at this time');
       return false;
     }
@@ -1144,6 +1148,8 @@ class WordsTrainGameManager {
     _roundDuration = null;
     _roundStartedAt = null;
     _boostStartedAt = null;
+    _canRequestCongratulationFireworks = true;
+    _canChangeLane = false;
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
     _roundCount += _successLevel.toInt();
@@ -1353,12 +1359,12 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     if (shouldAttemptTheBigHeist) {
       _canAttemptTheBigHeist = true;
-      requestTheBigHeist();
+      requestTheBigHeist(playerName: 'Anonyme');
     }
 
     if (shouldChangeLane) {
       Future.delayed(const Duration(seconds: 15))
-          .then((_) => requestChangeOfLane());
+          .then((_) => requestChangeOfLane(playerName: 'Anonyme'));
     }
 
     if (gameStatus != null) _gameStatus = gameStatus;

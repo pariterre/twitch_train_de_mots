@@ -55,7 +55,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
 
   void _refresh() => setState(() {});
 
-  void _showAttemptingTheBigHeist() {
+  void _showAttemptingTheBigHeist({required String playerName}) {
     _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());
   }
 
@@ -278,7 +278,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick && gm.canAttemptTheBigHeist
-                        ? () => gm.requestTheBigHeist()
+                        ? () => gm.requestTheBigHeist(playerName: 'Anonyme')
                         : null,
                     buttonText: 'Le grand coup'),
                 const SizedBox(width: 24),

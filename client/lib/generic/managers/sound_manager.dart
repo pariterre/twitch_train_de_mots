@@ -373,7 +373,7 @@ class SoundManager {
     }
   }
 
-  Future<void> _onAttemptingTheBigHeist() async {
+  Future<void> _onAttemptingTheBigHeist({required String playerName}) async {
     _playSoundEffect(_SoundEffect.theBigHeist);
   }
 

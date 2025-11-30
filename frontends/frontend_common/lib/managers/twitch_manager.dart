@@ -124,7 +124,18 @@ class TwitchManager {
   ///
   /// Request to change lanes during main game.
   Future<bool> changeLane() async {
-    // TODO Add a precheck to ensure it is possible
+    // Annonce to App that a change of lane request is being redeemed
+    // TODO Test this
+    final response =
+        await _sendMessageToApp(ToAppMessages.changeLaneRequest).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => tm.MessageProtocol(
+          to: tm.MessageTo.frontend,
+          from: tm.MessageFrom.ebs,
+          type: tm.MessageTypes.response,
+          isSuccess: false),
+    );
+    if (!(response.isSuccess ?? false)) return false;
 
     TwitchManager.instance.frontendManager.bits.useBits('change_lane');
 
@@ -136,7 +147,18 @@ class TwitchManager {
   ///
   /// Request to attempt the big heist during the break.
   Future<bool> attemptTheBigHeist() async {
-    // TODO Add a precheck to ensure it is possible
+    // Annonce to App that a big heist request is being redeemed
+    // TODO Test this
+    final response =
+        await _sendMessageToApp(ToAppMessages.attemptTheBigHeist).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => tm.MessageProtocol(
+          to: tm.MessageTo.frontend,
+          from: tm.MessageFrom.ebs,
+          type: tm.MessageTypes.response,
+          isSuccess: false),
+    );
+    if (!(response.isSuccess ?? false)) return false;
 
     TwitchManager.instance.frontendManager.bits.useBits('big_heist');
 
