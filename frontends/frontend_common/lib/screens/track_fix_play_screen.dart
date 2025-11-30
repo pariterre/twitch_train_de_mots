@@ -103,15 +103,27 @@ class _HeaderState extends State<_Header> {
     final thm =
         GameManager.instance.miniGameState as SerializableTrackFixGameState;
     final tm = ThemeManager.instance;
+    final nextSegment = thm.grid.nextEmptySegment;
 
     return LayoutBuilder(builder: (context, constraints) {
-      return thm.timeRemaining.inSeconds > 0
-          ? Text('Temps restant ${thm.timeRemaining.inSeconds}',
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+              thm.timeRemaining.inSeconds > 0
+                  ? 'Temps restant ${thm.timeRemaining.inSeconds}'
+                  : 'Retournons à la gare!',
               style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05))
-          : Text('Retournons à la gare!',
-              style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05));
+                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
+          Text(
+            nextSegment == null
+                ? 'Au bout du rail!'
+                : 'Prochain mot: ${nextSegment.length} lettres',
+            style: tm.textFrontendSc
+                .copyWith(fontSize: constraints.maxWidth * 0.05),
+          ),
+        ],
+      );
     });
   }
 }
