@@ -137,7 +137,8 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    TwitchManager.instance.frontendManager.bits.useBits('change_lane');
+    TwitchManager.instance.frontendManager.bits
+        .useBits(Sku.changeLane.toString());
 
     // When the transaction is successful, onTransactionCompleted is called
     // So for now, return immediately
@@ -160,7 +161,8 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    TwitchManager.instance.frontendManager.bits.useBits('big_heist');
+    TwitchManager.instance.frontendManager.bits
+        .useBits(Sku.bigHeist.toString());
 
     // When the transaction is successful, onTransactionCompleted is called
     // So for now, return immediately
@@ -170,10 +172,22 @@ class TwitchManager {
   ///
   /// Request to attempt the end of railway minigame during the break.
   Future<bool> attemptEndOfRailwayMiniGame() async {
-    // TODO Add a precheck to ensure it is possible
+    // Annonce to App that an end of railway mini game request is being redeemed
+    // TODO Test this
+    final response =
+        await _sendMessageToApp(ToAppMessages.endRailwayMiniGameRequest)
+            .timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => tm.MessageProtocol(
+          to: tm.MessageTo.frontend,
+          from: tm.MessageFrom.ebs,
+          type: tm.MessageTypes.response,
+          isSuccess: false),
+    );
+    if (!(response.isSuccess ?? false)) return false;
 
     TwitchManager.instance.frontendManager.bits
-        .useBits('end_of_railway_mini_game');
+        .useBits(Sku.endRailwayMiniGame.toString());
 
     // When the transaction is successful, onTransactionCompleted is called
     // So for now, return immediately
@@ -183,8 +197,6 @@ class TwitchManager {
   ///
   /// Send a celebration request during the break
   Future<bool> celebrate() async {
-    final sku = Sku.celebrate;
-
     // Annonce to App that a celebrate request is being redeemed
     // TODO Test this
     final response =
@@ -199,7 +211,8 @@ class TwitchManager {
     if (!(response.isSuccess ?? false)) return false;
 
     // The user has 15 seconds to redeem and be sure it will work
-    TwitchManager.instance.frontendManager.bits.useBits(sku.toString());
+    TwitchManager.instance.frontendManager.bits
+        .useBits(Sku.celebrate.toString());
 
     // When the transaction is successful, onTransactionCompleted is called
     // So for now, return immediately
@@ -727,6 +740,8 @@ class TwitchManagerMock extends TwitchManager {
       case ToAppMessages.fireworksRequest:
       case ToAppMessages.attemptTheBigHeist:
       case ToAppMessages.changeLaneRequest:
+      case ToAppMessages.endRailwayMiniGameRequest:
+        // TODO Change this?
         throw Exception('These are bits transactions and should only be called '
             'with the method _redeemBitsTransaction');
 

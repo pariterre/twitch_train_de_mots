@@ -277,9 +277,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     buttonText: 'BOOM!'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
-                    onPressed: _canClick && gm.canAttemptTheBigHeist
-                        ? () => gm.requestTheBigHeist(playerName: 'Anonyme')
-                        : null,
+                    onPressed:
+                        _canClick && gm.canAttemptTheBigHeist(playerName: null)
+                            ? () => gm.requestTheBigHeist(playerName: 'Anonyme')
+                            : null,
                     buttonText: 'Le grand coup'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
@@ -289,8 +290,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     buttonText: 'Annuler minijeu'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
-                    onPressed: _canClick && gm.canAttemptEndOfRailwayMiniGame
-                        ? () => gm.requestEndOfRailwayMiniGame()
+                    onPressed: _canClick &&
+                            gm.canAttemptEndOfRailwayMiniGame(playerName: null)
+                        ? () => gm.requestEndOfRailwayMiniGame(
+                            playerName: 'Anonyme')
                         : null,
                     buttonText: 'Track fix'),
                 const SizedBox(width: 24),

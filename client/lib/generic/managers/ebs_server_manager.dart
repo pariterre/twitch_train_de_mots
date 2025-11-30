@@ -200,9 +200,10 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       boostRemaining: gm.remainingBoosts,
       boostStillNeeded: gm.numberOfBoostStillNeeded,
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
-      canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
+      canAttemptTheBigHeist: gm.canAttemptTheBigHeist(playerName: null),
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      canAttemptEndOfRailwayMiniGame: gm.canAttemptEndOfRailwayMiniGame,
+      canAttemptEndOfRailwayMiniGame:
+          gm.canAttemptEndOfRailwayMiniGame(playerName: null),
       isAttemptingEndOfRailwayMiniGame: gm.isAttemptingEndOfRailwayMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
       miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
@@ -304,7 +305,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.fireworksRequest:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canRequestCongratulationFireworks;
+          final canRequest =
+              gm.canRequestCongratulationFireworks(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -325,7 +327,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.attemptTheBigHeist:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canAttemptTheBigHeist;
+          final canRequest = gm.canAttemptTheBigHeist(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -342,7 +344,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.changeLaneRequest:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canAttemptTheBigHeist;
+          final canRequest = gm.canAttemptTheBigHeist(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -352,6 +354,23 @@ class EbsServerManager extends TwitchAppManagerAbstract {
 
           if (canRequest && isRedeemed) {
             gm.requestChangeOfLane(playerName: playerName);
+          }
+          break;
+
+        case ToAppMessages.endRailwayMiniGameRequest:
+          final playerName = message.data!['player_name'] as String;
+          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
+          final canRequest =
+              gm.canAttemptEndOfRailwayMiniGame(playerName: playerName);
+
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: canRequest));
+
+          if (canRequest && isRedeemed) {
+            gm.requestEndOfRailwayMiniGame(playerName: playerName);
           }
           break;
 

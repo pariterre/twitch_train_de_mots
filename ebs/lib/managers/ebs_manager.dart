@@ -416,6 +416,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.fireworksRequest:
         case ToAppMessages.attemptTheBigHeist:
         case ToAppMessages.changeLaneRequest:
+        case ToAppMessages.endRailwayMiniGameRequest:
+          // TODO change this?
           throw 'Request is supposed to come from bit transaction';
 
         case ToAppMessages.bitsRedeemed:
@@ -430,6 +432,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             Sku.celebrate => ToAppMessages.fireworksRequest,
             Sku.bigHeist => ToAppMessages.attemptTheBigHeist,
             Sku.changeLane => ToAppMessages.changeLaneRequest,
+            Sku.endRailwayMiniGame => ToAppMessages.endRailwayMiniGameRequest,
           };
 
           final response = await communicator.sendQuestion(MessageProtocol(

@@ -123,10 +123,11 @@ class WordsTrainGameManager {
   bool get isNextProblemReady =>
       (!_isGeneratingProblem && _nextProblem != null);
   bool get canProceedToNextRound =>
-      isNextProblemReady ||
-      _isNextRoundAMiniGame ||
-      _areCongratulationFireworksFiring ||
-      _areCongratulationFireworksPreparing;
+      (isNextProblemReady || _isNextRoundAMiniGame) &&
+      (_playerPreparingCongratulationFireworks == null &&
+          _playerPreparingTheBigHeist == null &&
+          _playerPreparingEndOfRailwayMiniGame == null) &&
+      !_areCongratulationFireworksFiring;
 
   LetterProblem? get problem => _currentProblem;
   List<LetterStatus> get uselessLetterStatuses => problem == null
@@ -193,14 +194,27 @@ class WordsTrainGameManager {
   }
 
   bool _canChangeLane = false;
-  bool get canChangeLane => _canChangeLane;
+  bool _isChangingLane = false;
+  bool get canChangeLane => _canChangeLane && !_isChangingLane;
 
   bool _canAttemptTheBigHeist = false;
-  bool get canAttemptTheBigHeist => _canAttemptTheBigHeist;
   bool _isAttemptingTheBigHeist = false;
+  String? _playerPreparingTheBigHeist;
+  bool canAttemptTheBigHeist({required String? playerName}) =>
+      _canAttemptTheBigHeist &&
+      !_isAttemptingTheBigHeist &&
+      (_playerPreparingTheBigHeist == null ||
+          _playerPreparingTheBigHeist == playerName);
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
+  bool _canAttemptEndOfRailwayMiniGame = false;
   bool _isAttemptingEndOfRailwayMiniGame = false;
+  String? _playerPreparingEndOfRailwayMiniGame;
+  bool canAttemptEndOfRailwayMiniGame({required String? playerName}) =>
+      _canAttemptEndOfRailwayMiniGame &&
+      !_isAttemptingEndOfRailwayMiniGame &&
+      (_playerPreparingEndOfRailwayMiniGame == null ||
+          _playerPreparingEndOfRailwayMiniGame == playerName);
   bool get isAttemptingEndOfRailwayMiniGame =>
       _isAttemptingEndOfRailwayMiniGame;
   int _railwayMiniGamesAttempted = 0;
@@ -214,11 +228,13 @@ class WordsTrainGameManager {
       _isNextRoundAMiniGame ? _currentMiniGame : null;
 
   bool _canRequestCongratulationFireworks = false;
-  bool get canRequestCongratulationFireworks =>
-      _canRequestCongratulationFireworks;
-
-  bool _areCongratulationFireworksPreparing = false;
   bool _areCongratulationFireworksFiring = false;
+  String? _playerPreparingCongratulationFireworks;
+  bool canRequestCongratulationFireworks({required String? playerName}) =>
+      _canRequestCongratulationFireworks &&
+      !_areCongratulationFireworksFiring &&
+      (_playerPreparingCongratulationFireworks == null ||
+          _playerPreparingCongratulationFireworks == playerName);
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -298,9 +314,13 @@ class WordsTrainGameManager {
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
   final onMiniGameGranted = GenericListener<Function(MiniGames)>();
+  final onEndOfRailwayMiniGameIsBeingPrepared = GenericListener<
+      Function({required String playerName, required bool isActive})>();
   final onRailwayMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
+  final onBigHeistIsBeingPrepared = GenericListener<
+      Function({required String playerName, required bool isActive})>();
   final onAttemptingTheBigHeist =
       GenericListener<Function({required String playerName})>();
   final onBigHeistSuccess = GenericListener<Function()>();
@@ -536,6 +556,7 @@ class WordsTrainGameManager {
     _canChangeLane = true;
     _canRequestCongratulationFireworks = false;
     _canAttemptTheBigHeist = false;
+    _canAttemptEndOfRailwayMiniGame = false;
 
     _logger.info('Values set at the start of the round');
   }
@@ -724,13 +745,30 @@ class WordsTrainGameManager {
     return true;
   }
 
+  Future<void> requestPrepareTheBigHeist({required String playerName}) async {
+    if (!canAttemptTheBigHeist(playerName: playerName)) return;
+
+    _playerPreparingTheBigHeist = playerName;
+    onBigHeistIsBeingPrepared.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: true));
+
+    // Give 15 seconds to actually redeem the big heist
+    await Future.delayed(Duration(seconds: 15));
+
+    if (_playerPreparingTheBigHeist == null) return;
+    _playerPreparingTheBigHeist = null;
+    onBigHeistIsBeingPrepared.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: false));
+  }
+
   bool requestTheBigHeist({required String playerName}) {
     _logger.info('Requesting the big heist...');
-    if (!_canAttemptTheBigHeist) {
+    if (!canAttemptTheBigHeist(playerName: playerName)) {
       _logger.warning('Big heist cannot be attempted');
       return false;
     }
 
+    _playerPreparingTheBigHeist = null;
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = true;
     onAttemptingTheBigHeist
@@ -752,17 +790,28 @@ class WordsTrainGameManager {
     return true;
   }
 
-  bool get canAttemptEndOfRailwayMiniGame {
-    return (_gameStatus == WordsTrainGameStatus.roundPreparing ||
-            _gameStatus == WordsTrainGameStatus.roundReady) &&
-        _successLevel == SuccessLevel.failed &&
-        _railwayMiniGamesAttempted <= 0;
+  Future<void> requestPrepareEndOfRailwayMiniGame(
+      {required String playerName}) async {
+    if (!canAttemptEndOfRailwayMiniGame(playerName: playerName)) return;
+
+    _playerPreparingEndOfRailwayMiniGame = playerName;
+    onEndOfRailwayMiniGameIsBeingPrepared.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: true));
+
+    // Give 15 seconds to actually redeem the end of railway mini game
+    await Future.delayed(Duration(seconds: 15));
+
+    if (_playerPreparingEndOfRailwayMiniGame == null) return;
+    _playerPreparingEndOfRailwayMiniGame = null;
+    onEndOfRailwayMiniGameIsBeingPrepared.notifyListeners(
+        (callback) => callback(playerName: playerName, isActive: false));
   }
 
-  bool requestEndOfRailwayMiniGame() {
+  bool requestEndOfRailwayMiniGame({required String playerName}) {
     _logger.info('Requesting an end of railway mini game...');
 
-    if (!canAttemptEndOfRailwayMiniGame) return false;
+    if (!canAttemptEndOfRailwayMiniGame(playerName: playerName)) return false;
+    _playerPreparingEndOfRailwayMiniGame = null;
     _railwayMiniGamesAttempted += 1;
 
     _isAttemptingEndOfRailwayMiniGame = true;
@@ -776,6 +825,7 @@ class WordsTrainGameManager {
 
   Future<void> _performChangeOfLane() async {
     // Perform a huge scramble of the letters
+    _isChangingLane = true;
     bool hasNotified = false;
     for (int i = 0; i < problem!.letters.length * 4; i++) {
       if (i % problem!.letters.length == 0) {
@@ -788,23 +838,24 @@ class WordsTrainGameManager {
       }
       problem!.scrambleLetters();
     }
+    _isChangingLane = false;
   }
 
   ///
   /// Request a stop in countdown or capability to launch the game, so a player
   /// who is currenly redeeming a firework can do it
   Future<void> requestPrepareFireworks({required String playerName}) async {
-    if (!canRequestCongratulationFireworks) return;
+    if (!canRequestCongratulationFireworks(playerName: playerName)) return;
 
-    _areCongratulationFireworksPreparing = true;
+    _playerPreparingCongratulationFireworks = playerName;
     onCongratulationFireworksPreparing.notifyListeners(
         (callback) => callback(playerName: playerName, isActive: true));
 
     // Give 15 seconds to actually redeem the fireworks
     await Future.delayed(Duration(seconds: 15));
 
-    if (!_areCongratulationFireworksPreparing) return;
-    _areCongratulationFireworksPreparing = false;
+    if (_playerPreparingCongratulationFireworks == null) return;
+    _playerPreparingCongratulationFireworks = null;
     onCongratulationFireworksPreparing.notifyListeners(
         (callback) => callback(playerName: playerName, isActive: false));
   }
@@ -812,7 +863,9 @@ class WordsTrainGameManager {
   ///
   /// Request the actual firework process
   Future<void> requestStartFireworks({required String playerName}) async {
-    _areCongratulationFireworksPreparing = false;
+    if (!canRequestCongratulationFireworks(playerName: playerName)) return;
+
+    _playerPreparingCongratulationFireworks = null;
     _areCongratulationFireworksFiring = true;
 
     // This is triggered if a user sends fireworks to the screen
@@ -883,13 +936,19 @@ class WordsTrainGameManager {
       _logger.fine('No automatic start of the round planned');
       return false;
     }
-    if (_areCongratulationFireworksFiring ||
-        _areCongratulationFireworksPreparing) {
+    if (_areCongratulationFireworksFiring) {
       _logger
           .fine('Congratulation fireworks are firing, so we delay the start');
       _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
       return false;
     }
+    if (_playerPreparingCongratulationFireworks != null ||
+        _playerPreparingTheBigHeist != null ||
+        _playerPreparingEndOfRailwayMiniGame != null) {
+      _logger.fine('The game is in pause while someone is redeeming something');
+      return false;
+    }
+
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
       _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
@@ -1156,7 +1215,11 @@ class WordsTrainGameManager {
     _currentDifficulty = cm.difficulty(_roundCount);
 
     _generateNextProblem();
-    if (_successLevel != SuccessLevel.failed) {
+    if (_successLevel == SuccessLevel.failed) {
+      if (_railwayMiniGamesAttempted == 0) {
+        _canAttemptEndOfRailwayMiniGame = true;
+      }
+    } else {
       if (_random.nextDouble() < _currentDifficulty.bigHeistProbability) {
         _canAttemptTheBigHeist = true;
       }
