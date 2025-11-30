@@ -127,6 +127,9 @@ class SerializableGameState {
   bool canAttemptTheBigHeist;
   bool isAttemptingTheBigHeist;
 
+  bool canAttemptEndOfRailwayMiniGame;
+  bool isAttemptingEndOfRailwayMiniGame;
+
   SerializableLetterProblem? letterProblem;
 
   SerializableConfiguration configuration;
@@ -147,6 +150,8 @@ class SerializableGameState {
     required this.boosters,
     required this.canAttemptTheBigHeist,
     required this.isAttemptingTheBigHeist,
+    required this.canAttemptEndOfRailwayMiniGame,
+    required this.isAttemptingEndOfRailwayMiniGame,
     required this.configuration,
     required this.miniGameState,
   });
@@ -165,6 +170,8 @@ class SerializableGameState {
     List<String>? boosters,
     bool? canAttemptTheBigHeist,
     bool? isAttemptingTheBigHeist,
+    bool? canAttemptEndOfRailwayMiniGame,
+    bool? isAttemptingEndOfRailwayMiniGame,
     SerializableConfiguration? configuration,
     SerializableMiniGameState? miniGameState,
   }) =>
@@ -184,6 +191,10 @@ class SerializableGameState {
             canAttemptTheBigHeist ?? this.canAttemptTheBigHeist,
         isAttemptingTheBigHeist:
             isAttemptingTheBigHeist ?? this.isAttemptingTheBigHeist,
+        canAttemptEndOfRailwayMiniGame: canAttemptEndOfRailwayMiniGame ??
+            this.canAttemptEndOfRailwayMiniGame,
+        isAttemptingEndOfRailwayMiniGame: isAttemptingEndOfRailwayMiniGame ??
+            this.isAttemptingEndOfRailwayMiniGame,
         configuration: configuration ?? this.configuration,
         miniGameState: miniGameState ?? this.miniGameState,
       );
@@ -204,6 +215,8 @@ class SerializableGameState {
       'boosters': boosters,
       'can_attempt_the_big_heist': canAttemptTheBigHeist,
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
+      'can_attempt_end_mini_game': canAttemptEndOfRailwayMiniGame,
+      'is_attempting_end_mini_game': isAttemptingEndOfRailwayMiniGame,
       'configuration': configuration.serialize(),
       'mini_game_state': miniGameState?.serialize(),
     };
@@ -227,6 +240,9 @@ class SerializableGameState {
       boosters: (data['boosters'] as List).cast<String>(),
       canAttemptTheBigHeist: data['can_attempt_the_big_heist'] as bool,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
+      canAttemptEndOfRailwayMiniGame: data['can_attempt_end_mini_game'] as bool,
+      isAttemptingEndOfRailwayMiniGame:
+          data['is_attempting_end_mini_game'] as bool,
       configuration:
           SerializableConfiguration.deserialize(data['configuration']),
       miniGameState: data['mini_game_state'] == null

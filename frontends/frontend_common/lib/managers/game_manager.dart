@@ -64,6 +64,8 @@ class GameManager {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
+    canAttemptEndOfRailwayMiniGame: false,
+    isAttemptingEndOfRailwayMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
   );
@@ -150,6 +152,24 @@ class GameManager {
       onAttemptingTheBigHeist.notifyListeners((callback) => callback());
       _logger.info(
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
+    }
+
+    if (_gameState.canAttemptEndOfRailwayMiniGame !=
+        newGameState.canAttemptEndOfRailwayMiniGame) {
+      _gameState.canAttemptEndOfRailwayMiniGame =
+          newGameState.canAttemptEndOfRailwayMiniGame;
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+      _logger.info(
+          'Can attempt the end of railway mini game changed to ${newGameState.canAttemptEndOfRailwayMiniGame}');
+    }
+
+    if (_gameState.isAttemptingEndOfRailwayMiniGame !=
+        newGameState.isAttemptingEndOfRailwayMiniGame) {
+      _gameState.isAttemptingEndOfRailwayMiniGame =
+          newGameState.isAttemptingEndOfRailwayMiniGame;
+      onFixingTheTrack.notifyListeners((callback) => callback());
+      _logger.info(
+          'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingEndOfRailwayMiniGame}');
     }
 
     if (_gameState.configuration.showExtension !=
@@ -254,6 +274,14 @@ class GameManager {
   bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
   bool get isAttemptingTheBigHeist => _gameState.isAttemptingTheBigHeist;
   final onAttemptingTheBigHeist = GenericListener<Function()>();
+
+  ///
+  /// Track fix management
+  bool get canAttemptEndOfRailwayMiniGame =>
+      _gameState.canAttemptEndOfRailwayMiniGame;
+  bool get isAttemptingEndOfRailwayMiniGame =>
+      _gameState.isAttemptingEndOfRailwayMiniGame;
+  final onFixingTheTrack = GenericListener<Function()>();
 
   ///
   /// Mini game is active

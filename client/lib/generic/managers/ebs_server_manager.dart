@@ -202,6 +202,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist,
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
+      canAttemptEndOfRailwayMiniGame: gm.canAttemptEndOfRailwayMiniGame,
+      isAttemptingEndOfRailwayMiniGame: gm.isAttemptingEndOfRailwayMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
       miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
           ? mgm?.serialize()

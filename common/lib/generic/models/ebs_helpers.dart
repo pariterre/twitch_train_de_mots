@@ -28,6 +28,7 @@ enum ToFrontendMessages {
 }
 
 enum Sku {
+  // TODO Add attemptEndOfRailwayMiniGame
   celebrate,
   bigHeist,
   changeLane;

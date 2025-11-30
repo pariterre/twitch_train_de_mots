@@ -138,6 +138,16 @@ class TwitchManager {
   }
 
   ///
+  /// Request to attempt the end of railway minigame during the break.
+  Future<bool> attemptEndOfRailwayMiniGame() async {
+    TwitchManager.instance.frontendManager.bits
+        .useBits('end_of_railway_mini_game');
+    // TODO Check this next comment
+    // We cannot know if the transaction was successful, so we return true
+    return true;
+  }
+
+  ///
   /// Send a celebration request during the break
   Future<bool> celebrate() async {
     TwitchManager.instance.frontendManager.bits.useBits('celebrate');
@@ -568,10 +578,17 @@ class TwitchManagerMock extends TwitchManager {
             boosters: [],
             canAttemptTheBigHeist: false,
             isAttemptingTheBigHeist: true,
+            canAttemptEndOfRailwayMiniGame: true,
+            isAttemptingEndOfRailwayMiniGame: false,
             configuration: SerializableConfiguration(showExtension: true),
             miniGameState: null,
           ).serialize(),
         }))));
+    return true;
+  }
+
+  @override
+  Future<bool> attemptEndOfRailwayMiniGame() async {
     return true;
   }
 
@@ -614,9 +631,9 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.miniGameStarted,
-                round: 1,
-                isRoundSuccess: true,
+                status: WordsTrainGameStatus.roundPreparing,
+                round: 13,
+                isRoundSuccess: false,
                 timeRemaining: const Duration(seconds: 83),
                 newCooldowns: {userId: const Duration(seconds: 5)},
                 letterProblem: SerializableLetterProblem(
@@ -640,6 +657,8 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
+                canAttemptEndOfRailwayMiniGame: true,
+                isAttemptingEndOfRailwayMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableTrackFixGameState(
                     isTimerRunning: true,

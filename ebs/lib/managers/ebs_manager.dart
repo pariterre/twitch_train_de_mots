@@ -35,6 +35,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
+    canAttemptEndOfRailwayMiniGame: false,
+    isAttemptingEndOfRailwayMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
   );

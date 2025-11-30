@@ -179,6 +179,37 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
+                        if (gm.canAttemptEndOfRailwayMiniGame)
+                          Container(
+                            decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(50),
+                                borderRadius: BorderRadius.circular(15)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Le contrôleur vous offres \n'
+                                    'une deuxième chance si vous\n'
+                                    'réparez le rail!',
+                                    style: tm.textFrontendSc,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  GrowingWidget(
+                                    growingFactor: 1.02,
+                                    duration: Duration(milliseconds: 750),
+                                    child: ElevatedButton(
+                                        onPressed: TwitchManager.instance
+                                            .attemptEndOfRailwayMiniGame,
+                                        child: const Text(
+                                          'Sauvons le train!',
+                                        )),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         if (!gm.canAttemptTheBigHeist &&
                             !gm.isAttemptingTheBigHeist &&
                             gm.currentRound >= 10)
