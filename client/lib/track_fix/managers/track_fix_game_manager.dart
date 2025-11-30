@@ -8,6 +8,7 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
 import 'package:common/track_fix/models/track_fix_grid.dart';
+import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -182,9 +183,12 @@ class TrackFixGameManager implements MiniGameManager {
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
-    if (words.isEmpty || words.length > 1) return;
+    if (words.isEmpty || words.length > 1 || words.first[0] == '!') return;
 
-    final word = words.first.toUpperCase();
+    final word = removeDiacritics(words.first.toUpperCase());
+    // Refuse any word that contains non-letter characters
+    if (!RegExp(r'^[A-Z]+$').hasMatch(word)) return;
+
     final wordValue = 3 *
         word
             .split('')

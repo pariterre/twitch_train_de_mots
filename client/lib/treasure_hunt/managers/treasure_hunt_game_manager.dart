@@ -9,6 +9,7 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
+import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -173,8 +174,12 @@ class TreasureHuntGameManager implements MiniGameManager {
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
-    if (words.isEmpty || words.length > 1) return;
-    final word = words.first.toUpperCase();
+    if (words.isEmpty || words.length > 1 || words.first[0] == '!') return;
+
+    final word = removeDiacritics(words.first.toUpperCase());
+    // Refuse any word that contains non-letter characters
+    if (!RegExp(r'^[A-Z]+$').hasMatch(word)) return;
+
     final wordValue = 5 *
         word
             .split('')
