@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -429,7 +430,7 @@ class TwitchManagerMock extends TwitchManager {
     //       isAttemptingTheBigHeist: false,
     //       configuration: SerializableConfiguration(showExtension: true),
     //       miniGameState: SerializableTreasureHuntGameState(
-    //         grid: Grid.random(rowCount: 20, columnCount: 10, rewardsCount: 40),
+    //         grid: Grid.random(rowCount: 20, columnCount: 10, rewardCount: 40),
     //         isTimerRunning: false,
     //         timeRemaining: const Duration(seconds: 30),
     //         triesRemaining: 10,
@@ -465,7 +466,7 @@ class TwitchManagerMock extends TwitchManager {
     //       isAttemptingTheBigHeist: false,
     //       configuration: SerializableConfiguration(showExtension: true),
     //       miniGameState: SerializableTreasureHuntGameState(
-    //         grid: Grid.random(rowCount: 20, columnCount: 10, rewardsCount: 40),
+    //         grid: Grid.random(rowCount: 20, columnCount: 10, rewardCount: 40),
     //         isTimerRunning: false,
     //         timeRemaining: const Duration(seconds: 30),
     //         triesRemaining: 10,
@@ -491,7 +492,18 @@ class TwitchManagerMock extends TwitchManager {
       final oldMiniGameState =
           oldGameState.miniGameState as SerializableTrackFixGameState?;
 
-      oldMiniGameState?.grid.segments[0].word;
+      final segment = oldMiniGameState?.grid.segments[0];
+      final wordLength = segment?.length ?? 0;
+      final firstLetter = oldMiniGameState?.grid
+          .tileOfSegmentAt(segment: segment!, index: 0)
+          ?.letter;
+      segment?.word = DictionaryManager.wordsWithAtLeast(4).firstWhere(
+          (word) => word.length == wordLength && word[0] == firstLetter);
+      for (int i = 0; i < wordLength; i++) {
+        oldMiniGameState!.grid
+            .tileOfSegmentAt(segment: segment!, index: i)
+            ?.letter = segment.word![i];
+      }
 
       final newGameState = oldGameState.copyWith(
           miniGameState:
@@ -637,8 +649,8 @@ class TwitchManagerMock extends TwitchManager {
                       columnCount: 10,
                       minimumSegmentLength: 4,
                       maximumSegmentLength: 8,
-                      segmentsCount: 9,
-                      segmentsWithLettersCount: 5,
+                      segmentCount: 9,
+                      segmentsWithLetterCount: 5,
                     )),
               ).serialize(),
             })));

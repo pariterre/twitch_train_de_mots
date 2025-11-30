@@ -13,7 +13,7 @@ class TrackFixGrid {
 
   int get cellCount => rowCount * columnCount;
 
-  final List<Tile> _tiles;
+  final List<Tile?> _tiles;
 
   final List<PathSegment> _pathSegments;
   List<PathSegment> get segments => List.unmodifiable(_pathSegments);
@@ -24,18 +24,27 @@ class TrackFixGrid {
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
-        'tiles': _tiles.map((tile) => tile.serialize()).toList(),
+        'tiles': _tiles
+            .map((tile) => tile?.serialize())
+            .whereNot((tile) => tile == null)
+            .toList(),
         'path_segments':
             _pathSegments.map((segment) => segment.serialize()).toList(),
       };
 
   static TrackFixGrid deserialize(Map<String, dynamic> json) {
+    final rowCount = json['rows'] as int;
+    final colCount = json['cols'] as int;
+    final tiles = List<Tile?>.filled(rowCount * colCount, null);
+    for (var tileData in (json['tiles'] as List)) {
+      final tile = Tile.deserialize(tileData);
+      tiles[tile.index] = tile;
+    }
+
     return TrackFixGrid._(
-      rowCount: json['rows'] as int,
-      columnCount: json['cols'] as int,
-      tiles: (json['tiles'] as List)
-          .map((tile) => Tile.deserialize(tile))
-          .toList(growable: false),
+      rowCount: rowCount,
+      columnCount: colCount,
+      tiles: tiles,
       pathSegments: (json['path_segments'] as List)
           .map((segment) => PathSegment.fromSerialized(segment))
           .toList(),
@@ -45,7 +54,7 @@ class TrackFixGrid {
   TrackFixGrid._({
     required this.rowCount,
     required this.columnCount,
-    List<Tile>? tiles,
+    List<Tile?>? tiles,
     List<PathSegment>? pathSegments,
   })  : _tiles = tiles ?? [],
         _pathSegments = pathSegments ?? [];
@@ -78,14 +87,14 @@ class TrackFixGrid {
   /// [columnCount] Number of columns in the grid
   /// [minimumSegmentLength] Minimum length of each path segment
   /// [maximumSegmentLength] Maximum length of each path segment
-  /// [segmentsCount] Expected number of path segments (must be odd)
+  /// [segmentCount] Expected number of path segments (must be odd)
   TrackFixGrid.random({
     required this.rowCount,
     required this.columnCount,
     required int minimumSegmentLength,
     required int maximumSegmentLength,
-    required int segmentsCount,
-    required int segmentsWithLettersCount,
+    required int segmentCount,
+    required int segmentsWithLetterCount,
   })  : _tiles = [],
         _pathSegments = [] {
     int countAttempts = 0;
@@ -101,7 +110,6 @@ class TrackFixGrid {
             index: i,
             row: i ~/ columnCount,
             col: i % columnCount,
-            isPath: false,
             letter: null));
       }
 
@@ -109,8 +117,8 @@ class TrackFixGrid {
         final isSuccess = _pathGeneration(
           minimumSegmentLength: minimumSegmentLength,
           maximumSegmentLength: maximumSegmentLength,
-          expectedSegmentsCount: segmentsCount,
-          segmentsWithLettersCount: segmentsWithLettersCount,
+          expectedSegmentCount: segmentCount,
+          segmentsWithLetterCount: segmentsWithLetterCount,
         );
         if (isSuccess) break;
       } catch (e) {
@@ -124,11 +132,11 @@ class TrackFixGrid {
   bool _pathGeneration({
     required int minimumSegmentLength,
     required int maximumSegmentLength,
-    required int expectedSegmentsCount,
-    required int segmentsWithLettersCount,
+    required int expectedSegmentCount,
+    required int segmentsWithLetterCount,
   }) {
-    if (expectedSegmentsCount % 2 == 0) {
-      throw ArgumentError('expectedSegmentsCount must be odd');
+    if (expectedSegmentCount % 2 == 0) {
+      throw ArgumentError('Expected segment count must be odd');
     }
 
     _pathSegments.clear();
@@ -136,6 +144,7 @@ class TrackFixGrid {
     var startingTile = tileAt(index: _random.nextInt(columnCount));
     var direction = PathDirection.horizontal;
     int safetyCount = 0;
+    List<bool> isTileAPath = List.filled(_tiles.length, false);
     while (true) {
       // Check for failing conditions that should trigger a restart of the algorithm
       if (safetyCount > rowCount) {
@@ -156,7 +165,7 @@ class TrackFixGrid {
       if (direction == PathDirection.horizontal &&
           startingTile.row == rowCount - 1) {
         // Only accept paths that generate the expected number of words
-        if (_pathSegments.length != expectedSegmentsCount) return false;
+        if (_pathSegments.length != expectedSegmentCount) return false;
         break;
       }
 
@@ -174,8 +183,9 @@ class TrackFixGrid {
       for (var i = 0; i < currentPathSegment.length; i++) {
         final currentTile =
             tileOfSegmentAt(segment: currentPathSegment, index: i);
+        // If any tile is outside of the grid, reject the word
         if (currentTile == null) return false;
-        currentTile._isPath = true;
+        isTileAPath[currentTile.index] = true;
       }
 
       // Move to cursor to the end (or beginning) of the word
@@ -184,8 +194,8 @@ class TrackFixGrid {
 
     // Add a letter randomly to the segments (with the very first segment always with a letter)
     final segmentsToNotAddLetters =
-        List.generate(expectedSegmentsCount - 1, (int i) => i + 1);
-    for (int i = 0; i < segmentsWithLettersCount - 1; i++) {
+        List.generate(expectedSegmentCount - 1, (int i) => i + 1);
+    for (int i = 0; i < segmentsWithLetterCount - 1; i++) {
       // -1 to account for always having a letter in the first segment
       segmentsToNotAddLetters
           .removeAt(_random.nextInt(segmentsToNotAddLetters.length));
@@ -202,6 +212,10 @@ class TrackFixGrid {
       tile.letter = ValuableLetter.getRandom(maxValue: 3);
     }
 
+    // Now, simply remove all the non-path tiles in the grid as they are not useful
+    for (int i = 0; i < _tiles.length; i++) {
+      if (!isTileAPath[i]) _tiles[i] = null;
+    }
     return true;
   }
 
@@ -214,7 +228,7 @@ class TrackFixGrid {
     if (startingTile == null) return null;
 
     // Choose a length for the next word between 4 and 8 letters
-    var lettersCount =
+    var letterCount =
         _random.nextInt(maximumSegmentLength - minimumSegmentLength + 1) +
             minimumSegmentLength;
 
@@ -224,23 +238,21 @@ class TrackFixGrid {
           bool fromStart = startingTile.col < columnCount ~/ 2;
           final maxLength =
               fromStart ? columnCount - startingTile.col : startingTile.col;
-          if (lettersCount > maxLength) lettersCount = maxLength;
+          if (letterCount > maxLength) letterCount = maxLength;
 
           if (!fromStart) {
             startingTile = tileAt(
-                row: startingTile.row,
-                col: startingTile.col - lettersCount + 1);
+                row: startingTile.row, col: startingTile.col - letterCount + 1);
             if (startingTile == null) return null;
           }
           final lastTile = tileAt(
-              row: startingTile.row,
-              col: startingTile.col + (lettersCount - 1));
+              row: startingTile.row, col: startingTile.col + (letterCount - 1));
           if (lastTile == null) return null;
 
           return PathSegment(
             startingTileIndex: startingTile.index,
             anchorTileIndex: (fromStart ? lastTile : startingTile).index,
-            length: lettersCount,
+            length: letterCount,
             direction: direction,
             word: null,
           );
@@ -249,16 +261,15 @@ class TrackFixGrid {
         {
           // Make sure the word fits in the column
           final maxLength = rowCount - startingTile.row;
-          if (lettersCount > maxLength) lettersCount = maxLength;
+          if (letterCount > maxLength) letterCount = maxLength;
           final lastTile = tileAt(
-              row: startingTile.row + (lettersCount - 1),
-              col: startingTile.col);
+              row: startingTile.row + (letterCount - 1), col: startingTile.col);
           if (lastTile == null) return null;
 
           return PathSegment(
             startingTileIndex: startingTile.index,
             anchorTileIndex: lastTile.index,
-            length: lettersCount,
+            length: letterCount,
             direction: direction,
             word: null,
           );
@@ -284,8 +295,6 @@ class Tile {
   final int index;
   final int row;
   final int col;
-  bool _isPath;
-  bool get isPath => _isPath;
 
   String? letter;
   bool get hasLetter => letter != null;
@@ -294,16 +303,14 @@ class Tile {
     required this.index,
     required this.row,
     required this.col,
-    required bool isPath,
     required this.letter,
-  }) : _isPath = isPath;
+  });
 
   Map<String, dynamic> serialize() => {
         'index': index,
         'row': row,
         'col': col,
-        'is_path': isPath,
-        'letter': letter,
+        if (letter != null) 'letter': letter,
       };
 
   static Tile deserialize(Map<String, dynamic> data) {
@@ -311,7 +318,6 @@ class Tile {
       index: data['index'] as int,
       row: data['row'] as int,
       col: data['col'] as int,
-      isPath: data['is_path'] as bool,
       letter: data['letter'] as String?,
     );
   }
@@ -350,7 +356,7 @@ class PathSegment {
         'starting_tile_index': startingTileIndex,
         'anchor_tile_index': anchorTileIndex,
         'direction': direction.index,
-        'word': word,
+        if (word != null) 'word': word,
       };
 
   static PathSegment fromSerialized(Map<String, dynamic> data) {

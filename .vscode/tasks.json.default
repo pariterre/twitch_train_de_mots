@@ -23,7 +23,14 @@
       "args": [ "extensions" ],
       "problemMatcher": [ ],
       "isBackground": false
-    }
+    },
+    {
+      "label": "Build Extensions release for local",
+      "type": "shell",
+      "command": "make",
+      "args": [ "extensions_local" ],
+      "problemMatcher": [ ],
+      "isBackground": false
+    },
   ]
 }
-  

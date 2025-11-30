@@ -100,8 +100,8 @@ class TrackFixGameManager implements MiniGameManager {
   static const int _columnCount = 10;
   static const int _minimumSegmentLength = 4;
   static const int _maximumSegmentLength = 8;
-  static const int _expectedSegmentsCount = 9;
-  static const int _expectedSegmentsWithLettersCount = 5;
+  static const int _expectedSegmentCount = 9;
+  static const int _expectedSegmentsWithLetterCount = 5;
 
   TrackFixGrid? _grid;
   TrackFixGrid get grid => _grid!;
@@ -136,8 +136,8 @@ class TrackFixGameManager implements MiniGameManager {
         columnCount: _columnCount,
         minimumSegmentLength: _minimumSegmentLength,
         maximumSegmentLength: _maximumSegmentLength,
-        segmentsCount: _expectedSegmentsCount,
-        segmentsWithLettersCount: _expectedSegmentsWithLettersCount,
+        segmentCount: _expectedSegmentCount,
+        segmentsWithLetterCount: _expectedSegmentsWithLetterCount,
       );
       // Check that all segments have at least one valid word in the dictionary
       for (final segment in _grid!.segments) {
@@ -194,6 +194,7 @@ class TrackFixGameManager implements MiniGameManager {
     final solutionStatus = tryFixSegment(word);
     if (solutionStatus == TrackFixSolutionStatus.isValid) {
       _playersPoints[playerName] = wordValue;
+      onGameUpdated.notifyListeners((callback) => callback());
     }
 
     onTrySolution.notifyListeners((callback) => callback(

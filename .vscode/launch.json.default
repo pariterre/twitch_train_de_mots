@@ -89,5 +89,11 @@
             "request": "launch",
             "preLaunchTask": "Build Extensions release",
         },
+        {
+            "name": "Release extensions for local",
+            "type": "dart",
+            "request": "launch",
+            "preLaunchTask": "Build Extensions release for local",
+        },
     ]
 }

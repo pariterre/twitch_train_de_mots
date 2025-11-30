@@ -14,7 +14,7 @@ class TrackFixGameGrid extends StatelessWidget {
 
   final int rowCount;
   final int columnCount;
-  final Tile Function(int row, int col) getTileAt;
+  final Tile? Function(int row, int col) getTileAt;
 
   @override
   Widget build(BuildContext context) {

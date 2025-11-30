@@ -10,10 +10,10 @@ import 'package:train_de_mots/generic/managers/managers.dart';
 class CongratulationLayer extends StatefulWidget {
   const CongratulationLayer(
       {super.key,
-      this.maxFireworksCount = 10,
+      this.maxFireworkCount = 10,
       this.duration = const Duration(seconds: 8)});
 
-  final int maxFireworksCount;
+  final int maxFireworkCount;
   final Duration duration;
 
   @override
@@ -39,7 +39,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     super.initState();
 
     final random = Random();
-    for (var i = 0; i < widget.maxFireworksCount; i++) {
+    for (var i = 0; i < widget.maxFireworkCount; i++) {
       // Randomize the fireworks color
       _positions
           .add(Offset(random.nextDouble() - 0.5, random.nextDouble() - 0.5));
@@ -75,7 +75,7 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
         congratulerName: info['player_name'] ?? 'Anonymous'));
 
     Random random = Random();
-    for (int i = 0; i < widget.maxFireworksCount; i++) {
+    for (int i = 0; i < widget.maxFireworkCount; i++) {
       Future.delayed(Duration(milliseconds: random.nextInt(1000))).then((_) {
         _fireworksController[i].trigger();
         Managers.instance.sound.playFireworks();

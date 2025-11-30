@@ -9,7 +9,7 @@ class TrackFixGameTile extends StatelessWidget {
     required this.textSize,
   });
 
-  final Tile tile;
+  final Tile? tile;
   final double tileSize;
   final double textSize;
 
@@ -24,17 +24,17 @@ class TrackFixGameTile extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              border: tile.isPath ? Border.all(width: tileSize * 0.03) : null,
+              border: tile == null ? null : Border.all(width: tileSize * 0.03),
             ),
-            child: tile.isPath
-                ? Image.asset(tile.hasLetter
+            child: tile == null
+                ? null
+                : Image.asset(tile!.hasLetter
                     ? 'packages/common/assets/images/track_fix/open_grass.png'
-                    : 'packages/common/assets/images/track_fix/grass.png')
-                : null,
+                    : 'packages/common/assets/images/track_fix/grass.png'),
           ),
-          if (tile.hasLetter)
+          if (tile?.hasLetter ?? false)
             Text(
-              tile.letter!,
+              tile!.letter!,
               style: TextStyle(
                   color: Colors.white,
                   fontSize: textSize * 0.65,

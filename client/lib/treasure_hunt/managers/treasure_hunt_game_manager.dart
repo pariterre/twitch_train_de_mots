@@ -99,7 +99,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   // Size of the grid
   final int _rowCount = 20;
   final int _columnCount = 10;
-  final int _rewardsCount = 40;
+  final int _rewardCount = 40;
   TreasureHuntGrid? _grid;
   TreasureHuntGrid get grid => _grid!;
 
@@ -131,7 +131,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     _grid = TreasureHuntGrid.random(
         rowCount: _rowCount,
         columnCount: _columnCount,
-        rewardsCount: _rewardsCount,
+        rewardCount: _rewardCount,
         problem: _problem!);
     _isMainTimerRunning = false;
     _timeRemaining = Duration(

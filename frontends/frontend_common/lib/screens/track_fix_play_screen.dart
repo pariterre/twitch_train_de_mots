@@ -9,8 +9,6 @@ class TrackFixPlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
-        GameManager.instance.miniGameState as SerializableTrackFixGameState;
     return Center(
       child: Column(
         children: [
@@ -24,16 +22,51 @@ class TrackFixPlayScreen extends StatelessWidget {
               height: (constraints.maxWidth * 1.5 -
                   2 * 20 -
                   2 * ThemeManager.instance.textSize),
-              child: Center(
-                child: TrackFixGameGrid(
-                  rowCount: thm.grid.rowCount,
-                  columnCount: thm.grid.columnCount,
-                  getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col)!,
-                ),
-              ),
+              child: _TrackGrid(),
             );
           }),
         ],
+      ),
+    );
+  }
+}
+
+class _TrackGrid extends StatefulWidget {
+  const _TrackGrid();
+
+  @override
+  State<_TrackGrid> createState() => _TrackGridState();
+}
+
+class _TrackGridState extends State<_TrackGrid> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.listen(refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.cancel(refresh);
+  }
+
+  void refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final thm =
+        GameManager.instance.miniGameState as SerializableTrackFixGameState;
+
+    return Center(
+      child: TrackFixGameGrid(
+        rowCount: thm.grid.rowCount,
+        columnCount: thm.grid.columnCount,
+        getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col),
       ),
     );
   }

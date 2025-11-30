@@ -93,7 +93,7 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
                     rowCount: fgm.grid.rowCount,
                     columnCount: fgm.grid.columnCount,
                     getTileAt: (int row, int col) =>
-                        fgm.grid.tileAt(row: row, col: col)!,
+                        fgm.grid.tileAt(row: row, col: col),
                   ),
                 ),
               ],
