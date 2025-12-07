@@ -196,6 +196,7 @@ class WordsTrainGameManager {
   bool _canChangeLane = false;
   bool _isChangingLane = false;
   bool get canChangeLane => _canChangeLane && !_isChangingLane;
+  bool canRequestChangeOfLane({required String? playerName}) => canChangeLane;
 
   bool _canAttemptTheBigHeist = false;
   bool _isAttemptingTheBigHeist = false;
@@ -210,7 +211,7 @@ class WordsTrainGameManager {
   bool _canAttemptEndOfRailwayMiniGame = false;
   bool _isAttemptingEndOfRailwayMiniGame = false;
   String? _playerPreparingEndOfRailwayMiniGame;
-  bool canAttemptEndOfRailwayMiniGame({required String? playerName}) =>
+  bool canRequestEndOfRailwayMiniGame({required String? playerName}) =>
       _canAttemptEndOfRailwayMiniGame &&
       !_isAttemptingEndOfRailwayMiniGame &&
       (_playerPreparingEndOfRailwayMiniGame == null ||
@@ -792,7 +793,7 @@ class WordsTrainGameManager {
 
   Future<void> requestPrepareEndOfRailwayMiniGame(
       {required String playerName}) async {
-    if (!canAttemptEndOfRailwayMiniGame(playerName: playerName)) return;
+    if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return;
 
     _playerPreparingEndOfRailwayMiniGame = playerName;
     onEndOfRailwayMiniGameIsBeingPrepared.notifyListeners(
@@ -810,7 +811,7 @@ class WordsTrainGameManager {
   bool requestEndOfRailwayMiniGame({required String playerName}) {
     _logger.info('Requesting an end of railway mini game...');
 
-    if (!canAttemptEndOfRailwayMiniGame(playerName: playerName)) return false;
+    if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return false;
     _playerPreparingEndOfRailwayMiniGame = null;
     _railwayMiniGamesAttempted += 1;
 

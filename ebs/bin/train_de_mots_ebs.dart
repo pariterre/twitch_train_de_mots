@@ -52,7 +52,7 @@ void main(List<String> arguments) async {
               broadcasterId: broadcasterId,
               ebsInfo: ebsInfo,
               sendPort: sendPort,
-              useMockedTwitchApi: _useTwitchMocker,
+              useMockedTwitchEbsApi: _useTwitchMocker,
               acceptedExtensionVersions: _acceptedExtensionVersions));
 
   _logger.info(
@@ -135,7 +135,10 @@ void _setupLoggerFromArguments(List<String> arguments) {
 }
 
 TwitchEbsInfo getTwitchEbsInfo() {
-  final extensionSharedSecret = _useTwitchMocker
+  final bool useMockedSharedSecret = Platform
+          .environment['TRAIN_DE_MOTS_USE_MOCKED_EXTENSION_SHARED_SECRET'] ==
+      'true';
+  final extensionSharedSecret = useMockedSharedSecret
       ? mockedSharedSecret
       : Platform.environment['TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET'];
   if (extensionSharedSecret == null) {

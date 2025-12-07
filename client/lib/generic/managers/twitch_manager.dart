@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:twitch_manager/twitch_app.dart';
-import 'package:twitch_manager/twitch_utils.dart';
 
 final _logger = Logger('TwitchManager');
 
@@ -47,7 +46,7 @@ class TwitchManager {
   Future<void> _tryAutomaticConnect() async {
     _isConnecting = true;
     _manager = await (_useMocker
-        ? TwitchManagerMock.factory(
+        ? TwitchAppManagerMock.factory(
             appInfo: appInfo,
             debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions)
         : TwitchAppManager.factory(appInfo: appInfo, reload: true));

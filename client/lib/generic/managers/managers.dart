@@ -1,9 +1,9 @@
 import 'package:common/generic/models/exceptions.dart';
 import 'package:train_de_mots/generic/managers/configuration_manager.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
-import 'package:train_de_mots/generic/managers/ebs_server_manager.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:train_de_mots/generic/managers/sound_manager.dart';
+import 'package:train_de_mots/generic/managers/twitch_app_ebs_manager.dart';
 import 'package:train_de_mots/generic/managers/twitch_manager.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/managers/words_train_game_manager.dart';
@@ -76,8 +76,8 @@ class Managers {
 
     // Initialize the EBS server manager
     _instance._ebs = MocksConfiguration.useEbsMock
-        ? EbsServerManagerMocked(appInfo: twitchAppInfo)
-        : EbsServerManager(appInfo: twitchAppInfo);
+        ? TwitchAppEbsManagerMocked(appInfo: twitchAppInfo)
+        : TwitchAppEbsManager(appInfo: twitchAppInfo);
 
     // Wait for all the manager to be ready
     while (!(_instance._database?.isInitialized ?? false) ||
@@ -145,8 +145,8 @@ class Managers {
     return _twitch!;
   }
 
-  EbsServerManager? _ebs;
-  EbsServerManager get ebs {
+  TwitchAppEbsManager? _ebs;
+  TwitchAppEbsManager get ebs {
     if (_ebs == null) {
       throw ManagerNotInitializedException(
           'EbsServerManager is not initialized. Please call Managers.initialize() before using it.');

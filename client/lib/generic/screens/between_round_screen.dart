@@ -291,7 +291,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick &&
-                            gm.canAttemptEndOfRailwayMiniGame(playerName: null)
+                            gm.canRequestEndOfRailwayMiniGame(playerName: null)
                         ? () => gm.requestEndOfRailwayMiniGame(
                             playerName: 'Anonyme')
                         : null,

@@ -33,22 +33,22 @@ class TwitchManager {
   }
 
   final bool useLocalEbs;
-  final bool useMockerAuthenticator;
+  final bool useTwitchAuthenticatorMock;
 
   ///
   /// Initialize the TwitchManager
   static Future<void> initialize({
-    bool useTwitchEbsMocker = false,
-    bool useMockerAuthenticator = false,
+    bool useEbsMock = false,
+    bool useTwitchAuthenticatorMock = false,
     bool useLocalEbs = false,
   }) async =>
-      useTwitchEbsMocker
+      useEbsMock
           ? _instance = TwitchManagerMock(
               useLocalEbs: useLocalEbs,
-              useMockerAuthenticator: useMockerAuthenticator)
+              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock)
           : _instance = TwitchManager._(
               useLocalEbs: useLocalEbs,
-              useMockerAuthenticator: useMockerAuthenticator);
+              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock);
 
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
@@ -125,7 +125,6 @@ class TwitchManager {
   /// Request to change lanes during main game.
   Future<bool> changeLane() async {
     // Annonce to App that a change of lane request is being redeemed
-    // TODO Test this
     final response =
         await _sendMessageToApp(ToAppMessages.changeLaneRequest).timeout(
       const Duration(seconds: 5),
@@ -137,12 +136,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    TwitchManager.instance.frontendManager.bits
-        .useBits(Sku.changeLane.toString());
-
-    // When the transaction is successful, onTransactionCompleted is called
-    // So for now, return immediately
-    return true;
+    return _useBits(Sku.changeLane);
   }
 
   ///
@@ -161,12 +155,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    TwitchManager.instance.frontendManager.bits
-        .useBits(Sku.bigHeist.toString());
-
-    // When the transaction is successful, onTransactionCompleted is called
-    // So for now, return immediately
-    return true;
+    return _useBits(Sku.bigHeist);
   }
 
   ///
@@ -186,12 +175,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    TwitchManager.instance.frontendManager.bits
-        .useBits(Sku.endRailwayMiniGame.toString());
-
-    // When the transaction is successful, onTransactionCompleted is called
-    // So for now, return immediately
-    return true;
+    return _useBits(Sku.endRailwayMiniGame);
   }
 
   ///
@@ -210,13 +194,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    // The user has 15 seconds to redeem and be sure it will work
-    TwitchManager.instance.frontendManager.bits
-        .useBits(Sku.celebrate.toString());
-
-    // When the transaction is successful, onTransactionCompleted is called
-    // So for now, return immediately
-    return true;
+    return _useBits(Sku.celebrate);
   }
 
   ///
@@ -292,7 +270,7 @@ class TwitchManager {
   }
 
   TwitchManager._(
-      {required this.useLocalEbs, required this.useMockerAuthenticator}) {
+      {required this.useLocalEbs, required this.useTwitchAuthenticatorMock}) {
     _callTwitchFrontendManagerFactory();
   }
 
@@ -305,8 +283,9 @@ class TwitchManager {
             : 'wss://twitchserver.pariterre.net:3010'),
       ),
       isTwitchUserIdRequired: true,
-      mockedAuthenticatorInitializer:
-          useMockerAuthenticator ? () => MockedTwitchJwtAuthenticator() : null,
+      mockedAuthenticatorInitializer: useTwitchAuthenticatorMock
+          ? () => MockedTwitchJwtAuthenticator()
+          : null,
     );
 
     await _onFinishedInitializing();
@@ -344,6 +323,24 @@ class TwitchManager {
     } catch (e) {
       // The message is not a valid JSON, ignore it
     }
+  }
+
+  ///
+  /// Use bits cannot be blocking as it does not confirm anything. If successful
+  /// the onTransactionCompleted callback will be automatically called.
+  bool _useBits(Sku sku) {
+    TwitchManager.instance.frontendManager.bits.useBits(sku.toString());
+
+    if (_frontendManager!.authenticator is MockedTwitchJwtAuthenticator) {
+      // Simulate a successful transaction after 250 milliseconds
+      Future.delayed(const Duration(milliseconds: 250)).then((_) {
+        _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
+            userId: userId,
+            sku: sku.toString(),
+            sharedSecret: mockedSharedSecret));
+      });
+    }
+    return true;
   }
 
   Future<void> _onBitsTransactionCompleted(
@@ -396,7 +393,7 @@ class TwitchManager {
 
 class TwitchManagerMock extends TwitchManager {
   TwitchManagerMock(
-      {required super.useLocalEbs, required super.useMockerAuthenticator})
+      {required super.useLocalEbs, required super.useTwitchAuthenticatorMock})
       : super._() {
     _logger.info('WARNING: Using TwitchManagerMock');
     _onFinishedInitializing();
@@ -604,61 +601,55 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   @override
-  Future<bool> changeLane() async {
-    return true;
-  }
-
-  @override
-  Future<bool> attemptTheBigHeist() async {
-    _onPubSubMessageReceived(tm.MessageProtocol(
-        to: tm.MessageTo.frontend,
-        from: tm.MessageFrom.app,
-        type: tm.MessageTypes.response,
-        isSuccess: true,
-        data: jsonDecode(jsonEncode({
-          'type': ToFrontendMessages.gameState.name,
-          'game_state': SerializableGameState(
-            status: WordsTrainGameStatus.miniGameStarted,
-            round: 11,
-            isRoundSuccess: true,
-            timeRemaining: const Duration(seconds: 83),
-            newCooldowns: {userId: const Duration(seconds: 5)},
-            letterProblem: SerializableLetterProblem(
-              letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-              scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-              uselessLetterStatuses: List.generate(
-                  10,
-                  (index) =>
-                      index == 9 ? LetterStatus.hidden : LetterStatus.normal),
-              hiddenLetterStatuses: List.generate(
-                  10,
-                  (index) =>
-                      index == 2 ? LetterStatus.hidden : LetterStatus.normal),
-            ),
-            pardonRemaining: 1,
-            pardonners: [userId],
-            boostRemaining: 1,
-            boostStillNeeded: 0,
-            boosters: [],
-            canAttemptTheBigHeist: false,
-            isAttemptingTheBigHeist: true,
-            canAttemptEndOfRailwayMiniGame: true,
-            isAttemptingEndOfRailwayMiniGame: false,
-            configuration: SerializableConfiguration(showExtension: true),
-            miniGameState: null,
-          ).serialize(),
-        }))));
-    return true;
-  }
-
-  @override
-  Future<bool> attemptEndOfRailwayMiniGame() async {
-    return true;
-  }
-
-  @override
-  Future<bool> celebrate() async {
-    return true;
+  bool _useBits(Sku sku) {
+    switch (sku) {
+      case Sku.changeLane:
+      case Sku.endRailwayMiniGame:
+      case Sku.celebrate:
+        return true;
+      case Sku.bigHeist:
+        _onPubSubMessageReceived(tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true,
+            data: jsonDecode(jsonEncode({
+              'type': ToFrontendMessages.gameState.name,
+              'game_state': SerializableGameState(
+                status: WordsTrainGameStatus.miniGameStarted,
+                round: 11,
+                isRoundSuccess: true,
+                timeRemaining: const Duration(seconds: 83),
+                newCooldowns: {userId: const Duration(seconds: 5)},
+                letterProblem: SerializableLetterProblem(
+                  letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                  scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                  uselessLetterStatuses: List.generate(
+                      10,
+                      (index) => index == 9
+                          ? LetterStatus.hidden
+                          : LetterStatus.normal),
+                  hiddenLetterStatuses: List.generate(
+                      10,
+                      (index) => index == 2
+                          ? LetterStatus.hidden
+                          : LetterStatus.normal),
+                ),
+                pardonRemaining: 1,
+                pardonners: [userId],
+                boostRemaining: 1,
+                boostStillNeeded: 0,
+                boosters: [],
+                canAttemptTheBigHeist: false,
+                isAttemptingTheBigHeist: true,
+                canAttemptEndOfRailwayMiniGame: true,
+                isAttemptingEndOfRailwayMiniGame: false,
+                configuration: SerializableConfiguration(showExtension: true),
+                miniGameState: null,
+              ).serialize(),
+            }))));
+        return true;
+    }
   }
 
   @override
@@ -782,6 +773,15 @@ class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   @override
   tm.AppToken? get ebsToken {
     return tm.AppToken.fromSerialized(JWT({
+      'twitch_access_token': JWT({
+        'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600,
+        'channel_id': channelId,
+        'user_id': userId,
+        'opaque_user_id': opaqueUserId,
+        'role': 'external',
+        'is_unlinked': false,
+      }).sign(SecretKey(mockedSharedSecret, isBase64Encoded: true)),
       'channel_id': channelId,
       'opaque_user_id': opaqueUserId,
       'user_id': userId

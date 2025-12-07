@@ -45,23 +45,27 @@ class EbsManager extends TwitchEbsManagerAbstract {
     _gameState = value;
 
     // Convert the cooldowns from login to opaque id
-    for (final key in _gameState.newCooldowns.keys.toList()) {
-      final userId = loginToUserId[key] ?? -1;
-      _gameState.newCooldowns[userIdToOpaqueId[userId] ?? ''] =
-          _gameState.newCooldowns[key]!;
-      _gameState.newCooldowns.remove(key);
+    for (final login in _gameState.newCooldowns.keys.toList()) {
+      final opaqueId =
+          registeredFrontendUsers.from(login: login)?.opaqueId ?? '';
+      _gameState.newCooldowns[opaqueId] = _gameState.newCooldowns[login]!;
+      _gameState.newCooldowns.remove(login);
     }
 
     // Convert the pardonners from login to opaque id
     for (int i = 0; i < _gameState.pardonners.length; i++) {
-      final pardonnerId = loginToUserId[_gameState.pardonners[i]] ?? -1;
-      _gameState.pardonners[i] = userIdToOpaqueId[pardonnerId] ?? '';
+      _gameState.pardonners[i] = registeredFrontendUsers
+              .from(login: _gameState.pardonners[i])
+              ?.opaqueId ??
+          '';
     }
 
     // Convert the boosters from login to opaque id
     for (int i = 0; i < _gameState.boosters.length; i++) {
-      final boosterId = loginToUserId[_gameState.boosters[i]] ?? -1;
-      _gameState.boosters[i] = userIdToOpaqueId[boosterId] ?? '';
+      _gameState.boosters[i] = registeredFrontendUsers
+              .from(login: _gameState.boosters[i])
+              ?.opaqueId ??
+          '';
     }
   }
 
@@ -74,19 +78,19 @@ class EbsManager extends TwitchEbsManagerAbstract {
     required String broadcasterId,
     required super.ebsInfo,
     required super.sendPort,
-    required bool useMockedTwitchApi,
+    required bool useMockedTwitchEbsApi,
     required List<String> acceptedExtensionVersions,
   }) : super(
             broadcasterId: broadcasterId,
-            twitchApiInitializer: useMockedTwitchApi
-                ? MockedTwitchApi.initialize
-                : TwitchApi.initialize) {
+            twitchEbsApiInitializer: useMockedTwitchEbsApi
+                ? TwitchEbsApiMocked.initialize
+                : TwitchEbsApi.initialize) {
     // Set up the logger
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
     _logger.info('Sending welcome message');
-    TwitchApi.instance.sendChatMessage('Bienvenue au Train de mots!');
+    TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!');
 
     // Send if the extension is active to the frontend
     _sendExtensionActiveStatus(acceptedExtensionVersions);
@@ -100,7 +104,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': ToAppMessages.isExtensionActive.name,
-          'active_version': await TwitchApi.instance.activeExtensionVersion(),
+          'active_version':
+              await TwitchEbsApi.instance.activeExtensionVersion(),
           'accepted_versions': acceptedExtensionVersions,
         }));
   }
@@ -144,7 +149,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   /// [word] the word that is being tried
   Future<bool> _frontendTryAWord(String userId, String word) async {
     _logger.info('Resquesting to try the word $word');
-    final playerName = userIdToLogin[userId];
+    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -168,7 +173,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedToPardon(String userId) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    final playerName = userIdToLogin[userId];
+    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -184,7 +189,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
         }));
     if (response.isSuccess ?? false) {
       _gameState.pardonRemaining--;
-      _gameState.pardonners.remove(userIdToOpaqueId[userId]);
+      _gameState.pardonners
+          .remove(registeredFrontendUsers.from(userId: userId)?.opaqueId);
     }
     return response.isSuccess ?? false;
   }
@@ -195,7 +201,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedBoosted(String userId) async {
     _logger.info('Resquesting to boost the train');
 
-    final playerName = userIdToLogin[userId];
+    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -212,7 +218,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     final isSuccess = response.isSuccess ?? false;
     if (isSuccess) {
       _gameState.boostStillNeeded--;
-      _gameState.boosters.add(userIdToOpaqueId[userId] ?? '');
+      _gameState.boosters
+          .add(registeredFrontendUsers.from(userId: userId)?.opaqueId ?? '');
     }
 
     return isSuccess;
@@ -221,7 +228,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedRevealTileAt(String userId, int index) async {
     _logger.info('Resquesting to reveal tile at $index');
 
-    final playerName = userIdToLogin[userId];
+    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -243,7 +250,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
       {required int id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshoot at $id');
 
-    final playerName = userIdToLogin[userId];
+    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -349,9 +356,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     }
 
     try {
-      if (message.to != MessageTo.app) {
-        throw 'Request not supported';
-      }
+      if (message.to != MessageTo.app) throw 'Request not supported';
 
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:
@@ -417,8 +422,25 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.attemptTheBigHeist:
         case ToAppMessages.changeLaneRequest:
         case ToAppMessages.endRailwayMiniGameRequest:
-          // TODO change this?
-          throw 'Request is supposed to come from bit transaction';
+          final playerName =
+              registeredFrontendUsers.from(userId: userId)?.login;
+
+          final response = await communicator.sendQuestion(MessageProtocol(
+              to: MessageTo.app,
+              from: MessageFrom.ebs,
+              type: MessageTypes.get,
+              data: {
+                'type': message.data!['type'],
+                'player_name': playerName,
+                'is_redeemed': false
+              }));
+
+          communicator.sendReponse(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.ebs,
+              type: MessageTypes.response,
+              isSuccess: response.isSuccess ?? false));
+          break;
 
         case ToAppMessages.bitsRedeemed:
           // This is expected to be from bits transaction
@@ -461,47 +483,43 @@ class EbsManager extends TwitchEbsManagerAbstract {
   }
 }
 
-class MockedTwitchApi extends MockedTwitchApiTemplate {
+class TwitchEbsApiMocked extends TwitchEbsApiMockerTemplate {
   static Future<void> initialize({
     required String broadcasterId,
     required TwitchEbsInfo ebsInfo,
   }) async =>
-      TwitchApi.initializeMocker(
+      TwitchEbsApi.initializeMocker(
           broadcasterId: broadcasterId,
           ebsInfo: ebsInfo,
-          mockedTwitchApi:
-              MockedTwitchApi(broadcasterId: broadcasterId, ebsInfo: ebsInfo));
+          twitchEbsApi: TwitchEbsApiMocked(
+              broadcasterId: broadcasterId, ebsInfo: ebsInfo));
 
-  MockedTwitchApi({required super.broadcasterId, required super.ebsInfo});
+  TwitchEbsApiMocked({required super.broadcasterId, required super.ebsInfo});
 
   final _random = Random();
-  final _players = <Map<String, dynamic>>[];
+  final _users = <TwitchUser>[];
 
-  Map<String, dynamic> _addRandomUser(
-      {String? userId, String? login, String? displayName}) {
-    final id = userId ?? _random.nextInt(1000000) + 1000000;
-    final name = login ?? 'user$id';
-    final display = displayName ?? 'User $id';
-
-    final newUser = {'id': id, 'login': name, 'display_name': display};
-    _players.add(newUser);
-    return newUser;
+  @override
+  Future<TwitchUser?> user({String? userId, String? login}) async {
+    _logger.fine('Getting user for ${userId ?? login}');
+    return _users.firstWhere(
+        (player) =>
+            (userId != null && player.userId == userId) ||
+            (login != null && player.login == login),
+        orElse: () => _addRandomUser(userId: userId, login: login));
   }
 
-  @override
-  Future<String?> userId({required String login}) async =>
-      _players.firstWhere((player) => player['login'] == login,
-          orElse: () => _addRandomUser(login: login))['id'];
+  TwitchUser _addRandomUser(
+      {String? userId, String? login, String? displayName}) {
+    userId ??= '${_random.nextInt(1000000) + 1000000}';
+    login ??= 'user$userId';
+    displayName ??= 'User $userId';
 
-  @override
-  Future<String?> login({required String userId}) async =>
-      _players.firstWhere((player) => player['id'] == userId,
-          orElse: () => _addRandomUser(userId: userId))['login'];
-
-  @override
-  Future<String?> displayName({required String userId}) async =>
-      _players.firstWhere((player) => player['id'] == userId,
-          orElse: () => _addRandomUser(userId: userId))['display_name'];
+    final newUser =
+        TwitchUser(userId: userId, login: login, displayName: displayName);
+    _users.add(newUser);
+    return newUser;
+  }
 
   ///
   /// Fake a successful API request

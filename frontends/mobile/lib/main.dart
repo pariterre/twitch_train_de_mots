@@ -9,12 +9,12 @@ void main() async {
     debugPrint(message);
   });
   await TwitchManager.initialize(
-    useTwitchEbsMocker: const bool.fromEnvironment(
-      'USE_TWITCH_EBS_MOCKER',
+    useEbsMock: const bool.fromEnvironment(
+      'USE_EBS_MOCK',
       defaultValue: false,
     ),
-    useMockerAuthenticator: const bool.fromEnvironment(
-      'USE_MOCKER_AUTHENTICATOR',
+    useTwitchAuthenticatorMock: const bool.fromEnvironment(
+      'USE_TWITCH_AUTHENTICATOR_MOCK',
       defaultValue: false,
     ),
     useLocalEbs: const bool.fromEnvironment(

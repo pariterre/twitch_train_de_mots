@@ -13,13 +13,13 @@ import 'package:twitch_manager/twitch_app.dart';
 
 final _logger = Logger('EbsServerManager');
 
-class EbsServerManager extends TwitchAppManagerAbstract {
+class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   ///
   /// Initialize the EbsServerManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  EbsServerManager({required super.appInfo}) {
+  TwitchAppEbsManager({required super.appInfo}) {
     if (appInfo.ebsUri == null) {
       throw ManagerNotInitializedException(
           'EbsServerManager cannot be initialized because no EBS URI is provided in TwitchAppInfo.');
@@ -203,7 +203,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
       canAttemptTheBigHeist: gm.canAttemptTheBigHeist(playerName: null),
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
       canAttemptEndOfRailwayMiniGame:
-          gm.canAttemptEndOfRailwayMiniGame(playerName: null),
+          gm.canRequestEndOfRailwayMiniGame(playerName: null),
       isAttemptingEndOfRailwayMiniGame: gm.isAttemptingEndOfRailwayMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
       miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
@@ -344,7 +344,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
         case ToAppMessages.changeLaneRequest:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canAttemptTheBigHeist(playerName: playerName);
+          final canRequest = gm.canRequestChangeOfLane(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -361,7 +361,7 @@ class EbsServerManager extends TwitchAppManagerAbstract {
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
           final canRequest =
-              gm.canAttemptEndOfRailwayMiniGame(playerName: playerName);
+              gm.canRequestEndOfRailwayMiniGame(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -423,8 +423,8 @@ class EbsServerManager extends TwitchAppManagerAbstract {
   }
 }
 
-class EbsServerManagerMocked extends EbsServerManager {
-  EbsServerManagerMocked({required super.appInfo}) {
+class TwitchAppEbsManagerMocked extends TwitchAppEbsManager {
+  TwitchAppEbsManagerMocked({required super.appInfo}) {
     // Simulate receiving extension is active after 2 seconds
     Future.delayed(const Duration(seconds: 1), () async {
       handleGetRequest(MessageProtocol(
