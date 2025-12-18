@@ -124,7 +124,7 @@ class SerializableGameState {
   int boostStillNeeded;
   List<String> boosters;
 
-  bool canAttemptTheBigHeist;
+  bool canRequestTheBigHeist;
   bool isAttemptingTheBigHeist;
 
   bool canRequestEndOfRailwayMiniGame;
@@ -148,7 +148,7 @@ class SerializableGameState {
     required this.boostRemaining,
     required this.boostStillNeeded,
     required this.boosters,
-    required this.canAttemptTheBigHeist,
+    required this.canRequestTheBigHeist,
     required this.isAttemptingTheBigHeist,
     required this.canRequestEndOfRailwayMiniGame,
     required this.isAttemptingEndOfRailwayMiniGame,
@@ -168,7 +168,7 @@ class SerializableGameState {
     int? boostRemaining,
     int? boostStillNeeded,
     List<String>? boosters,
-    bool? canAttemptTheBigHeist,
+    bool? canRequestTheBigHeist,
     bool? isAttemptingTheBigHeist,
     bool? canRequestEndOfRailwayMiniGame,
     bool? isAttemptingEndOfRailwayMiniGame,
@@ -187,8 +187,8 @@ class SerializableGameState {
         boostRemaining: boostRemaining ?? this.boostRemaining,
         boostStillNeeded: boostStillNeeded ?? this.boostStillNeeded,
         boosters: boosters ?? this.boosters,
-        canAttemptTheBigHeist:
-            canAttemptTheBigHeist ?? this.canAttemptTheBigHeist,
+        canRequestTheBigHeist:
+            canRequestTheBigHeist ?? this.canRequestTheBigHeist,
         isAttemptingTheBigHeist:
             isAttemptingTheBigHeist ?? this.isAttemptingTheBigHeist,
         canRequestEndOfRailwayMiniGame: canRequestEndOfRailwayMiniGame ??
@@ -213,9 +213,9 @@ class SerializableGameState {
       'boost_remaining': boostRemaining,
       'boost_still_needed': boostStillNeeded,
       'boosters': boosters,
-      'can_attempt_the_big_heist': canAttemptTheBigHeist,
+      'can_request_the_big_heist': canRequestTheBigHeist,
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
-      'can_attempt_end_mini_game': canRequestEndOfRailwayMiniGame,
+      'can_request_end_mini_game': canRequestEndOfRailwayMiniGame,
       'is_attempting_end_mini_game': isAttemptingEndOfRailwayMiniGame,
       'configuration': configuration.serialize(),
       'mini_game_state': miniGameState?.serialize(),
@@ -238,9 +238,9 @@ class SerializableGameState {
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
       boosters: (data['boosters'] as List).cast<String>(),
-      canAttemptTheBigHeist: data['can_attempt_the_big_heist'] as bool,
+      canRequestTheBigHeist: data['can_request_the_big_heist'] as bool,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
-      canRequestEndOfRailwayMiniGame: data['can_attempt_end_mini_game'] as bool,
+      canRequestEndOfRailwayMiniGame: data['can_request_end_mini_game'] as bool,
       isAttemptingEndOfRailwayMiniGame:
           data['is_attempting_end_mini_game'] as bool,
       configuration:

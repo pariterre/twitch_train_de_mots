@@ -62,7 +62,7 @@ class GameManager {
     boostRemaining: 0,
     boostStillNeeded: 0,
     boosters: [],
-    canAttemptTheBigHeist: false,
+    canRequestTheBigHeist: false,
     isAttemptingTheBigHeist: false,
     canRequestEndOfRailwayMiniGame: false,
     isAttemptingEndOfRailwayMiniGame: false,
@@ -138,12 +138,12 @@ class GameManager {
       _logger.info('Boosters changed to ${newGameState.boosters}');
     }
 
-    if (_gameState.canAttemptTheBigHeist !=
-        newGameState.canAttemptTheBigHeist) {
-      _gameState.canAttemptTheBigHeist = newGameState.canAttemptTheBigHeist;
+    if (_gameState.canRequestTheBigHeist !=
+        newGameState.canRequestTheBigHeist) {
+      _gameState.canRequestTheBigHeist = newGameState.canRequestTheBigHeist;
       onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info(
-          'Can attempt the big heist changed to ${newGameState.canAttemptTheBigHeist}');
+          'Can request the big heist changed to ${newGameState.canRequestTheBigHeist}');
     }
 
     if (_gameState.isAttemptingTheBigHeist !=
@@ -160,7 +160,7 @@ class GameManager {
           newGameState.canRequestEndOfRailwayMiniGame;
       onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info(
-          'Can attempt the end of railway mini game changed to ${newGameState.canRequestEndOfRailwayMiniGame}');
+          'Can request the end of railway mini game changed to ${newGameState.canRequestEndOfRailwayMiniGame}');
     }
 
     if (_gameState.isAttemptingEndOfRailwayMiniGame !=
@@ -274,13 +274,13 @@ class GameManager {
 
   ///
   /// Big heist management
-  bool get canAttemptTheBigHeist => _gameState.canAttemptTheBigHeist;
+  bool get canRequestTheBigHeist => _gameState.canRequestTheBigHeist;
   bool get isAttemptingTheBigHeist => _gameState.isAttemptingTheBigHeist;
   final onAttemptingTheBigHeist = GenericListener<Function()>();
 
   ///
   /// Track fix management
-  bool get canAttemptEndOfRailwayMiniGame =>
+  bool get canRequestEndOfRailwayMiniGame =>
       _gameState.canRequestEndOfRailwayMiniGame;
   bool get isAttemptingEndOfRailwayMiniGame =>
       _gameState.isAttemptingEndOfRailwayMiniGame;

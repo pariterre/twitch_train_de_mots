@@ -200,7 +200,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       boostRemaining: gm.remainingBoosts,
       boostStillNeeded: gm.numberOfBoostStillNeeded,
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
-      canAttemptTheBigHeist: gm.canRequestTheBigHeist(playerName: null),
+      canRequestTheBigHeist: gm.canRequestTheBigHeist(playerName: null),
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
       canRequestEndOfRailwayMiniGame:
           gm.canRequestEndOfRailwayMiniGame(playerName: null),

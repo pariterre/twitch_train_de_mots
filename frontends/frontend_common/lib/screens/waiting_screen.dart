@@ -139,7 +139,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 10),
-                        if (gm.canAttemptTheBigHeist)
+                        if (gm.canRequestTheBigHeist)
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -187,7 +187,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
-                        if (gm.canAttemptEndOfRailwayMiniGame)
+                        if (gm.canRequestEndOfRailwayMiniGame)
                           Container(
                             decoration: BoxDecoration(
                                 color: Colors.white.withAlpha(50),
