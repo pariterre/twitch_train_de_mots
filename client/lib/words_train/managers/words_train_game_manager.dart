@@ -201,7 +201,7 @@ class WordsTrainGameManager {
   bool _canAttemptTheBigHeist = false;
   bool _isAttemptingTheBigHeist = false;
   String? _playerPreparingTheBigHeist;
-  bool canAttemptTheBigHeist({required String? playerName}) =>
+  bool canRequestTheBigHeist({required String? playerName}) =>
       _canAttemptTheBigHeist &&
       !_isAttemptingTheBigHeist &&
       (_playerPreparingTheBigHeist == null ||
@@ -746,8 +746,9 @@ class WordsTrainGameManager {
     return true;
   }
 
-  Future<void> requestPrepareTheBigHeist({required String playerName}) async {
-    if (!canAttemptTheBigHeist(playerName: playerName)) return;
+  Future<void> requestTheBigHeistPreparation(
+      {required String playerName}) async {
+    if (!canRequestTheBigHeist(playerName: playerName)) return;
 
     _playerPreparingTheBigHeist = playerName;
     onBigHeistIsBeingPrepared.notifyListeners(
@@ -764,7 +765,7 @@ class WordsTrainGameManager {
 
   bool requestTheBigHeist({required String playerName}) {
     _logger.info('Requesting the big heist...');
-    if (!canAttemptTheBigHeist(playerName: playerName)) {
+    if (!canRequestTheBigHeist(playerName: playerName)) {
       _logger.warning('Big heist cannot be attempted');
       return false;
     }
@@ -791,7 +792,7 @@ class WordsTrainGameManager {
     return true;
   }
 
-  Future<void> requestPrepareEndOfRailwayMiniGame(
+  Future<void> requestEndOfRailwayMiniGamePreparation(
       {required String playerName}) async {
     if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return;
 
@@ -813,6 +814,7 @@ class WordsTrainGameManager {
 
     if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return false;
     _playerPreparingEndOfRailwayMiniGame = null;
+    _canAttemptEndOfRailwayMiniGame = false;
     _railwayMiniGamesAttempted += 1;
 
     _isAttemptingEndOfRailwayMiniGame = true;
@@ -845,7 +847,7 @@ class WordsTrainGameManager {
   ///
   /// Request a stop in countdown or capability to launch the game, so a player
   /// who is currenly redeeming a firework can do it
-  Future<void> requestPrepareFireworks({required String playerName}) async {
+  Future<void> requestFireworksPreparation({required String playerName}) async {
     if (!canRequestCongratulationFireworks(playerName: playerName)) return;
 
     _playerPreparingCongratulationFireworks = playerName;
@@ -863,7 +865,7 @@ class WordsTrainGameManager {
 
   ///
   /// Request the actual firework process
-  Future<void> requestStartFireworks({required String playerName}) async {
+  Future<void> requestFireworks({required String playerName}) async {
     if (!canRequestCongratulationFireworks(playerName: playerName)) return;
 
     _playerPreparingCongratulationFireworks = null;

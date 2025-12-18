@@ -184,7 +184,13 @@ class _ContinueSectionState extends State<_ContinueSection> {
       };
     } else {
       if (!gm.canProceedToNextRound) {
-        buttonText += 'Aiguillage du train en cours...';
+        if (!gm.canRequestEndOfRailwayMiniGame(playerName: null) ||
+            !gm.canRequestCongratulationFireworks(playerName: null) ||
+            !gm.canRequestTheBigHeist(playerName: null)) {
+          buttonText += 'Quelqu\'un prépare quelque chose!';
+        } else {
+          buttonText += 'Aiguillage du train en cours...';
+        }
       } else if (gm.successLevel == SuccessLevel.failed &&
           gm.hasPlayedAtLeastOnce) {
         buttonText += 'Relancer le train';
@@ -272,13 +278,13 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick
-                        ? () => gm.requestStartFireworks(playerName: 'Anonyme')
+                        ? () => gm.requestFireworks(playerName: 'Anonyme')
                         : null,
                     buttonText: 'BOOM!'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed:
-                        _canClick && gm.canAttemptTheBigHeist(playerName: null)
+                        _canClick && gm.canRequestTheBigHeist(playerName: null)
                             ? () => gm.requestTheBigHeist(playerName: 'Anonyme')
                             : null,
                     buttonText: 'Le grand coup'),

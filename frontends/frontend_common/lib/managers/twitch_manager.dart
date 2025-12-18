@@ -143,7 +143,6 @@ class TwitchManager {
   /// Request to attempt the big heist during the break.
   Future<bool> attemptTheBigHeist() async {
     // Annonce to App that a big heist request is being redeemed
-    // TODO Test this
     final response =
         await _sendMessageToApp(ToAppMessages.attemptTheBigHeist).timeout(
       const Duration(seconds: 5),
@@ -162,7 +161,6 @@ class TwitchManager {
   /// Request to attempt the end of railway minigame during the break.
   Future<bool> attemptEndOfRailwayMiniGame() async {
     // Annonce to App that an end of railway mini game request is being redeemed
-    // TODO Test this
     final response =
         await _sendMessageToApp(ToAppMessages.endRailwayMiniGameRequest)
             .timeout(
@@ -182,7 +180,6 @@ class TwitchManager {
   /// Send a celebration request during the break
   Future<bool> celebrate() async {
     // Annonce to App that a celebrate request is being redeemed
-    // TODO Test this
     final response =
         await _sendMessageToApp(ToAppMessages.fireworksRequest).timeout(
       const Duration(seconds: 5),
@@ -332,10 +329,10 @@ class TwitchManager {
     TwitchManager.instance.frontendManager.bits.useBits(sku.toString());
 
     if (_frontendManager!.authenticator is MockedTwitchJwtAuthenticator) {
-      // Simulate a successful transaction after 250 milliseconds
-      Future.delayed(const Duration(milliseconds: 250)).then((_) {
+      // Simulate a successful transaction after 1000 milliseconds
+      Future.delayed(const Duration(milliseconds: 1000)).then((_) {
         _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
-            userId: userId,
+            userId: _frontendManager!.authenticator.userId!,
             sku: sku.toString(),
             sharedSecret: mockedSharedSecret));
       });
@@ -346,8 +343,20 @@ class TwitchManager {
   Future<void> _onBitsTransactionCompleted(
       tm.BitsTransactionObject transaction) async {
     _logger.info('Bits transaction completed');
-    _logger.info('Transaction: ${transaction.toJson()}');
-    _redeemBitsTransaction(transaction);
+    final isSuccess = await _redeemBitsTransaction(transaction);
+    if (!isSuccess) return;
+
+    // Tell the GameManager that bits were used
+    switch (
+        Sku.fromString(transaction.extractedUnverifiedReceipt.product.sku)) {
+      case Sku.changeLane:
+        await GameManager.instance.changeLaneGranted();
+        break;
+      case Sku.bigHeist:
+      case Sku.endRailwayMiniGame:
+      case Sku.celebrate:
+        break;
+    }
   }
 
   Future<void> _requestGameStatus() async {
@@ -606,6 +615,13 @@ class TwitchManagerMock extends TwitchManager {
       case Sku.changeLane:
       case Sku.endRailwayMiniGame:
       case Sku.celebrate:
+        // Simulate a successful transaction after 1000 milliseconds
+        Future.delayed(const Duration(milliseconds: 1000)).then((_) {
+          _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
+              userId: userId,
+              sku: sku.toString(),
+              sharedSecret: mockedSharedSecret));
+        });
         return true;
       case Sku.bigHeist:
         _onPubSubMessageReceived(tm.MessageProtocol(
@@ -642,7 +658,7 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: true,
-                canAttemptEndOfRailwayMiniGame: true,
+                canRequestEndOfRailwayMiniGame: true,
                 isAttemptingEndOfRailwayMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: null,
@@ -712,7 +728,7 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canAttemptTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
-                canAttemptEndOfRailwayMiniGame: true,
+                canRequestEndOfRailwayMiniGame: true,
                 isAttemptingEndOfRailwayMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableTrackFixGameState(
@@ -732,9 +748,11 @@ class TwitchManagerMock extends TwitchManager {
       case ToAppMessages.attemptTheBigHeist:
       case ToAppMessages.changeLaneRequest:
       case ToAppMessages.endRailwayMiniGameRequest:
-        // TODO Change this?
-        throw Exception('These are bits transactions and should only be called '
-            'with the method _redeemBitsTransaction');
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
 
       case ToAppMessages.bitsRedeemed:
         return tm.MessageProtocol(
@@ -803,7 +821,7 @@ class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   /// to be true when calling the [connect] method
   final _userId = (Random().nextInt(8000000) + 1000000000).toString();
   @override
-  String? get userId => _userId;
+  String? get userId => 'Mocked_$_userId';
 
   @override
   void requestIdShare() {

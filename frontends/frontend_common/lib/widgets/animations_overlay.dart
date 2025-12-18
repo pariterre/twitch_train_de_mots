@@ -71,8 +71,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
     _trainGotBoostedController.triggerAnimation(const _TrainGotBoosted());
   }
 
-  void _showChangeLane(bool isChangeLane) {
-    if (!isChangeLane) return;
+  void _showChangeLane() {
     _changeLaneController.triggerAnimation(const _ChangeLane());
   }
 

@@ -200,9 +200,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       boostRemaining: gm.remainingBoosts,
       boostStillNeeded: gm.numberOfBoostStillNeeded,
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
-      canAttemptTheBigHeist: gm.canAttemptTheBigHeist(playerName: null),
+      canAttemptTheBigHeist: gm.canRequestTheBigHeist(playerName: null),
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      canAttemptEndOfRailwayMiniGame:
+      canRequestEndOfRailwayMiniGame:
           gm.canRequestEndOfRailwayMiniGame(playerName: null),
       isAttemptingEndOfRailwayMiniGame: gm.isAttemptingEndOfRailwayMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
@@ -316,9 +316,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
           if (canRequest) {
             if (isRedeemed) {
-              gm.requestStartFireworks(playerName: playerName);
+              gm.requestFireworks(playerName: playerName);
             } else {
-              gm.requestPrepareFireworks(playerName: playerName);
+              gm.requestFireworksPreparation(playerName: playerName);
             }
           }
 
@@ -327,7 +327,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         case ToAppMessages.attemptTheBigHeist:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canAttemptTheBigHeist(playerName: playerName);
+          final canRequest = gm.canRequestTheBigHeist(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -335,8 +335,13 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
               type: MessageTypes.response,
               isSuccess: canRequest));
 
-          if (canRequest && isRedeemed) {
-            gm.requestTheBigHeist(playerName: playerName);
+          if (canRequest) {
+            if (isRedeemed) {
+              gm.requestTheBigHeist(playerName: playerName);
+              _sendGameStateToEbs();
+            } else {
+              gm.requestTheBigHeistPreparation(playerName: playerName);
+            }
           }
 
           break;
@@ -369,8 +374,13 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
               type: MessageTypes.response,
               isSuccess: canRequest));
 
-          if (canRequest && isRedeemed) {
-            gm.requestEndOfRailwayMiniGame(playerName: playerName);
+          if (canRequest) {
+            if (isRedeemed) {
+              gm.requestEndOfRailwayMiniGame(playerName: playerName);
+              _sendGameStateToEbs();
+            } else {
+              gm.requestEndOfRailwayMiniGamePreparation(playerName: playerName);
+            }
           }
           break;
 

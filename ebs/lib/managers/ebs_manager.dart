@@ -35,7 +35,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    canAttemptEndOfRailwayMiniGame: false,
+    canRequestEndOfRailwayMiniGame: false,
     isAttemptingEndOfRailwayMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
@@ -361,7 +361,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
       switch (ToAppMessages.values.byName(message.data!['type'])) {
         case ToAppMessages.gameStateRequest:
           final response = await _frontendRequestedGameState();
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,
@@ -370,7 +370,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
           break;
 
         case ToAppMessages.tryWord:
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               from: MessageFrom.ebs,
               to: MessageTo.frontend,
               type: MessageTypes.response,
@@ -379,7 +379,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
           break;
 
         case ToAppMessages.pardonRequest:
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               from: MessageFrom.ebs,
               to: MessageTo.frontend,
               type: MessageTypes.response,
@@ -388,7 +388,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
         case ToAppMessages.boostRequest:
           final isSuccess = await _frontendRequestedBoosted(userId);
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,
@@ -398,7 +398,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.revealTileAt:
           final isSuccess = await _frontendRequestedRevealTileAt(
               userId, message.data!['index'] as int);
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,
@@ -411,7 +411,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             id: message.data!['id'] as int,
             velocity: Vector2Extension.deserialize(message.data!['velocity']),
           );
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,
@@ -435,7 +435,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
                 'is_redeemed': false
               }));
 
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,
@@ -467,7 +467,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
                 'is_redeemed': true
               }));
 
-          communicator.sendReponse(message.copyWith(
+          communicator.sendResponse(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.ebs,
               type: MessageTypes.response,

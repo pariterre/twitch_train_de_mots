@@ -64,7 +64,7 @@ class GameManager {
     boosters: [],
     canAttemptTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    canAttemptEndOfRailwayMiniGame: false,
+    canRequestEndOfRailwayMiniGame: false,
     isAttemptingEndOfRailwayMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
@@ -154,13 +154,13 @@ class GameManager {
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
     }
 
-    if (_gameState.canAttemptEndOfRailwayMiniGame !=
-        newGameState.canAttemptEndOfRailwayMiniGame) {
-      _gameState.canAttemptEndOfRailwayMiniGame =
-          newGameState.canAttemptEndOfRailwayMiniGame;
+    if (_gameState.canRequestEndOfRailwayMiniGame !=
+        newGameState.canRequestEndOfRailwayMiniGame) {
+      _gameState.canRequestEndOfRailwayMiniGame =
+          newGameState.canRequestEndOfRailwayMiniGame;
       onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info(
-          'Can attempt the end of railway mini game changed to ${newGameState.canAttemptEndOfRailwayMiniGame}');
+          'Can attempt the end of railway mini game changed to ${newGameState.canRequestEndOfRailwayMiniGame}');
     }
 
     if (_gameState.isAttemptingEndOfRailwayMiniGame !=
@@ -262,11 +262,14 @@ class GameManager {
 
   ///
   /// Boost availability
-  final onChangeLaneGranted = GenericListener<Function(bool)>();
-  Future<bool> changeLane() async {
+  final onChangeLaneGranted = GenericListener<Function()>();
+  Future<bool> requestChangeLane() async {
     final isSuccess = await TwitchManager.instance.changeLane();
-    onChangeLaneGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
+  }
+
+  Future<void> changeLaneGranted() async {
+    onChangeLaneGranted.notifyListeners((callback) => callback());
   }
 
   ///
@@ -278,7 +281,7 @@ class GameManager {
   ///
   /// Track fix management
   bool get canAttemptEndOfRailwayMiniGame =>
-      _gameState.canAttemptEndOfRailwayMiniGame;
+      _gameState.canRequestEndOfRailwayMiniGame;
   bool get isAttemptingEndOfRailwayMiniGame =>
       _gameState.isAttemptingEndOfRailwayMiniGame;
   final onFixingTheTrack = GenericListener<Function()>();

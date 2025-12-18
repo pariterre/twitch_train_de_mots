@@ -11,11 +11,14 @@
             "program": "ebs/bin/train_de_mots_ebs.dart",
             "env": {
                 "TRAIN_DE_MOTS_EXTENSION_SHARED_SECRET": "EXTENSION_SHARED_SECRET_HERE",
-                "TRAIN_DE_MOTS_USE_MOCKED_EXTENSION_SHARED_SECRET":< true | [false] >",
+                "TRAIN_DE_MOTS_USE_MOCKED_EXTENSION_SHARED_SECRET": "< true | [false] >",
                 "TRAIN_DE_MOTS_EXTENSION_API_CLIENT_SECRET": "EXTENSION_API_CLIENT_SECRET_HERE",
                 "TRAIN_DE_MOTS_EBS_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_PRIVATE_KEY_HERE",
                 "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY": "TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY_HERE",
             },
+            "toolArgs": [
+                "--define=TWITCH_EBS_ALLOW_MOCKED_USERS=< true | [false] >",
+            ]
         },
         {
             "name": "Game client",
@@ -23,8 +26,6 @@
             "type": "dart",
             "program": "client/lib/main.dart",
             "args": [
-                "--web-browser-flag=--disable-web-security",
-                "--wasm",
                 "--dart-define=SHOW_DEBUG_OPTIONS=< true | [false] >",
                 "--dart-define=USE_EBS_MOCK=< true | [false] >",
                 "--dart-define=USE_LOCAL_EBS=< true | [false] >",

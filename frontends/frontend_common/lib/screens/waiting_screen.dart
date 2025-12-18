@@ -74,11 +74,17 @@ class _WaitingScreenState extends State<WaitingScreen> {
                 'vous avancez bien!\n'
                 '\n'
                 'Prochaine station ${gm.currentRound + 1}'
-            : 'Malheur, cheminot·e·s!\n'
-                'Votre aventure vers le\n'
-                'Nord se termine ici...!\n'
-                '\n'
-                'Dernière station ${gm.currentRound}';
+            : (gm.isAttemptingEndOfRailwayMiniGame
+                ? 'Un·e des cheminot·e·s\n'
+                    'propose de réparer le rail\n'
+                    'pour sauver le Train!\n'
+                    '\n'
+                    'Allons-y!'
+                : 'Malheur, cheminot·e·s!\n'
+                    'Votre aventure vers le\n'
+                    'Nord se termine ici...!\n'
+                    '\n'
+                    'Dernière station ${gm.currentRound}');
         showStar = true;
         break;
       case WordsTrainGameStatus.miniGamePreparing:
@@ -115,14 +121,16 @@ class _WaitingScreenState extends State<WaitingScreen> {
                       if (showStar)
                         Padding(
                           padding: const EdgeInsets.only(right: 10.0),
-                          child: _starWidget(gm.isRoundSuccess),
+                          child: _starWidget(gm.isRoundSuccess ||
+                              gm.isAttemptingEndOfRailwayMiniGame),
                         ),
                       Text(mainText,
                           textAlign: TextAlign.left, style: tm.textFrontendSc),
                       if (showStar)
                         Padding(
                           padding: const EdgeInsets.only(left: 10.0),
-                          child: _starWidget(gm.isRoundSuccess),
+                          child: _starWidget(gm.isRoundSuccess ||
+                              gm.isAttemptingEndOfRailwayMiniGame),
                         ),
                     ],
                   ),
@@ -210,26 +218,23 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
-                        if (!gm.canAttemptTheBigHeist &&
-                            !gm.isAttemptingTheBigHeist &&
-                            gm.currentRound >= 10)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 20.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Félicitez vos collègues\n'
-                                  'cheminot·e·s avec un',
-                                  style: tm.textFrontendSc,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8.0),
-                                ElevatedButton(
-                                    onPressed: TwitchManager.instance.celebrate,
-                                    child: const Text('Feux d\'artifice!')),
-                              ],
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Félicitez vos collègues\n'
+                                'cheminot·e·s avec un',
+                                style: tm.textFrontendSc,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8.0),
+                              ElevatedButton(
+                                  onPressed: TwitchManager.instance.celebrate,
+                                  child: const Text('Feux d\'artifice!')),
+                            ],
                           ),
+                        ),
                       ],
                     )
                 ],

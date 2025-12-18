@@ -423,7 +423,8 @@ class _BoostRequestState extends State<_BoostRequest> {
 class _ChangeLaneRequest extends StatelessWidget {
   const _ChangeLaneRequest();
 
-  void _onChangeLanePressed() async => await GameManager.instance.changeLane();
+  void _onChangeLanePressed() async =>
+      await GameManager.instance.requestChangeLane();
 
   @override
   Widget build(BuildContext context) {
