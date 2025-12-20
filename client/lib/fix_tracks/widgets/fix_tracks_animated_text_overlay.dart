@@ -1,20 +1,20 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
 
-class TrackFixAnimatedTextOverlay extends StatefulWidget {
-  const TrackFixAnimatedTextOverlay({super.key});
+class FixTracksAnimatedTextOverlay extends StatefulWidget {
+  const FixTracksAnimatedTextOverlay({super.key});
 
   @override
-  State<TrackFixAnimatedTextOverlay> createState() =>
-      _TrackFixAnimatedTextOverlayState();
+  State<FixTracksAnimatedTextOverlay> createState() =>
+      _FixTracksAnimatedTextOverlayState();
 }
 
-class _TrackFixAnimatedTextOverlayState
-    extends State<TrackFixAnimatedTextOverlay> {
-  final _trackFixWrongWordController = BouncyContainerController(
+class _FixTracksAnimatedTextOverlayState
+    extends State<FixTracksAnimatedTextOverlay> {
+  final _fixTracksWrongWordController = BouncyContainerController(
       bounceCount: 1,
       easingInDuration: 600,
       bouncingDuration: 1400,
@@ -23,7 +23,7 @@ class _TrackFixAnimatedTextOverlayState
       bouncyScale: 1.1,
       maxScale: 1.2,
       maxOpacity: 0.9);
-  final _trackFixHasWonController = BouncyContainerController(
+  final _fixTracksHasWonController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -32,7 +32,7 @@ class _TrackFixAnimatedTextOverlayState
       bouncyScale: 1.2,
       maxScale: 1.4,
       maxOpacity: 0.9);
-  final _trackFixHasLostController = BouncyContainerController(
+  final _fixTracksHasLostController = BouncyContainerController(
       bounceCount: 2,
       easingInDuration: 600,
       bouncingDuration: 1500,
@@ -46,47 +46,47 @@ class _TrackFixAnimatedTextOverlayState
   void initState() {
     super.initState();
 
-    final fgm = Managers.instance.miniGames.trackFix;
-    fgm.onTrySolution.listen(_trackFixTrySolution);
-    fgm.onGameEnded.listen(_trackFixFailed);
+    final fgm = Managers.instance.miniGames.fixTracks;
+    fgm.onTrySolution.listen(_fixTracksTrySolution);
+    fgm.onGameEnded.listen(_fixTracksFailed);
   }
 
   @override
   void dispose() {
-    final fgm = Managers.instance.miniGames.trackFix;
-    fgm.onTrySolution.cancel(_trackFixTrySolution);
-    fgm.onGameEnded.cancel(_trackFixFailed);
+    final fgm = Managers.instance.miniGames.fixTracks;
+    fgm.onTrySolution.cancel(_fixTracksTrySolution);
+    fgm.onGameEnded.cancel(_fixTracksFailed);
 
     super.dispose();
   }
 
-  void _trackFixTrySolution({
+  void _fixTracksTrySolution({
     required String playerName,
     required String word,
-    required TrackFixSolutionStatus solutionStatus,
+    required FixTracksSolutionStatus solutionStatus,
     required int pointsAwarded,
   }) {
     switch (solutionStatus) {
-      case TrackFixSolutionStatus.isValid:
-      case TrackFixSolutionStatus.noMoreSegmentsToFix:
-      case TrackFixSolutionStatus.unknown:
+      case FixTracksSolutionStatus.isValid:
+      case FixTracksSolutionStatus.noMoreSegmentsToFix:
+      case FixTracksSolutionStatus.unknown:
         return;
-      case TrackFixSolutionStatus.hasMisplacedLetters:
-      case TrackFixSolutionStatus.isNotTheRightLength:
-      case TrackFixSolutionStatus.isAlreadyUsed:
-      case TrackFixSolutionStatus.isNotInDictionary:
-      case TrackFixSolutionStatus.wordIsTooShort:
-        _trackFixWrongWordController.triggerAnimation(
-            _TrackFixWrongWord(playerName, word, solutionStatus));
+      case FixTracksSolutionStatus.hasMisplacedLetters:
+      case FixTracksSolutionStatus.isNotTheRightLength:
+      case FixTracksSolutionStatus.isAlreadyUsed:
+      case FixTracksSolutionStatus.isNotInDictionary:
+      case FixTracksSolutionStatus.wordIsTooShort:
+        _fixTracksWrongWordController.triggerAnimation(
+            _FixTracksWrongWord(playerName, word, solutionStatus));
         break;
     }
   }
 
-  void _trackFixFailed({required bool hasWon}) {
+  void _fixTracksFailed({required bool hasWon}) {
     if (hasWon) {
-      _trackFixHasWonController.triggerAnimation(_TrackFixHasWon());
+      _fixTracksHasWonController.triggerAnimation(_FixTracksHasWon());
     } else {
-      _trackFixHasLostController.triggerAnimation(const _TrackFixHasLost());
+      _fixTracksHasLostController.triggerAnimation(const _FixTracksHasLost());
     }
   }
 
@@ -100,15 +100,15 @@ class _TrackFixAnimatedTextOverlayState
         children: [
           Positioned(
             top: MediaQuery.of(context).size.height * 0.35,
-            child: BouncyContainer(controller: _trackFixWrongWordController),
+            child: BouncyContainer(controller: _fixTracksWrongWordController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _trackFixHasWonController),
+            child: BouncyContainer(controller: _fixTracksHasWonController),
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
-            child: BouncyContainer(controller: _trackFixHasLostController),
+            child: BouncyContainer(controller: _fixTracksHasLostController),
           ),
         ],
       ),
@@ -116,12 +116,12 @@ class _TrackFixAnimatedTextOverlayState
   }
 }
 
-class _TrackFixWrongWord extends StatelessWidget {
-  const _TrackFixWrongWord(this.playerName, this.word, this.solutionStatus);
+class _FixTracksWrongWord extends StatelessWidget {
+  const _FixTracksWrongWord(this.playerName, this.word, this.solutionStatus);
 
   final String playerName;
   final String word;
-  final TrackFixSolutionStatus solutionStatus;
+  final FixTracksSolutionStatus solutionStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -140,15 +140,15 @@ class _TrackFixWrongWord extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             switch (solutionStatus) {
-              TrackFixSolutionStatus.hasMisplacedLetters =>
+              FixTracksSolutionStatus.hasMisplacedLetters =>
                 '$word contient des lettres mal placées...',
-              TrackFixSolutionStatus.isNotTheRightLength =>
+              FixTracksSolutionStatus.isNotTheRightLength =>
                 '$word n\'est pas de la bonne longueur...',
-              TrackFixSolutionStatus.isAlreadyUsed =>
+              FixTracksSolutionStatus.isAlreadyUsed =>
                 '$word a déjà été utilisé...',
-              TrackFixSolutionStatus.isNotInDictionary =>
+              FixTracksSolutionStatus.isNotInDictionary =>
                 '$word n\'existe pas...',
-              TrackFixSolutionStatus.wordIsTooShort =>
+              FixTracksSolutionStatus.wordIsTooShort =>
                 '$word est trop court...',
               _ => '$word n\'est pas un mot valide...',
             },
@@ -163,8 +163,8 @@ class _TrackFixWrongWord extends StatelessWidget {
   }
 }
 
-class _TrackFixHasWon extends StatelessWidget {
-  const _TrackFixHasWon();
+class _FixTracksHasWon extends StatelessWidget {
+  const _FixTracksHasWon();
 
   @override
   Widget build(BuildContext context) {
@@ -198,14 +198,14 @@ class _TrackFixHasWon extends StatelessWidget {
   }
 }
 
-class _TrackFixHasLost extends StatelessWidget {
-  const _TrackFixHasLost();
+class _FixTracksHasLost extends StatelessWidget {
+  const _FixTracksHasLost();
 
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
     const textColor = Color.fromARGB(255, 243, 157, 151);
-    final tmg = Managers.instance.miniGames.trackFix;
+    final tmg = Managers.instance.miniGames.fixTracks;
 
     return Container(
       decoration: BoxDecoration(

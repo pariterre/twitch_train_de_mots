@@ -1,14 +1,12 @@
 enum MiniGames {
   treasureHunt,
   blueberryWar,
-  trackFix;
+  fixTracks;
 
   static List<MiniGames> get betweenRoundsGames => [
         treasureHunt,
         blueberryWar,
       ];
 
-  static List<MiniGames> get endOfRailwayGames => [
-        trackFix,
-      ];
+  static MiniGames get fixTracksGames => fixTracks;
 }

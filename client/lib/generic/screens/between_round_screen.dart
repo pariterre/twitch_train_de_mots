@@ -97,7 +97,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                     if (!gm.hasPlayedAtLeastOnce) const _LeaderBoardHeader(),
                     if (gm.hasPlayedAtLeastOnce)
                       gm.successLevel == SuccessLevel.failed &&
-                              !gm.isAttemptingEndOfRailwayMiniGame
+                              !gm.isAttemptingFixTracksMiniGame
                           ? const _DefeatHeader()
                           : const _VictoryHeader(),
                     const _LeaderBoard(),
@@ -180,11 +180,11 @@ class _ContinueSectionState extends State<_ContinueSection> {
       buttonText += switch (gm.nextRoundMiniGame!) {
         MiniGames.treasureHunt => 'Aller aux bleuets!',
         MiniGames.blueberryWar => 'À l\'attaque des bleuets!',
-        MiniGames.trackFix => 'Réparons la voie!',
+        MiniGames.fixTracks => 'Réparons la voie!',
       };
     } else {
       if (!gm.canProceedToNextRound) {
-        if (!gm.canRequestEndOfRailwayMiniGame(playerName: null) ||
+        if (!gm.canRequestFixTracksMiniGame(playerName: null) ||
             !gm.canRequestCongratulationFireworks(playerName: null) ||
             !gm.canRequestTheBigHeist(playerName: null)) {
           buttonText += 'Quelqu\'un prépare quelque chose!';
@@ -297,9 +297,9 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
                     onPressed: _canClick &&
-                            gm.canRequestEndOfRailwayMiniGame(playerName: null)
-                        ? () => gm.requestEndOfRailwayMiniGame(
-                            playerName: 'Anonyme')
+                            gm.canRequestFixTracksMiniGame(playerName: null)
+                        ? () =>
+                            gm.requestFixTracksMiniGame(playerName: 'Anonyme')
                         : null,
                     buttonText: 'Track fix'),
                 const SizedBox(width: 24),
@@ -320,7 +320,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 ThemedElevatedButton(
                     onPressed: _canClick
                         ? () => gm.handleNextRoundAsMiniGame(
-                            forceMinigame: MiniGames.trackFix)
+                            forceMinigame: MiniGames.fixTracks)
                         : null,
                     buttonText: 'Jouer reparation'),
               ],
@@ -974,7 +974,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
               Shadow(color: Colors.grey.shade500, blurRadius: 15.0)
             ]),
           ),
-          if (gm.isAttemptingEndOfRailwayMiniGame)
+          if (gm.isAttemptingFixTracksMiniGame)
             Column(
               children: [
                 Text(

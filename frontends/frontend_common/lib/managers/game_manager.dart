@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
+import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
-import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
@@ -64,8 +64,8 @@ class GameManager {
     boosters: [],
     canRequestTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    canRequestEndOfRailwayMiniGame: false,
-    isAttemptingEndOfRailwayMiniGame: false,
+    canRequestFixTracksMiniGame: false,
+    isAttemptingFixTracksMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
   );
@@ -154,22 +154,22 @@ class GameManager {
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
     }
 
-    if (_gameState.canRequestEndOfRailwayMiniGame !=
-        newGameState.canRequestEndOfRailwayMiniGame) {
-      _gameState.canRequestEndOfRailwayMiniGame =
-          newGameState.canRequestEndOfRailwayMiniGame;
+    if (_gameState.canRequestFixTracksMiniGame !=
+        newGameState.canRequestFixTracksMiniGame) {
+      _gameState.canRequestFixTracksMiniGame =
+          newGameState.canRequestFixTracksMiniGame;
       onGameStatusUpdated.notifyListeners((callback) => callback());
       _logger.info(
-          'Can request the end of railway mini game changed to ${newGameState.canRequestEndOfRailwayMiniGame}');
+          'Can request the end of railway mini game changed to ${newGameState.canRequestFixTracksMiniGame}');
     }
 
-    if (_gameState.isAttemptingEndOfRailwayMiniGame !=
-        newGameState.isAttemptingEndOfRailwayMiniGame) {
-      _gameState.isAttemptingEndOfRailwayMiniGame =
-          newGameState.isAttemptingEndOfRailwayMiniGame;
+    if (_gameState.isAttemptingFixTracksMiniGame !=
+        newGameState.isAttemptingFixTracksMiniGame) {
+      _gameState.isAttemptingFixTracksMiniGame =
+          newGameState.isAttemptingFixTracksMiniGame;
       onFixingTheTrack.notifyListeners((callback) => callback());
       _logger.info(
-          'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingEndOfRailwayMiniGame}');
+          'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingFixTracksMiniGame}');
     }
 
     if (_gameState.configuration.showExtension !=
@@ -280,10 +280,10 @@ class GameManager {
 
   ///
   /// Track fix management
-  bool get canRequestEndOfRailwayMiniGame =>
-      _gameState.canRequestEndOfRailwayMiniGame;
-  bool get isAttemptingEndOfRailwayMiniGame =>
-      _gameState.isAttemptingEndOfRailwayMiniGame;
+  bool get canRequestFixTracksMiniGame =>
+      _gameState.canRequestFixTracksMiniGame;
+  bool get isAttemptingFixTracksMiniGame =>
+      _gameState.isAttemptingFixTracksMiniGame;
   final onFixingTheTrack = GenericListener<Function()>();
 
   ///
@@ -332,9 +332,10 @@ class GameManager {
           }
           break;
         }
-      case MiniGames.trackFix:
+      case MiniGames.fixTracks:
         {
-          final ffm = _gameState.miniGameState as SerializableTrackFixGameState;
+          final ffm =
+              _gameState.miniGameState as SerializableFixTracksGameState;
           newGameState = ffm.copyWith(
               timeRemaining: ffm.isTimerRunning
                   ? ffm.timeRemaining - dt

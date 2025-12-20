@@ -5,9 +5,9 @@ import 'package:common/generic/models/valuable_letter.dart';
 import 'package:logging/logging.dart';
 
 final _random = Random();
-final _logging = Logger('TrackFixGrid');
+final _logging = Logger('FixTracksGrid');
 
-class TrackFixGrid {
+class FixTracksGrid {
   final int rowCount;
   final int columnCount;
 
@@ -32,7 +32,7 @@ class TrackFixGrid {
             _pathSegments.map((segment) => segment.serialize()).toList(),
       };
 
-  static TrackFixGrid deserialize(Map<String, dynamic> json) {
+  static FixTracksGrid deserialize(Map<String, dynamic> json) {
     final rowCount = json['rows'] as int;
     final colCount = json['cols'] as int;
     final tiles = List<Tile?>.filled(rowCount * colCount, null);
@@ -41,7 +41,7 @@ class TrackFixGrid {
       tiles[tile.index] = tile;
     }
 
-    return TrackFixGrid._(
+    return FixTracksGrid._(
       rowCount: rowCount,
       columnCount: colCount,
       tiles: tiles,
@@ -51,7 +51,7 @@ class TrackFixGrid {
     );
   }
 
-  TrackFixGrid._({
+  FixTracksGrid._({
     required this.rowCount,
     required this.columnCount,
     List<Tile?>? tiles,
@@ -88,7 +88,7 @@ class TrackFixGrid {
   /// [minimumSegmentLength] Minimum length of each path segment
   /// [maximumSegmentLength] Maximum length of each path segment
   /// [segmentCount] Expected number of path segments (must be odd)
-  TrackFixGrid.random({
+  FixTracksGrid.random({
     required this.rowCount,
     required this.columnCount,
     required int minimumSegmentLength,

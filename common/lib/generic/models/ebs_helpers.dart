@@ -17,7 +17,7 @@ enum ToAppMessages {
   fireworksRequest,
   attemptTheBigHeist,
   changeLaneRequest,
-  endRailwayMiniGameRequest,
+  fixTracksMiniGameRequest,
   revealTileAt,
   slingShootBlueberry,
 }
@@ -32,7 +32,7 @@ enum Sku {
   celebrate,
   bigHeist,
   changeLane,
-  endRailwayMiniGame;
+  fixTracks;
 
   @override
   String toString() {
@@ -43,8 +43,8 @@ enum Sku {
         return 'big_heist';
       case Sku.changeLane:
         return 'change_lane';
-      case Sku.endRailwayMiniGame:
-        return 'end_railway_minigame';
+      case Sku.fixTracks:
+        return 'fix_tracks';
     }
   }
 
@@ -56,8 +56,8 @@ enum Sku {
         return Sku.bigHeist;
       case 'change_lane':
         return Sku.changeLane;
-      case 'end_railway_minigame':
-        return Sku.endRailwayMiniGame;
+      case 'fix_tracks':
+        return Sku.fixTracks;
       case _:
         throw Exception('Unknown Sku value: $value');
     }

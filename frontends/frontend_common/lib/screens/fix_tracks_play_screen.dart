@@ -1,11 +1,11 @@
+import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
+import 'package:common/fix_tracks/widgets/fix_tracks_game_grid.dart';
 import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
-import 'package:common/track_fix/widgets/track_fix_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 
-class TrackFixPlayScreen extends StatelessWidget {
-  const TrackFixPlayScreen({super.key});
+class FixTracksPlayScreen extends StatelessWidget {
+  const FixTracksPlayScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +60,10 @@ class _TrackGridState extends State<_TrackGrid> {
   @override
   Widget build(BuildContext context) {
     final thm =
-        GameManager.instance.miniGameState as SerializableTrackFixGameState;
+        GameManager.instance.miniGameState as SerializableFixTracksGameState;
 
     return Center(
-      child: TrackFixGameGrid(
+      child: FixTracksGameGrid(
         rowCount: thm.grid.rowCount,
         columnCount: thm.grid.columnCount,
         getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col),
@@ -101,7 +101,7 @@ class _HeaderState extends State<_Header> {
   @override
   Widget build(BuildContext context) {
     final thm =
-        GameManager.instance.miniGameState as SerializableTrackFixGameState;
+        GameManager.instance.miniGameState as SerializableFixTracksGameState;
     final tm = ThemeManager.instance;
     final nextSegment = thm.grid.nextEmptySegment;
 

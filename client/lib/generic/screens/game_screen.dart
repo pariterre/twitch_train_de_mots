@@ -1,9 +1,9 @@
-import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/screens/blueberry_war_game_screen.dart';
-import 'package:train_de_mots/track_fix/screens/track_fix_game_screen.dart';
+import 'package:train_de_mots/fix_tracks/screens/fix_tracks_game_screen.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/treasure_hunt/screens/treasure_hunt_game_screen.dart';
 import 'package:train_de_mots/words_train/screens/words_train_game_screen.dart';
@@ -34,7 +34,7 @@ class GameScreen extends StatelessWidget {
               switch (Managers.instance.miniGames.currentOrPrevious) {
                 MiniGames.blueberryWar => const BlueberryWarGameScreen(),
                 MiniGames.treasureHunt => const TreasureHuntGameScreen(),
-                MiniGames.trackFix => const TrackFixGameScreen(),
+                MiniGames.fixTracks => const FixTracksGameScreen(),
               }
           });
   }

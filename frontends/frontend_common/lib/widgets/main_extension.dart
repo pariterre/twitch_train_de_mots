@@ -1,12 +1,12 @@
-import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/screens/blueberry_war_play_screen.dart';
 import 'package:frontend_common/screens/dragging_screen.dart';
-import 'package:frontend_common/screens/track_fix_play_screen.dart';
+import 'package:frontend_common/screens/fix_tracks_play_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
 import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
@@ -248,8 +248,8 @@ class _MainScreenState extends State<_MainScreen> {
               return const TreasureHuntPlayScreen();
             case MiniGames.blueberryWar:
               return const BlueberryWarPlayScreen();
-            case MiniGames.trackFix:
-              return const TrackFixPlayScreen();
+            case MiniGames.fixTracks:
+              return const FixTracksPlayScreen();
           }
         }
     }

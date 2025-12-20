@@ -1,22 +1,22 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
+import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/valuable_letter.dart';
-import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
-import 'package:common/track_fix/models/track_fix_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 
-final _logger = Logger('TrackFixGameManager');
+final _logger = Logger('FixTracksGameManager');
 
 final _dictionary = DictionaryManager.wordsWithAtLeast(
-    TrackFixGameManager._minimumSegmentLength);
+    FixTracksGameManager._minimumSegmentLength);
 
 ///
 /// Easy accessors translating index into row/col pair or row/col pair into
@@ -28,7 +28,7 @@ enum EndGameStatus {
   lostOnDeadEnd,
 }
 
-enum TrackFixSolutionStatus {
+enum FixTracksSolutionStatus {
   isValid,
   isNotTheRightLength,
   hasMisplacedLetters,
@@ -39,8 +39,8 @@ enum TrackFixSolutionStatus {
   unknown,
 }
 
-class TrackFixGameManager implements MiniGameManager {
-  TrackFixGameManager() {
+class FixTracksGameManager implements MiniGameManager {
+  FixTracksGameManager() {
     _asyncInitializations();
   }
 
@@ -90,7 +90,7 @@ class TrackFixGameManager implements MiniGameManager {
       Function({
         required String playerName,
         required String word,
-        required TrackFixSolutionStatus solutionStatus,
+        required FixTracksSolutionStatus solutionStatus,
         required int pointsAwarded,
       })>();
   @override
@@ -104,8 +104,8 @@ class TrackFixGameManager implements MiniGameManager {
   static const int _expectedSegmentCount = 9;
   static const int _expectedSegmentsWithLetterCount = 5;
 
-  TrackFixGrid? _grid;
-  TrackFixGrid get grid => _grid!;
+  FixTracksGrid? _grid;
+  FixTracksGrid get grid => _grid!;
 
   ///
   /// If the game is over
@@ -132,7 +132,7 @@ class TrackFixGameManager implements MiniGameManager {
   @override
   Future<void> initialize() async {
     while (true) {
-      _grid = TrackFixGrid.random(
+      _grid = FixTracksGrid.random(
         rowCount: _rowCount,
         columnCount: _columnCount,
         minimumSegmentLength: _minimumSegmentLength,
@@ -157,8 +157,8 @@ class TrackFixGameManager implements MiniGameManager {
   }
 
   @override
-  SerializableTrackFixGameState serialize() {
-    return SerializableTrackFixGameState(
+  SerializableFixTracksGameState serialize() {
+    return SerializableFixTracksGameState(
       grid: _grid!,
       isTimerRunning: _isMainTimerRunning,
       timeRemaining: _timeRemaining,
@@ -196,7 +196,7 @@ class TrackFixGameManager implements MiniGameManager {
             .reduce((a, b) => a + b);
 
     final solutionStatus = tryFixSegment(word);
-    if (solutionStatus == TrackFixSolutionStatus.isValid) {
+    if (solutionStatus == FixTracksSolutionStatus.isValid) {
       _playersPoints[playerName] = wordValue;
       onGameUpdated.notifyListeners((callback) => callback());
     }
@@ -247,36 +247,36 @@ class TrackFixGameManager implements MiniGameManager {
   ///
   /// Attempt to fix a segment with the given [word]
   /// Returns true if the segment was successfully fixed
-  TrackFixSolutionStatus tryFixSegment(String word) {
-    if (_grid == null) return TrackFixSolutionStatus.unknown;
+  FixTracksSolutionStatus tryFixSegment(String word) {
+    if (_grid == null) return FixTracksSolutionStatus.unknown;
     if (word.length < _minimumSegmentLength) {
-      return TrackFixSolutionStatus.wordIsTooShort;
+      return FixTracksSolutionStatus.wordIsTooShort;
     }
     if (!_dictionary.contains(word)) {
-      return TrackFixSolutionStatus.isNotInDictionary;
+      return FixTracksSolutionStatus.isNotInDictionary;
     }
 
     final segment = _grid!.nextEmptySegment;
-    if (segment == null) return TrackFixSolutionStatus.noMoreSegmentsToFix;
+    if (segment == null) return FixTracksSolutionStatus.noMoreSegmentsToFix;
 
     // The word must have the correct length
     if (word.length != segment.length) {
-      return TrackFixSolutionStatus.isNotTheRightLength;
+      return FixTracksSolutionStatus.isNotTheRightLength;
     }
 
     // Check that pre-existing letters match the provided word
     for (int i = 0; i < segment.length; i++) {
       final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return TrackFixSolutionStatus.unknown;
+      if (tile == null) return FixTracksSolutionStatus.unknown;
       if (tile.hasLetter && tile.letter != word[i]) {
-        return TrackFixSolutionStatus.hasMisplacedLetters;
+        return FixTracksSolutionStatus.hasMisplacedLetters;
       }
     }
 
     for (final segment in _grid!.segments) {
       // The word must be unique among fixed segments
       if (segment.isComplete && segment.word == word) {
-        return TrackFixSolutionStatus.isAlreadyUsed;
+        return FixTracksSolutionStatus.isAlreadyUsed;
       }
     }
 
@@ -284,11 +284,11 @@ class TrackFixGameManager implements MiniGameManager {
     segment.word = word;
     for (int i = 0; i < segment.length; i++) {
       final tile = _grid!.tileOfSegmentAt(segment: segment, index: i);
-      if (tile == null) return TrackFixSolutionStatus.unknown;
+      if (tile == null) return FixTracksSolutionStatus.unknown;
       tile.letter = word[i];
     }
 
-    return TrackFixSolutionStatus.isValid;
+    return FixTracksSolutionStatus.isValid;
   }
 
   bool segmentHasValidWords(PathSegment? segment) {

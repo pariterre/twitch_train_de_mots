@@ -35,8 +35,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     boosters: [],
     canRequestTheBigHeist: false,
     isAttemptingTheBigHeist: false,
-    canRequestEndOfRailwayMiniGame: false,
-    isAttemptingEndOfRailwayMiniGame: false,
+    canRequestFixTracksMiniGame: false,
+    isAttemptingFixTracksMiniGame: false,
     configuration: SerializableConfiguration(showExtension: true),
     miniGameState: null,
   );
@@ -421,7 +421,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case ToAppMessages.fireworksRequest:
         case ToAppMessages.attemptTheBigHeist:
         case ToAppMessages.changeLaneRequest:
-        case ToAppMessages.endRailwayMiniGameRequest:
+        case ToAppMessages.fixTracksMiniGameRequest:
           final playerName =
               registeredFrontendUsers.from(userId: userId)?.login;
 
@@ -454,7 +454,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             Sku.celebrate => ToAppMessages.fireworksRequest,
             Sku.bigHeist => ToAppMessages.attemptTheBigHeist,
             Sku.changeLane => ToAppMessages.changeLaneRequest,
-            Sku.endRailwayMiniGame => ToAppMessages.endRailwayMiniGameRequest,
+            Sku.fixTracks => ToAppMessages.fixTracksMiniGameRequest,
           };
 
           final response = await communicator.sendQuestion(MessageProtocol(

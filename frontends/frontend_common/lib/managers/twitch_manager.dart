@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
+import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
-import 'package:common/track_fix/models/serializable_track_fix_game_state.dart';
-import 'package:common/track_fix/models/track_fix_grid.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
@@ -159,11 +159,10 @@ class TwitchManager {
 
   ///
   /// Request to attempt the end of railway minigame during the break.
-  Future<bool> attemptEndOfRailwayMiniGame() async {
+  Future<bool> attemptFixTracksMiniGame() async {
     // Annonce to App that an end of railway mini game request is being redeemed
     final response =
-        await _sendMessageToApp(ToAppMessages.endRailwayMiniGameRequest)
-            .timeout(
+        await _sendMessageToApp(ToAppMessages.fixTracksMiniGameRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -173,7 +172,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    return _useBits(Sku.endRailwayMiniGame);
+    return _useBits(Sku.fixTracks);
   }
 
   ///
@@ -353,7 +352,7 @@ class TwitchManager {
         await GameManager.instance.changeLaneGranted();
         break;
       case Sku.bigHeist:
-      case Sku.endRailwayMiniGame:
+      case Sku.fixTracks:
       case Sku.celebrate:
         break;
     }
@@ -570,7 +569,7 @@ class TwitchManagerMock extends TwitchManager {
     Future.delayed(const Duration(seconds: 3)).then((_) {
       final oldGameState = GameManager.instance.gameStateCopy;
       final oldMiniGameState =
-          oldGameState.miniGameState as SerializableTrackFixGameState?;
+          oldGameState.miniGameState as SerializableFixTracksGameState?;
 
       final segment = oldMiniGameState?.grid.segments[0];
       final wordLength = segment?.length ?? 0;
@@ -613,7 +612,7 @@ class TwitchManagerMock extends TwitchManager {
   bool _useBits(Sku sku) {
     switch (sku) {
       case Sku.changeLane:
-      case Sku.endRailwayMiniGame:
+      case Sku.fixTracks:
       case Sku.celebrate:
         // Simulate a successful transaction after 1000 milliseconds
         Future.delayed(const Duration(milliseconds: 1000)).then((_) {
@@ -658,8 +657,8 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canRequestTheBigHeist: false,
                 isAttemptingTheBigHeist: true,
-                canRequestEndOfRailwayMiniGame: true,
-                isAttemptingEndOfRailwayMiniGame: false,
+                canRequestFixTracksMiniGame: true,
+                isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: null,
               ).serialize(),
@@ -728,13 +727,13 @@ class TwitchManagerMock extends TwitchManager {
                 boosters: [],
                 canRequestTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
-                canRequestEndOfRailwayMiniGame: true,
-                isAttemptingEndOfRailwayMiniGame: false,
+                canRequestFixTracksMiniGame: true,
+                isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: SerializableTrackFixGameState(
+                miniGameState: SerializableFixTracksGameState(
                     isTimerRunning: true,
                     timeRemaining: const Duration(seconds: 30),
-                    grid: TrackFixGrid.random(
+                    grid: FixTracksGrid.random(
                       rowCount: 20,
                       columnCount: 10,
                       minimumSegmentLength: 4,
@@ -747,7 +746,7 @@ class TwitchManagerMock extends TwitchManager {
       case ToAppMessages.fireworksRequest:
       case ToAppMessages.attemptTheBigHeist:
       case ToAppMessages.changeLaneRequest:
-      case ToAppMessages.endRailwayMiniGameRequest:
+      case ToAppMessages.fixTracksMiniGameRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,

@@ -127,8 +127,8 @@ class SerializableGameState {
   bool canRequestTheBigHeist;
   bool isAttemptingTheBigHeist;
 
-  bool canRequestEndOfRailwayMiniGame;
-  bool isAttemptingEndOfRailwayMiniGame;
+  bool canRequestFixTracksMiniGame;
+  bool isAttemptingFixTracksMiniGame;
 
   SerializableLetterProblem? letterProblem;
 
@@ -150,8 +150,8 @@ class SerializableGameState {
     required this.boosters,
     required this.canRequestTheBigHeist,
     required this.isAttemptingTheBigHeist,
-    required this.canRequestEndOfRailwayMiniGame,
-    required this.isAttemptingEndOfRailwayMiniGame,
+    required this.canRequestFixTracksMiniGame,
+    required this.isAttemptingFixTracksMiniGame,
     required this.configuration,
     required this.miniGameState,
   });
@@ -170,8 +170,8 @@ class SerializableGameState {
     List<String>? boosters,
     bool? canRequestTheBigHeist,
     bool? isAttemptingTheBigHeist,
-    bool? canRequestEndOfRailwayMiniGame,
-    bool? isAttemptingEndOfRailwayMiniGame,
+    bool? canRequestFixTracksMiniGame,
+    bool? isAttemptingFixTracksMiniGame,
     SerializableConfiguration? configuration,
     SerializableMiniGameState? miniGameState,
   }) =>
@@ -191,10 +191,10 @@ class SerializableGameState {
             canRequestTheBigHeist ?? this.canRequestTheBigHeist,
         isAttemptingTheBigHeist:
             isAttemptingTheBigHeist ?? this.isAttemptingTheBigHeist,
-        canRequestEndOfRailwayMiniGame: canRequestEndOfRailwayMiniGame ??
-            this.canRequestEndOfRailwayMiniGame,
-        isAttemptingEndOfRailwayMiniGame: isAttemptingEndOfRailwayMiniGame ??
-            this.isAttemptingEndOfRailwayMiniGame,
+        canRequestFixTracksMiniGame:
+            canRequestFixTracksMiniGame ?? this.canRequestFixTracksMiniGame,
+        isAttemptingFixTracksMiniGame:
+            isAttemptingFixTracksMiniGame ?? this.isAttemptingFixTracksMiniGame,
         configuration: configuration ?? this.configuration,
         miniGameState: miniGameState ?? this.miniGameState,
       );
@@ -216,8 +216,8 @@ class SerializableGameState {
       'can_request_the_big_heist': canRequestTheBigHeist,
       'can_attempt_the_big_heist': canRequestTheBigHeist, // TODO Remove
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
-      'can_request_end_mini_game': canRequestEndOfRailwayMiniGame,
-      'is_attempting_end_mini_game': isAttemptingEndOfRailwayMiniGame,
+      'can_request_end_mini_game': canRequestFixTracksMiniGame,
+      'is_attempting_end_mini_game': isAttemptingFixTracksMiniGame,
       'configuration': configuration.serialize(),
       'mini_game_state': miniGameState?.serialize(),
     };
@@ -243,8 +243,8 @@ class SerializableGameState {
           data['can_attempt_the_big_heist'] as bool? ??
           false,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
-      canRequestEndOfRailwayMiniGame: data['can_request_end_mini_game'] as bool,
-      isAttemptingEndOfRailwayMiniGame:
+      canRequestFixTracksMiniGame: data['can_request_end_mini_game'] as bool,
+      isAttemptingFixTracksMiniGame:
           data['is_attempting_end_mini_game'] as bool, // TODO Remove
       configuration:
           SerializableConfiguration.deserialize(data['configuration']),

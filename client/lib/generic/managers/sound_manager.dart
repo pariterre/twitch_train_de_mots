@@ -1,14 +1,14 @@
 import 'dart:math';
-import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
-import 'package:web/web.dart';
 
 import 'package:collection/collection.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
+import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
+import 'package:web/web.dart';
 
 final _logger = Logger('SoundManager');
 
@@ -238,9 +238,9 @@ class SoundManager {
     // Minigame Track fix sounds
     while (true) {
       try {
-        final tfm = Managers.instance.miniGames.trackFix;
-        tfm.onTrySolution.listen(_onTrackFixSolutionTried);
-        tfm.onGameEnded.listen(_onTrackFixGameIsOver);
+        final tfm = Managers.instance.miniGames.fixTracks;
+        tfm.onTrySolution.listen(_onFixTracksSolutionTried);
+        tfm.onGameEnded.listen(_onFixTracksGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -495,17 +495,17 @@ class SoundManager {
     }
   }
 
-  Future<void> _onTrackFixSolutionTried(
+  Future<void> _onFixTracksSolutionTried(
       {required String playerName,
       required String word,
-      required TrackFixSolutionStatus solutionStatus,
+      required FixTracksSolutionStatus solutionStatus,
       required int pointsAwarded}) async {
-    if (solutionStatus == TrackFixSolutionStatus.isValid) {
+    if (solutionStatus == FixTracksSolutionStatus.isValid) {
       _playSoundEffect(_SoundEffect.solutionFound);
     }
   }
 
-  Future<void> _onTrackFixGameIsOver({required bool hasWon}) async {
+  Future<void> _onFixTracksGameIsOver({required bool hasWon}) async {
     if (hasWon) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {

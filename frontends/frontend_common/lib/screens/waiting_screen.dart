@@ -74,7 +74,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                 'vous avancez bien!\n'
                 '\n'
                 'Prochaine station ${gm.currentRound + 1}'
-            : (gm.isAttemptingEndOfRailwayMiniGame
+            : (gm.isAttemptingFixTracksMiniGame
                 ? 'Un·e des cheminot·e·s\n'
                     'propose de réparer le rail\n'
                     'pour sauver le Train!\n'
@@ -122,7 +122,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 10.0),
                           child: _starWidget(gm.isRoundSuccess ||
-                              gm.isAttemptingEndOfRailwayMiniGame),
+                              gm.isAttemptingFixTracksMiniGame),
                         ),
                       Text(mainText,
                           textAlign: TextAlign.left, style: tm.textFrontendSc),
@@ -130,7 +130,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 10.0),
                           child: _starWidget(gm.isRoundSuccess ||
-                              gm.isAttemptingEndOfRailwayMiniGame),
+                              gm.isAttemptingFixTracksMiniGame),
                         ),
                     ],
                   ),
@@ -187,7 +187,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
-                        if (gm.canRequestEndOfRailwayMiniGame)
+                        if (gm.canRequestFixTracksMiniGame)
                           Container(
                             decoration: BoxDecoration(
                                 color: Colors.white.withAlpha(50),
@@ -208,8 +208,8 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                     growingFactor: 1.02,
                                     duration: Duration(milliseconds: 750),
                                     child: ElevatedButton(
-                                        onPressed: TwitchManager.instance
-                                            .attemptEndOfRailwayMiniGame,
+                                        onPressed: TwitchManager
+                                            .instance.attemptFixTracksMiniGame,
                                         child: const Text(
                                           'Sauvons le train!',
                                         )),

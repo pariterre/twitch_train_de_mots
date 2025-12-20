@@ -1,8 +1,8 @@
-import 'package:common/track_fix/models/track_fix_grid.dart';
+import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:flutter/material.dart';
 
-class TrackFixGameTile extends StatelessWidget {
-  const TrackFixGameTile({
+class FixTracksGameTile extends StatelessWidget {
+  const FixTracksGameTile({
     super.key,
     required this.tile,
     required this.tileSize,

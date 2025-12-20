@@ -1,20 +1,20 @@
-import 'package:common/track_fix/widgets/track_fix_game_grid.dart';
+import 'package:common/fix_tracks/widgets/fix_tracks_game_grid.dart';
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
+import 'package:train_de_mots/fix_tracks/widgets/fix_tracks_animated_text_overlay.dart';
+import 'package:train_de_mots/fix_tracks/widgets/fix_tracks_header.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/track_fix/managers/track_fix_game_manager.dart';
-import 'package:train_de_mots/track_fix/widgets/track_fix_animated_text_overlay.dart';
-import 'package:train_de_mots/track_fix/widgets/track_fix_header.dart';
 
-class TrackFixGameScreen extends StatefulWidget {
-  const TrackFixGameScreen({super.key});
+class FixTracksGameScreen extends StatefulWidget {
+  const FixTracksGameScreen({super.key});
 
   static const route = '/game-screen';
 
   @override
-  State<TrackFixGameScreen> createState() => _TrackFixGameScreenState();
+  State<FixTracksGameScreen> createState() => _FixTracksGameScreenState();
 }
 
-class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
+class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
   Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
     await Managers.instance.twitch
         .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
@@ -25,7 +25,7 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
   void initState() {
     super.initState();
 
-    final fgm = Managers.instance.miniGames.trackFix;
+    final fgm = Managers.instance.miniGames.fixTracks;
     fgm.onGameStarted.listen(_refresh);
     fgm.onGameIsReady.listen(_refresh);
     fgm.onTrySolution.listen(_solutionWasTried);
@@ -42,7 +42,7 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
   // Dispose
   @override
   void dispose() {
-    final fgm = Managers.instance.miniGames.trackFix;
+    final fgm = Managers.instance.miniGames.fixTracks;
     fgm.onGameStarted.cancel(_refresh);
     fgm.onGameIsReady.cancel(_refresh);
     fgm.onTrySolution.cancel(_solutionWasTried);
@@ -58,14 +58,14 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
   void _solutionWasTried(
       {required String playerName,
       required String word,
-      required TrackFixSolutionStatus solutionStatus,
+      required FixTracksSolutionStatus solutionStatus,
       required int pointsAwarded}) {
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final fgm = Managers.instance.miniGames.trackFix;
+    final fgm = Managers.instance.miniGames.fixTracks;
     if (!fgm.isReady) {
       return Container();
     }
@@ -85,11 +85,11 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 12),
-                const TrackFixHeader(),
+                const FixTracksHeader(),
                 const SizedBox(height: 20),
                 SizedBox(
                   height: gridHeight,
-                  child: TrackFixGameGrid(
+                  child: FixTracksGameGrid(
                     rowCount: fgm.grid.rowCount,
                     columnCount: fgm.grid.columnCount,
                     getTileAt: (int row, int col) =>
@@ -100,7 +100,7 @@ class _TrackFixGameScreenState extends State<TrackFixGameScreen> {
             ),
           ),
         ),
-        TrackFixAnimatedTextOverlay(),
+        FixTracksAnimatedTextOverlay(),
       ],
     );
   }

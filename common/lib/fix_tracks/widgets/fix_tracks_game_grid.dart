@@ -1,11 +1,11 @@
 import 'dart:math';
 
-import 'package:common/track_fix/models/track_fix_grid.dart';
-import 'package:common/track_fix/widgets/track_fix_game_tile.dart';
+import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
+import 'package:common/fix_tracks/widgets/fix_tracks_game_tile.dart';
 import 'package:flutter/material.dart';
 
-class TrackFixGameGrid extends StatelessWidget {
-  const TrackFixGameGrid({
+class FixTracksGameGrid extends StatelessWidget {
+  const FixTracksGameGrid({
     super.key,
     required this.rowCount,
     required this.columnCount,
@@ -39,7 +39,7 @@ class TrackFixGameGrid extends StatelessWidget {
               return SizedBox(
                   width: tileSize,
                   height: tileSize,
-                  child: TrackFixGameTile(
+                  child: FixTracksGameTile(
                     tile: getTileAt(row, col),
                     tileSize: tileSize,
                     textSize: textSize,

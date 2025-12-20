@@ -202,9 +202,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       boosters: gm.requestedBoost.map((e) => e.name).toList(),
       canRequestTheBigHeist: gm.canRequestTheBigHeist(playerName: null),
       isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      canRequestEndOfRailwayMiniGame:
-          gm.canRequestEndOfRailwayMiniGame(playerName: null),
-      isAttemptingEndOfRailwayMiniGame: gm.isAttemptingEndOfRailwayMiniGame,
+      canRequestFixTracksMiniGame:
+          gm.canRequestFixTracksMiniGame(playerName: null),
+      isAttemptingFixTracksMiniGame: gm.isAttemptingFixTracksMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
       miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
           ? mgm?.serialize()
@@ -362,11 +362,11 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           }
           break;
 
-        case ToAppMessages.endRailwayMiniGameRequest:
+        case ToAppMessages.fixTracksMiniGameRequest:
           final playerName = message.data!['player_name'] as String;
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
           final canRequest =
-              gm.canRequestEndOfRailwayMiniGame(playerName: playerName);
+              gm.canRequestFixTracksMiniGame(playerName: playerName);
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
@@ -376,10 +376,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
           if (canRequest) {
             if (isRedeemed) {
-              gm.requestEndOfRailwayMiniGame(playerName: playerName);
+              gm.requestFixTracksMiniGame(playerName: playerName);
               _sendGameStateToEbs();
             } else {
-              gm.requestEndOfRailwayMiniGamePreparation(playerName: playerName);
+              gm.requestFixTracksMiniGamePreparation(playerName: playerName);
             }
           }
           break;

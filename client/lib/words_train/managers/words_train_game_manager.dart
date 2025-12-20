@@ -126,7 +126,7 @@ class WordsTrainGameManager {
       (isNextProblemReady || _isNextRoundAMiniGame) &&
       (_playerPreparingCongratulationFireworks == null &&
           _playerPreparingTheBigHeist == null &&
-          _playerPreparingEndOfRailwayMiniGame == null) &&
+          _playerPreparingFixTracksMiniGame == null) &&
       !_areCongratulationFireworksFiring;
 
   LetterProblem? get problem => _currentProblem;
@@ -208,16 +208,15 @@ class WordsTrainGameManager {
           _playerPreparingTheBigHeist == playerName);
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
 
-  bool _canAttemptEndOfRailwayMiniGame = false;
-  bool _isAttemptingEndOfRailwayMiniGame = false;
-  String? _playerPreparingEndOfRailwayMiniGame;
-  bool canRequestEndOfRailwayMiniGame({required String? playerName}) =>
-      _canAttemptEndOfRailwayMiniGame &&
-      !_isAttemptingEndOfRailwayMiniGame &&
-      (_playerPreparingEndOfRailwayMiniGame == null ||
-          _playerPreparingEndOfRailwayMiniGame == playerName);
-  bool get isAttemptingEndOfRailwayMiniGame =>
-      _isAttemptingEndOfRailwayMiniGame;
+  bool _canAttemptFixTracksMiniGame = false;
+  bool _isAttemptingFixTracksMiniGame = false;
+  String? _playerPreparingFixTracksMiniGame;
+  bool canRequestFixTracksMiniGame({required String? playerName}) =>
+      _canAttemptFixTracksMiniGame &&
+      !_isAttemptingFixTracksMiniGame &&
+      (_playerPreparingFixTracksMiniGame == null ||
+          _playerPreparingFixTracksMiniGame == playerName);
+  bool get isAttemptingFixTracksMiniGame => _isAttemptingFixTracksMiniGame;
   int _railwayMiniGamesAttempted = 0;
 
   bool _isNextRoundAMiniGame = false;
@@ -315,7 +314,7 @@ class WordsTrainGameManager {
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
   final onMiniGameGranted = GenericListener<Function(MiniGames)>();
-  final onEndOfRailwayMiniGameIsBeingPrepared = GenericListener<
+  final onFixTracksMiniGameIsBeingPrepared = GenericListener<
       Function({required String playerName, required bool isActive})>();
   final onRailwayMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
@@ -557,7 +556,7 @@ class WordsTrainGameManager {
     _canChangeLane = true;
     _canRequestCongratulationFireworks = false;
     _canAttemptTheBigHeist = false;
-    _canAttemptEndOfRailwayMiniGame = false;
+    _canAttemptFixTracksMiniGame = false;
 
     _logger.info('Values set at the start of the round');
   }
@@ -792,35 +791,34 @@ class WordsTrainGameManager {
     return true;
   }
 
-  Future<void> requestEndOfRailwayMiniGamePreparation(
+  Future<void> requestFixTracksMiniGamePreparation(
       {required String playerName}) async {
-    if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return;
+    if (!canRequestFixTracksMiniGame(playerName: playerName)) return;
 
-    _playerPreparingEndOfRailwayMiniGame = playerName;
-    onEndOfRailwayMiniGameIsBeingPrepared.notifyListeners(
+    _playerPreparingFixTracksMiniGame = playerName;
+    onFixTracksMiniGameIsBeingPrepared.notifyListeners(
         (callback) => callback(playerName: playerName, isActive: true));
 
     // Give 15 seconds to actually redeem the end of railway mini game
     await Future.delayed(Duration(seconds: 15));
 
-    if (_playerPreparingEndOfRailwayMiniGame == null) return;
-    _playerPreparingEndOfRailwayMiniGame = null;
-    onEndOfRailwayMiniGameIsBeingPrepared.notifyListeners(
+    if (_playerPreparingFixTracksMiniGame == null) return;
+    _playerPreparingFixTracksMiniGame = null;
+    onFixTracksMiniGameIsBeingPrepared.notifyListeners(
         (callback) => callback(playerName: playerName, isActive: false));
   }
 
-  bool requestEndOfRailwayMiniGame({required String playerName}) {
+  bool requestFixTracksMiniGame({required String playerName}) {
     _logger.info('Requesting an end of railway mini game...');
 
-    if (!canRequestEndOfRailwayMiniGame(playerName: playerName)) return false;
-    _playerPreparingEndOfRailwayMiniGame = null;
-    _canAttemptEndOfRailwayMiniGame = false;
+    if (!canRequestFixTracksMiniGame(playerName: playerName)) return false;
+    _playerPreparingFixTracksMiniGame = null;
+    _canAttemptFixTracksMiniGame = false;
     _railwayMiniGamesAttempted += 1;
 
-    _isAttemptingEndOfRailwayMiniGame = true;
+    _isAttemptingFixTracksMiniGame = true;
     _isNextRoundAMiniGame = true;
-    _currentMiniGame = MiniGames.endOfRailwayGames[
-        Random().nextInt(MiniGames.endOfRailwayGames.length)];
+    _currentMiniGame = MiniGames.fixTracksGames;
 
     onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
     return true;
@@ -909,7 +907,7 @@ class WordsTrainGameManager {
 
     // There is no mini game at the start
     _isNextRoundAMiniGame = false;
-    _isAttemptingEndOfRailwayMiniGame = false;
+    _isAttemptingFixTracksMiniGame = false;
     _railwayMiniGamesAttempted = 0;
     _isRoundAMiniGame = false;
     _currentMiniGame = null;
@@ -947,7 +945,7 @@ class WordsTrainGameManager {
     }
     if (_playerPreparingCongratulationFireworks != null ||
         _playerPreparingTheBigHeist != null ||
-        _playerPreparingEndOfRailwayMiniGame != null) {
+        _playerPreparingFixTracksMiniGame != null) {
       _logger.fine('The game is in pause while someone is redeeming something');
       return false;
     }
@@ -1220,7 +1218,7 @@ class WordsTrainGameManager {
     _generateNextProblem();
     if (_successLevel == SuccessLevel.failed) {
       if (_railwayMiniGamesAttempted == 0) {
-        _canAttemptEndOfRailwayMiniGame = true;
+        _canAttemptFixTracksMiniGame = true;
       }
     } else {
       if (_random.nextDouble() < _currentDifficulty.bigHeistProbability) {
@@ -1323,7 +1321,7 @@ class WordsTrainGameManager {
   void handleCancelNextRoundAsMiniGame() {
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
-    _isAttemptingEndOfRailwayMiniGame = false;
+    _isAttemptingFixTracksMiniGame = false;
     onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
   }
 
@@ -1342,7 +1340,7 @@ class WordsTrainGameManager {
     if (hasWon) {
       // If we played an end of railway mini game successfully, we can retried the
       // failed round. Otherwise, the players get perks
-      if (_isAttemptingEndOfRailwayMiniGame) {
+      if (_isAttemptingFixTracksMiniGame) {
         _successLevel = SuccessLevel.oneStar;
       } else {
         _forceGoldenSolution = true;
@@ -1371,7 +1369,7 @@ class WordsTrainGameManager {
           .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
     }
 
-    _isAttemptingEndOfRailwayMiniGame = false;
+    _isAttemptingFixTracksMiniGame = false;
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
     _startNewRound();
