@@ -8,7 +8,7 @@ import 'package:twitch_manager/twitch_ebs.dart';
 final _logger = Logger('TrainDeMotsEbs');
 
 const _useTwitchMocker = false;
-const _acceptedExtensionVersions = ['0.4.0', '0.4.1'];
+const _acceptedExtensionVersions = ['0.4.1', '0.5.0'];
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit
@@ -165,7 +165,7 @@ TwitchEbsInfo getTwitchEbsInfo() {
   return TwitchEbsInfo(
     appName: 'Train de mots',
     twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
-    extensionVersion: '0.4.1',
+    extensionVersion: '0.5.0',
     extensionApiClientSecret: extensionApiClientSecret,
     extensionSharedSecret: extensionSharedSecret,
     isTwitchUserIdRequired: true,
