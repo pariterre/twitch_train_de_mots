@@ -214,6 +214,7 @@ class SerializableGameState {
       'boost_still_needed': boostStillNeeded,
       'boosters': boosters,
       'can_request_the_big_heist': canRequestTheBigHeist,
+      'can_attempt_the_big_heist': canRequestTheBigHeist, // TODO Remove
       'is_attempting_the_big_heist': isAttemptingTheBigHeist,
       'can_request_end_mini_game': canRequestEndOfRailwayMiniGame,
       'is_attempting_end_mini_game': isAttemptingEndOfRailwayMiniGame,
