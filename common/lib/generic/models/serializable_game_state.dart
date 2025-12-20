@@ -239,11 +239,13 @@ class SerializableGameState {
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
       boosters: (data['boosters'] as List).cast<String>(),
-      canRequestTheBigHeist: data['can_request_the_big_heist'] as bool,
+      canRequestTheBigHeist: data['can_request_the_big_heist'] as bool? ??
+          data['can_attempt_the_big_heist'] as bool? ??
+          false,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
       canRequestEndOfRailwayMiniGame: data['can_request_end_mini_game'] as bool,
       isAttemptingEndOfRailwayMiniGame:
-          data['is_attempting_end_mini_game'] as bool,
+          data['is_attempting_end_mini_game'] as bool, // TODO Remove
       configuration:
           SerializableConfiguration.deserialize(data['configuration']),
       miniGameState: data['mini_game_state'] == null
