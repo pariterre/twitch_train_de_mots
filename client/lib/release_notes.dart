@@ -504,5 +504,21 @@ const List<ReleaseNotes> releaseNotes = [
     features: [
       FeatureNotes(description: 'Ajout du mini-jeu de la guerre des bleuets!'),
     ],
+  ),
+  ReleaseNotes(
+    version: '1.5.1',
+    codeName: 'L\'épaule à la roue',
+    notes:
+        'Le Petit Train du Nord a parfois besoin d\'un petit coup de pouce pour arriver à bon port. '
+        'Cette nouvelle version permet à vos cheminot·e·s de donner un coup de pouce lorsque vous échouez à atteindre une station! '
+        'En l\'échange de bits, vous pouvez lancer le mini-jeu de la réparation des rails. '
+        'En réussissant ce mini-jeu, vous sauvez le Train et pouvez continuer à jouer, mais vous n\'avez qu\'un seul essai par partie!\n\n'
+        'N\'oubliez pas d\'installer l\'extension Twitch pour profiter pleinement de cette nouvelle fonctionnalité!',
+    features: [
+      FeatureNotes(
+          description: 'Ajout du mini-jeu de la réparation des rails!'),
+      FeatureNotes(
+          description: 'Ajout du mot RAMEN dans la liste des mots acceptés!'),
+    ],
   )
 ];

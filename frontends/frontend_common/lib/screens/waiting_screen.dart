@@ -206,7 +206,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                   const SizedBox(height: 8.0),
                                   GrowingWidget(
                                     growingFactor: 1.02,
-                                    duration: Duration(milliseconds: 750),
+                                    duration: const Duration(milliseconds: 750),
                                     child: ElevatedButton(
                                         onPressed: TwitchManager
                                             .instance.attemptFixTracksMiniGame,

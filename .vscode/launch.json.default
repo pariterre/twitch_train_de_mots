@@ -65,7 +65,7 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
-            "program": "frontends/video_overlay/lib/main.dart",
+            "program": "frontends/mobile/lib/main.dart",
             "args": [
                 "--dart-define=USE_EBS_MOCK=< true | [false] >",
                 "--dart-define=USE_LOCAL_EBS=< true | [false] >",

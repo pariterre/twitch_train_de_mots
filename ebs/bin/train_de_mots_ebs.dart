@@ -8,7 +8,7 @@ import 'package:twitch_manager/twitch_ebs.dart';
 final _logger = Logger('TrainDeMotsEbs');
 
 const _useTwitchMocker = false;
-const _acceptedExtensionVersions = ['0.4.1', '0.5.0'];
+const _acceptedExtensionVersions = ['0.5.0'];
 
 void main(List<String> arguments) async {
   // If the arguments request help, print the help message and exit

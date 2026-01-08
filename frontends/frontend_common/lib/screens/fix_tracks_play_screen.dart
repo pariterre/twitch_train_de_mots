@@ -22,7 +22,7 @@ class FixTracksPlayScreen extends StatelessWidget {
               height: (constraints.maxWidth * 1.5 -
                   2 * 20 -
                   2 * ThemeManager.instance.textSize),
-              child: _TrackGrid(),
+              child: const _TrackGrid(),
             );
           }),
         ],
