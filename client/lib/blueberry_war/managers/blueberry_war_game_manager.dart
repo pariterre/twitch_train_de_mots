@@ -195,7 +195,7 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _roundDuration = Duration(
       seconds:
-          max(35, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
+          35 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
     );
 
     // Notify listeners that the game is ready

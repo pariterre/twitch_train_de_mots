@@ -111,7 +111,7 @@ class MocksConfiguration {
         shouldAttemptTheBigHeist: false,
         shouldChangeLane: true,
         isNextRoundAMiniGame: true,
-        nextMiniGame: MiniGames.fixTracks,
+        nextMiniGame: MiniGames.treasureHunt,
         forceGoldenSolution: true,
       );
 

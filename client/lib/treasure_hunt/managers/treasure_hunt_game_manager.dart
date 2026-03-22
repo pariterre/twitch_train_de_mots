@@ -137,7 +137,7 @@ class TreasureHuntGameManager implements MiniGameManager {
     _isMainTimerRunning = false;
     _timeRemaining = Duration(
       seconds:
-          max(20, Managers.instance.train.previousRoundTimeRemaining.inSeconds),
+          20 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
     );
     _triesRemaining = 10;
     _playersPoints.clear();

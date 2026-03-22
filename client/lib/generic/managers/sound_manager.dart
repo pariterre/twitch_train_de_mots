@@ -412,7 +412,7 @@ class SoundManager {
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
     final tm = Managers.instance.miniGames.treasureHunt;
-    if (tm.isGameOver && !tm.hasWon) return;
+    if (tm.isGameOver) return;
 
     _playSoundEffect(tile.isLetter
         ? _SoundEffect.solutionFound
@@ -447,6 +447,7 @@ class SoundManager {
 
   Future<void> _onTreasureHuntGameIsOver({required bool hasWon}) async {
     if (hasWon) {
+      _playSoundEffect(_SoundEffect.solutionFound);
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
       _playSoundEffect(_SoundEffect.roundIsOver);
@@ -489,6 +490,7 @@ class SoundManager {
 
   Future<void> _onBlueberryWarGameIsOver({required bool hasWon}) async {
     if (hasWon) {
+      _playSoundEffect(_SoundEffect.solutionFound);
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
       _playSoundEffect(_SoundEffect.roundIsOver);
