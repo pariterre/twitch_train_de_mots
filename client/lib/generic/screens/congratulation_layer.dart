@@ -20,7 +20,8 @@ class CongratulationLayer extends StatefulWidget {
   State<CongratulationLayer> createState() => _CongratulationLayerState();
 }
 
-class _CongratulationLayerState extends State<CongratulationLayer> {
+class _CongratulationLayerState extends State<CongratulationLayer>
+    with TickerProviderStateMixin {
   final _congratulationMessageController = BouncyContainerController(
       bounceCount: 10,
       easingInDuration: 600,
@@ -64,40 +65,71 @@ class _CongratulationLayerState extends State<CongratulationLayer> {
     super.dispose();
   }
 
-  void _launchFireworks({required String playerName, required bool isActive}) {
+  void _launchFireworks({
+    required String playerName,
+    required bool isActive,
+  }) {
     if (!isActive) return;
 
-    final now = DateTime.now();
     setState(() => _isFiring = true);
 
     _congratulationMessageController
         .triggerAnimation(_CongratulationMessage(congratulerName: playerName));
 
-    Random random = Random();
-    for (int i = 0; i < widget.maxFireworkCount; i++) {
-      Future.delayed(Duration(milliseconds: random.nextInt(1000))).then((_) {
-        _fireworksController[i].trigger();
-        Managers.instance.sound.playFireworks();
-      });
+    final random = Random();
 
-      Timer.periodic(Duration(milliseconds: 1000 + random.nextInt(5000)),
-          (timer) {
-        if (DateTime.now().difference(now) > widget.duration) {
-          timer.cancel();
+    // Track per-firework timing
+    final List<double> nextFireTimes = List.generate(
+      widget.maxFireworkCount,
+      (_) => random.nextDouble(), // initial delay (0–1s)
+    );
+
+    final List<double> intervals = List.generate(
+      widget.maxFireworkCount,
+      (_) => 1 + random.nextDouble() * 5, // 1–6s
+    );
+
+    final controller =
+        AnimationController(vsync: this, duration: const Duration(days: 1));
+    controller
+      ..addListener(() {
+        final elapsed = controller.lastElapsedDuration;
+        if (elapsed == null) return;
+
+        final t = elapsed.inMilliseconds / 1000.0;
+
+        for (int i = 0; i < widget.maxFireworkCount; i++) {
+          if (t >= nextFireTimes[i]) {
+            _fireworksController[i].trigger();
+            Managers.instance.sound.playFireworks();
+
+            _positions[i] = Offset(
+              random.nextDouble() - 0.5,
+              random.nextDouble() - 0.5,
+            );
+
+            // schedule next fire
+            nextFireTimes[i] = t + intervals[i];
+            intervals[i] = 1 + random.nextDouble() * 5;
+          }
         }
-        _fireworksController[i].trigger();
-        Managers.instance.sound.playFireworks();
-        _positions[i] =
-            Offset(random.nextDouble() - 0.5, random.nextDouble() - 0.5);
-      });
-    }
 
-    Future.delayed(widget.duration + const Duration(milliseconds: 6000))
-        .then((_) => setState(() {
+        // stop condition
+        if (elapsed > widget.duration) {
+          controller.stop();
+
+          Future.delayed(const Duration(milliseconds: 6000), () {
+            if (!mounted) return;
+
+            setState(() {
               _isFiring = false;
               Managers.instance.train
                   .requestStopFireworks(playerName: playerName);
-            }));
+            });
+          });
+        }
+      })
+      ..repeat();
   }
 
   @override

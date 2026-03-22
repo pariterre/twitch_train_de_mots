@@ -55,7 +55,6 @@ class TreasureHuntGameManager implements MiniGameManager {
   @override
   bool get isReady => _isReady;
   bool _isMainTimerRunning = false;
-  Timer? _timer;
   Duration _timeRemaining = Duration.zero;
   @override
   Duration get timeRemaining => _timeRemaining;
@@ -85,7 +84,6 @@ class TreasureHuntGameManager implements MiniGameManager {
   final onGameStarted = GenericListener<Function()>();
   @override
   final onGameUpdated = GenericListener<Function()>();
-  final onClockTicked = GenericListener<Function(Duration)>();
   final onTrySolution = GenericListener<
       Function(
           {required String playerName,
@@ -158,8 +156,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _gameLoop());
+    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
 
     onGameStarted.notifyListeners((callback) => callback());
   }
@@ -289,19 +286,19 @@ class TreasureHuntGameManager implements MiniGameManager {
   }
 
   void _processGameOver() {
+    if (!_isMainTimerRunning) return;
+
     _isMainTimerRunning = false;
-    _timer?.cancel();
-    _timer = null;
     _forceEndOfGame = false;
 
     _revealSolution();
     onGameEnded.notifyListeners((callback) => callback(hasWon: hasWon));
+    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
   }
 
   ///
   /// Tick the clock by one second
   void _tickClock() {
-    _timeRemaining -= const Duration(seconds: 1);
-    onClockTicked.notifyListeners((callback) => callback(_timeRemaining));
+    _timeRemaining -= Managers.instance.tickerManager.deltaTime;
   }
 }

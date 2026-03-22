@@ -387,8 +387,10 @@ class BlueberryWarGameManager implements MiniGameManager {
       _hasWon = false;
     }
 
-    if (!_isGameOver) return;
+    if (_isGameOver) _processGameOver();
+  }
 
+  void _processGameOver() {
     // Make all the agents quickly slowing down
     for (final agent in allAgents) {
       agent.coefficientOfFriction = 0.9;
@@ -407,5 +409,6 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon!));
+    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
   }
 }

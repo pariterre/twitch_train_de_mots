@@ -29,6 +29,7 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
   }
 
   void _onClockTicked() {
+    if (!mounted) return;
     setState(() {});
   }
 

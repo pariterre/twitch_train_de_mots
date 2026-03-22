@@ -87,6 +87,7 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
   }
 
   void _clockTicked() {
+    if (!mounted) return;
     if (_isFading) _performFading();
     setState(() {});
   }

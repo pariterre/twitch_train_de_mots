@@ -13,24 +13,28 @@ class TreasureHuntHeader extends StatefulWidget {
 }
 
 class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
+  int _previousTimeRemainingInSeconds = 0;
+
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.listen(_onGameStarted);
-    gm.onClockTicked.listen(_onClockTicked);
     gm.onTileRevealed.listen(_onTileRevealed);
     gm.onRewardFound.listen(_onRewardFound);
+
+    Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
     gm.onGameStarted.cancel(_onGameStarted);
-    gm.onClockTicked.cancel(_onClockTicked);
     gm.onTileRevealed.cancel(_onTileRevealed);
     gm.onRewardFound.cancel(_onRewardFound);
+
+    Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
 
     super.dispose();
   }
@@ -39,8 +43,13 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
     setState(() {});
   }
 
-  void _onClockTicked(Duration timeRemaining) {
-    setState(() {});
+  void _onClockTicked() {
+    if (_previousTimeRemainingInSeconds !=
+        Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds) {
+      _previousTimeRemainingInSeconds =
+          Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds;
+      setState(() {});
+    }
   }
 
   void _onTileRevealed(Tile tile) {

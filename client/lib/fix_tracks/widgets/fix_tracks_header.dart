@@ -12,21 +12,24 @@ class FixTracksHeader extends StatefulWidget {
 }
 
 class _FixTracksHeaderState extends State<FixTracksHeader> {
+  int _previousTimeRemainingInSeconds = 0;
+
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.miniGames.fixTracks;
     gm.onGameStarted.listen(_onGameStarted);
-    gm.onClockTicked.listen(_onClockTicked);
     gm.onTrySolution.listen(_onSolutionTried);
+
+    Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
+    Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
     final gm = Managers.instance.miniGames.fixTracks;
     gm.onGameStarted.cancel(_onGameStarted);
-    gm.onClockTicked.cancel(_onClockTicked);
     gm.onTrySolution.cancel(_onSolutionTried);
 
     super.dispose();
@@ -36,8 +39,13 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
     setState(() {});
   }
 
-  void _onClockTicked(Duration timeRemaining) {
-    setState(() {});
+  void _onClockTicked() {
+    if (_previousTimeRemainingInSeconds !=
+        Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds) {
+      _previousTimeRemainingInSeconds =
+          Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds;
+      setState(() {});
+    }
   }
 
   void _onSolutionTried(
