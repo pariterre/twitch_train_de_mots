@@ -21,12 +21,8 @@ final _logger = Logger('GameManager');
 class WordsTrainGameManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  final Duration _deltaTime;
-  WordsTrainGameManager(
-      {Duration deltaTime = const Duration(milliseconds: 1000)})
-      : _deltaTime = deltaTime {
+  WordsTrainGameManager() {
     _asyncInitializations();
-    Timer.periodic(_deltaTime, _gameLoop);
   }
 
   Future<void> _asyncInitializations() async {
@@ -45,6 +41,11 @@ class WordsTrainGameManager {
     _isInitialized = true;
 
     _logger.config('Ready');
+    while (!Managers.instance.allManagersInitialized) {
+      // Wait for all managers to be initialized before allowing the game to start
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
   }
 
   /// ---------- ///
@@ -87,7 +88,8 @@ class WordsTrainGameManager {
                   Managers.instance.configuration.postRoundGracePeriodDuration
                       .inSeconds);
   Duration _previousRoundTimeRemaining = Duration.zero;
-  Duration get previousRoundTimeRemaining => _previousRoundTimeRemaining;
+  Duration get previousRoundTimeRemaining =>
+      Duration(seconds: max(_previousRoundTimeRemaining.inSeconds, 0));
   int? get _roundStartedSince => _roundStartedAt == null
       ? null
       : (DateTime.now().millisecondsSinceEpoch -
@@ -114,7 +116,7 @@ class WordsTrainGameManager {
             cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
   }
 
-  int _scramblingLetterTimer = 0;
+  Duration _scramblingLetterTimer = Duration.zero;
 
   LetterProblem? _currentProblem;
   final List<LetterProblem> _playedProblems = [];
@@ -304,7 +306,6 @@ class WordsTrainGameManager {
   final onNextProblemReady = GenericListener<Function()>();
   final onRoundStarted = GenericListener<Function()>();
   final onRoundIsOver = GenericListener<Function()>();
-  final onClockTicked = GenericListener<Function()>();
   final onScrablingLetters = GenericListener<Function()>();
   final onRevealUselessLetter = GenericListener<Function()>();
   final onRevealHiddenLetter = GenericListener<Function()>();
@@ -538,7 +539,7 @@ class WordsTrainGameManager {
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
     _nextRoundStartAt = null;
-    _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
+    _scramblingLetterTimer = cm.timeBeforeScramblingLetters;
 
     // Transfer the next problem to the current problem
     if (_currentProblem != null) _playedProblems.add(_currentProblem!);
@@ -920,14 +921,10 @@ class WordsTrainGameManager {
 
   ///
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
-  void _gameLoop(Timer timer) async {
-    _logger.fine('Game looping...');
-
+  void _gameLoop() async {
     _tickingClock();
     if (_checkIfShouldAutomaticallyStartRound()) _autoStartingRound();
     if (_checkForEndOfRound()) _endingRound();
-
-    _logger.fine('Game looped');
   }
 
   bool _checkIfShouldAutomaticallyStartRound() {
@@ -940,7 +937,8 @@ class WordsTrainGameManager {
     if (_areCongratulationFireworksFiring) {
       _logger
           .fine('Congratulation fireworks are firing, so we delay the start');
-      _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
+      _nextRoundStartAt =
+          _nextRoundStartAt!.add(Managers.instance.tickerManager.deltaTime);
       return false;
     }
     if (_playerPreparingCongratulationFireworks != null ||
@@ -952,7 +950,8 @@ class WordsTrainGameManager {
 
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
-      _nextRoundStartAt = _nextRoundStartAt!.add(_deltaTime);
+      _nextRoundStartAt =
+          _nextRoundStartAt!.add(Managers.instance.tickerManager.deltaTime);
       return false;
     }
     if (!isNextProblemReady) {
@@ -980,7 +979,6 @@ class WordsTrainGameManager {
   /// listeners if needed.
   Future<void> _tickingClock() async {
     _logger.fine('Tic...');
-    onClockTicked.notifyListeners((callback) => callback());
 
     if (_gameStatus != WordsTrainGameStatus.roundStarted ||
         timeRemaining == null) {
@@ -1066,10 +1064,10 @@ class WordsTrainGameManager {
 
     // Manager letter swapping in the problem
     _logger.fine('Managing letter swapping...');
-    _scramblingLetterTimer -= 1;
-    if (_scramblingLetterTimer <= 0) {
+    _scramblingLetterTimer -= Managers.instance.tickerManager.deltaTime;
+    if (_scramblingLetterTimer <= Duration.zero) {
       _logger.fine('Scrambling letters...');
-      _scramblingLetterTimer = cm.timeBeforeScramblingLetters.inSeconds;
+      _scramblingLetterTimer = cm.timeBeforeScramblingLetters;
       _currentProblem!.scrambleLetters();
       onScrablingLetters.notifyListeners((callback) => callback());
     }
@@ -1161,7 +1159,7 @@ class WordsTrainGameManager {
   Future<void> _endingRound() async {
     _logger.info('Round is over, ending the round...');
     final cm = Managers.instance.configuration;
-
+// TODO Research for a game if the minigame fix is performed
     // Finishing the round
     _successLevel = _numberOfStarObtained(problem!.teamScore);
     if (_isAttemptingTheBigHeist) {
@@ -1390,12 +1388,19 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
     bool isNextRoundAMiniGame = false,
     MiniGames? nextMiniGame,
     bool? forceGoldenSolution,
-  }) : super(deltaTime: Duration(milliseconds: 100)) {
+    bool canRequestCongratulationFireworks = true,
+    bool canAttemptTheBigHeist = true,
+    bool canAttemptFixTracksMiniGame = true,
+  }) : super() {
     if (players != null) {
       for (final player in players) {
         this.players.add(player);
       }
     }
+
+    _canRequestCongratulationFireworks = canRequestCongratulationFireworks;
+    _canAttemptTheBigHeist = canAttemptTheBigHeist;
+    _canAttemptFixTracksMiniGame = canAttemptFixTracksMiniGame;
 
     _gameStatus = WordsTrainGameStatus.initializing;
     if (roundCount != null) {

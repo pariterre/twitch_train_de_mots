@@ -134,17 +134,19 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.initState();
 
     final gm = Managers.instance.train;
-    gm.onClockTicked.listen(_refresh);
     gm.onCongratulationFireworksPreparing.listen(_toggleCanClick);
     gm.onCongratulationFireworks.listen(_toggleCanClick);
+
+    Managers.instance.tickerManager.onClockTicked.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
-    gm.onClockTicked.cancel(_refresh);
     gm.onCongratulationFireworksPreparing.cancel(_toggleCanClick);
     gm.onCongratulationFireworks.cancel(_toggleCanClick);
+
+    Managers.instance.tickerManager.onClockTicked.cancel(_refresh);
 
     super.dispose();
   }
@@ -153,7 +155,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
     if (mounted) setState(() => _canClick = !isActive);
   }
 
-  void _refresh() => setState(() {});
+  void _refresh() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   Future<void> _showAutoplayDialog() async {
     await showDialog(

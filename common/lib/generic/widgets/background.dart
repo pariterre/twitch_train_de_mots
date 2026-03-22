@@ -43,6 +43,12 @@ class _BackgroundState extends State<Background>
   }
 
   @override
+  void didChangeDependencies() {
+    setState(() {});
+    super.didChangeDependencies();
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
 

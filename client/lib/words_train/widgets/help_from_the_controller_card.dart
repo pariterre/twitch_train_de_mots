@@ -131,19 +131,25 @@ class _BoostState extends State<_Boost> {
 
     final gm = Managers.instance.train;
     gm.onTrainGotBoosted.listen(_refreshWithParameter);
-    gm.onClockTicked.listen(_refresh);
+
+    Managers.instance.tickerManager.onClockTicked.listen(_refresh);
   }
 
   @override
   void dispose() {
     final gm = Managers.instance.train;
     gm.onTrainGotBoosted.cancel(_refreshWithParameter);
-    gm.onClockTicked.cancel(_refresh);
+
+    Managers.instance.tickerManager.onClockTicked.cancel(_refresh);
 
     super.dispose();
   }
 
-  void _refresh() => setState(() {});
+  void _refresh() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
   void _refreshWithParameter(dynamic _) => setState(() {});
 
   @override

@@ -22,6 +22,7 @@ class GameManager {
   static final _instance = GameManager._();
   static GameManager get instance => _instance;
   GameManager._() {
+    // TODO: Change this to a TickerManager
     Timer.periodic(const Duration(milliseconds: 16), (timer) {
       final dt = DateTime.now().difference(_lastTick);
       _lastTick = DateTime.now();

@@ -110,7 +110,7 @@ class MocksConfiguration {
         successLevel: SuccessLevel.threeStars,
         shouldAttemptTheBigHeist: false,
         shouldChangeLane: true,
-        isNextRoundAMiniGame: true,
+        isNextRoundAMiniGame: false,
         nextMiniGame: MiniGames.treasureHunt,
         forceGoldenSolution: true,
       );
