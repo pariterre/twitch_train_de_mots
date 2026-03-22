@@ -7,6 +7,7 @@ import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.d
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -30,8 +31,7 @@ final _dictionary = DictionaryManager.wordsWithAtLeast(10).toList();
 class BlueberryWarGameManager implements MiniGameManager {
   ///
   /// Duration of each game tick (16ms for 60 FPS)
-  final Duration _tickDuration = const Duration(milliseconds: 16);
-  DateTime _lastTick = DateTime.now();
+  GlobalTickerManager get _tickerManager => Managers.instance.tickerManager;
 
   ///
   /// Whether the game manager is initialized
@@ -55,7 +55,6 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   bool get isReady => _isReady;
 
-  Timer? _timer;
   DateTime? _startTime;
   DateTime get startTime => _startTime ?? DateTime.now();
   bool get gameStarted => _startTime != null;
@@ -83,7 +82,6 @@ class BlueberryWarGameManager implements MiniGameManager {
   // Listeners
   @override
   final onGameIsReady = GenericListener<Function()>();
-  final onClockTicked = GenericListener<Function()>();
   @override
   final onGameUpdated = GenericListener<Function()>();
   final onLetterHitByBlueberry =
@@ -200,21 +198,21 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     // Notify listeners that the game is ready
     _isInitialized = true;
-    _timer?.cancel();
-    _timer = null;
     _startTime = null;
     _finalTime = null;
     _isGameOver = false;
     _hasWon = null;
-    _lastTick = DateTime.now();
     _isReady = true;
     onGameIsReady.notifyListeners((callback) => callback());
   }
 
+  void dispose() {
+    _logger.fine('Disposing BlueberryWarGameManager');
+  }
+
   @override
   Future<void> start() async {
-    _timer?.cancel();
-    _timer = Timer.periodic(_tickDuration, (timer) => _gameLoop());
+    _tickerManager.onClockTicked.listen(_gameLoop);
   }
 
   @override
@@ -320,7 +318,6 @@ class BlueberryWarGameManager implements MiniGameManager {
       if (Managers.instance.train.gameStatus ==
           WordsTrainGameStatus.miniGameStarted) {
         _startTime = DateTime.now();
-        _lastTick = DateTime.now(); // Prevent the physics from jumping
         _logger.info('Blueberry war game started at $_startTime');
       }
       return;
@@ -330,7 +327,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     _manageForGameOver();
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
-      dt: DateTime.now().difference(_lastTick),
+      dt: _tickerManager.deltaTime,
       allAgents: allAgents,
       problem: _problem!,
       onBlueberryDestroyed: (blueberry) {
@@ -360,7 +357,6 @@ class BlueberryWarGameManager implements MiniGameManager {
       // movement and collisions
       onGameUpdated.notifyListeners((callback) => callback());
     }
-    _tickClock();
   }
 
   void _manageForGameOver() {
@@ -372,7 +368,6 @@ class BlueberryWarGameManager implements MiniGameManager {
             agent.isDestroyed,
       )) {
         _logger.info('Game over, stopping the timer');
-        _timer?.cancel();
       }
       return;
     }
@@ -412,13 +407,5 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon!));
-  }
-
-  ///
-  /// Tick the clock by one second
-  void _tickClock() {
-    _logger.finer('Game loop ticked at ${DateTime.now()}');
-    _lastTick = DateTime.now();
-    onClockTicked.notifyListeners((callback) => callback());
   }
 }

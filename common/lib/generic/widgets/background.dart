@@ -7,10 +7,15 @@ final _logger = Logger('Background');
 
 class Background extends StatefulWidget {
   const Background(
-      {super.key, this.child, this.withSnowfall = true, this.backgroundLayer});
+      {super.key,
+      this.child,
+      this.withSnowfall = true,
+      this.backgroundLayer,
+      this.snowFlakeCount = 100});
 
   final Widget? backgroundLayer;
   final bool withSnowfall;
+  final int snowFlakeCount;
   final Widget? child;
 
   @override
@@ -99,7 +104,8 @@ class _BackgroundState extends State<Background>
             alignment: Alignment.topCenter,
             child: widget.backgroundLayer,
           ),
-        if (widget.withSnowfall) const SnowfallOverlay(),
+        if (widget.withSnowfall)
+          SnowfallOverlay(snowFlakeCount: widget.snowFlakeCount),
         if (widget.child != null) widget.child!,
       ],
     );

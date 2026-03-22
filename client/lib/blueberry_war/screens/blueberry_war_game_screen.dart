@@ -19,15 +19,13 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
   void initState() {
     super.initState();
 
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.listen(_clockTicked);
+    Managers.instance.tickerManager.onClockTicked.listen(_clockTicked);
   }
 
   // Dispose
   @override
   void dispose() {
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.cancel(_clockTicked);
+    Managers.instance.tickerManager.onClockTicked.cancel(_clockTicked);
 
     super.dispose();
   }
@@ -89,7 +87,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                     blueberries: bwm.blueberries,
                     letters: bwm.letters,
                     isGameOver: bwm.isGameOver,
-                    clockTicker: bwm.onClockTicked,
+                    clockTicker: Managers.instance.tickerManager.onClockTicked,
                     onBlueberrySlingShoot: (blueberry, newVelocity) {
                       bwm.slingShoot(
                           blueberry: blueberry, newVelocity: newVelocity);

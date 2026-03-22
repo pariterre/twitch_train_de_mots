@@ -83,6 +83,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (Managers.instance.database.isLoggedOut) return;
 
     Managers.instance.train.requestSearchForNextProblem();
+    if (!mounted) return;
     setState(() {});
   }
 

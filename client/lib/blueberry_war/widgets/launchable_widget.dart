@@ -1,25 +1,19 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 class LaunchableWidgetController {
   _LaunchableWidgetState? _state;
-  DateTime _lastUpdate = DateTime.now();
 
   void startTimer() {
     if (_state == null) {
       throw Exception('Controller is not attached to a LaunchableWidgetState');
     }
 
-    _lastUpdate = DateTime.now();
-    Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      _state!._advancePosition();
-      if (_state!._velocity < 0.01) {
-        timer.cancel(); // Stop the timer if the letter is almost stationary
-      }
-      _lastUpdate = DateTime.now();
-    });
+    final ticker = Managers.instance.tickerManager;
+    ticker.onClockTicked
+        .listen(() => _state!._advancePosition(ticker.deltaTime));
   }
 
   void setVelocity(double xVelocity, double yVelocity) {
@@ -73,12 +67,13 @@ class _LaunchableWidgetState extends State<LaunchableWidget> {
   late double _yVelocity = _random.nextDouble() * 30 - 15;
   double get _velocity => _xVelocity * _xVelocity + _yVelocity * _yVelocity;
 
-  void _advancePosition() {
+  void _advancePosition(Duration deltaTime) {
+    if (_velocity < 0.01) return;
+
     setState(() {
       // Calculate push based on the time since the last update
-      final now = DateTime.now();
       final delta =
-          now.difference(widget.controller._lastUpdate).inMilliseconds / 10.0;
+          deltaTime.inMilliseconds / 100.0; // Convert to 100th milliseconds
       if (delta <= 0) return; // Avoid division by zero
       // Update position based on velocity
       _xPosition += _xVelocity * delta;

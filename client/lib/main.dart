@@ -17,42 +17,53 @@ void main() async {
 
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();
-  await Managers.initialize(
-    twitchAppInfo: TwitchAppInfo(
-      appName: 'Train de mots',
-      twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
-      scope: const [
-        TwitchAppScope.chatRead,
-        TwitchAppScope.readFollowers,
-      ],
-      twitchRedirectUri: Uri.https(
-          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-      authenticationServerUri:
-          Uri.https('twitchserver.pariterre.net:3000', 'token'),
-      authenticationFlow: TwitchAuthenticationFlow.authorizationCode,
-      ebsUri: MocksConfiguration.useLocalEbs
-          ? Uri.parse('ws://localhost:3010')
-          : Uri.parse('wss://twitchserver.pariterre.net:3010'),
-    ),
-  );
 
-  runApp(const MyApp());
+  runApp(const GlobalTicker());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class GlobalTicker extends StatefulWidget {
+  const GlobalTicker({super.key});
 
+  @override
+  State<GlobalTicker> createState() => _GlobalTickerState();
+}
+
+class _GlobalTickerState extends State<GlobalTicker>
+    with SingleTickerProviderStateMixin {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MainScreen(),
-      supportedLocales: [Locale('fr', '')],
-      localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+    return FutureBuilder(
+      future: Managers.initialize(
+        vsync: this,
+        twitchAppInfo: TwitchAppInfo(
+          appName: 'Train de mots',
+          twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
+          scope: const [
+            TwitchAppScope.chatRead,
+            TwitchAppScope.readFollowers,
+          ],
+          twitchRedirectUri: Uri.https(
+              'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+          authenticationServerUri:
+              Uri.https('twitchserver.pariterre.net:3000', 'token'),
+          authenticationFlow: TwitchAuthenticationFlow.authorizationCode,
+          ebsUri: MocksConfiguration.useLocalEbs
+              ? Uri.parse('ws://localhost:3010')
+              : Uri.parse('wss://twitchserver.pariterre.net:3010'),
+        ),
+      ),
+      builder: (context, state) {
+        return const MaterialApp(
+          home: MainScreen(),
+          supportedLocales: [Locale('fr', '')],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+        );
+      },
     );
   }
 }

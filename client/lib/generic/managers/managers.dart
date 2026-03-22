@@ -1,4 +1,6 @@
+import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
+import 'package:flutter/widgets.dart';
 import 'package:train_de_mots/generic/managers/configuration_manager.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
@@ -35,8 +37,10 @@ class Managers {
 
   ///
   /// Initialize all the managers
-  static Future<void> initialize(
-      {required twitch_app.TwitchAppInfo twitchAppInfo}) async {
+  static Future<void> initialize({
+    required twitch_app.TwitchAppInfo twitchAppInfo,
+    required TickerProvider vsync,
+  }) async {
     if (_instance._isInitialized) {
       throw ManagerAlreadyInitializedException(
           'Managers are already initialized.');
@@ -49,6 +53,9 @@ class Managers {
     // We need to allow access to managers already because they need each other
     // to be initialized
     _instance._isInitialized = true;
+
+    // Initialize the global ticker manager
+    _instance._tickerManager = GlobalTickerManager(vsync: vsync);
 
     // Initialize the database manager
     _instance._database = MocksConfiguration.useDatabaseMock
@@ -89,6 +96,15 @@ class Managers {
         !(_instance._ebs?.isInitialized ?? false)) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
+  }
+
+  GlobalTickerManager? _tickerManager;
+  GlobalTickerManager get tickerManager {
+    if (_tickerManager == null) {
+      throw ManagerNotInitializedException(
+          'GlobalTickerManager is not initialized. Please call Managers.initialize() before using it.');
+    }
+    return _tickerManager!;
   }
 
   DatabaseManager? _database;

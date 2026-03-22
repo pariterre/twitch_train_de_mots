@@ -4,34 +4,42 @@ import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Managers.initialize(
-    twitchAppInfo: TwitchAppInfo(
-      appName: 'Train de mots',
-      twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
-      scope: const [
-        TwitchAppScope.chatRead,
-        TwitchAppScope.readFollowers,
-      ],
-      twitchRedirectUri: Uri.https(
-          'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-      authenticationServerUri:
-          Uri.https('twitchserver.pariterre.net:3000', 'token'),
-      authenticationFlow: TwitchAuthenticationFlow.implicit,
-      ebsUri: Uri.parse('ws://localhost:3010'),
-    ),
-  );
-
-  runApp(const MyApp());
+  runApp(const GlobalTicker());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class GlobalTicker extends StatefulWidget {
+  const GlobalTicker({super.key});
 
+  @override
+  State<GlobalTicker> createState() => _GlobalTickerState();
+}
+
+class _GlobalTickerState extends State<GlobalTicker>
+    with SingleTickerProviderStateMixin {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: DebugScreen());
+    return FutureBuilder(
+        future: Managers.initialize(
+          vsync: this,
+          twitchAppInfo: TwitchAppInfo(
+            appName: 'Train de mots',
+            twitchClientId: '75yy5xbnj3qn2yt27klxrqm6zbbr4l',
+            scope: const [
+              TwitchAppScope.chatRead,
+              TwitchAppScope.readFollowers,
+            ],
+            twitchRedirectUri: Uri.https(
+                'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+            authenticationServerUri:
+                Uri.https('twitchserver.pariterre.net:3000', 'token'),
+            authenticationFlow: TwitchAuthenticationFlow.implicit,
+            ebsUri: Uri.parse('ws://localhost:3010'),
+          ),
+        ),
+        builder: (context, state) {
+          return const MaterialApp(home: DebugScreen());
+        });
   }
 }
 

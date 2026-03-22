@@ -18,14 +18,12 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
   void initState() {
     super.initState();
 
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.listen(_onClockTicked);
+    Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
-    final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onClockTicked.cancel(_onClockTicked);
+    Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
 
     super.dispose();
   }

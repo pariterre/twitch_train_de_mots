@@ -2,95 +2,49 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-class SnowfallOverlay extends StatelessWidget {
-  const SnowfallOverlay({super.key});
+class SnowfallOverlay extends StatefulWidget {
+  const SnowfallOverlay({super.key, required this.snowFlakeCount});
+
+  final int snowFlakeCount;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      width: MediaQuery.of(context).size.width,
-      child: Stack(
-        children: List.generate(
-          100,
-          (index) {
-            // Generate random snowflake properties
-            final size = Random().nextDouble() * 5;
-            final opacity = Random().nextDouble() * 0.1 + 0.2;
-
-            final xOffset =
-                Random().nextDouble() * MediaQuery.of(context).size.width;
-            final yOffset =
-                Random().nextDouble() * MediaQuery.of(context).size.height;
-
-            final xSpeed = (Random().nextDouble() - 0.5) / 1.4;
-            final ySpeed = Random().nextDouble() * 0.15 + 0.2;
-
-            return _Snowflake(
-              size: size,
-              opacity: opacity,
-              initialXOffset: xOffset,
-              initialYOffset: yOffset,
-              xSpeed: xSpeed,
-              ySpeed: ySpeed,
-            );
-          },
-        ),
-      ),
-    );
-  }
+  State<SnowfallOverlay> createState() => _SnowfallOverlayState();
 }
 
-class _Snowflake extends StatefulWidget {
-  const _Snowflake({
-    required this.size,
-    required this.initialXOffset,
-    required this.initialYOffset,
-    required this.xSpeed,
-    required this.ySpeed,
-    required this.opacity,
-  });
-
-  final double size;
-  final double initialXOffset;
-  final double initialYOffset;
-  final double xSpeed;
-  final double ySpeed;
-  final double opacity;
-
-  @override
-  State<_Snowflake> createState() => _SnowflakeState();
-}
-
-class _SnowflakeState extends State<_Snowflake>
+class _SnowfallOverlayState extends State<SnowfallOverlay>
     with SingleTickerProviderStateMixin {
-  late double xOffset = widget.initialXOffset;
-  late double yOffset = widget.initialYOffset;
-
-  late final _controller =
-      AnimationController(vsync: this, duration: const Duration(hours: 1));
+  late final AnimationController _controller;
+  late final List<_SnowflakeData> flakes;
 
   @override
   void initState() {
     super.initState();
 
-    _controller.repeat();
+    final random = Random();
+
+    flakes = List.generate(widget.snowFlakeCount, (_) {
+      return _SnowflakeData(
+        x: random.nextDouble(),
+        y: random.nextDouble(),
+        size: random.nextDouble() * 5,
+        speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
+        speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
+        opacity: random.nextDouble() * 0.3 + 0.2,
+      );
+    });
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(days: 1),
+    )..repeat();
   }
 
-  void _nextPosition() {
-    xOffset += widget.xSpeed;
-    yOffset += widget.ySpeed;
-
-    // Wrap around the screen
-    if (xOffset > MediaQuery.of(context).size.width + widget.size) {
-      xOffset = 0;
-    }
-    if (xOffset < -widget.size) {
-      xOffset = MediaQuery.of(context).size.width;
-    }
-    if (yOffset > MediaQuery.of(context).size.height) {
-      yOffset = -widget.size;
-    }
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _SnowPainter(flakes, _controller),
+      size: Size.infinite,
+    );
   }
 
   @override
@@ -98,30 +52,54 @@ class _SnowflakeState extends State<_Snowflake>
     _controller.dispose();
     super.dispose();
   }
+}
+
+class _SnowPainter extends CustomPainter {
+  final List<_SnowflakeData> flakes;
+  final AnimationController controller;
+
+  _SnowPainter(this.flakes, this.controller) : super(repaint: controller);
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (ctx, child) {
-        _nextPosition();
-        return Positioned(
-          left: xOffset,
-          top: yOffset,
-          child: child!,
-        );
-      },
-      child: Opacity(
-        opacity: widget.opacity,
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+
+    final elapsed =
+        (controller.lastElapsedDuration?.inMilliseconds ?? 0) / 1000.0;
+    for (final flake in flakes) {
+      final dx = (flake.x * size.width + elapsed * flake.speedX * size.width) %
+          size.width;
+      final dy =
+          (flake.y * size.height + elapsed * flake.speedY * size.height) %
+              size.height;
+      paint.color = Colors.white.withAlpha((flake.opacity * 255).toInt());
+
+      canvas.drawCircle(
+        Offset(dx, dy),
+        flake.size,
+        paint,
+      );
+    }
   }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _SnowflakeData {
+  double x;
+  double y;
+  double size;
+  double speedX;
+  double speedY;
+  double opacity;
+
+  _SnowflakeData({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speedX,
+    required this.speedY,
+    required this.opacity,
+  });
 }
