@@ -142,18 +142,22 @@ class _TimeDisplayerState extends State<_TimeDisplayer> {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onGameTicked.listen(refresh);
+    gm.tickerManager.onClockTicked.listen(refresh);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onGameTicked.cancel(refresh);
+    gm.tickerManager.onClockTicked.cancel(refresh);
 
     super.dispose();
   }
 
-  void refresh() => setState(() {});
+  void refresh() {
+    if (!mounted) return;
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {

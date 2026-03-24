@@ -1,3 +1,4 @@
+import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/background.dart';
@@ -34,7 +35,8 @@ class MainExtension extends StatefulWidget {
   State<MainExtension> createState() => _MainExtensionState();
 }
 
-class _MainExtensionState extends State<MainExtension> {
+class _MainExtensionState extends State<MainExtension>
+    with SingleTickerProviderStateMixin {
   final boxSizeController = ResizedBoxController();
   late bool _shouldHide = widget.canBeHidden;
 
@@ -49,6 +51,7 @@ class _MainExtensionState extends State<MainExtension> {
     super.initState();
 
     final gm = GameManager.instance;
+    gm.initialize(tickerManager: GlobalTickerManager(vsync: this));
     gm.onGameStatusUpdated.listen(_updateStatus);
     gm.onRoundUpdated.listen(_refresh);
   }

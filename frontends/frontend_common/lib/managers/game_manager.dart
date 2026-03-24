@@ -4,6 +4,8 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
+import 'package:common/generic/managers/global_ticker_manager.dart';
+import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/helpers.dart';
@@ -21,22 +23,27 @@ class GameManager {
   /// Prepare the singleton
   static final _instance = GameManager._();
   static GameManager get instance => _instance;
-  GameManager._() {
-    // TODO: Change this to a TickerManager
-    Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      final dt = DateTime.now().difference(_lastTick);
-      _lastTick = DateTime.now();
-      _gameState.timeRemaining -= dt;
+  GameManager._();
 
-      onGameTicked.notifyListeners((callback) => callback());
+  bool _isInitialized = false;
+  late final GlobalTickerManager _tickerManager;
+  GlobalTickerManager get tickerManager {
+    if (!_isInitialized) {
+      throw ManagerNotInitializedException(
+          'GameManager is not initialized. Please call GameManager.initialize() before using it.');
+    }
+    return _tickerManager;
+  }
 
-      _tickMiniGame(dt: dt);
-    });
+  Future<void> initialize({required GlobalTickerManager tickerManager}) async {
+    _tickerManager = tickerManager;
+    _isInitialized = true;
+
+    _tickerManager.onClockTicked.listen(_tickGame);
   }
 
   ///
   /// Callback to know when a round has started or ended
-  var _lastTick = DateTime.now();
   int get currentRound => _gameState.round;
   bool get isRoundRunning =>
       _gameState.status == WordsTrainGameStatus.roundStarted;
@@ -206,7 +213,11 @@ class GameManager {
 
   ///
   /// Callback for each tick
-  final onGameTicked = GenericListener<Function()>();
+  Future<void> _tickGame() async {
+    _gameState.timeRemaining -= _tickerManager.deltaTime;
+
+    _tickMiniGame();
+  }
 
   ///
   /// Callback to know when the game has started
@@ -301,8 +312,10 @@ class GameManager {
   }
 
   MiniGames? get currentMiniGameType => _gameState.miniGameState?.type;
-  void _tickMiniGame({required Duration dt}) {
+  void _tickMiniGame() {
     if (_gameState.miniGameState == null) return;
+
+    final dt = _tickerManager.deltaTime;
 
     late final SerializableMiniGameState newGameState;
     switch (currentMiniGameType!) {

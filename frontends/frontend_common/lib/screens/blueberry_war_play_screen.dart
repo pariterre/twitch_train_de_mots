@@ -86,7 +86,7 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                     blueberries: thm.blueberries,
                     letters: thm.letters,
                     isGameOver: thm.isOver,
-                    clockTicker: gm.onGameTicked,
+                    clockTicker: gm.tickerManager.onClockTicked,
                     onBlueberrySlingShoot: (blueberry, newVelocity) {
                       twitchManager.slingShootBlueberry(
                           blueberry: blueberry, requestedVelocity: newVelocity);
