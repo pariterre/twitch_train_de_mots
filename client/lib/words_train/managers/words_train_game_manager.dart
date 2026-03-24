@@ -531,7 +531,8 @@ class WordsTrainGameManager {
 
     // Reinitialize the round timer and players
     _roundDuration = cm.roundDuration.inMilliseconds +
-        cm.postRoundGracePeriodDuration.inMilliseconds;
+        cm.postRoundGracePeriodDuration.inMilliseconds -
+        roundCount;
     for (final player in players) {
       player.resetForNextRound();
     }
