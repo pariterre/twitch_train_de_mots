@@ -262,7 +262,7 @@ class WordsTrainGameManager {
   Future<void> requestSearchForNextProblem() async {
     _logger.info('Requesting to search for the next problem');
 
-    _generateNextProblem();
+    _generateNextProblem(force: false);
   }
 
   ///
@@ -356,7 +356,7 @@ class WordsTrainGameManager {
     if (shouldRepickProblem) _forceRepickProblem = true;
     if (repickNow && _forceRepickProblem) {
       _logger.info('Rules have changed, repicking a problem...');
-      _generateNextProblem();
+      _generateNextProblem(force: true);
     }
 
     _logger.info('Rules have been updated');
@@ -382,13 +382,18 @@ class WordsTrainGameManager {
   // This helps calling [_hasAPlayerBeenUpdate] a single frame after a player is out of cooldown
   final Map<String, bool> _playersWasInCooldownLastFrame = {};
 
-  Future<void> _generateNextProblem() async {
+  Future<void> _generateNextProblem({required bool force}) async {
     final round = _successLevel == SuccessLevel.failed ? 0 : roundCount;
     _logger.info('Generating for next problem (round $round...)');
 
-    if (_isGeneratingProblem) {
-      _logger.warning('Already searching for a problem');
-      return;
+    // If we are already generating a problem, we have to wait for it to finish and then we generate a new one.
+    // If we do not need a new problem, we just return
+    while (_isGeneratingProblem) {
+      if (!force) {
+        _logger.warning('Already searching for a problem');
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 100));
     }
 
     _nextProblem = null;
@@ -1159,7 +1164,7 @@ class WordsTrainGameManager {
   Future<void> _endingRound() async {
     _logger.info('Round is over, ending the round...');
     final cm = Managers.instance.configuration;
-// TODO Research for a game if the minigame fix is performed
+
     // Finishing the round
     _successLevel = _numberOfStarObtained(problem!.teamScore);
     if (_isAttemptingTheBigHeist) {
@@ -1213,7 +1218,7 @@ class WordsTrainGameManager {
     _roundCount += _successLevel.toInt();
     _currentDifficulty = cm.difficulty(_roundCount);
 
-    _generateNextProblem();
+    _generateNextProblem(force: false);
     if (_successLevel == SuccessLevel.failed) {
       if (_railwayMiniGamesAttempted == 0) {
         _canAttemptFixTracksMiniGame = true;
@@ -1340,6 +1345,12 @@ class WordsTrainGameManager {
       // failed round. Otherwise, the players get perks
       if (_isAttemptingFixTracksMiniGame) {
         _successLevel = SuccessLevel.oneStar;
+
+        // If we won that mini game, we no longer play the 0th round, but the next as
+        // if we had won the previous round. However, in order to save time the 0th round
+        // problem is prepared as soon as the game was lost. So we need to override the
+        // next problem.
+        _generateNextProblem(force: true);
       } else {
         _forceGoldenSolution = true;
         _roundSuccesses.add(RoundSuccess.miniGameWon);
@@ -1416,7 +1427,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     _initializeTrySolutionCallback();
     if (problem == null) {
-      _generateNextProblem();
+      _generateNextProblem(force: true);
     } else {
       _problemMocker = problem;
       _currentProblem = problem;
@@ -1453,9 +1464,9 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
   bool get hasPlayedAtLeastOnce => true;
 
   @override
-  Future<void> _generateNextProblem() async {
+  Future<void> _generateNextProblem({required bool force}) async {
     if (_problemMocker == null) {
-      await super._generateNextProblem();
+      await super._generateNextProblem(force: force);
     } else {
       _nextProblem = _problemMocker;
       _isGeneratingProblem = false;
