@@ -520,5 +520,23 @@ const List<ReleaseNotes> releaseNotes = [
       FeatureNotes(
           description: 'Ajout du mot RAMEN dans la liste des mots acceptés!'),
     ],
+  ),
+  ReleaseNotes(
+    version: '1.5.2',
+    codeName: 'Pas si vite, mon petit',
+    notes:
+        'L\'équipe de Bleuet a détruit le train (80 stations???), mais celui-ci n\'a pas dit son dernier mot! '
+        'La difficulté augmente maintenant au fil des stations en diminuant le temps alloué par manche, de quoi '
+        'donner du fil à retordre à vos cheminot·e·s!',
+    features: [
+      FeatureNotes(
+          description:
+              'Chaque station retire une seconde du temps alloué pour trouver les mots...'),
+      FeatureNotes(
+          description: 'Ajout du mot JASETTE dans la liste des mots acceptés!'),
+      FeatureNotes(
+          description:
+              'Amélioration des ressources pour une expérience plus fluide'),
+    ],
   )
 ];

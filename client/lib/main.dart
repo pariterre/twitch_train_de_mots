@@ -54,6 +54,16 @@ class _GlobalTickerState extends State<GlobalTicker>
         ),
       ),
       builder: (context, state) {
+        if (state.connectionState != ConnectionState.done) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        }
+
         return const MaterialApp(
           home: MainScreen(),
           supportedLocales: [Locale('fr', '')],
