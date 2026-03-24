@@ -1,5 +1,7 @@
 # Bugs
 ## To fix
+- Add a scoreboard for thiefs
+- A point for each bleuet collected
 
 ## Fixed
 - You can't be robbed during the cooldown of another word

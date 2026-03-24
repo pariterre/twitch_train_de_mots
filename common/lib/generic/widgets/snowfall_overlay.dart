@@ -20,6 +20,8 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
   void initState() {
     super.initState();
 
+    _prepareSnowflakes();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(days: 1),
@@ -27,27 +29,37 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
   }
 
   @override
-  void didChangeDependencies() {
-    // TODO: Find how to trigger this
-    if (_flakes.length != widget.snowFlakeCount) {
-      final random = Random();
-      _flakes.clear();
-      _flakes.addAll(List.generate(widget.snowFlakeCount, (_) {
-        return _SnowflakeData(
-          x: random.nextDouble(),
-          y: random.nextDouble(),
-          size: random.nextDouble() * 5,
-          speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
-          speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
-          opacity: random.nextDouble() * 0.3 + 0.2,
-        );
-      }));
+  void didUpdateWidget(covariant SnowfallOverlay oldWidget) {
+    if (oldWidget.snowFlakeCount != widget.snowFlakeCount) {
+      _prepareSnowflakes();
     }
-    super.didChangeDependencies();
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  void _prepareSnowflakes() {
+    if (_flakes.length == widget.snowFlakeCount) return;
+
+    final random = Random();
+    _flakes.clear();
+    _flakes.addAll(List.generate(widget.snowFlakeCount, (_) {
+      return _SnowflakeData(
+        x: random.nextDouble(),
+        y: random.nextDouble(),
+        size: random.nextDouble() * 5,
+        speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
+        speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
+        opacity: random.nextDouble() * 0.3 + 0.2,
+      );
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.snowFlakeCount == 0) {
+      return const SizedBox.shrink();
+    }
+
     return CustomPaint(
       painter: _SnowPainter(_flakes, _controller),
       size: Size.infinite,

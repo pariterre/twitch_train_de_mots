@@ -50,14 +50,19 @@ class _MainExtensionState extends State<MainExtension> {
 
     final gm = GameManager.instance;
     gm.onGameStatusUpdated.listen(_updateStatus);
+    gm.onRoundUpdated.listen(_refresh);
   }
 
   @override
   void dispose() {
-    GameManager.instance.onGameStatusUpdated.cancel(_updateStatus);
+    final gm = GameManager.instance;
+    gm.onGameStatusUpdated.cancel(_updateStatus);
+    gm.onRoundUpdated.cancel(_refresh);
 
     super.dispose();
   }
+
+  void _refresh() => setState(() {});
 
   void _updateStatus() {
     // Check if we should hide the extension
@@ -179,6 +184,8 @@ class _MainContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+
     return Background(
       backgroundLayer: Opacity(
         opacity: 0.05,
@@ -188,6 +195,7 @@ class _MainContainer extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
+      snowFlakeCount: 10 * gm.currentRound * 2,
       child: child,
     );
   }

@@ -93,9 +93,11 @@ class GameManager {
       _logger.info('Game status changed to ${_gameState.status}');
     }
 
-    if (_gameState.round != newGameState.round) {
+    if (_gameState.round != newGameState.round ||
+        _gameState.isRoundSuccess != newGameState.isRoundSuccess) {
       _gameState.round = newGameState.round;
       _gameState.isRoundSuccess = newGameState.isRoundSuccess;
+      onRoundUpdated.notifyListeners((callback) => callback());
       _logger.info('Round changed to ${newGameState.round}');
     }
 
@@ -210,6 +212,7 @@ class GameManager {
   /// Callback to know when the game has started
   WordsTrainGameStatus get status => _gameState.status;
   final onGameStatusUpdated = GenericListener<Function()>();
+  final onRoundUpdated = GenericListener<Function()>();
   void startGame() {
     _logger.info('Starting a new game');
     updateGameState(
