@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/widgets/background.dart';
@@ -122,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
           opacity: const AlwaysStoppedAnimation(0.05),
           fit: BoxFit.cover,
         ),
-        snowFlakeCount: 10 * gm.roundCount * 2,
+        snowFlakeCount: min(10 * gm.roundCount * 4, 2000),
         child: Stack(
           children: [
             dm.isLoggedOut ||

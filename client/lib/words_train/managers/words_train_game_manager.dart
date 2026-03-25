@@ -532,7 +532,7 @@ class WordsTrainGameManager {
     // Reinitialize the round timer and players
     _roundDuration = cm.roundDuration.inMilliseconds +
         cm.postRoundGracePeriodDuration.inMilliseconds -
-        roundCount;
+        (roundCount * 1000);
     for (final player in players) {
       player.resetForNextRound();
     }
@@ -901,7 +901,7 @@ class WordsTrainGameManager {
 
     final cm = Managers.instance.configuration;
 
-    _roundCount = 0;
+    _roundCount = 30;
     _currentDifficulty = cm.difficulty(_roundCount);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 

@@ -38,20 +38,21 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
   }
 
   void _prepareSnowflakes() {
-    if (_flakes.length == widget.snowFlakeCount) return;
-
     final random = Random();
-    _flakes.clear();
-    _flakes.addAll(List.generate(widget.snowFlakeCount, (_) {
-      return _SnowflakeData(
-        x: random.nextDouble(),
-        y: random.nextDouble(),
-        size: random.nextDouble() * 5,
-        speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
-        speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
-        opacity: random.nextDouble() * 0.3 + 0.2,
-      );
-    }));
+    if (_flakes.length < widget.snowFlakeCount) {
+      _flakes.addAll(List.generate(widget.snowFlakeCount - _flakes.length, (_) {
+        return _SnowflakeData(
+          x: random.nextDouble(),
+          y: random.nextDouble(),
+          size: random.nextDouble() * 5,
+          speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
+          speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
+          opacity: random.nextDouble() * 0.3 + 0.2,
+        );
+      }));
+    } else if (_flakes.length > widget.snowFlakeCount) {
+      _flakes.removeRange(widget.snowFlakeCount, _flakes.length);
+    }
   }
 
   @override
