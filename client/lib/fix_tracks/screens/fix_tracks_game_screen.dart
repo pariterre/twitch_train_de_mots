@@ -70,25 +70,17 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
       return Container();
     }
 
-    final windowHeight = MediaQuery.of(context).size.height;
-
-    final offsetFromBorder = windowHeight * 0.02;
-    final headerHeight = 160.0;
-    final gridHeight = windowHeight - 3 * offsetFromBorder - headerHeight;
-
     return Stack(
       children: [
         Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width / 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 12),
-                const FixTracksHeader(),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: gridHeight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 12),
+              const FixTracksHeader(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
                   child: FixTracksGameGrid(
                     rowCount: fgm.grid.rowCount,
                     columnCount: fgm.grid.columnCount,
@@ -96,8 +88,8 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
                         fgm.grid.tileAt(row: row, col: col),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         FixTracksAnimatedTextOverlay(),

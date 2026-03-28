@@ -71,25 +71,17 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
       return Container();
     }
 
-    final windowHeight = MediaQuery.of(context).size.height;
-
-    final offsetFromBorder = windowHeight * 0.02;
-    final headerHeight = 160.0;
-    final gridHeight = windowHeight - 3 * offsetFromBorder - headerHeight;
-
     return Stack(
       children: [
         Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width / 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 12),
-                const TreasureHuntHeader(),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: gridHeight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 12),
+              const TreasureHuntHeader(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 20.0),
                   child: TreasureHuntGameGrid(
                       rowCount: gm.grid.rowCount,
                       columnCount: gm.grid.columnCount,
@@ -100,8 +92,8 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
                         gm.revealTile(row: row, col: col);
                       }),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         TreasureHuntAnimatedTextOverlay(),

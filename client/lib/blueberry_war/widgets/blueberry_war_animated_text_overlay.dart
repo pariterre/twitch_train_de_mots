@@ -3,16 +3,16 @@ import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 
-class BluberryWarAnimatedTextOverlay extends StatefulWidget {
-  const BluberryWarAnimatedTextOverlay({super.key});
+class BlueberryWarAnimatedTextOverlay extends StatefulWidget {
+  const BlueberryWarAnimatedTextOverlay({super.key});
 
   @override
-  State<BluberryWarAnimatedTextOverlay> createState() =>
-      _BluberryWarAnimatedTextOverlayState();
+  State<BlueberryWarAnimatedTextOverlay> createState() =>
+      _BlueberryWarAnimatedTextOverlayState();
 }
 
-class _BluberryWarAnimatedTextOverlayState
-    extends State<BluberryWarAnimatedTextOverlay> {
+class _BlueberryWarAnimatedTextOverlayState
+    extends State<BlueberryWarAnimatedTextOverlay> {
   final _blueberryWarWrongWordController = BouncyContainerController(
     bounceCount: 2,
     easingInDuration: 600,

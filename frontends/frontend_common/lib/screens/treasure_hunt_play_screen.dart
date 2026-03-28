@@ -25,13 +25,10 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: _Header(),
           ),
-          LayoutBuilder(builder: (context, constraints) {
-            return SizedBox(
-              width: 0.8 * constraints.maxWidth,
-              height: (constraints.maxWidth * 1.5 -
-                  2 * 20 -
-                  2 * ThemeManager.instance.textSize),
-              child: Center(
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
                 child: TreasureHuntGameGrid(
                   rowCount: thm.grid.rowCount,
                   columnCount: thm.grid.columnCount,
@@ -39,8 +36,8 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
                   onTileTapped: _onTileTapped,
                 ),
               ),
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );

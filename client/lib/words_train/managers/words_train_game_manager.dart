@@ -901,7 +901,7 @@ class WordsTrainGameManager {
 
     final cm = Managers.instance.configuration;
 
-    _roundCount = 30;
+    _roundCount = 0;
     _currentDifficulty = cm.difficulty(_roundCount);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 
@@ -1431,8 +1431,12 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _generateNextProblem(force: true);
     } else {
       _problemMocker = problem;
-      _currentProblem = problem;
-      _nextProblem = null;
+      if (_gameStatus == WordsTrainGameStatus.roundStarted) {
+        _currentProblem = problem;
+        _nextProblem = null;
+      } else {
+        _nextProblem = problem;
+      }
 
       Future.delayed(const Duration(seconds: 1)).then((value) =>
           onNextProblemReady.notifyListeners((callback) => callback()));

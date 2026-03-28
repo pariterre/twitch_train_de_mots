@@ -42,13 +42,19 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        ThemeCard(
-          child: Text(
-            'Temps restant: ${max(Managers.instance.miniGames.blueberryWar.timeRemaining.inSeconds, 0)}',
-            style: tm.clientMainTextStyle.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 26,
-              color: tm.textColor,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 75.0),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: ThemeCard(
+              child: Text(
+                'Temps restant: ${max(Managers.instance.miniGames.blueberryWar.timeRemaining.inSeconds, 0)}',
+                style: tm.clientMainTextStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                  color: tm.textColor,
+                ),
+              ),
             ),
           ),
         ),

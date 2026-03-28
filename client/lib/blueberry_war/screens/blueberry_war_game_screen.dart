@@ -38,70 +38,62 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
   @override
   Widget build(BuildContext context) {
     final bwm = Managers.instance.miniGames.blueberryWar;
-    final headerHeight = 180.0;
 
     return Stack(
       children: [
-        Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            height: headerHeight,
-            child: const BlueberryWarHeader(),
-          ),
-        ),
-        ColorFiltered(
-          colorFilter:
-              ColorFilter.mode(Colors.black.withAlpha(50), BlendMode.srcIn),
-          child: Container(
-            color: Colors.black,
-            child: Center(
-              child: Column(
+        Column(
+          children: [
+            const BlueberryWarHeader(),
+            Expanded(
+              child: Stack(
                 children: [
-                  Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          backgroundBlendMode: BlendMode.dstOut),
-                      height: headerHeight),
-                  Expanded(
+                  ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                        Colors.black.withAlpha(50), BlendMode.srcIn),
+                    child: Container(
+                      color: Colors.black,
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  backgroundBlendMode: BlendMode.dstOut),
+                              width: BlueberryWarConfig.fieldSize.x,
+                              height: BlueberryWarConfig.fieldSize.y,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            backgroundBlendMode: BlendMode.dstOut),
-                        width: BlueberryWarConfig.fieldSize.x,
-                        height: BlueberryWarConfig.fieldSize.y,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 1.0),
+                        child: BlueberryWarPlayingField(
+                          blueberries: bwm.blueberries,
+                          letters: bwm.letters,
+                          isGameOver: bwm.isGameOver,
+                          clockTicker:
+                              Managers.instance.tickerManager.onClockTicked,
+                          onBlueberrySlingShoot: (blueberry, newVelocity) {
+                            bwm.slingShoot(
+                                blueberry: blueberry, newVelocity: newVelocity);
+                          },
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         ),
-        Center(
-          child: Column(
-            children: [
-              Container(height: headerHeight),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: BlueberryWarPlayingField(
-                    blueberries: bwm.blueberries,
-                    letters: bwm.letters,
-                    isGameOver: bwm.isGameOver,
-                    clockTicker: Managers.instance.tickerManager.onClockTicked,
-                    onBlueberrySlingShoot: (blueberry, newVelocity) {
-                      bwm.slingShoot(
-                          blueberry: blueberry, newVelocity: newVelocity);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const BluberryWarAnimatedTextOverlay(),
+        const BlueberryWarAnimatedTextOverlay(),
       ],
     );
   }

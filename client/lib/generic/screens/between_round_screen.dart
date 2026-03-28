@@ -82,35 +82,43 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: gm.successLevel == SuccessLevel.failed ? 1200 : 850,
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const _Background(),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          FittedBox(
+            fit: BoxFit.contain,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: SizedBox(
+                width: gm.successLevel == SuccessLevel.failed ? 1200 : 850,
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const SizedBox(height: 24.0),
-                    if (!gm.hasPlayedAtLeastOnce) const _LeaderBoardHeader(),
-                    if (gm.hasPlayedAtLeastOnce)
-                      gm.successLevel == SuccessLevel.failed &&
-                              !gm.isAttemptingFixTracksMiniGame
-                          ? const _DefeatHeader()
-                          : const _VictoryHeader(),
-                    const _LeaderBoard(),
-                    const SizedBox(height: 16.0),
-                    const _ContinueSection(),
-                    const SizedBox(height: 24.0),
+                    const _Background(),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 24.0),
+                        if (!gm.hasPlayedAtLeastOnce)
+                          const _LeaderBoardHeader(),
+                        if (gm.hasPlayedAtLeastOnce)
+                          gm.successLevel == SuccessLevel.failed &&
+                                  !gm.isAttemptingFixTracksMiniGame
+                              ? const _DefeatHeader()
+                              : const _VictoryHeader(),
+                        const _LeaderBoard(),
+                        const SizedBox(height: 16.0),
+                        const _ContinueSection(),
+                        const SizedBox(height: 24.0),
+                      ],
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.13,
+                      child:
+                          BouncyContainer(controller: _attemptingTheBigHeist),
+                    ),
                   ],
                 ),
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.13,
-                  child: BouncyContainer(controller: _attemptingTheBigHeist),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -1030,7 +1038,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                 if (gm.roundSuccesses.contains(RoundSuccess.miniGameWon))
                   Text(
                       'Vous avez cueilli tous les bleuets! Pour vous remercier\n'
-                      'de sa belle tarte, le controleur vous offre une étoile',
+                      'de sa belle tarte, le contrôleur vous offre une étoile',
                       textAlign: TextAlign.center,
                       style: tm.clientMainTextStyle.copyWith(
                           fontSize: 20,

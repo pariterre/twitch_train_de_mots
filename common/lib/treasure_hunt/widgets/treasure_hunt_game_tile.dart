@@ -35,13 +35,11 @@ class TreasureHuntGameTile extends StatelessWidget {
     super.key,
     required this.tile,
     required this.tileSize,
-    required this.textSize,
     required this.onTap,
   });
 
   final Tile tile;
   final double tileSize;
-  final double textSize;
   final Function()? onTap;
 
   @override
@@ -70,14 +68,14 @@ class TreasureHuntGameTile extends StatelessWidget {
                 ? (tile.isLetter
                     ? Text(tile.letter!,
                         style: TextStyle(
-                            fontSize: textSize * 0.65,
+                            fontSize: tileSize * 0.6,
                             color: tile.value.color,
                             fontWeight: FontWeight.bold))
-                    : const _TreasureTile())
+                    : _TreasureTile(size: tileSize * 0.75))
                 : Text(
                     tile.isRevealed ? value.toString() : '',
                     style: TextStyle(
-                        fontSize: textSize * 0.65,
+                        fontSize: tileSize * 0.6,
                         color: tile.value.color,
                         fontWeight: FontWeight.bold),
                   )
@@ -89,7 +87,9 @@ class TreasureHuntGameTile extends StatelessWidget {
 }
 
 class _TreasureTile extends StatefulWidget {
-  const _TreasureTile();
+  const _TreasureTile({required this.size});
+
+  final double size;
 
   @override
   State<_TreasureTile> createState() => _TreasureTileState();
@@ -115,8 +115,8 @@ class _TreasureTileState extends State<_TreasureTile> {
         tween: Tween<double>(begin: 1, end: 0.02),
         builder: (context, value, child) {
           return SizedBox(
-              height: _animation(value) * 30,
-              width: _animation(value) * 30,
+              height: _animation(value) * widget.size,
+              width: _animation(value) * widget.size,
               child: Image.asset(
                   'packages/common/assets/images/treasure_hunt/blueberries.png'));
         });

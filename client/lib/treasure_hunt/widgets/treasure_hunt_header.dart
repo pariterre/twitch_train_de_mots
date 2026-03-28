@@ -66,29 +66,34 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
 
     return Column(
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ThemeCard(
-              child: Text(
-                'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds}',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: tm.textColor),
-              ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 75.0),
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ThemeCard(
+                  child: Text(
+                    'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds}',
+                    style: tm.clientMainTextStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                        color: tm.textColor),
+                  ),
+                ),
+                ThemeCard(
+                  child: Text(
+                    'Essais restants: ${Managers.instance.miniGames.treasureHunt.triesRemaining}',
+                    style: tm.clientMainTextStyle.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 26,
+                        color: tm.textColor),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 100),
-            ThemeCard(
-              child: Text(
-                'Essais restants: ${Managers.instance.miniGames.treasureHunt.triesRemaining}',
-                style: tm.clientMainTextStyle.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 26,
-                    color: tm.textColor),
-              ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 12),
         const TreasureHuntLetterDisplayer(),

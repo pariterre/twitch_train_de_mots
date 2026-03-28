@@ -62,26 +62,36 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
     final nextSegment =
         Managers.instance.miniGames.fixTracks.grid.nextEmptySegment;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ThemeCard(
-          child: Text(
-            'Temps restant: ${Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds}',
-            style: tm.clientMainTextStyle.copyWith(
-                fontWeight: FontWeight.bold, fontSize: 26, color: tm.textColor),
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 75.0),
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ThemeCard(
+              child: Text(
+                'Temps restant: ${Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds}',
+                style: tm.clientMainTextStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    color: tm.textColor),
+              ),
+            ),
+            ThemeCard(
+              child: Text(
+                nextSegment == null
+                    ? 'Au bout du rail!'
+                    : 'Prochain mot: ${nextSegment.length} lettres',
+                style: tm.clientMainTextStyle.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 26,
+                    color: tm.textColor),
+              ),
+            ),
+          ],
         ),
-        ThemeCard(
-          child: Text(
-            nextSegment == null
-                ? 'Au bout du rail!'
-                : 'Prochain mot: ${nextSegment.length} lettres',
-            style: tm.clientMainTextStyle.copyWith(
-                fontWeight: FontWeight.bold, fontSize: 26, color: tm.textColor),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

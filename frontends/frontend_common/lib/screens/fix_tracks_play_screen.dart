@@ -16,15 +16,11 @@ class FixTracksPlayScreen extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: _Header(),
           ),
-          LayoutBuilder(builder: (context, constraints) {
-            return SizedBox(
-              width: 0.8 * constraints.maxWidth,
-              height: (constraints.maxWidth * 1.5 -
-                  2 * 20 -
-                  2 * ThemeManager.instance.textSize),
-              child: const _TrackGrid(),
-            );
-          }),
+          Expanded(
+              child: Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: const _TrackGrid(),
+          )),
         ],
       ),
     );

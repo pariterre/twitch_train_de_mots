@@ -57,24 +57,24 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
               padding: EdgeInsets.only(left: 50.0),
               child: LeaderBoard(),
             )),
-        SizedBox(
-          width: double.infinity,
+        Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 20),
-              _Header(),
-              SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  LetterDisplayer(),
-                  SizedBox(height: 15),
-                  SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SolutionsDisplayer()),
-                ],
+              FittedBox(
+                fit: BoxFit.contain,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 15.0, bottom: 20.0),
+                  child: Column(
+                    children: [
+                      _Header(),
+                      SizedBox(height: 10),
+                      LetterDisplayer(),
+                    ],
+                  ),
+                ),
               ),
+              Expanded(child: SolutionsDisplayer()),
             ],
           ),
         ),

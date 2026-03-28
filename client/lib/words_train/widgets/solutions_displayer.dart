@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/widgets/clock.dart';
@@ -103,10 +101,116 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
     setState(() {});
   }
 
+  final _spacingBetweenTiles = 2.0;
+  final _solutionTileHeight = 35.0;
+
+  Widget _buildTitle({
+    required bool isTransparent,
+    required int letterCount,
+  }) {
+    final tm = ThemeManager.instance;
+
+    return Padding(
+      padding: EdgeInsets.only(top: _spacingBetweenTiles),
+      child: SizedBox(
+        height: _solutionTileHeight,
+        child: Center(
+          child: Text(
+            'Mots de $letterCount lettres',
+            style: tm.clientMainTextStyle.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isTransparent ? Colors.transparent : tm.textColor,
+                fontSize: tm.textSize * 1.3),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTile(
+      {required WordSolution solution, required bool isFireworks}) {
+    return Padding(
+      padding:
+          EdgeInsets.only(top: _spacingBetweenTiles, left: 12.0, right: 12.0),
+      child: _SolutionTile(
+        key: ValueKey(solution),
+        fireworks: isFireworks ? _fireworksControllers[solution] : null,
+        solution: solution,
+        mvpPlayers: _mvpPlayers,
+        tileHeight: _solutionTileHeight,
+      ),
+    );
+  }
+
+  Widget _buildEmptyTile() {
+    return SizedBox(height: _solutionTileHeight + _spacingBetweenTiles);
+  }
+
+  List<List<Widget>> _buildGrid({
+    required List<WordSolutions> solutionsByLength,
+    required bool isFireworks,
+    required int elementsByColumn,
+  }) {
+    final List<List<Widget>> widgetsByColumns = [];
+    final List<Widget> currentColumn = [];
+    for (final solutions in solutionsByLength) {
+      if (solutions.isEmpty) continue;
+
+      // Decide where to put the title
+      if (currentColumn.length + solutions.length + 1 <= elementsByColumn) {
+        // Check if we can fit the all the solutions in the current column
+        // Note: the +1 for the title and spacing above title
+        if (currentColumn.isNotEmpty) currentColumn.add(_buildEmptyTile());
+        currentColumn.add(_buildTitle(
+          isTransparent: isFireworks,
+          letterCount: solutions.first.word.length,
+        ));
+      } else if (solutions.length <= elementsByColumn) {
+        // Check if we can fit the whole column in the next column
+        // Note: the +1 for the title as there is no spacing above title
+        widgetsByColumns.add(currentColumn.toList());
+        currentColumn.clear();
+        currentColumn.add(_buildTitle(
+          isTransparent: isFireworks,
+          letterCount: solutions.first.word.length,
+        ));
+      } else if (elementsByColumn - currentColumn.length >= 5) {
+        // We can fit at least three solutions in the current column
+        // The 5 is for the title and the spacing with at least 3 solutions
+        if (currentColumn.isNotEmpty) currentColumn.add(_buildEmptyTile());
+        currentColumn.add(_buildTitle(
+          isTransparent: isFireworks,
+          letterCount: solutions.first.word.length,
+        ));
+      } else {
+        // Otherwise, skip a column and write the title at top of next column
+        widgetsByColumns.add(currentColumn.toList());
+        currentColumn.clear();
+        currentColumn.add(_buildTitle(
+          isTransparent: isFireworks,
+          letterCount: solutions.first.word.length,
+        ));
+      }
+
+      // Fill the remaining space with the solutions, changing column if necessary
+      for (final solution in solutions) {
+        if (currentColumn.length > elementsByColumn) {
+          widgetsByColumns.add(currentColumn.toList());
+          currentColumn.clear();
+          currentColumn.add(_buildEmptyTile());
+        }
+
+        currentColumn
+            .add(_buildTile(solution: solution, isFireworks: isFireworks));
+      }
+    }
+    widgetsByColumns.add(currentColumn.toList());
+    return widgetsByColumns;
+  }
+
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
-    final tm = ThemeManager.instance;
 
     if (gm.problem == null) return Container();
 
@@ -119,137 +223,53 @@ class _SolutionsDisplayerState extends State<SolutionsDisplayer> {
       solutionsByLength.add(solutions.solutionsOfLength(i));
     }
 
-    const headerHeight = 375;
-    const solutionTileHeight = 58.0;
-    final maxHeight = MediaQuery.of(context).size.height - headerHeight;
-    final nbSolutionPerColumn =
-        maxHeight ~/ solutionTileHeight - 1; // -1 accounts for the header
+    return LayoutBuilder(builder: (context, constraints) {
+      final elementsByColumn = constraints.maxHeight ~/
+          (_solutionTileHeight + 5 * _spacingBetweenTiles);
 
-    return SizedBox(
-      height: maxHeight,
-      child: Wrap(
-        direction: Axis.vertical,
-        children: [
-          for (var solutions
-              in solutionsByLength.where((element) => element.isNotEmpty))
-            SizedBox(
-              height: solutions.length > nbSolutionPerColumn
-                  ? double.infinity
-                  : (solutions.length + 1) * solutionTileHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: Column(
+      return FittedBox(
+        fit: BoxFit.fitWidth,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Stack(
+            children: [
+              ...[false, true].map(
+                (isFirework) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        'Mots de ${solutions.first.word.length} lettres',
-                        style: tm.clientMainTextStyle.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: tm.textColor,
-                            fontSize: tm.textSize),
-                      ),
-                    ),
-                    Expanded(
-                      child: LayoutBuilder(builder: (context, constraint) {
-                        return SizedBox(
-                          height: constraint.maxHeight,
-                          child: Stack(
-                            children: [
-                              _SolutionWrapper(
-                                  solutions: solutions,
-                                  mvpPlayers: _mvpPlayers),
-                              _FireworksWrapper(
-                                  solutions: solutions,
-                                  fireworksControllers: _fireworksControllers),
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
+                    ..._buildGrid(
+                      solutionsByLength: solutionsByLength,
+                      isFireworks: isFirework,
+                      elementsByColumn: elementsByColumn,
+                    ).map((widgets) => Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: widgets,
+                        ))
                   ],
                 ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SolutionWrapper extends StatefulWidget {
-  const _SolutionWrapper({required this.solutions, required this.mvpPlayers});
-
-  final WordSolutions solutions;
-  final List<String> mvpPlayers;
-
-  @override
-  State<_SolutionWrapper> createState() => _SolutionWrapperState();
-}
-
-class _SolutionWrapperState extends State<_SolutionWrapper> {
-  @override
-  void initState() {
-    super.initState();
-
-    final gm = Managers.instance.train;
-    gm.onSolutionFound.listen(_onSolutionFound);
-    gm.onStealerPardoned.listen(_onSolutionFound);
-  }
-
-  @override
-  void dispose() {
-    final gm = Managers.instance.train;
-    gm.onSolutionFound.cancel(_onSolutionFound);
-    gm.onStealerPardoned.cancel(_onSolutionFound);
-
-    super.dispose();
-  }
-
-  void _onSolutionFound(dynamic _) => setState(() {});
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      direction: Axis.vertical,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        ...widget.solutions.map((e) => _SolutionTile(
-            key: ValueKey(e), solution: e, mvpPlayers: widget.mvpPlayers))
-      ],
-    );
-  }
-}
-
-class _FireworksWrapper extends StatelessWidget {
-  const _FireworksWrapper(
-      {required this.solutions, required this.fireworksControllers});
-
-  final WordSolutions solutions;
-  final Map<WordSolution, FireworksController> fireworksControllers;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      direction: Axis.vertical,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        ...solutions.map((solution) {
-          final controller = fireworksControllers[solution];
-          return _SolutionTile(solution: solution, fireworks: controller);
-        })
-      ],
-    );
+              )
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
 
 class _SolutionTile extends StatefulWidget {
   const _SolutionTile(
-      {super.key, required this.solution, this.fireworks, this.mvpPlayers});
+      {super.key,
+      required this.solution,
+      this.fireworks,
+      this.mvpPlayers,
+      required this.tileHeight});
 
   final List<String>? mvpPlayers;
   final WordSolution solution;
   final FireworksController? fireworks;
+  final double tileHeight;
 
   @override
   State<_SolutionTile> createState() => _SolutionTileState();
@@ -293,30 +313,21 @@ class _SolutionTileState extends State<_SolutionTile> {
     final cm = Managers.instance.configuration;
     final tm = ThemeManager.instance;
 
-    final widthFactor = min(MediaQuery.of(context).size.width / 1920, 1.0);
-    final heightFactor = min(MediaQuery.of(context).size.height / 1080, 1.0);
-
-    return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        child: SizedBox(
-          width: tm.textSize * 13 * widthFactor,
-          height: tm.textSize * 2.1 * heightFactor,
-          child: cm.showAnswersTooltip
-              ? Tooltip(
-                  message: widget.solution.isFound ? '' : widget.solution.word,
-                  verticalOffset: -5,
-                  textStyle:
-                      TextStyle(fontSize: tm.textSize, color: Colors.white),
-                  child: _buildTile(
-                      widthFactor: widthFactor, heightFactor: heightFactor),
-                )
-              : _buildTile(
-                  widthFactor: widthFactor, heightFactor: heightFactor),
-        ));
+    return SizedBox(
+      width: widget.tileHeight * 7,
+      height: widget.tileHeight,
+      child: cm.showAnswersTooltip
+          ? Tooltip(
+              message: widget.solution.isFound ? '' : widget.solution.word,
+              verticalOffset: -5,
+              textStyle: TextStyle(fontSize: tm.textSize, color: Colors.white),
+              child: _buildTile(),
+            )
+          : _buildTile(),
+    );
   }
 
-  Widget _buildTile(
-      {required double widthFactor, required double heightFactor}) {
+  Widget _buildTile() {
     final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
 
@@ -330,7 +341,7 @@ class _SolutionTileState extends State<_SolutionTile> {
 
     final tile = Container(
       decoration: _boxDecoration,
-      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2 * widthFactor),
+      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
       child: widget.solution.isFound ||
               gm.gameStatus == WordsTrainGameStatus.roundEnding
           ? Row(
@@ -343,7 +354,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                       Text(
                         widget.solution.word,
                         style: TextStyle(
-                            fontSize: tm.textSize * heightFactor,
+                            fontSize: tm.textSize,
                             fontWeight: FontWeight.bold,
                             color: widget.solution.isFound
                                 ? tm.textSolvedColor
@@ -354,7 +365,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                           child: Text(
                             ' (${widget.solution.foundBy.name})',
                             style: TextStyle(
-                                fontSize: tm.textSize * heightFactor,
+                                fontSize: tm.textSize,
                                 color: tm.textSolvedColor),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -378,7 +389,24 @@ class _SolutionTileState extends State<_SolutionTile> {
               ],
             )
           : widget.solution.isGolden
-              ? const Icon(Icons.star, color: Colors.amber)
+              ? Center(
+                  child: SizedBox(
+                    width: 60,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: const Text('x5',
+                              style: TextStyle(
+                                  color: Colors.amber,
+                                  fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               : Container(),
     );
 
