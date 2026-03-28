@@ -8,7 +8,8 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
-import 'package:web/web.dart';
+import 'package:train_de_mots/generic/managers/audio_context/audio_context_stub.dart'
+    if (dart.library.html) 'package:train_de_mots/generic/managers/audio_context/audio_context_web.dart';
 
 final _logger = Logger('SoundManager');
 
@@ -117,7 +118,7 @@ class _AudioPlayerManager {
   bool isAvailable = true;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
-  static final _audioContext = AudioContext();
+  static final _audioContext = AudioContextWrapper();
 
   Future<void> play(AudioSource source, double volume) async {
     if (_audioContext.state != "running") return;
