@@ -289,6 +289,8 @@ class _SolutionTileState extends State<_SolutionTile> {
     final gm = Managers.instance.train;
     gm.onRoundIsPreparing.listen(_refresh);
     gm.onShowcaseSolutionsRequest.listen(_refresh);
+    gm.onTrainGotBoosted.listen(_showBoostedTile);
+    gm.onTrainBoostEnded.listen(_refresh);
   }
 
   @override
@@ -302,11 +304,14 @@ class _SolutionTileState extends State<_SolutionTile> {
     final gm = Managers.instance.train;
     gm.onRoundIsPreparing.cancel(_refresh);
     gm.onShowcaseSolutionsRequest.cancel(_refresh);
-
+    gm.onTrainGotBoosted.cancel(_showBoostedTile);
+    gm.onTrainBoostEnded.cancel(_refresh);
     super.dispose();
   }
 
   void _refresh() => setState(() {});
+
+  void _showBoostedTile(dynamic _) => setState(() {});
 
   @override
   Widget build(BuildContext context) {
@@ -340,77 +345,84 @@ class _SolutionTileState extends State<_SolutionTile> {
             widget.solution.foundBy.isInCooldownPeriod);
 
     final tile = Container(
-      decoration: _boxDecoration,
-      padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
-      child: widget.solution.isFound ||
-              gm.gameStatus == WordsTrainGameStatus.roundEnding
-          ? Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Row(
-                    children: [
-                      Text(
-                        widget.solution.word,
-                        style: TextStyle(
-                            fontSize: tm.textSize,
-                            fontWeight: FontWeight.bold,
-                            color: widget.solution.isFound
-                                ? tm.textSolvedColor
-                                : tm.textUnsolvedColor),
-                      ),
-                      if (widget.solution.isFound)
-                        Flexible(
-                          child: Text(
-                            ' (${widget.solution.foundBy.name})',
-                            style: TextStyle(
-                                fontSize: tm.textSize,
-                                color: tm.textSolvedColor),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (showCooldown &&
-                    gm.gameStatus == WordsTrainGameStatus.roundStarted)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15.0),
-                    child: SizedBox(
-                      height: 15,
-                      child: Clock(
-                        timeRemaining:
-                            widget.solution.foundBy.cooldownRemaining,
-                        maxDuration: widget.solution.foundBy.cooldownDuration,
-                      ),
-                    ),
-                  ),
-              ],
-            )
-          : widget.solution.isGolden
-              ? Center(
-                  child: SizedBox(
-                    width: 60,
-                    child: Stack(
-                      alignment: Alignment.center,
+        decoration: _boxDecoration,
+        padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
+        child: widget.solution.isFound ||
+                gm.gameStatus == WordsTrainGameStatus.roundEnding
+            ? Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.amber),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: const Text(
-                            'x5',
-                            style: TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold),
-                          ),
+                        Text(
+                          widget.solution.word,
+                          style: TextStyle(
+                              fontSize: tm.textSize,
+                              fontWeight: FontWeight.bold,
+                              color: widget.solution.isFound
+                                  ? tm.textSolvedColor
+                                  : tm.textUnsolvedColor),
                         ),
+                        if (widget.solution.isFound)
+                          Flexible(
+                            child: Text(
+                              ' (${widget.solution.foundBy.name})',
+                              style: TextStyle(
+                                  fontSize: tm.textSize,
+                                  color: tm.textSolvedColor),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                )
-              : Container(),
-    );
+                  if (showCooldown &&
+                      gm.gameStatus == WordsTrainGameStatus.roundStarted)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0),
+                      child: SizedBox(
+                        height: 15,
+                        child: Clock(
+                          timeRemaining:
+                              widget.solution.foundBy.cooldownRemaining,
+                          maxDuration: widget.solution.foundBy.cooldownDuration,
+                        ),
+                      ),
+                    ),
+                ],
+              )
+            : widget.solution.isGolden
+                ? Center(
+                    child: SizedBox(
+                      width: gm.isTrainBoosted ? 80 : 60,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(gm.isTrainBoosted ? 'x10' : 'x5',
+                                style: TextStyle(
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : gm.isTrainBoosted
+                    ? Center(
+                        child: Text(
+                          'x2',
+                          style: TextStyle(
+                              fontSize: tm.textSize,
+                              fontWeight: FontWeight.bold,
+                              color: tm.solutionUnsolvedColorLight),
+                        ),
+                      )
+                    : SizedBox.shrink());
 
     if (widget.solution.isGolden && !widget.solution.isFound) {
       return GrowingWidget(

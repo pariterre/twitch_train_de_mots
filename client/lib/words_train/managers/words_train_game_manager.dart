@@ -192,7 +192,13 @@ class WordsTrainGameManager {
   List<Player> get requestedBoost => List.unmodifiable(_requestedBoost);
   int get numberOfBoostStillNeeded {
     final cm = Managers.instance.configuration;
-    return cm.numberOfBoostRequestsNeeded - _requestedBoost.length;
+    final numberOfBoostRequestsNeeded = switch (players.length) {
+      1 || 2 => 1,
+      3 || 4 => 2,
+      _ => cm.numberOfBoostRequestsNeeded,
+    };
+
+    return numberOfBoostRequestsNeeded - _requestedBoost.length;
   }
 
   bool _canChangeLane = false;
@@ -320,6 +326,7 @@ class WordsTrainGameManager {
   final onRailwayMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
+  final onTrainBoostEnded = GenericListener<Function()>();
   final onBigHeistIsBeingPrepared = GenericListener<
       Function({required String playerName, required bool isActive})>();
   final onAttemptingTheBigHeist =
@@ -1117,6 +1124,7 @@ class WordsTrainGameManager {
     if (isTrainBoosted && (trainBoostRemainingTime?.inSeconds ?? -1) <= 0) {
       _logger.info('Train boost ended');
       _boostStartedAt = null;
+      onTrainBoostEnded.notifyListeners((callback) => callback());
     }
 
     _logger.fine('Toc');
