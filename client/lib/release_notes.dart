@@ -538,5 +538,31 @@ const List<ReleaseNotes> releaseNotes = [
           description:
               'Amélioration des ressources pour une expérience plus fluide'),
     ],
-  )
+  ),
+  ReleaseNotes(
+    version: '1.6.0',
+    codeName: 'Seul au sommet',
+    notes:
+        'Les cheminot·e·s au sommet du tableau d\'honneur se sentaient bien seul·e·s dans leur gloire. '
+        'Un seul d\'entre eux ou elles pouvait être affiché·e·s par équipe, ce qui était bien triste pour les autres. '
+        'Ceci est chose du passé! Plus de solitude pour l\'élite! Plus de gloire pour les cheminot·e·s! '
+        'Le tableau d\'honneur affiche maintenant les cinq meilleur·e·s cheminot·e·s de chaque équipe.\n'
+        '\n'
+        'Le niveau de difficulté lorsque le Train est piloté par peu de cheminot·e·s a également été ajusté '
+        'en permettant de lancer des boosts avec moins de cheminot·e·s!',
+    features: [
+      FeatureNotes(
+          description:
+              'Les résultats de cinq cheminot·e·s sont maintenant enregistrés au tableau d\'honneur, au lieu d\'un seul auparavant'),
+      FeatureNotes(
+          description:
+              'Le nombre de boost nécessaires pour booster le train est maintenant ajusté en fonction du nombre de cheminot·e·s présent·e·s'),
+      FeatureNotes(
+          description:
+              'Meilleure gestion de la redimension de la fenêtre de jeu'),
+      FeatureNotes(
+          description:
+              'La neige tombe de plus en plus fort à mesure que le train avance'),
+    ],
+  ),
 ];
