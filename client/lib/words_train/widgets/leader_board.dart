@@ -6,7 +6,9 @@ import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
 
 class LeaderBoard extends StatefulWidget {
-  const LeaderBoard({super.key});
+  const LeaderBoard({super.key, required this.height});
+
+  final double height;
 
   @override
   State<LeaderBoard> createState() => _LeaderBoardState();
@@ -69,7 +71,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     return Container(
       padding: const EdgeInsets.all(12.0),
       width: 425,
-      height: 350,
+      height: widget.height,
       child: cm.showLeaderBoard
           ? ThemeCard(
               child: SingleChildScrollView(
@@ -166,7 +168,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
         Flexible(
             child: Text(player, style: style, overflow: TextOverflow.ellipsis)),
         SizedBox(
-            width: tm.leaderTextSize * 7,
+            width: tm.textSize * 7,
             child: Center(
               child: Text('$roundScore ($totalScore)', style: style),
             )),

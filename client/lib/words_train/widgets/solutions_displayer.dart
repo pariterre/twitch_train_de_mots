@@ -398,10 +398,12 @@ class _SolutionTileState extends State<_SolutionTile> {
                         const Icon(Icons.star, color: Colors.amber),
                         Align(
                           alignment: Alignment.centerRight,
-                          child: const Text('x5',
-                              style: TextStyle(
-                                  color: Colors.amber,
-                                  fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'x5',
+                            style: TextStyle(
+                                color: Colors.amber,
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),

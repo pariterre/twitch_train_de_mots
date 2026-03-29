@@ -51,12 +51,6 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
   Widget build(BuildContext context) {
     return const Stack(
       children: [
-        Align(
-            alignment: Alignment.topLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 50.0),
-              child: LeaderBoard(),
-            )),
         Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -64,14 +58,9 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
               FittedBox(
                 fit: BoxFit.contain,
                 child: Padding(
-                  padding: EdgeInsets.only(top: 15.0, bottom: 20.0),
-                  child: Column(
-                    children: [
-                      _Header(),
-                      SizedBox(height: 10),
-                      LetterDisplayer(),
-                    ],
-                  ),
+                  padding: EdgeInsets.only(
+                      left: 75, right: 75, top: 15.0, bottom: 20.0),
+                  child: _Header(),
                 ),
               ),
               Expanded(child: SolutionsDisplayer()),
@@ -108,6 +97,9 @@ class _HeaderState extends State<_Header> {
 
     final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
+
+    final cm = Managers.instance.configuration;
+    cm.onChanged.listen(_refresh);
   }
 
   @override
@@ -121,6 +113,8 @@ class _HeaderState extends State<_Header> {
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
+    final cm = Managers.instance.configuration;
+    cm.onChanged.cancel(_refresh);
     super.dispose();
   }
 
@@ -190,37 +184,33 @@ class _HeaderState extends State<_Header> {
         title = 'Promenons-nous dans les bois!';
     }
 
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: tm.clientMainTextStyle.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: tm.titleSize,
-              color: tm.textColor),
+        Visibility.maintain(
+            visible: Managers.instance.configuration.showLeaderBoard,
+            child: LeaderBoard(height: 250)),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+        Column(
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: tm.clientMainTextStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: tm.titleSize,
+                  color: tm.textColor),
+            ),
+            ThemeCard(child: _HeaderTimer()),
+            SizedBox(height: 15),
+            TrainPath(controller: _trainPath, pathLength: 600, height: 75),
+            LetterDisplayer(),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: Stack(
-            alignment: Alignment.topCenter,
-            children: [
-              const SizedBox(width: 1300),
-              if (Managers.instance.configuration.canUseControllerHelper)
-                const Positioned(
-                    right: 0, top: 0, child: HelpFromTheControllerCard()),
-              Column(
-                children: [
-                  ThemeCard(child: _HeaderTimer()),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: TrainPath(
-                        controller: _trainPath, pathLength: 600, height: 75),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.05),
+        Visibility.maintain(
+          visible: Managers.instance.configuration.canUseControllerHelper,
+          child: HelpFromTheControllerCard(),
         ),
       ],
     );

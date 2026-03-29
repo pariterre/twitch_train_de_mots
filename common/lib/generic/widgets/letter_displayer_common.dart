@@ -3,11 +3,11 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:flutter/material.dart';
 
-const double _baseLetterWidth = 80;
-const double _baseLetterHeight = 90;
-const double _baseLetterPadding = 4;
-const double _baseLetterSize = 46;
-const double _baseNumberSize = 26;
+const double _baseLetterWidth = 80 * 0.9;
+const double _baseLetterHeight = 90 * 0.9;
+const double _baseLetterPadding = 4 * 0.9;
+const double _baseLetterSize = 46 * 0.9;
+const double _baseNumberSize = 26 * 0.9;
 
 class LetterDisplayerCommon extends StatefulWidget {
   const LetterDisplayerCommon({

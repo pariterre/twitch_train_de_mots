@@ -307,9 +307,6 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                 Text('Thème visuel', style: subtitleStyle),
                 const _ColorPickerInputField(
                     label: 'Choisir la couleur du thème'),
-                const SizedBox(height: 24),
-                const _FontSizePickerInputField(
-                    label: 'Choisir la taille du thème'),
                 const SizedBox(height: 12),
               ],
             ),
@@ -433,61 +430,6 @@ class _ColorPickerInputFieldState extends State<_ColorPickerInputField> {
           onColorChanged: (Color color) => tm.mainColor = color,
         ),
       ],
-    );
-  }
-}
-
-class _FontSizePickerInputField extends StatefulWidget {
-  const _FontSizePickerInputField({required this.label});
-
-  final String label;
-
-  @override
-  State<_FontSizePickerInputField> createState() =>
-      _FontSizePickerInputFieldState();
-}
-
-class _FontSizePickerInputFieldState extends State<_FontSizePickerInputField> {
-  @override
-  void initState() {
-    super.initState();
-
-    final tm = ThemeManager.instance;
-    tm.onChanged.listen(_refresh);
-  }
-
-  @override
-  void dispose() {
-    final tm = ThemeManager.instance;
-    tm.onChanged.cancel(_refresh);
-
-    super.dispose();
-  }
-
-  void _refresh() => setState(() {});
-
-  @override
-  Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
-    late String sizeCategory;
-    if (tm.textSize < 18) {
-      sizeCategory = 'Petit';
-    } else if (tm.textSize < 28) {
-      sizeCategory = 'Moyen';
-    } else if (tm.textSize < 38) {
-      sizeCategory = 'Grand';
-    } else {
-      sizeCategory = 'Très grand';
-    }
-    return _SliderInputField(
-      label: widget.label,
-      value: tm.textSize,
-      min: 12,
-      max: 48,
-      divisions: 36,
-      thumbLabel: 'Taille du thème: $sizeCategory',
-      onChanged: (value) => tm.textSize = value,
     );
   }
 }
@@ -935,9 +877,6 @@ class _SliderInputField extends StatelessWidget {
   const _SliderInputField({
     required this.label,
     required this.value,
-    this.min = 0.0,
-    this.max = 1.0,
-    this.divisions = 100,
     required this.thumbLabel,
     required this.onChanged,
     this.onChangedEnd,
@@ -945,9 +884,9 @@ class _SliderInputField extends StatelessWidget {
 
   final String label;
   final double value;
-  final double min;
-  final double max;
-  final int divisions;
+  final double min = 0.0;
+  final double max = 1.0;
+  final int divisions = 100;
   final String thumbLabel;
   final Function(double)? onChanged;
   final Function(double)? onChangedEnd;

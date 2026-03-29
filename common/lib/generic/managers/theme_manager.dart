@@ -7,7 +7,6 @@ import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _logger = Logger('ThemeManager');
-const _textSizeDefault = 20.0;
 const _mainColorDefault = Color.fromARGB(255, 0, 0, 95);
 
 class ThemeManager {
@@ -27,29 +26,22 @@ class ThemeManager {
   final onChanged = GenericListener<Function()>();
 
   final textColor = Colors.white;
-  double _textSize = _textSizeDefault;
-  double get textSize => _textSize;
-  set textSize(double size) {
-    _textSize = size;
-    _updateLeaderTextSizes();
-    _save();
-  }
 
   late final clientMainTextStyle = TextStyle().copyWith(
       fontFamily: 'BaskervvilleSC',
       color: textColor,
-      fontSize: textSize,
+      fontSize: 20.0,
       package: 'common');
   late final textFrontendSc = TextStyle().copyWith(
       fontFamily: 'BaskervvilleSC',
       fontFeatures: [FontFeature.enable('smcp')],
       color: textColor,
-      fontSize: textSize,
+      fontSize: 20.0,
       package: 'common');
   late final textInputFrontend = TextStyle().copyWith(
       fontFamily: 'MedievalSharp',
       color: textColor,
-      fontSize: textSize,
+      fontSize: 20.0,
       package: 'common');
 
   final titleSize = 32.0;
@@ -111,15 +103,7 @@ class ThemeManager {
   final leaderBoardBiggestStealerColor =
       const Color.fromARGB(255, 255, 200, 200);
 
-  double _leaderTitleSize = 26.0;
-  double get leaderTitleSize => _leaderTitleSize;
-  double _leaderTextSize = 20.0;
-  double get leaderTextSize => _leaderTextSize;
-  void _updateLeaderTextSizes() {
-    _leaderTitleSize = _textSize;
-    _leaderTextSize = _textSize * 0.75;
-    _save();
-  }
+  double get textSize => 20.0;
 
   final leaderTextColor = Colors.white;
   final leaderStealerColor = Colors.red;
@@ -149,8 +133,6 @@ class ThemeManager {
     final data = prefs.getString('customScheme');
     if (data != null) {
       final map = jsonDecode(data);
-      _textSize = map['textSize'] ?? _textSizeDefault;
-      _updateLeaderTextSizes();
 
       if (map['mainColor'] == null) {
         _mainColor = _mainColorDefault;
@@ -178,7 +160,6 @@ class ThemeManager {
 
   void reset() {
     _logger.info('Resetting custom scheme');
-    _textSize = _textSizeDefault;
     _mainColor = _mainColorDefault;
 
     _updateBackgroundColors();
@@ -186,7 +167,6 @@ class ThemeManager {
   }
 
   Map<String, dynamic> serialize() => {
-        'textSize': _textSize,
         'mainColor': {
           'r': _mainColor.r,
           'g': _mainColor.g,
