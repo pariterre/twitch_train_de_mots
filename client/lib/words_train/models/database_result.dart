@@ -19,46 +19,43 @@ abstract class DatabaseResult {
   DatabaseResult({required this.name});
 }
 
+String _extractTeamName(DocumentSnapshot<Map<String, dynamic>> doc) {
+  return doc.data()?[DatabaseManager.teamNameKey] ?? '';
+}
+
 class TeamResult extends DatabaseResult {
-  final int bestStation;
+  final List<int> bestStations;
   final List<PlayerResult> mvpScore;
   final List<PlayerResult> mvpStars;
+
+  int get bestStation => bestStations.isNotEmpty ? bestStations.first : -1;
 
   @override
   int get value => bestStation;
 
   TeamResult.fromFirebaseQuery(DocumentSnapshot<Map<String, dynamic>> doc)
-      : bestStation =
-            doc.exists ? (doc.data()?[DatabaseManager.bestStationKey]) : -1,
+      : bestStations = doc.exists
+            ? ((doc.data()?[DatabaseManager.bestStationsKey]) as List?)
+                    ?.cast<int>() ??
+                []
+            : [],
         mvpScore = doc.exists
-            ? (((doc.data()?[DatabaseManager.mvpScoreKey])?[
-                            DatabaseManager.mvpPlayersNameKey] as List?)
-                        ?.map((name) => PlayerResult(
-                            name: name,
-                            teamName:
-                                doc.data()?[DatabaseManager.teamNameKey] ?? '',
-                            value: doc.data()?[DatabaseManager.mvpScoreKey]
-                                ?[DatabaseManager.mvpPlayersValueKey])))
-                    ?.toList() ??
+            ? (((doc.data()?[DatabaseManager.mvpScoreKey]) as List?)?.map(
+                    (map) => PlayerResult.fromSerialized(map,
+                        teamName: _extractTeamName(doc))))?.toList() ??
                 []
             : [],
         mvpStars = doc.exists
-            ? (((doc.data()?[DatabaseManager.mvpStarsKey])?[
-                            DatabaseManager.mvpPlayersNameKey] as List?)
-                        ?.map((name) => PlayerResult(
-                            name: name,
-                            teamName:
-                                doc.data()?[DatabaseManager.teamNameKey] ?? '',
-                            value: doc.data()?[DatabaseManager.mvpStarsKey]
-                                ?[DatabaseManager.mvpPlayersValueKey])))
-                    ?.toList() ??
+            ? (((doc.data()?[DatabaseManager.mvpStarsKey]) as List?)?.map(
+                    (map) => PlayerResult.fromSerialized(map,
+                        teamName: _extractTeamName(doc))))?.toList() ??
                 []
             : [],
-        super(name: doc.data()?[DatabaseManager.teamNameKey] ?? '');
+        super(name: _extractTeamName(doc));
 
   TeamResult({
     required super.name,
-    required this.bestStation,
+    required this.bestStations,
     List<PlayerResult>? mvpScore,
     List<PlayerResult>? mvpStars,
   })  : mvpScore = mvpScore ?? [],
@@ -74,4 +71,14 @@ class PlayerResult extends DatabaseResult {
   PlayerResult(
       {required super.name, required this.teamName, required int value})
       : _value = value;
+
+  Map<String, dynamic> get serialized => {
+        'name': name,
+        'value': value,
+      };
+
+  PlayerResult.fromSerialized(Map<String, dynamic> data,
+      {required this.teamName})
+      : _value = data['value'] ?? 0,
+        super(name: data['name'] ?? '');
 }

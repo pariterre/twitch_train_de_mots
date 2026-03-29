@@ -193,7 +193,7 @@ class DatabaseManager {
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
 
-  final _currentDatabaseVersion = 'v1.0.3';
+  final _currentDatabaseVersion = 'v1.0.4';
 
   ///
   /// Returns the collection of results
@@ -212,11 +212,13 @@ class DatabaseManager {
       FirebaseFirestore.instance.collection('teams');
 
   static const String bestStationKey = 'bestStation';
+  static const String bestStationsKey = 'bestStations';
   static const String teamNameKey = 'teamName';
   static const String mvpScoreKey = 'bestPlayers';
   static const String mvpStarsKey = 'bestStars';
   static const String mvpPlayersNameKey = 'names';
   static const String mvpPlayersValueKey = 'score';
+  static const int _maxResultsByTeams = 5;
 
   ///
   /// Returns the name of the current team
@@ -274,18 +276,13 @@ class DatabaseManager {
         .set({
       teamNameKey: team.name,
       bestStationKey: team.bestStation,
+      bestStationsKey: team.bestStations,
       mvpScoreKey: team.mvpScore.isEmpty
           ? null
-          : {
-              mvpPlayersNameKey: team.mvpScore.map((e) => e.name).toList(),
-              mvpPlayersValueKey: team.mvpScore.first.value,
-            },
+          : team.mvpScore.map((data) => data.serialized),
       mvpStarsKey: team.mvpStars.isEmpty
           ? null
-          : {
-              mvpPlayersNameKey: team.mvpStars.map((e) => e.name).toList(),
-              mvpPlayersValueKey: team.mvpStars.first.value,
-            },
+          : team.mvpStars.map((data) => data.serialized),
     });
 
     // Update the cache results
@@ -321,42 +318,12 @@ class DatabaseManager {
   /// Simple mutex to wait for data to be sent before fetching
   bool _isSendingData = false;
 
-  void _updateTeamResultsMvp({
-    required TeamResult teamResults,
-    required List<Player> currentMvp,
-    required List<PlayerResult> previousMvp,
-    required MvpType mvpType,
-  }) {
-    if (isLoggedOut) return;
-
-    final previousBestValue =
-        previousMvp.isEmpty ? -1 : previousMvp.first.value;
-    final currentBestValue = currentMvp.isEmpty
-        ? -1
-        : switch (mvpType) {
-            MvpType.score => currentMvp.first.score,
-            MvpType.stars => currentMvp.first.starsCollected
-          };
-
-    // Set the mvp score or stars for the team
-    final mvp = switch (mvpType) {
-      MvpType.score => teamResults.mvpScore,
-      MvpType.stars => teamResults.mvpStars
-    };
-    if (currentBestValue >= previousBestValue) {
-      mvp.addAll(currentMvp
-          .map((e) => PlayerResult(
-              name: e.name,
-              value: switch (mvpType) {
-                MvpType.score => currentMvp.first.score,
-                MvpType.stars => currentMvp.first.starsCollected
-              },
-              teamName: teamName!))
-          .toList());
-    }
-    if (previousBestValue >= currentBestValue) {
-      final currentMvpNames = mvp.map((e) => e.name);
-      mvp.addAll(previousMvp.where((e) => !currentMvpNames.contains(e.name)));
+  void _addAllToResults<T>(
+      List<T> list, Iterable<T> values, int Function(T a, T b) comparator) {
+    list.addAll(values);
+    list.sort((a, b) => comparator(b, a));
+    if (list.length > _maxResultsByTeams) {
+      list.removeRange(_maxResultsByTeams, list.length);
     }
   }
 
@@ -371,29 +338,28 @@ class DatabaseManager {
     _isSendingData = true;
 
     // Construct the TeamResult without mvp score and stars
-    final previousTeamResult = await _getResultsOf(teamName: teamName!);
-    final previousMvpScore =
-        List<PlayerResult>.of(previousTeamResult?.mvpScore ?? []);
-    final previousMvpStars =
-        List<PlayerResult>.of(previousTeamResult?.mvpStars ?? []);
-    previousTeamResult?.mvpScore.clear();
-    previousTeamResult?.mvpStars.clear();
-    final teamResults =
-        previousTeamResult == null || stationReached > previousTeamResult.value
-            ? TeamResult(name: teamName!, bestStation: stationReached)
-            : previousTeamResult;
+    final teamResults = (await _getResultsOf(teamName: teamName!)) ??
+        TeamResult(name: teamName!, bestStations: []);
 
-    // Set the mvp score and stars for the team
-    _updateTeamResultsMvp(
-        teamResults: teamResults,
-        currentMvp: mvpScore,
-        previousMvp: previousMvpScore,
-        mvpType: MvpType.score);
-    _updateTeamResultsMvp(
-        teamResults: teamResults,
-        currentMvp: mvpStars,
-        previousMvp: previousMvpStars,
-        mvpType: MvpType.stars);
+    // Add current results
+    _addAllToResults(
+        teamResults.bestStations, [stationReached], (a, b) => a.compareTo(b));
+    _addAllToResults(
+        teamResults.mvpScore,
+        mvpScore.map((player) => PlayerResult(
+              name: player.name,
+              value: player.score,
+              teamName: teamName!,
+            )),
+        (a, b) => a.value.compareTo(b.value));
+    _addAllToResults(
+        teamResults.mvpStars,
+        mvpStars.map((player) => PlayerResult(
+              name: player.name,
+              value: player.starsCollected,
+              teamName: teamName!,
+            )),
+        (a, b) => a.value.compareTo(b.value));
 
     await _putTeamResults(team: teamResults);
 
@@ -406,7 +372,7 @@ class DatabaseManager {
 
     _logger.info('Fetching the results of team $teamName...');
     final results = await _getResultsOf(teamName: teamName!) ??
-        TeamResult(name: teamName!, bestStation: -1);
+        TeamResult(name: teamName!, bestStations: []);
     _logger.fine('Fetched the results of team $teamName');
     return results;
   }
@@ -428,10 +394,21 @@ class DatabaseManager {
     }
     List<TeamResult> out = await _getTeamsResults();
 
+    // Extend the list so multiple results in a single team appears as multiple lines
+    out = out
+        .map((team) => team.bestStations.isEmpty
+            ? [TeamResult(name: team.name, bestStations: [])]
+            : team.bestStations
+                .map((station) =>
+                    TeamResult(name: team.name, bestStations: [station]))
+                .toList())
+        .expand((e) => e)
+        .toList();
+
     // Add the current results if necessary (only the best one were fetched)
     final currentResult = stationReached == null
         ? null
-        : TeamResult(name: teamName!, bestStation: stationReached);
+        : TeamResult(name: teamName!, bestStations: [stationReached]);
 
     if (currentResult != null) _insertResultInList(currentResult, out);
 
@@ -507,7 +484,7 @@ class DatabaseManagerMock extends DatabaseManager {
   bool _emailIsVerified = true;
   String _dummyTeamName = 'Les Bleuets';
   String _dummyPassword = '123456';
-  Map<String, int> _dummyBestStationsResults = {};
+  Map<String, List<int>> _dummyBestStationsResults = {};
   Map<String, (int, String)> _dummyBestPlayersScore = {};
   Map<String, (int, String)> _dummyBestPlayersStars = {};
 
@@ -517,9 +494,9 @@ class DatabaseManagerMock extends DatabaseManager {
     bool? emailIsVerified,
     String? dummyTeamName,
     String? dummyPassword,
-    Map<String, int>? dummyBestStationResults,
-    Map<String, (int, String)>? dummyBestPlayerScore,
-    Map<String, (int, String)>? dummyBestPlayerStars,
+    Map<String, List<int>>? dummyBestStationsResults,
+    Map<String, (int, String)>? dummyBestPlayersScore,
+    Map<String, (int, String)>? dummyBestPlayersStars,
   }) {
     _dummyIsSignedIn = dummyIsSignedIn ?? _dummyIsSignedIn;
     _dummyEmail = dummyEmail ?? _dummyEmail;
@@ -527,9 +504,9 @@ class DatabaseManagerMock extends DatabaseManager {
     _dummyTeamName = dummyTeamName ?? _dummyTeamName;
     _dummyPassword = dummyPassword ?? _dummyPassword;
     _dummyBestStationsResults =
-        dummyBestStationResults ?? _dummyBestStationsResults;
-    _dummyBestPlayersScore = dummyBestPlayerScore ?? _dummyBestPlayersScore;
-    _dummyBestPlayersStars = dummyBestPlayerStars ?? _dummyBestPlayersStars;
+        dummyBestStationsResults ?? _dummyBestStationsResults;
+    _dummyBestPlayersScore = dummyBestPlayersScore ?? _dummyBestPlayersScore;
+    _dummyBestPlayersStars = dummyBestPlayersStars ?? _dummyBestPlayersStars;
   }
 
   @override
@@ -626,7 +603,7 @@ class DatabaseManagerMock extends DatabaseManager {
   @override
   Future<List<TeamResult>> _getTeamsResults() async {
     final out = _dummyBestStationsResults.entries
-        .map((e) => TeamResult(name: e.key, bestStation: e.value))
+        .map((e) => TeamResult(name: e.key, bestStations: e.value))
         .toList();
     out.sort((a, b) => b.bestStation.compareTo(a.bestStation));
 
@@ -661,7 +638,7 @@ class DatabaseManagerMock extends DatabaseManager {
 
   @override
   Future<TeamResult> _getResultsOf({required String teamName}) async {
-    final station = _dummyBestStationsResults[teamName] ?? 0;
+    final stations = _dummyBestStationsResults[teamName] ?? <int>[];
     final mvpScoreOfTeam = _dummyBestPlayersScore.entries
         .where((e) => e.value.$2 == teamName)
         .map((e) =>
@@ -675,14 +652,14 @@ class DatabaseManagerMock extends DatabaseManager {
 
     return TeamResult(
         name: teamName,
-        bestStation: station,
+        bestStations: stations,
         mvpScore: mvpScoreOfTeam,
         mvpStars: mvpStarsOfTeam);
   }
 
   @override
   Future<void> _putTeamResults({required TeamResult team}) async {
-    _dummyBestStationsResults[team.name] = team.bestStation;
+    _dummyBestStationsResults[team.name] = team.bestStations;
     _dummyBestPlayersScore.removeWhere((key, value) => value.$2 == team.name);
     _dummyBestPlayersScore.addAll({
       for (final player in team.mvpScore) player.name: (player.value, team.name)

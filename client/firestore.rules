@@ -15,16 +15,24 @@ service cloud.firestore {
     match /results/v1.0.1 {
     	allow read, write: if false;
     }
+    match /results/v1.0.2 {
+    	allow read, write: if false;
+    }
     
-    // Allow every authenticated users to post and read problems
-    match /results/v1.0.2/letterProblems/{documents=**} {
-      allow read, write: if request.auth != null;
+    match /results/v1.0.3/teams/{teamId}/{documents=**} {
+    	allow read, write: if false;
     }
 
     // Allow every users to post their results
-    match /results/v1.0.2/teams/{teamId}/{documents=**} {
+    match /results/v1.0.4/teams/{teamId}/{documents=**} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == teamId;
+    }
+    
+    // Allow every users to post comments
+    match /comments/v1.0.4/{teamId}/{documents=**} {
+      allow read: if false;
+      allow write:  if request.auth != null && request.auth.uid == teamId;
     }
   }
 }

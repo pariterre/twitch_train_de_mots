@@ -862,6 +862,7 @@ class _LeaderBoard extends StatelessWidget {
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildTeamLeaderboardScore(width: 300),
                           const SizedBox(width: 12.0),
