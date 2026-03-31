@@ -27,6 +27,7 @@ class TeamResult extends DatabaseResult {
   final List<int> bestStations;
   final List<PlayerResult> mvpScore;
   final List<PlayerResult> mvpStars;
+  final List<PlayerResult> mvpSteals;
 
   int get bestStation => bestStations.isNotEmpty ? bestStations.first : -1;
 
@@ -51,6 +52,12 @@ class TeamResult extends DatabaseResult {
                         teamName: _extractTeamName(doc))))?.toList() ??
                 []
             : [],
+        mvpSteals = doc.exists
+            ? (((doc.data()?[DatabaseManager.mvpStealsKey]) as List?)?.map(
+                    (map) => PlayerResult.fromSerialized(map,
+                        teamName: _extractTeamName(doc))))?.toList() ??
+                []
+            : [],
         super(name: _extractTeamName(doc));
 
   TeamResult({
@@ -58,8 +65,10 @@ class TeamResult extends DatabaseResult {
     required this.bestStations,
     List<PlayerResult>? mvpScore,
     List<PlayerResult>? mvpStars,
+    List<PlayerResult>? mvpSteals,
   })  : mvpScore = mvpScore ?? [],
-        mvpStars = mvpStars ?? [];
+        mvpStars = mvpStars ?? [],
+        mvpSteals = mvpSteals ?? [];
 }
 
 class PlayerResult extends DatabaseResult {

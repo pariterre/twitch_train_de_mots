@@ -3,6 +3,7 @@ import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
+import 'package:common/generic/widgets/horizontal_scroller.dart';
 import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
@@ -409,6 +410,23 @@ class _LeaderBoard extends StatelessWidget {
     final bestPlayers = gm.players.bestPlayersByStars;
     final shouldHighlight = bestPlayers.any((e) =>
             (e.name == player.name && e.starsCollected == player.value)) ||
+        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
+
+    if (shouldHighlight) {
+      return tm.leaderBoardBestScoreColor;
+    } else {
+      return null;
+    }
+  }
+
+  Color? _highlightBestOverallStealersColor({required PlayerResult player}) {
+    final dm = Managers.instance.database;
+    final gm = Managers.instance.train;
+    final tm = ThemeManager.instance;
+
+    final biggestStealers = gm.players.biggestStealers;
+    final shouldHighlight = biggestStealers.any((e) =>
+            (e.name == player.name && e.gameStealCount == player.value)) ||
         (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
 
     if (shouldHighlight) {
@@ -834,33 +852,109 @@ class _LeaderBoard extends StatelessWidget {
         });
   }
 
+  Widget _builBestPlayersLeaderboardStealers({required double width}) {
+    final gm = Managers.instance.train;
+    final tm = ThemeManager.instance;
+
+    final biggestStealers = gm.players.biggestStealers;
+
+    const starsWidth = 80.0;
+    final nameWidth = width - starsWidth;
+
+    return FutureBuilder(
+        future: Managers.instance.database.getBestPlayers(
+            top: 50,
+            mvp: gm.hasPlayedAtLeastOnce ? biggestStealers : null,
+            mvpType: MvpType.steals),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return SizedBox(
+              width: 80,
+              height: 80,
+              child:
+                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
+            );
+          }
+
+          final players = snapshot.data as List<PlayerResult>;
+
+          if (players.isEmpty) {
+            return Center(
+                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTitleTile('Meilleur·e·s voleur·se·s'),
+                        ...players.map(
+                          (player) => _buildNamedTile(
+                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
+                            highlightColor: _highlightBestOverallStealersColor(
+                                player: player),
+                            prefixText: '${player.rank}.',
+                            width: nameWidth,
+                          ),
+                        ),
+                      ]),
+                  SizedBox(
+                    width: starsWidth,
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _buildTitleTile('Vols'),
+                          ...players.map(
+                            (player) => _buildScoreTile(
+                              score: player.value,
+                              highlightColor:
+                                  _highlightBestOverallStealersColor(
+                                      player: player),
+                            ),
+                          )
+                        ]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
 
     return Expanded(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Column(
-          children: [
-            if (gm.hasPlayedAtLeastOnce)
-              Expanded(
-                child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: _buildGameScore(width: 600)),
-              ),
-            if ((gm.successLevel == SuccessLevel.failed &&
-                    gm.isAllowedToSendResults) ||
-                !gm.hasPlayedAtLeastOnce)
-              Expanded(
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
-                      child: Divider(thickness: 4),
-                    ),
-                    Expanded(
-                      child: Row(
+      child: Column(
+        children: [
+          if (gm.hasPlayedAtLeastOnce)
+            Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: _buildGameScore(width: 600)),
+            ),
+          if ((gm.successLevel == SuccessLevel.failed &&
+                  gm.isAllowedToSendResults) ||
+              !gm.hasPlayedAtLeastOnce)
+            Expanded(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
+                    child: Divider(thickness: 4),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: HorizontalScroller(
+                          child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -868,19 +962,23 @@ class _LeaderBoard extends StatelessWidget {
                           const SizedBox(width: 12.0),
                           const VerticalDivider(thickness: 1),
                           const SizedBox(width: 12.0),
-                          _builBestPlayersLeaderboardScore(width: 300),
+                          _builBestPlayersLeaderboardScore(width: 375),
                           const SizedBox(width: 12.0),
                           const VerticalDivider(thickness: 1),
                           const SizedBox(width: 12.0),
-                          _builBestPlayersLeaderboardStars(width: 300),
+                          _builBestPlayersLeaderboardStars(width: 375),
+                          const SizedBox(width: 12.0),
+                          const VerticalDivider(thickness: 1),
+                          const SizedBox(width: 12.0),
+                          _builBestPlayersLeaderboardStealers(width: 375),
                         ],
-                      ),
+                      )),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

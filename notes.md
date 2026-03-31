@@ -1,7 +1,5 @@
 # Bugs
 ## To fix
-- Add a scoreboard for thiefs
-- A point for each bleuet collected
 
 ## Fixed
 - You can't be robbed during the cooldown of another word
@@ -21,6 +19,7 @@
 - Skins (train, background color, letter colors)
 
 ## Completed
+- Add a scoreboard for thiefs
 - Increased the extension opacity during pauses
 - Added the letters to the extension
 - Added the cooldown timer to the extension
@@ -32,6 +31,9 @@
 - Moved the overlay to the left of the screen when it appears
 - When winning the minigame the golden solution is now garantied to be one of the best solutions
 - Boost is now randomized on the track path
+
+## Abandoned
+- A point for each bleuet collected
 
 # Word list
 - Added the word "ATOCA"

@@ -563,6 +563,9 @@ const List<ReleaseNotes> releaseNotes = [
       FeatureNotes(
           description:
               'La neige tombe de plus en plus fort à mesure que le train avance'),
+      FeatureNotes(
+          description: 'Ajouté les voleurs·ses de mots au tableau d\'honneur',
+          userWhoRequested: 'epic_amylie'),
     ],
   ),
 ];

@@ -15,7 +15,7 @@ import 'package:train_de_mots/words_train/models/player.dart';
 
 final _logger = Logger('DatabaseManager');
 
-enum MvpType { score, stars }
+enum MvpType { score, stars, steals }
 
 class DatabaseManager {
   bool _isInitialized = false;
@@ -216,6 +216,7 @@ class DatabaseManager {
   static const String teamNameKey = 'teamName';
   static const String mvpScoreKey = 'bestPlayers';
   static const String mvpStarsKey = 'bestStars';
+  static const String mvpStealsKey = 'bestSteals';
   static const String mvpPlayersNameKey = 'names';
   static const String mvpPlayersValueKey = 'score';
   static const int _maxResultsByTeams = 5;
@@ -247,7 +248,8 @@ class DatabaseManager {
     final mvpPlayers = (await _getTeamsResults())
         .map((e) => switch (mvpType) {
               MvpType.score => e.mvpScore,
-              MvpType.stars => e.mvpStars
+              MvpType.stars => e.mvpStars,
+              MvpType.steals => e.mvpSteals,
             })
         .expand((e) => e)
         .toList();
@@ -283,6 +285,9 @@ class DatabaseManager {
       mvpStarsKey: team.mvpStars.isEmpty
           ? null
           : team.mvpStars.map((data) => data.serialized),
+      mvpStealsKey: team.mvpSteals.isEmpty
+          ? null
+          : team.mvpSteals.map((data) => data.serialized),
     });
 
     // Update the cache results
@@ -333,11 +338,12 @@ class DatabaseManager {
     required int stationReached,
     required List<Player> mvpScore,
     required List<Player> mvpStars,
+    required List<Player> mvpSteals,
   }) async {
     _logger.info('Sending results to the database...');
     _isSendingData = true;
 
-    // Construct the TeamResult without mvp score and stars
+    // Construct the TeamResult without mvp score, stars and steals
     final teamResults = (await _getResultsOf(teamName: teamName!)) ??
         TeamResult(name: teamName!, bestStations: []);
 
@@ -357,6 +363,14 @@ class DatabaseManager {
         mvpStars.map((player) => PlayerResult(
               name: player.name,
               value: player.starsCollected,
+              teamName: teamName!,
+            )),
+        (a, b) => a.value.compareTo(b.value));
+    _addAllToResults(
+        teamResults.mvpSteals,
+        mvpSteals.map((player) => PlayerResult(
+              name: player.name,
+              value: player.gameStealCount,
               teamName: teamName!,
             )),
         (a, b) => a.value.compareTo(b.value));
@@ -426,13 +440,14 @@ class DatabaseManager {
   }
 
   ///
-  /// Returns the [top] mvp player by score or stars accross all the teams. The [mvp]
+  /// Returns the [top] mvp player by score, stars, or steals across all the teams. The [mvp]
   /// is added to the list. If the players are not in the top, they are added at
   /// the bottom. If they are in the top, they are added at their rank.
-  Future<List<PlayerResult>?> getBestPlayers(
-      {required int top,
-      required List<Player>? mvp,
-      required MvpType mvpType}) async {
+  Future<List<PlayerResult>?> getBestPlayers({
+    required int top,
+    required List<Player>? mvp,
+    required MvpType mvpType,
+  }) async {
     if (isLoggedOut) return null;
     _logger.info('Fetching the best players by ${mvpType.name}...');
 
@@ -446,7 +461,8 @@ class DatabaseManager {
       for (final mvpPlayer in mvp) {
         final value = switch (mvpType) {
           MvpType.score => mvpPlayer.score,
-          MvpType.stars => mvpPlayer.starsCollected
+          MvpType.stars => mvpPlayer.starsCollected,
+          MvpType.steals => mvpPlayer.gameStealCount,
         };
         final currentResult = PlayerResult(
             name: mvpPlayer.name, value: value, teamName: teamName!);
@@ -463,7 +479,8 @@ class DatabaseManager {
       for (final mvpPlayer in mvp) {
         final value = switch (mvpType) {
           MvpType.score => mvpPlayer.score,
-          MvpType.stars => mvpPlayer.starsCollected
+          MvpType.stars => mvpPlayer.starsCollected,
+          MvpType.steals => mvpPlayer.gameStealCount,
         };
         _limitNumberOfResults(
             top,
@@ -487,6 +504,7 @@ class DatabaseManagerMock extends DatabaseManager {
   Map<String, List<int>> _dummyBestStationsResults = {};
   Map<String, (int, String)> _dummyBestPlayersScore = {};
   Map<String, (int, String)> _dummyBestPlayersStars = {};
+  Map<String, (int, String)> _dummyBestStealers = {};
 
   DatabaseManagerMock({
     bool? dummyIsSignedIn,
@@ -497,6 +515,7 @@ class DatabaseManagerMock extends DatabaseManager {
     Map<String, List<int>>? dummyBestStationsResults,
     Map<String, (int, String)>? dummyBestPlayersScore,
     Map<String, (int, String)>? dummyBestPlayersStars,
+    Map<String, (int, String)>? dummyBestStealers,
   }) {
     _dummyIsSignedIn = dummyIsSignedIn ?? _dummyIsSignedIn;
     _dummyEmail = dummyEmail ?? _dummyEmail;
@@ -507,6 +526,7 @@ class DatabaseManagerMock extends DatabaseManager {
         dummyBestStationsResults ?? _dummyBestStationsResults;
     _dummyBestPlayersScore = dummyBestPlayersScore ?? _dummyBestPlayersScore;
     _dummyBestPlayersStars = dummyBestPlayersStars ?? _dummyBestPlayersStars;
+    _dummyBestStealers = dummyBestStealers ?? _dummyBestStealers;
   }
 
   @override
@@ -617,6 +637,11 @@ class DatabaseManagerMock extends DatabaseManager {
       team.mvpStars.addAll(stars.where((e) => e.teamName == team.name));
     }
 
+    final steals = await _getAllMvpPlayersResult(mvpType: MvpType.steals);
+    for (final team in out) {
+      team.mvpSteals.addAll(steals.where((e) => e.teamName == team.name));
+    }
+
     return out;
   }
 
@@ -625,7 +650,8 @@ class DatabaseManagerMock extends DatabaseManager {
       {required MvpType mvpType}) async {
     final mvp = switch (mvpType) {
       MvpType.score => _dummyBestPlayersScore,
-      MvpType.stars => _dummyBestPlayersStars
+      MvpType.stars => _dummyBestPlayersStars,
+      MvpType.steals => _dummyBestStealers,
     };
 
     final out = mvp.entries.map((e) {
@@ -649,12 +675,18 @@ class DatabaseManagerMock extends DatabaseManager {
         .map((e) =>
             PlayerResult(name: e.key, value: e.value.$1, teamName: teamName))
         .toList();
+    final mvpStealsOfTeam = _dummyBestStealers.entries
+        .where((e) => e.value.$2 == teamName)
+        .map((e) =>
+            PlayerResult(name: e.key, value: e.value.$1, teamName: teamName))
+        .toList();
 
     return TeamResult(
         name: teamName,
         bestStations: stations,
         mvpScore: mvpScoreOfTeam,
-        mvpStars: mvpStarsOfTeam);
+        mvpStars: mvpStarsOfTeam,
+        mvpSteals: mvpStealsOfTeam);
   }
 
   @override
@@ -667,6 +699,11 @@ class DatabaseManagerMock extends DatabaseManager {
     _dummyBestPlayersStars.removeWhere((key, value) => value.$2 == team.name);
     _dummyBestPlayersStars.addAll({
       for (final player in team.mvpStars) player.name: (player.value, team.name)
+    });
+    _dummyBestStealers.removeWhere((key, value) => value.$2 == team.name);
+    _dummyBestStealers.addAll({
+      for (final player in team.mvpSteals)
+        player.name: (player.value, team.name)
     });
   }
 }

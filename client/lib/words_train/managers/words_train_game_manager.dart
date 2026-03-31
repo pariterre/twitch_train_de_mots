@@ -1249,9 +1249,11 @@ class WordsTrainGameManager {
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
       Managers.instance.database.sendResults(
-          stationReached: roundCount,
-          mvpScore: players.bestPlayersByScore,
-          mvpStars: players.bestPlayersByStars);
+        stationReached: roundCount,
+        mvpScore: players.bestPlayersByScore,
+        mvpStars: players.bestPlayersByStars,
+        mvpSteals: players.biggestStealers,
+      );
     }
 
     _logger.info('Round ended');
