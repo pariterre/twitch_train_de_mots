@@ -418,6 +418,7 @@ class DatabaseManager {
                 .toList())
         .expand((e) => e)
         .toList();
+    out.sort((a, b) => b.value.compareTo(a.value));
 
     // Add the current results if necessary (only the best one were fetched)
     final currentResult = stationReached == null

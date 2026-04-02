@@ -371,71 +371,6 @@ class _LeaderBoard extends StatelessWidget {
     }
   }
 
-  Color? _highlightBestTeamColor({required TeamResult team}) {
-    final dm = Managers.instance.database;
-    final gm = Managers.instance.train;
-    final tm = ThemeManager.instance;
-
-    final shouldHighlight = team.name == dm.teamName &&
-        (team.bestStation == gm.roundCount || !gm.hasPlayedAtLeastOnce);
-    if (shouldHighlight) {
-      return tm.leaderBoardBestScoreColor;
-    } else {
-      return null;
-    }
-  }
-
-  Color? _highlightBestOverallScoreColor({required PlayerResult player}) {
-    final dm = Managers.instance.database;
-    final gm = Managers.instance.train;
-    final tm = ThemeManager.instance;
-
-    final bestPlayers = gm.players.bestPlayersByScore;
-    final shouldHighlight = bestPlayers
-            .any((e) => (e.name == player.name && e.score == player.value)) ||
-        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
-
-    if (shouldHighlight) {
-      return tm.leaderBoardBestScoreColor;
-    } else {
-      return null;
-    }
-  }
-
-  Color? _highlightBestOverallStarsColor({required PlayerResult player}) {
-    final dm = Managers.instance.database;
-    final gm = Managers.instance.train;
-    final tm = ThemeManager.instance;
-
-    final bestPlayers = gm.players.bestPlayersByStars;
-    final shouldHighlight = bestPlayers.any((e) =>
-            (e.name == player.name && e.starsCollected == player.value)) ||
-        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
-
-    if (shouldHighlight) {
-      return tm.leaderBoardBestScoreColor;
-    } else {
-      return null;
-    }
-  }
-
-  Color? _highlightBestOverallStealersColor({required PlayerResult player}) {
-    final dm = Managers.instance.database;
-    final gm = Managers.instance.train;
-    final tm = ThemeManager.instance;
-
-    final biggestStealers = gm.players.biggestStealers;
-    final shouldHighlight = biggestStealers.any((e) =>
-            (e.name == player.name && e.gameStealCount == player.value)) ||
-        (!gm.hasPlayedAtLeastOnce && player.teamName == dm.teamName);
-
-    if (shouldHighlight) {
-      return tm.leaderBoardBestScoreColor;
-    } else {
-      return null;
-    }
-  }
-
   Widget? _playerSuffixWidget(
       {required Player player,
       required TeamResult teamResult,
@@ -633,38 +568,38 @@ class _LeaderBoard extends StatelessWidget {
         });
   }
 
-  Widget _buildTeamLeaderboardScore({required double width}) {
-    final gm = Managers.instance.train;
+  Widget _buildAllTeamsResultsTile({
+    required String title,
+    required String scoreTitle,
+    required double width,
+    required Future<List<DatabaseResult>?> results,
+    required String messageIfEmpty,
+    required String Function(DatabaseResult result) nameFromResult,
+    required int Function(DatabaseResult result) scoreFromResult,
+    required Color? Function(DatabaseResult result) highlightBestTeamColor,
+  }) {
     final tm = ThemeManager.instance;
-    final dm = Managers.instance.database;
 
     const scoreWidth = 82.0;
     final nameWidth = width - scoreWidth;
 
-    return FutureBuilder(
-        future: dm.getBestTrainStationsReached(
-            top: 50,
-            stationReached: gm.hasPlayedAtLeastOnce ? gm.roundCount : null),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return SizedBox(
-              width: 80,
-              height: 80,
-              child:
-                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
-            );
-          }
+    return SizedBox(
+      width: width,
+      child: FutureBuilder(
+          future: results,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Center(
+                  child: CircularProgressIndicator(color: tm.textColor));
+            }
 
-          final teams = snapshot.data as List<TeamResult>;
+            final results = snapshot.data as List<DatabaseResult>;
 
-          if (teams.isEmpty) {
-            return Center(
-                child: _buildTitleTile('Aucune équipe n\'a encore joué'));
-          }
+            if (results.isEmpty) {
+              return Center(child: _buildTitleTile(messageIfEmpty));
+            }
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            return SingleChildScrollView(
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -672,12 +607,12 @@ class _LeaderBoard extends StatelessWidget {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTitleTile('Meilleur·e·s équipes'),
-                        ...teams.map(
-                          (team) => _buildNamedTile(
-                            team.name,
-                            highlightColor: _highlightBestTeamColor(team: team),
-                            prefixText: '${team.rank}.',
+                        _buildTitleTile(title),
+                        ...results.map(
+                          (result) => _buildNamedTile(
+                            nameFromResult(result),
+                            highlightColor: highlightBestTeamColor(result),
+                            prefixText: '${result.rank}.',
                             width: nameWidth,
                           ),
                         ),
@@ -687,244 +622,130 @@ class _LeaderBoard extends StatelessWidget {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _buildTitleTile('Stations'),
-                          ...teams.map(
-                            (team) => _buildScoreTile(
-                              score: team.bestStation,
-                              highlightColor:
-                                  _highlightBestTeamColor(team: team),
+                          _buildTitleTile(scoreTitle),
+                          ...results.map(
+                            (result) => _buildScoreTile(
+                              score: scoreFromResult(result),
+                              highlightColor: highlightBestTeamColor(result),
                             ),
                           )
                         ]),
                   ),
                 ],
               ),
-            ),
-          );
-        });
+            );
+          }),
+    );
+  }
+
+  Widget _buildTeamLeaderboardScore({required double width}) {
+    final gm = Managers.instance.train;
+    final dm = Managers.instance.database;
+    final tm = ThemeManager.instance;
+
+    return _buildAllTeamsResultsTile(
+      title: 'Meilleur·e·s équipes',
+      scoreTitle: 'Stations',
+      width: width,
+      results: dm.getBestTrainStationsReached(
+          top: 50,
+          stationReached: gm.hasPlayedAtLeastOnce ? gm.roundCount : null),
+      messageIfEmpty: 'Aucune équipe n\'a encore joué',
+      nameFromResult: (result) => result.name,
+      scoreFromResult: (result) => (result as TeamResult).bestStation,
+      highlightBestTeamColor: (result) {
+        return (result as TeamResult).name == dm.teamName &&
+                (result.bestStation == gm.roundCount ||
+                    !gm.hasPlayedAtLeastOnce)
+            ? tm.leaderBoardBestScoreColor
+            : null;
+      },
+    );
   }
 
   Widget _builBestPlayersLeaderboardScore({required double width}) {
     final gm = Managers.instance.train;
+    final dm = Managers.instance.database;
     final tm = ThemeManager.instance;
 
-    final bestPlayers = gm.players.bestPlayersByScore;
-
-    const scoreWidth = 80.0;
-    final nameWidth = width - scoreWidth;
-
-    return FutureBuilder(
-        future: Managers.instance.database.getBestPlayers(
-            top: 50,
-            mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
-            mvpType: MvpType.score),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return SizedBox(
-              width: 80,
-              height: 80,
-              child:
-                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
-            );
-          }
-
-          final players = snapshot.data as List<PlayerResult>;
-
-          if (players.isEmpty) {
-            return Center(
-                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
-          }
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitleTile('Meilleur·e·s cheminot·e·s'),
-                        ...players.map(
-                          (player) => _buildNamedTile(
-                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
-                            highlightColor:
-                                _highlightBestOverallScoreColor(player: player),
-                            prefixText: '${player.rank}.',
-                            width: nameWidth,
-                          ),
-                        ),
-                      ]),
-                  SizedBox(
-                    width: scoreWidth,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildTitleTile('Score'),
-                          ...players.map(
-                            (player) => _buildScoreTile(
-                              score: player.value,
-                              highlightColor: _highlightBestOverallScoreColor(
-                                  player: player),
-                            ),
-                          )
-                        ]),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+    return _buildAllTeamsResultsTile(
+      title: 'Meilleur·e·s cheminot·e·s',
+      scoreTitle: 'Score',
+      width: width,
+      results: dm.getBestPlayers(
+          top: 50,
+          mvp: gm.hasPlayedAtLeastOnce ? gm.players.bestPlayersByScore : null,
+          mvpType: MvpType.score),
+      messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
+      nameFromResult: (result) =>
+          '${result.name}${(result as PlayerResult).teamName.isNotEmpty ? ' (${result.teamName})' : ''}',
+      scoreFromResult: (result) => result.value,
+      highlightBestTeamColor: (result) {
+        return gm.players.bestPlayersByScore.any((e) =>
+                    (e.name == result.name && e.score == result.value)) ||
+                (!gm.hasPlayedAtLeastOnce &&
+                    (result as PlayerResult).teamName == dm.teamName)
+            ? tm.leaderBoardBestScoreColor
+            : null;
+      },
+    );
   }
 
   Widget _builBestPlayersLeaderboardStars({required double width}) {
     final gm = Managers.instance.train;
+    final dm = Managers.instance.database;
     final tm = ThemeManager.instance;
 
-    final bestPlayers = gm.players.bestPlayersByStars;
-
-    const starsWidth = 80.0;
-    final nameWidth = width - starsWidth;
-
-    return FutureBuilder(
-        future: Managers.instance.database.getBestPlayers(
-            top: 50,
-            mvp: gm.hasPlayedAtLeastOnce ? bestPlayers : null,
-            mvpType: MvpType.stars),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return SizedBox(
-              width: 80,
-              height: 80,
-              child:
-                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
-            );
-          }
-
-          final players = snapshot.data as List<PlayerResult>;
-
-          if (players.isEmpty) {
-            return Center(
-                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
-          }
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitleTile('Meilleur·e·s cueilleurs·ses'),
-                        ...players.map(
-                          (player) => _buildNamedTile(
-                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
-                            highlightColor:
-                                _highlightBestOverallStarsColor(player: player),
-                            prefixText: '${player.rank}.',
-                            width: nameWidth,
-                          ),
-                        ),
-                      ]),
-                  SizedBox(
-                    width: starsWidth,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildTitleTile('Étoiles'),
-                          ...players.map(
-                            (player) => _buildScoreTile(
-                              score: player.value,
-                              highlightColor: _highlightBestOverallStarsColor(
-                                  player: player),
-                            ),
-                          )
-                        ]),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+    return _buildAllTeamsResultsTile(
+      title: 'Meilleur·e·s cueilleurs·ses',
+      scoreTitle: 'Étoiles',
+      width: width,
+      results: dm.getBestPlayers(
+          top: 50,
+          mvp: gm.hasPlayedAtLeastOnce ? gm.players.bestPlayersByStars : null,
+          mvpType: MvpType.stars),
+      messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
+      nameFromResult: (result) =>
+          '${result.name}${(result as PlayerResult).teamName.isNotEmpty ? ' (${result.teamName})' : ''}',
+      scoreFromResult: (result) => result.value,
+      highlightBestTeamColor: (result) {
+        return gm.players.bestPlayersByStars.any((e) =>
+                    (e.name == result.name &&
+                        e.starsCollected == result.value)) ||
+                (!gm.hasPlayedAtLeastOnce &&
+                    (result as PlayerResult).teamName == dm.teamName)
+            ? tm.leaderBoardBestScoreColor
+            : null;
+      },
+    );
   }
 
   Widget _builBestPlayersLeaderboardStealers({required double width}) {
     final gm = Managers.instance.train;
+    final dm = Managers.instance.database;
     final tm = ThemeManager.instance;
 
-    final biggestStealers = gm.players.biggestStealers;
-
-    const starsWidth = 80.0;
-    final nameWidth = width - starsWidth;
-
-    return FutureBuilder(
-        future: Managers.instance.database.getBestPlayers(
-            top: 50,
-            mvp: gm.hasPlayedAtLeastOnce ? biggestStealers : null,
-            mvpType: MvpType.steals),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return SizedBox(
-              width: 80,
-              height: 80,
-              child:
-                  Center(child: CircularProgressIndicator(color: tm.mainColor)),
-            );
-          }
-
-          final players = snapshot.data as List<PlayerResult>;
-
-          if (players.isEmpty) {
-            return Center(
-                child: _buildTitleTile('Aucun·e cheminot·e n\'a joué'));
-          }
-
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTitleTile('Meilleur·e·s voleur·se·s'),
-                        ...players.map(
-                          (player) => _buildNamedTile(
-                            '${player.name}${player.teamName.isNotEmpty ? ' (${player.teamName})' : ''}',
-                            highlightColor: _highlightBestOverallStealersColor(
-                                player: player),
-                            prefixText: '${player.rank}.',
-                            width: nameWidth,
-                          ),
-                        ),
-                      ]),
-                  SizedBox(
-                    width: starsWidth,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _buildTitleTile('Vols'),
-                          ...players.map(
-                            (player) => _buildScoreTile(
-                              score: player.value,
-                              highlightColor:
-                                  _highlightBestOverallStealersColor(
-                                      player: player),
-                            ),
-                          )
-                        ]),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+    return _buildAllTeamsResultsTile(
+      title: 'Meilleur·e·s voleur·se·s',
+      scoreTitle: 'Vols',
+      width: width,
+      results: Managers.instance.database.getBestPlayers(
+          top: 50,
+          mvp: gm.hasPlayedAtLeastOnce ? gm.players.biggestStealers : null,
+          mvpType: MvpType.steals),
+      messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
+      nameFromResult: (result) =>
+          '${result.name}${(result as PlayerResult).teamName.isNotEmpty ? ' (${result.teamName})' : ''}',
+      scoreFromResult: (result) => result.value,
+      highlightBestTeamColor: (result) {
+        return gm.players.biggestStealers.any((e) => (e.name == result.name &&
+                    e.gameStealCount == result.value)) ||
+                (!gm.hasPlayedAtLeastOnce &&
+                    (result as PlayerResult).teamName == dm.teamName)
+            ? tm.leaderBoardBestScoreColor
+            : null;
+      },
+    );
   }
 
   @override
@@ -947,7 +768,8 @@ class _LeaderBoard extends StatelessWidget {
               child: Column(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.only(left: 75, right: 75, bottom: 2),
+                    padding: EdgeInsets.only(
+                        left: 75 - 12, right: 75 - 12, bottom: 2),
                     child: Divider(thickness: 4),
                   ),
                   Expanded(
