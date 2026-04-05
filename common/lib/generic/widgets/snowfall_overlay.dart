@@ -13,7 +13,8 @@ class SnowfallOverlay extends StatefulWidget {
 
 class _SnowfallOverlayState extends State<SnowfallOverlay>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  late final _ticker = createTicker(_updateSnowflakes);
+  Duration _previousElapsedTime = Duration.zero;
   final List<_SnowflakeData> _flakes = [];
 
   @override
@@ -21,11 +22,7 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
     super.initState();
 
     _prepareSnowflakes();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(days: 1),
-    )..repeat();
+    _ticker.start();
   }
 
   @override
@@ -37,6 +34,18 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
     super.didUpdateWidget(oldWidget);
   }
 
+  void _updateSnowflakes(Duration elapsed) {
+    final dt = (elapsed - _previousElapsedTime).inMilliseconds / 1000.0;
+    _previousElapsedTime = elapsed;
+
+    for (final flake in _flakes) {
+      flake.x = (flake.x + flake.speedX * dt) % 1.0;
+      flake.y = (flake.y + flake.speedY * dt) % 1.0;
+    }
+
+    setState(() {});
+  }
+
   void _prepareSnowflakes() {
     final random = Random();
     if (_flakes.length < widget.snowFlakeCount) {
@@ -44,7 +53,7 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
         return _SnowflakeData(
           x: random.nextDouble(),
           y: random.nextDouble(),
-          size: random.nextDouble() * 5,
+          size: random.nextDouble() * 5 / 1700,
           speedY: (random.nextDouble() * 0.2 + 0.1) * 0.1,
           speedX: ((random.nextDouble() - 0.5) * 0.2) * 0.1,
           opacity: random.nextDouble() * 0.3 + 0.2,
@@ -62,41 +71,32 @@ class _SnowfallOverlayState extends State<SnowfallOverlay>
     }
 
     return CustomPaint(
-      painter: _SnowPainter(_flakes, _controller),
+      painter: _SnowPainter(_flakes),
       size: Size.infinite,
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ticker.dispose();
     super.dispose();
   }
 }
 
 class _SnowPainter extends CustomPainter {
   final List<_SnowflakeData> _flakes;
-  final AnimationController controller;
 
-  _SnowPainter(this._flakes, this.controller) : super(repaint: controller);
+  _SnowPainter(this._flakes) : super(repaint: null);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
 
-    final elapsed =
-        (controller.lastElapsedDuration?.inMilliseconds ?? 0) / 1000.0;
     for (final flake in _flakes) {
-      final dx = (flake.x * size.width + elapsed * flake.speedX * size.width) %
-          size.width;
-      final dy =
-          (flake.y * size.height + elapsed * flake.speedY * size.height) %
-              size.height;
       paint.color = Colors.white.withAlpha((flake.opacity * 255).toInt());
-
       canvas.drawCircle(
-        Offset(dx, dy),
-        flake.size,
+        Offset(flake.x * size.width, flake.y * size.height),
+        flake.size * size.width,
         paint,
       );
     }

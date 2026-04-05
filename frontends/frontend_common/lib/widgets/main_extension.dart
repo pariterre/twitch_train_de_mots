@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
@@ -198,7 +200,7 @@ class _MainContainer extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
-      snowFlakeCount: 10 * gm.currentRound * 2,
+      snowFlakeCount: min(10 * gm.currentRound * 4, 1000),
       child: child,
     );
   }

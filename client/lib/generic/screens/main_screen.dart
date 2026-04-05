@@ -124,7 +124,7 @@ class _MainScreenState extends State<MainScreen> {
           opacity: const AlwaysStoppedAnimation(0.05),
           fit: BoxFit.cover,
         ),
-        snowFlakeCount: min(10 * gm.roundCount * 4, 2000),
+        snowFlakeCount: min(10 * gm.roundCount * 4, 5000),
         child: Stack(
           children: [
             dm.isLoggedOut ||

@@ -6,12 +6,13 @@ import 'package:logging/logging.dart';
 final _logger = Logger('Background');
 
 class Background extends StatefulWidget {
-  const Background(
-      {super.key,
-      this.child,
-      this.withSnowfall = true,
-      this.backgroundLayer,
-      this.snowFlakeCount = 100});
+  const Background({
+    super.key,
+    this.child,
+    this.backgroundLayer,
+    this.withSnowfall = true,
+    this.snowFlakeCount = 100,
+  });
 
   final Widget? backgroundLayer;
   final bool withSnowfall;
@@ -105,7 +106,9 @@ class _BackgroundState extends State<Background>
             child: widget.backgroundLayer,
           ),
         if (widget.withSnowfall)
-          SnowfallOverlay(snowFlakeCount: widget.snowFlakeCount),
+          SnowfallOverlay(
+            snowFlakeCount: widget.snowFlakeCount,
+          ),
         if (widget.child != null) widget.child!,
       ],
     );
