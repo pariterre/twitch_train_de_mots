@@ -363,6 +363,8 @@ class _MiniGameGranted extends StatelessWidget {
                 'Affûtez vos armes, la guerre des bleuets est lancée!',
               MiniGames.treasureHunt =>
                 'Partez à la grande cueillette de bleuets!',
+              MiniGames.warehouseCleaning =>
+                'Nettoyons cet entrepôt avant que le train n\'arrive!',
               MiniGames.fixTracks =>
                 'Le train s\'est arrêté, mais on peut encore essayer de réparer la voie!',
             }}',

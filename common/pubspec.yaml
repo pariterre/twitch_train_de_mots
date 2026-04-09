@@ -30,6 +30,9 @@ flutter:
 
     - assets/images/blueberry_war/blueberries.png
 
+    - assets/images/warehouse_cleaning/box.png
+    - assets/images/warehouse_cleaning/floor.png
+
     - assets/images/track_fix/grass.png
     - assets/images/track_fix/open_grass.png
 

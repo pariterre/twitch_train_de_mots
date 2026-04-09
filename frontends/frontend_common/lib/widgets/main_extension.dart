@@ -13,6 +13,7 @@ import 'package:frontend_common/screens/fix_tracks_play_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
 import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
+import 'package:frontend_common/screens/warehouse_cleaning_play_screen.dart';
 import 'package:frontend_common/screens/waiting_screen.dart';
 import 'package:frontend_common/widgets/opaque_on_hover.dart';
 import 'package:frontend_common/widgets/resized_box.dart';
@@ -261,6 +262,8 @@ class _MainScreenState extends State<_MainScreen> {
               return const TreasureHuntPlayScreen();
             case MiniGames.blueberryWar:
               return const BlueberryWarPlayScreen();
+            case MiniGames.warehouseCleaning:
+              return const WarehouseCleaningPlayScreen();
             case MiniGames.fixTracks:
               return const FixTracksPlayScreen();
           }

@@ -13,6 +13,7 @@ import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
+import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -347,6 +348,13 @@ class GameManager {
                   (callback) => callback(agent.position, agent.position));
             }
           }
+          break;
+        }
+      case MiniGames.warehouseCleaning:
+        {
+          final wcm = _gameState.miniGameState
+              as SerializableWarehouseCleaningGameState;
+          newGameState = wcm.copyWith(timeRemaining: wcm.timeRemaining - dt);
           break;
         }
       case MiniGames.fixTracks:

@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
+import 'package:train_de_mots/warehouse_cleaning/managers/warehouse_cleaning_game_manager.dart';
 
 final _logger = Logger('MiniGamesManager');
 
@@ -80,6 +81,7 @@ class MiniGamesManager {
     _logger.config('Initializing...');
     _miniGames[MiniGames.treasureHunt] = TreasureHuntGameManager();
     _miniGames[MiniGames.blueberryWar] = BlueberryWarGameManager();
+    _miniGames[MiniGames.warehouseCleaning] = WarehouseCleaningGameManager();
     _miniGames[MiniGames.fixTracks] = FixTracksGameManager();
     _isInitialized = true;
     _logger.config('Ready');
@@ -90,6 +92,8 @@ class MiniGamesManager {
       _miniGames[MiniGames.treasureHunt] as TreasureHuntGameManager;
   BlueberryWarGameManager get blueberryWar =>
       _miniGames[MiniGames.blueberryWar] as BlueberryWarGameManager;
+  WarehouseCleaningGameManager get warehouseCleaning =>
+      _miniGames[MiniGames.warehouseCleaning] as WarehouseCleaningGameManager;
   FixTracksGameManager get fixTracks =>
       _miniGames[MiniGames.fixTracks] as FixTracksGameManager;
 

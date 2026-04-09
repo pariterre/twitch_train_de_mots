@@ -194,6 +194,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
       buttonText += switch (gm.nextRoundMiniGame!) {
         MiniGames.treasureHunt => 'Aller aux bleuets!',
         MiniGames.blueberryWar => 'À l\'attaque des bleuets!',
+        MiniGames.warehouseCleaning => 'Nettoyons cet entrepôt!',
         MiniGames.fixTracks => 'Réparons la voie!',
       };
     } else {
