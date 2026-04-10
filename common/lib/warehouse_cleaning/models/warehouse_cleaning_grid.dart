@@ -91,7 +91,7 @@ class WarehouseCleaningGrid {
           if (row == startingRow && col == startingCol) continue;
 
           final tile = tileAt(row: row, col: col);
-          if (tile != null && tile.content == TileContent.empty) {
+          if (tile != null && tile.isEmpty) {
             tile.addLetter(
                 letter: letter, letterIndex: i, isMystery: i == mysteryIndex);
             break;
@@ -134,7 +134,6 @@ class Tile {
   final int index;
   final int row;
   final int col;
-  final bool hasAvatar;
 
   TileContent _content;
   TileContent get content => _content;
@@ -166,30 +165,11 @@ class Tile {
     required TileContent content,
     required bool isConcealed,
     required bool isMysteryLetter,
-    this.hasAvatar = false,
     bool isVisited = false,
   })  : _content = content,
         _isConcealed = isConcealed,
         _isMysteryLetter = isMysteryLetter,
         _isVisited = isVisited;
-
-  Tile copyWith({
-    bool? hasAvatar,
-  }) {
-    final newTile = Tile(
-      index: index,
-      row: row,
-      col: col,
-      content: content,
-      isConcealed: isConcealed,
-      isMysteryLetter: isMysteryLetter,
-      hasAvatar: hasAvatar ?? this.hasAvatar,
-      isVisited: isVisited,
-    );
-    newTile._letter = _letter;
-    newTile._letterIndex = _letterIndex;
-    return newTile;
-  }
 
   void addTreasure() => _content = TileContent.letter;
   void addLetter({
@@ -203,10 +183,11 @@ class Tile {
     _isMysteryLetter = isMystery;
   }
 
-  bool get isTreasure => content == TileContent.letter && _letter == null;
   bool get isLetter =>
       content == TileContent.letter && _letter != null && !_isMysteryLetter;
   bool get hasLetter => content == TileContent.letter;
+  bool get isBox => content == TileContent.box;
+  bool get isEmpty => content == TileContent.empty;
 
   void reveal() => _isConcealed = false;
 

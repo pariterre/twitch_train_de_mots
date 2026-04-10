@@ -26,11 +26,11 @@ class _WarehouseCleaningGameScreenState
   void initState() {
     super.initState();
 
-    final gm = Managers.instance.miniGames.warehouseCleaning;
-    gm.onGameStarted.listen(_refresh);
-    gm.onGameIsReady.listen(_refresh);
-    gm.onAvatarMoved.listen(_refresh);
-    gm.onTrySolution.listen(_solutionWasTried);
+    final whgm = Managers.instance.miniGames.warehouseCleaning;
+    whgm.onGameStarted.listen(_refresh);
+    whgm.onGameIsReady.listen(_refresh);
+    whgm.onAvatarMoved.listen(_refresh);
+    whgm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
@@ -44,11 +44,11 @@ class _WarehouseCleaningGameScreenState
   // Dispose
   @override
   void dispose() {
-    final gm = Managers.instance.miniGames.warehouseCleaning;
-    gm.onGameStarted.cancel(_refresh);
-    gm.onGameIsReady.cancel(_refresh);
-    gm.onAvatarMoved.cancel(_refresh);
-    gm.onTrySolution.cancel(_solutionWasTried);
+    final whgm = Managers.instance.miniGames.warehouseCleaning;
+    whgm.onGameStarted.cancel(_refresh);
+    whgm.onGameIsReady.cancel(_refresh);
+    whgm.onAvatarMoved.cancel(_refresh);
+    whgm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
@@ -67,8 +67,8 @@ class _WarehouseCleaningGameScreenState
 
   @override
   Widget build(BuildContext context) {
-    final gm = Managers.instance.miniGames.warehouseCleaning;
-    if (!gm.isReady) {
+    final whgm = Managers.instance.miniGames.warehouseCleaning;
+    if (!whgm.isReady) {
       return Container();
     }
 
@@ -84,14 +84,16 @@ class _WarehouseCleaningGameScreenState
                 child: Padding(
                   padding: const EdgeInsets.only(top: 20, bottom: 20.0),
                   child: WarehouseCleaningGameGrid(
-                    rowCount: gm.grid.rowCount,
-                    columnCount: gm.grid.columnCount,
-                    getTileAt: (int row, int col) {
-                      final tile = gm.grid.tileAt(row: row, col: col)!;
-                      return gm.avatarTile.index == tile.index
-                          ? tile.copyWith(hasAvatar: true)
-                          : tile;
-                    },
+                    rowCount: whgm.grid.rowCount,
+                    columnCount: whgm.grid.columnCount,
+                    getTileAt: (int row, int col) =>
+                        whgm.grid.tileAt(row: row, col: col)!,
+                    avatars: whgm.avatars,
+                    boxes: whgm.boxes,
+                    letters: whgm.letters,
+                    isGameOver: whgm.isGameOver,
+                    clockTicker: Managers.instance.tickerManager.onClockTicked,
+                    onAvatarSlingShoot: whgm.slingShoot,
                   ),
                 ),
               ),

@@ -7,13 +7,18 @@ import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
+import 'package:common/warehouse_cleaning/models/agent.dart';
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
+import 'package:common/warehouse_cleaning/models/box_agent.dart';
+import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:diacritic/diacritic.dart';
-import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
+import 'package:vector_math/vector_math.dart' as vector_math;
 
 final _logger = Logger('WarehouseCleaningGameManager');
 final _random = Random();
@@ -47,24 +52,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     }
 
     _logger.config('Ready');
-    HardwareKeyboard.instance.addHandler((event) => _onKeyPressed(event));
-  }
-
-  bool _onKeyPressed(KeyEvent event) {
-    // TODO Remove the key press
-    if (event is! KeyDownEvent) return false;
-
-    // Catch up, down, left and right arrow keys to move the avatar
-    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      _moveAvatar(Direction.up);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      _moveAvatar(Direction.down);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      _moveAvatar(Direction.left);
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      _moveAvatar(Direction.right);
-    }
-    return false;
   }
 
   ///
@@ -90,7 +77,8 @@ class WarehouseCleaningGameManager implements MiniGameManager {
   SerializableLetterProblem? _problem;
   SerializableLetterProblem get problem =>
       _problem == null ? throw "This should not happen" : _problem!;
-  List<String> get letters => List.from(problem.letters, growable: false);
+  List<String> get problemLetters =>
+      List.from(problem.letters, growable: false);
 
   ///
   /// Number of tries remaining
@@ -99,8 +87,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   ///
   /// Avatar position
-  Tile? _avatarTile;
-  Tile get avatarTile => _avatarTile!;
+  Tile? tileFromPosition(vector_math.Vector2 position) => _grid?.tileAt(
+      row: (position.y / WarehouseCleaningConfig.tileSize).round(),
+      col: (position.x / WarehouseCleaningConfig.tileSize).round());
 
   // Listeners
   @override
@@ -119,9 +108,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
   final onGameEnded = GenericListener<Function({required bool hasWon})>();
   final onAvatarMoved = GenericListener<Function()>();
 
-  // Size of the grid
-  final int _rowCount = 31;
-  final int _columnCount = 15;
   WarehouseCleaningGrid? _grid;
   WarehouseCleaningGrid get grid => _grid!;
 
@@ -142,25 +128,83 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   @override
   String? get instructions => null;
+  // TODO Reinstate instructions with the new game
   // 'Le hangard oublié de cette station recèle de trésors! Partez à l\'aventure '
   // 'avec vos collègues pour découvrir les lettres cachées.\n\n'
   // 'Utilisez l\'extension pour déplacer l\'avatar de votre choix. '
   // 'Mais attention, chaque mouvement vous coûtera un essai!\n\n';
 
+  ///
+  /// List of agents in the game (avatars and boxes)
+  final allAgents = <Agent>[];
+  List<AvatarAgent> get avatars =>
+      allAgents.whereType<AvatarAgent>().toList(growable: false);
+  List<BoxAgent> get boxes =>
+      allAgents.whereType<BoxAgent>().toList(growable: false);
+  List<LetterAgent> get letters =>
+      allAgents.whereType<LetterAgent>().toList(growable: false);
+
   @override
   Future<void> initialize() async {
     _generateProblem();
 
-    final startingRow = _rowCount ~/ 2;
-    final startingCol = _columnCount ~/ 2;
     _grid = WarehouseCleaningGrid.random(
-        rowCount: _rowCount,
-        columnCount: _columnCount,
+        rowCount: WarehouseCleaningConfig.rowCount,
+        columnCount: WarehouseCleaningConfig.columnCount,
         problem: _problem!,
-        startingRow: startingRow,
-        startingCol: startingCol);
+        startingRow: WarehouseCleaningConfig.startingRow,
+        startingCol: WarehouseCleaningConfig.startingCol);
 
-    _avatarTile = _grid!.revealAt(row: startingRow, col: startingCol)!;
+    // Populate the agents list with the avatar
+    for (int i = 0; i < WarehouseCleaningConfig.initialAvatarCount; i++) {
+      allAgents.add(AvatarAgent(
+        id: i,
+        position: vector_math.Vector2(
+          WarehouseCleaningConfig.startingCol.toDouble() *
+              WarehouseCleaningConfig.tileSize,
+          WarehouseCleaningConfig.startingRow.toDouble() *
+              WarehouseCleaningConfig.tileSize,
+        ),
+        radius: WarehouseCleaningConfig.avatarRadius,
+        maxVelocity: WarehouseCleaningConfig.avatarMaxVelocity,
+        velocity: vector_math.Vector2.zero(),
+        coefficientOfFriction:
+            WarehouseCleaningConfig.avatarFrictionCoefficient,
+      ));
+    }
+
+    // Populate the agents list with the boxes and letters
+    int currentIndex = WarehouseCleaningConfig.initialAvatarCount;
+    for (int index = 0; index < _grid!.cellCount; index++) {
+      final tile = _grid!.tileAt(index: index);
+      if (tile == null) {
+        continue;
+      } else if (tile.isLetter) {
+        allAgents.add(LetterAgent(
+          id: currentIndex,
+          value: tile.letter!,
+          position: vector_math.Vector2(
+            tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
+            tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
+          ),
+          radius: WarehouseCleaningConfig.boxRadius,
+        ));
+      } else if (tile.isBox) {
+        allAgents.add(BoxAgent(
+          id: currentIndex,
+          position: vector_math.Vector2(
+            tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
+            tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
+          ),
+          radius: WarehouseCleaningConfig.boxRadius,
+        ));
+      }
+      currentIndex++;
+    }
+
+    // Perform an initial reveal of the fog of war around the avatar starting position
+    final avatarTile = tileFromPosition(avatars.first.position);
+    avatarTile == null ? null : _grid!.revealAt(index: avatarTile.index);
 
     _isMainTimerRunning = false;
     _timeRemaining = Duration(
@@ -230,40 +274,26 @@ class WarehouseCleaningGameManager implements MiniGameManager {
         pointsAwarded: wordValue));
   }
 
-  void _moveAvatar(Direction direction) {
-    if (!_isMainTimerRunning) return;
+  void slingShoot(AvatarAgent avatar, vector_math.Vector2 newVelocity) {
+    if (avatar.canBeSlingShot) {
+      _logger.fine(
+          'Sling shooting avatar ${avatar.id} with velocity $newVelocity');
 
-    int newRow = avatarTile.row;
-    int newCol = avatarTile.col;
-    switch (direction) {
-      case Direction.up:
-        newRow--;
-        break;
-      case Direction.down:
-        newRow++;
-        break;
-      case Direction.left:
-        newCol--;
-        break;
-      case Direction.right:
-        newCol++;
-        break;
-    }
-
-    final tile = grid.tileAt(row: newRow, col: newCol);
-    if (tile != null && tile.content != TileContent.box) {
-      _grid!.revealAt(index: tile.index);
-      _avatarTile = tile;
-
-      if (tile.content == TileContent.letter && tile.isNotVisited) {
-        problem.hiddenLetterStatuses[tile.letterIndex!] = LetterStatus.normal;
-        onLetterFound.notifyListeners((callback) => callback(tile));
-      } else {
-        _triesRemaining--;
+      // Ensure the velocity is within a reasonable range
+      double scale = 1.0;
+      if (newVelocity.length2 > (avatar.maxVelocity * avatar.maxVelocity)) {
+        scale = avatar.maxVelocity / newVelocity.length;
       }
 
-      tile.markVisited();
+      avatar.velocity = newVelocity * scale;
+
+      // Remove one try for sling shooting
+      _triesRemaining--;
+
       onAvatarMoved.notifyListeners((callback) => callback());
+    } else {
+      _logger
+          .warning('Avatar ${avatar.id} cannot be slingshot, ignoring request');
     }
   }
 
@@ -284,6 +314,17 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     }
   }
 
+  void _collectLetter(LetterAgent letter) {
+    final tile = tileFromPosition(letter.position);
+    if (tile == null) return;
+
+    tile.reveal();
+    letter.isCollected = true;
+    problem.hiddenLetterStatuses[tile.letterIndex!] = LetterStatus.normal;
+
+    onLetterFound.notifyListeners((callback) => callback(tile));
+  }
+
   ///
   /// The game loop
   void _gameLoop() {
@@ -294,6 +335,23 @@ class WarehouseCleaningGameManager implements MiniGameManager {
         _isMainTimerRunning = true;
       }
       return;
+    }
+
+    // Update the position of the avatar
+    WarehouseCleaningGameManagerHelpers.updateAvatarAgents(
+        dt: Managers.instance.tickerManager.deltaTime,
+        avatars: avatars,
+        boxes: boxes,
+        letters: letters,
+        onLetterCollected: _collectLetter);
+
+    // Revel tiles around the avatar
+    for (final avatar in avatars) {
+      final tile = tileFromPosition(avatar.position);
+      if (tile != null) {
+        _grid!.revealAt(index: tile.index);
+      }
+      onAvatarMoved.notifyListeners((callback) => callback());
     }
 
     _tickClock();

@@ -52,7 +52,10 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
     }
   }
 
-  void _refresh() => setState(() {});
+  void _refresh() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   void _onRewardFound(Tile tile) {
     setState(() {});

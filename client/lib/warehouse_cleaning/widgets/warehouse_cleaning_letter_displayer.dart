@@ -53,10 +53,10 @@ class _WarehouseCleaningLetterDisplayerState
 
   void _reinitializeFireworks() {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    if (whgm.letters.isEmpty) return;
+    if (whgm.problemLetters.isEmpty) return;
 
     _fireworksControllers.clear();
-    for (final _ in whgm.letters) {
+    for (final _ in whgm.problemLetters) {
       _fireworksControllers.add(FireworksController(
         minColor: const Color.fromARGB(184, 0, 100, 200),
         maxColor: const Color.fromARGB(184, 100, 120, 255),
@@ -70,10 +70,10 @@ class _WarehouseCleaningLetterDisplayerState
   Widget build(BuildContext context) {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
 
-    if (whgm.letters.isEmpty) return Container();
+    if (whgm.problemLetters.isEmpty) return Container();
 
     return SizedBox(
-      width: LetterDisplayerCommon.baseWidth(whgm.letters.length),
+      width: LetterDisplayerCommon.baseWidth(whgm.problemLetters.length),
       child: LetterDisplayerCommon(
         letterProblem: whgm.problem,
         letterBuilder: (index) =>

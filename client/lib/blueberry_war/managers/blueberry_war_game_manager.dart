@@ -7,7 +7,6 @@ import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.d
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
-import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -29,10 +28,6 @@ final _dictionary = DictionaryManager.wordsWithAtLeast(10).toList();
 /// index
 
 class BlueberryWarGameManager implements MiniGameManager {
-  ///
-  /// Duration of each game tick (16ms for 60 FPS)
-  GlobalTickerManager get _tickerManager => Managers.instance.tickerManager;
-
   ///
   /// Whether the game manager is initialized
   bool _forceEndOfGame = false;
@@ -212,7 +207,7 @@ class BlueberryWarGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    _tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
   }
 
   @override
@@ -327,7 +322,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     _manageForGameOver();
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
-      dt: _tickerManager.deltaTime,
+      dt: Managers.instance.tickerManager.deltaTime,
       allAgents: allAgents,
       problem: _problem!,
       onBlueberryDestroyed: (blueberry) {
