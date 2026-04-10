@@ -2,8 +2,11 @@ import 'package:common/warehouse_cleaning/models/agent.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
 
 class AvatarAgent extends Agent {
+  int tileIndex;
+
   AvatarAgent({
     required super.id,
+    required this.tileIndex,
     required super.position,
     required super.velocity,
     required super.radius,
@@ -18,6 +21,7 @@ class AvatarAgent extends Agent {
   Map<String, dynamic> serialize() => {
         'id': id,
         'agent_type': agentType.index,
+        'tile_index': tileIndex,
         'position': position.serialize(),
         'velocity': velocity.serialize(),
         'max_velocity': maxVelocity,
@@ -28,6 +32,7 @@ class AvatarAgent extends Agent {
   static AvatarAgent deserialize(Map<String, dynamic> map) {
     return AvatarAgent(
       id: map['id'] as int,
+      tileIndex: map['tile_index'] as int,
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
       maxVelocity: (map['max_velocity'] as num).toDouble(),

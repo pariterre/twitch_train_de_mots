@@ -156,15 +156,18 @@ class WarehouseCleaningGameManager implements MiniGameManager {
         startingCol: WarehouseCleaningConfig.startingCol);
 
     // Populate the agents list with the avatar
+    final startingPosition = vector_math.Vector2(
+      WarehouseCleaningConfig.startingCol.toDouble() *
+          WarehouseCleaningConfig.tileSize,
+      WarehouseCleaningConfig.startingRow.toDouble() *
+          WarehouseCleaningConfig.tileSize,
+    );
+    final startingTile = tileFromPosition(startingPosition);
     for (int i = 0; i < WarehouseCleaningConfig.initialAvatarCount; i++) {
       allAgents.add(AvatarAgent(
         id: i,
-        position: vector_math.Vector2(
-          WarehouseCleaningConfig.startingCol.toDouble() *
-              WarehouseCleaningConfig.tileSize,
-          WarehouseCleaningConfig.startingRow.toDouble() *
-              WarehouseCleaningConfig.tileSize,
-        ),
+        tileIndex: startingTile!.index,
+        position: startingPosition,
         radius: WarehouseCleaningConfig.avatarRadius,
         maxVelocity: WarehouseCleaningConfig.avatarMaxVelocity,
         velocity: vector_math.Vector2.zero(),
@@ -347,11 +350,13 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
     // Revel tiles around the avatar
     for (final avatar in avatars) {
-      final tile = tileFromPosition(avatar.position);
-      if (tile != null) {
-        _grid!.revealAt(index: tile.index);
+      final previousTileIndex = avatar.tileIndex;
+      final tileIndex = tileFromPosition(avatar.position)?.index ?? -1;
+      if (tileIndex != previousTileIndex) {
+        _grid!.revealAt(index: tileIndex);
+        avatar.tileIndex = tileIndex;
+        onAvatarMoved.notifyListeners((callback) => callback());
       }
-      onAvatarMoved.notifyListeners((callback) => callback());
     }
 
     _tickClock();
