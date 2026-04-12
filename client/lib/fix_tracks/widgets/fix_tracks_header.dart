@@ -39,7 +39,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
     setState(() {});
   }
 
-  void _onClockTicked() {
+  void _onClockTicked(Duration deltaTime) {
     if (_previousTimeRemainingInSeconds !=
         Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds) {
       _previousTimeRemainingInSeconds =

@@ -2,11 +2,13 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/scheduler.dart';
 
 class GlobalTickerManager {
-  final onClockTicked = GenericListener<Function()>();
+  final onClockTicked = GenericListener<Function(Duration deltaTime)>();
+  final onFixedClockTicked = GenericListener<Function(Duration deltaTime)>();
 
   GlobalTickerManager({
     required TickerProvider vsync,
-  }) {
+    Duration fixedDeltaTime = const Duration(milliseconds: 16),
+  }) : _fixedDeltaTime = fixedDeltaTime {
     _deltaTime = Duration.zero;
     _previousTickTime = DateTime.now();
 
@@ -15,6 +17,7 @@ class GlobalTickerManager {
   }
 
   Ticker? _ticker;
+  final Duration _fixedDeltaTime;
 
   /// Recreates the [Ticker] with the new [TickerProvider].
   void resync(TickerProvider vsync) {
@@ -26,8 +29,11 @@ class GlobalTickerManager {
 
   ///
   /// The amount of time that has passed between now and the most recent tick.
-  Duration get deltaTime => _deltaTime;
   Duration _deltaTime = Duration.zero;
+
+  ///
+  /// The amount of time that has passed since the last fixed tick. This is used to determine when to call the fixed tick callback.
+  Duration _accumulator = Duration.zero;
 
   ///
   /// The time of the most recent tick.
@@ -59,6 +65,18 @@ class GlobalTickerManager {
     _deltaTime = now.difference(_previousTickTime);
     _previousTickTime = now;
 
-    onClockTicked.notifyListeners((callback) => callback());
+    // Call the fixed related callabaks as many times as needed, before then calling the regular clock callbacks
+    _accumulator += _deltaTime;
+    final int maxAccumulatorTicks = 5;
+    int tickCount = 0;
+    while (_accumulator >= _fixedDeltaTime && tickCount < maxAccumulatorTicks) {
+      onFixedClockTicked
+          .notifyListeners((callback) => callback(_fixedDeltaTime));
+      _accumulator -= _fixedDeltaTime;
+      tickCount++;
+    }
+
+    // Call the regular clock callbacks
+    onClockTicked.notifyListeners((callback) => callback(_deltaTime));
   }
 }

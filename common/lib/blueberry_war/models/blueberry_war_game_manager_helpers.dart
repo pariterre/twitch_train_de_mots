@@ -34,11 +34,11 @@ class BlueberryWarConfig {
 
   ///
   /// The maximum velocity of the blueberry agent.
-  static double get blueberryMaxVelocity => 3000.0;
+  static double get blueberryMaxVelocity => 2300.0;
 
   ///
   /// The maximum velocity of the letter agent.
-  static double get letterMaxVelocity => 6000.0;
+  static double get letterMaxVelocity => 2500.0;
 
   ///
   /// Velocity threshold for teleportation which is used to determine if an agent

@@ -55,7 +55,8 @@ class Managers {
     _instance._isInitialized = true;
 
     // Initialize the global ticker manager
-    _instance._tickerManager = GlobalTickerManager(vsync: vsync);
+    _instance._tickerManager = GlobalTickerManager(
+        vsync: vsync, fixedDeltaTime: const Duration(milliseconds: 16));
 
     // Initialize the database manager
     _instance._database = MocksConfiguration.useDatabaseMock

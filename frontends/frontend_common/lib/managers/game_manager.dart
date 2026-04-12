@@ -214,10 +214,10 @@ class GameManager {
 
   ///
   /// Callback for each tick
-  Future<void> _tickGame() async {
-    _gameState.timeRemaining -= _tickerManager.deltaTime;
+  Future<void> _tickGame(Duration deltaTime) async {
+    _gameState.timeRemaining -= deltaTime;
 
-    _tickMiniGame();
+    _tickMiniGame(deltaTime);
   }
 
   ///
@@ -313,10 +313,10 @@ class GameManager {
   }
 
   MiniGames? get currentMiniGameType => _gameState.miniGameState?.type;
-  void _tickMiniGame() {
+  void _tickMiniGame(Duration deltaTime) {
     if (_gameState.miniGameState == null) return;
 
-    final dt = _tickerManager.deltaTime;
+    final dt = deltaTime;
 
     late final SerializableMiniGameState newGameState;
     switch (currentMiniGameType!) {

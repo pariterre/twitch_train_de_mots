@@ -145,7 +145,7 @@ class _BoostState extends State<_Boost> {
     super.dispose();
   }
 
-  void _refresh() {
+  void _refresh(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

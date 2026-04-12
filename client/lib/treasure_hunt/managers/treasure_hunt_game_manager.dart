@@ -156,7 +156,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
 
     onGameStarted.notifyListeners((callback) => callback());
   }
@@ -251,7 +251,7 @@ class TreasureHuntGameManager implements MiniGameManager {
 
   ///
   /// The game loop
-  void _gameLoop() {
+  void _gameLoop(Duration deltaTime) {
     if (isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
       if (Managers.instance.train.gameStatus ==
@@ -261,7 +261,7 @@ class TreasureHuntGameManager implements MiniGameManager {
       return;
     }
 
-    _tickClock();
+    _tickClock(deltaTime);
   }
 
   ///
@@ -293,12 +293,12 @@ class TreasureHuntGameManager implements MiniGameManager {
 
     _revealSolution();
     onGameEnded.notifyListeners((callback) => callback(hasWon: hasWon));
-    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
   }
 
   ///
   /// Tick the clock by one second
-  void _tickClock() {
-    _timeRemaining -= Managers.instance.tickerManager.deltaTime;
+  void _tickClock(Duration deltaTime) {
+    _timeRemaining -= deltaTime;
   }
 }

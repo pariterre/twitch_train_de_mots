@@ -45,7 +45,7 @@ class WordsTrainGameManager {
       // Wait for all managers to be initialized before allowing the game to start
       await Future.delayed(const Duration(milliseconds: 100));
     }
-    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
   }
 
   /// ---------- ///
@@ -934,13 +934,13 @@ class WordsTrainGameManager {
 
   ///
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
-  void _gameLoop() async {
-    _tickingClock();
-    if (_checkIfShouldAutomaticallyStartRound()) _autoStartingRound();
+  void _gameLoop(Duration deltaTime) async {
+    _tickingClock(deltaTime);
+    if (_checkIfShouldAutomaticallyStartRound(deltaTime)) _autoStartingRound();
     if (_checkForEndOfRound()) _endingRound();
   }
 
-  bool _checkIfShouldAutomaticallyStartRound() {
+  bool _checkIfShouldAutomaticallyStartRound(Duration deltaTime) {
     _logger.fine('Checking if the round should start automatically...');
 
     if (_nextRoundStartAt == null) {
@@ -950,8 +950,7 @@ class WordsTrainGameManager {
     if (_areCongratulationFireworksFiring) {
       _logger
           .fine('Congratulation fireworks are firing, so we delay the start');
-      _nextRoundStartAt =
-          _nextRoundStartAt!.add(Managers.instance.tickerManager.deltaTime);
+      _nextRoundStartAt = _nextRoundStartAt!.add(deltaTime);
       return false;
     }
     if (_playerPreparingCongratulationFireworks != null ||
@@ -963,8 +962,7 @@ class WordsTrainGameManager {
 
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
-      _nextRoundStartAt =
-          _nextRoundStartAt!.add(Managers.instance.tickerManager.deltaTime);
+      _nextRoundStartAt = _nextRoundStartAt!.add(deltaTime);
       return false;
     }
     if (!isNextProblemReady) {
@@ -990,7 +988,7 @@ class WordsTrainGameManager {
   ///
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
-  Future<void> _tickingClock() async {
+  Future<void> _tickingClock(Duration deltaTime) async {
     _logger.fine('Tic...');
 
     if (_gameStatus != WordsTrainGameStatus.roundStarted ||
@@ -1077,7 +1075,7 @@ class WordsTrainGameManager {
 
     // Manager letter swapping in the problem
     _logger.fine('Managing letter swapping...');
-    _scramblingLetterTimer -= Managers.instance.tickerManager.deltaTime;
+    _scramblingLetterTimer -= deltaTime;
     if (_scramblingLetterTimer <= Duration.zero) {
       _logger.fine('Scrambling letters...');
       _scramblingLetterTimer = cm.timeBeforeScramblingLetters;

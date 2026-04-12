@@ -12,7 +12,7 @@ class LetterContainer extends StatefulWidget {
 
   final LetterAgent letter;
   final double tileSize;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
 
   @override
   State<LetterContainer> createState() => _LetterContainerState();
@@ -33,7 +33,7 @@ class _LetterContainerState extends State<LetterContainer> {
     super.dispose();
   }
 
-  void _clockTicked() {
+  void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

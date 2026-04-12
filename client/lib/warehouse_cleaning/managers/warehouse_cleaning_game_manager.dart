@@ -233,7 +233,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
 
     onGameStarted.notifyListeners((callback) => callback());
   }
@@ -330,7 +330,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   ///
   /// The game loop
-  void _gameLoop() {
+  void _gameLoop(Duration deltaTime) {
     if (isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
       if (Managers.instance.train.gameStatus ==
@@ -341,8 +341,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     }
 
     // Update the position of the avatar
-    WarehouseCleaningGameManagerHelpers.updateAvatarAgents(
-        dt: Managers.instance.tickerManager.deltaTime,
+
+    _updateAllAvatarAgents(
+        dt: deltaTime,
         avatars: avatars,
         boxes: boxes,
         letters: letters,
@@ -359,7 +360,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
       }
     }
 
-    _tickClock();
+    _tickClock(deltaTime);
   }
 
   ///
@@ -391,12 +392,32 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
     _revealSolution();
     onGameEnded.notifyListeners((callback) => callback(hasWon: hasWon));
-    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
   }
 
   ///
   /// Tick the clock by one second
-  void _tickClock() {
-    _timeRemaining -= Managers.instance.tickerManager.deltaTime;
+  void _tickClock(Duration deltaTime) {
+    _timeRemaining -= deltaTime;
+  }
+
+  ///
+  /// Update all the agents in the list. This method should be called by the
+  /// game loop.
+  void _updateAllAvatarAgents({
+    required Duration dt,
+    required List<AvatarAgent> avatars,
+    required List<BoxAgent> boxes,
+    required List<LetterAgent> letters,
+    required Function(LetterAgent letter) onLetterCollected,
+  }) {
+    for (int i = 0; i < avatars.length; i++) {
+      // Move all agents
+      final agent = avatars[i];
+      agent.update(
+          dt: dt,
+          colliders: [...boxes, ...letters],
+          onLetterCollision: onLetterCollected);
+    }
   }
 }

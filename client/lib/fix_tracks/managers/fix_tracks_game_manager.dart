@@ -165,7 +165,7 @@ class FixTracksGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
 
     onGameStarted.notifyListeners((callback) => callback());
   }
@@ -212,7 +212,7 @@ class FixTracksGameManager implements MiniGameManager {
 
   ///
   /// The game loop
-  void _gameLoop() {
+  void _gameLoop(Duration deltaTime) {
     if (_isGameOver) return _processGameOver();
     if (!_isMainTimerRunning) {
       if (Managers.instance.train.gameStatus ==
@@ -222,7 +222,7 @@ class FixTracksGameManager implements MiniGameManager {
       return;
     }
 
-    _tickClock();
+    _tickClock(deltaTime);
   }
 
   void _processGameOver() {
@@ -232,13 +232,13 @@ class FixTracksGameManager implements MiniGameManager {
     _forceEndOfGame = false;
 
     onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon));
-    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
   }
 
   ///
   /// Tick the clock by one second
-  void _tickClock() {
-    _timeRemaining -= Managers.instance.tickerManager.deltaTime;
+  void _tickClock(Duration deltaTime) {
+    _timeRemaining -= deltaTime;
   }
 
   ///

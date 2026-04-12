@@ -21,7 +21,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
   final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
   final bool drawBlueberryFieldOnly;
@@ -73,7 +73,7 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
   final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
 

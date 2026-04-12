@@ -16,7 +16,7 @@ class AvatarContainer extends StatefulWidget {
   final AvatarAgent avatar;
   final double tileSize;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
 
@@ -44,7 +44,7 @@ class _AvatarContainerState extends State<AvatarContainer> {
     super.dispose();
   }
 
-  void _clockTicked() {
+  void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

@@ -28,7 +28,7 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
     super.dispose();
   }
 
-  void _onClockTicked() {
+  void _onClockTicked(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

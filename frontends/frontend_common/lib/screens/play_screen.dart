@@ -153,7 +153,7 @@ class _TimeDisplayerState extends State<_TimeDisplayer> {
     super.dispose();
   }
 
-  void refresh() {
+  void refresh(Duration deltaTime) {
     if (!mounted) return;
 
     setState(() {});

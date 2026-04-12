@@ -68,7 +68,7 @@ abstract class Agent {
     bool hasCollided = false;
     for (final other in colliders) {
       if (other.id == id) continue;
-      if (isCollidingWith(other)) {
+      if (isInside(other)) {
         if (other is BoxAgent) {
           // Prevent multiple collisions in the same update
           if (hasCollided) continue;
@@ -89,7 +89,7 @@ abstract class Agent {
     final overlapY =
         (radius.y + other.radius.y) - ((position.y - other.position.y).abs());
 
-    if (overlapX < overlapY) {
+    if (overlapX <= overlapY) {
       velocity.x = -velocity.x * 0.1;
 
       if (position.x < other.position.x) {
@@ -99,7 +99,7 @@ abstract class Agent {
       }
     }
 
-    if (overlapY < overlapX) {
+    if (overlapY <= overlapX) {
       velocity.y = -velocity.y * 0.1;
 
       if (position.y < other.position.y) {
@@ -116,13 +116,11 @@ abstract class Agent {
   double get bottomBorder => position.y + radius.y;
 
   ///
-  /// Check if this agent is colliding with another agent
-  bool isCollidingWith(Agent other) {
-    return (leftBorder > other.leftBorder && leftBorder < other.rightBorder ||
-            rightBorder < other.rightBorder &&
-                rightBorder > other.leftBorder) &&
-        (topBorder > other.topBorder && topBorder < other.bottomBorder ||
-            bottomBorder < other.bottomBorder &&
-                bottomBorder > other.topBorder);
+  /// Check if this agent is inside another agent
+  bool isInside(Agent other) {
+    return rightBorder > other.leftBorder &&
+        leftBorder < other.rightBorder &&
+        topBorder < other.bottomBorder &&
+        bottomBorder > other.topBorder;
   }
 }

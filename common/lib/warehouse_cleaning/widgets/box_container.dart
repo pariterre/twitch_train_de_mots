@@ -12,7 +12,7 @@ class BoxContainer extends StatefulWidget {
 
   final BoxAgent box;
   final double tileSize;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
 
   @override
   State<BoxContainer> createState() => _BoxContainerState();
@@ -33,7 +33,7 @@ class _BoxContainerState extends State<BoxContainer> {
     super.dispose();
   }
 
-  void _clockTicked() {
+  void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

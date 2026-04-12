@@ -30,7 +30,7 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
     super.dispose();
   }
 
-  void _clockTicked() {
+  void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

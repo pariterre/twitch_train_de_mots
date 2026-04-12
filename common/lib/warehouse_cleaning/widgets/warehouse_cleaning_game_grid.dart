@@ -31,7 +31,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
   final List<BoxAgent> boxes;
   final List<LetterAgent> letters;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
 
@@ -123,39 +123,36 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
   final List<LetterAgent> letters;
   final double tileSize;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => print('coucou2'),
-      child: Stack(
-        alignment: Alignment.topLeft,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-          ),
-          ...boxes.map((e) => BoxContainer(
-                box: e,
-                tileSize: tileSize,
-                clockTicker: clockTicker,
-              )),
-          ...letters.map((e) => LetterContainer(
-                letter: e,
-                tileSize: tileSize,
-                clockTicker: clockTicker,
-              )),
-          ...avatars.map((e) => AvatarContainer(
-              avatar: e,
+    return Stack(
+      alignment: Alignment.topLeft,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        ...boxes.map((e) => BoxContainer(
+              box: e,
               tileSize: tileSize,
-              isGameOver: isGameOver,
               clockTicker: clockTicker,
-              onAvatarSlingShoot: onAvatarSlingShoot)),
-        ],
-      ),
+            )),
+        ...letters.map((e) => LetterContainer(
+              letter: e,
+              tileSize: tileSize,
+              clockTicker: clockTicker,
+            )),
+        ...avatars.map((e) => AvatarContainer(
+            avatar: e,
+            tileSize: tileSize,
+            isGameOver: isGameOver,
+            clockTicker: clockTicker,
+            onAvatarSlingShoot: onAvatarSlingShoot)),
+      ],
     );
   }
 }

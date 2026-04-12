@@ -162,7 +162,7 @@ class BlueberryWarGameManager implements MiniGameManager {
           maxVelocity: BlueberryWarConfig.letterMaxVelocity,
           radius: Vector2(40.0, 50.0),
           mass: 1.0,
-          coefficientOfFriction: (isBoss ? -0.2 : 0.5),
+          coefficientOfFriction: (isBoss ? -0.1 : 0.3),
         ),
       );
     }
@@ -207,7 +207,7 @@ class BlueberryWarGameManager implements MiniGameManager {
 
   @override
   Future<void> start() async {
-    Managers.instance.tickerManager.onClockTicked.listen(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
   }
 
   @override
@@ -304,7 +304,7 @@ class BlueberryWarGameManager implements MiniGameManager {
 
   ///
   /// The game loop
-  void _gameLoop() {
+  void _gameLoop(Duration deltaTime) {
     if (!_isInitialized) {
       _logger.warning('Game loop called before initialization');
       return;
@@ -322,7 +322,7 @@ class BlueberryWarGameManager implements MiniGameManager {
     _manageForGameOver();
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
-      dt: Managers.instance.tickerManager.deltaTime,
+      dt: deltaTime,
       allAgents: allAgents,
       problem: _problem!,
       onBlueberryDestroyed: (blueberry) {
@@ -404,6 +404,6 @@ class BlueberryWarGameManager implements MiniGameManager {
 
     _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon!));
-    Managers.instance.tickerManager.onClockTicked.cancel(_gameLoop);
+    Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
   }
 }

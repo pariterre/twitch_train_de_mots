@@ -237,7 +237,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
-    Managers.instance.tickerManager.onClockTicked.listen(_refresh);
+    Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
@@ -250,7 +250,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
-    Managers.instance.tickerManager.onClockTicked.cancel(_refresh);
+    Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
     super.dispose();
   }
 
@@ -259,6 +259,8 @@ class _HeaderTimerState extends State<_HeaderTimer> {
 
     setState(() {});
   }
+
+  void _onClockTicked(Duration deltaTime) => _refresh();
 
   @override
   Widget build(BuildContext context) {

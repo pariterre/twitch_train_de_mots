@@ -14,7 +14,7 @@ class BlueberryContainer extends StatefulWidget {
 
   final BlueberryAgent blueberry;
   final bool isGameOver;
-  final GenericListener clockTicker;
+  final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
 
@@ -86,7 +86,7 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
     }
   }
 
-  void _clockTicked() {
+  void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     if (_isFading) _performFading();
     setState(() {});

@@ -43,7 +43,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
     setState(() {});
   }
 
-  void _onClockTicked() {
+  void _onClockTicked(Duration deltaTime) {
     if (_previousTimeRemainingInSeconds !=
         Managers.instance.miniGames.warehouseCleaning.timeRemaining.inSeconds) {
       _previousTimeRemainingInSeconds =

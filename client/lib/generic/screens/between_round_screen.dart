@@ -164,7 +164,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     if (mounted) setState(() => _canClick = !isActive);
   }
 
-  void _refresh() {
+  void _refresh(Duration deltaTime) {
     if (!mounted) return;
     setState(() {});
   }

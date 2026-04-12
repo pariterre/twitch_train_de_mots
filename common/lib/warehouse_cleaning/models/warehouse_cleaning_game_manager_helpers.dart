@@ -1,6 +1,3 @@
-import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
-import 'package:common/warehouse_cleaning/models/box_agent.dart';
-import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class WarehouseCleaningConfig {
@@ -18,12 +15,12 @@ class WarehouseCleaningConfig {
 
   ///
   /// Size of a unit tile in the game. This is used to convert between the game world coordinates and the screen coordinates.
-  static double get tileSize => 300.0;
+  static double get tileSize => 50.0;
 
   ///
   /// Radius of the avatar agent.
   /// This is used to calculate the collision detection and the teleportation.
-  static Vector2 get avatarRadius => Vector2(tileSize / 4, tileSize / 4);
+  static Vector2 get avatarRadius => Vector2(tileSize / 5, tileSize / 5);
 
   ///
   /// Box radius
@@ -31,7 +28,7 @@ class WarehouseCleaningConfig {
 
   ///
   /// The maximum velocity of the avatar agent.
-  static double get avatarMaxVelocity => 3000.0;
+  static double get avatarMaxVelocity => 750.0;
 
   ///
   /// Coefficient of friction for the avatar agent. This is used to calculate the deceleration of the avatar when it is moving.
@@ -42,26 +39,4 @@ class WarehouseCleaningConfig {
   /// is moving or not.
   static double get velocityThreshold => 200.0;
   static double get velocityThreshold2 => velocityThreshold * velocityThreshold;
-}
-
-class WarehouseCleaningGameManagerHelpers {
-  ///
-  /// Update all the agents in the list. This method should be called by the
-  /// game loop.
-  static void updateAvatarAgents({
-    required Duration dt,
-    required List<AvatarAgent> avatars,
-    required List<BoxAgent> boxes,
-    required List<LetterAgent> letters,
-    required Function(LetterAgent letter) onLetterCollected,
-  }) {
-    for (int i = 0; i < avatars.length; i++) {
-      // Move all agents
-      final agent = avatars[i];
-      agent.update(
-          dt: dt,
-          colliders: [...boxes, ...letters],
-          onLetterCollision: onLetterCollected);
-    }
-  }
 }
