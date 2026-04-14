@@ -68,6 +68,7 @@ abstract class Agent {
     bool hasCollided = false;
     for (final other in colliders) {
       if (other.id == id) continue;
+
       if (isInside(other)) {
         if (other is BoxAgent) {
           // Prevent multiple collisions in the same update

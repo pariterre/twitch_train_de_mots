@@ -50,16 +50,12 @@ class BlueberryWarGameManager implements MiniGameManager {
   @override
   bool get isReady => _isReady;
 
-  DateTime? _startTime;
-  DateTime get startTime => _startTime ?? DateTime.now();
-  bool get gameStarted => _startTime != null;
-  DateTime? _finalTime;
-  DateTime? get finalTime => _finalTime;
-  Duration _roundDuration = const Duration(seconds: 35);
+  bool _isMainTimerRunning = false;
+  bool get gameStarted => _isMainTimerRunning;
+
+  Duration _timeRemaining = Duration.zero;
   @override
-  Duration get timeRemaining =>
-      _roundDuration -
-      (_finalTime ?? DateTime.now()).difference(_startTime ?? DateTime.now());
+  Duration get timeRemaining => _timeRemaining;
 
   ///
   /// Current problem for the game
@@ -186,15 +182,14 @@ class BlueberryWarGameManager implements MiniGameManager {
       );
     }
 
-    _roundDuration = Duration(
+    _timeRemaining = Duration(
       seconds:
           35 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
     );
 
     // Notify listeners that the game is ready
     _isInitialized = true;
-    _startTime = null;
-    _finalTime = null;
+    _isMainTimerRunning = false;
     _isGameOver = false;
     _hasWon = null;
     _isReady = true;
@@ -297,7 +292,7 @@ class BlueberryWarGameManager implements MiniGameManager {
         isStarted: gameStarted,
         isOver: _isGameOver,
         isWon: _hasWon ?? false,
-        timeRemaining: timeRemaining,
+        timeRemaining: _timeRemaining,
         allAgents: allAgents,
         problem: _problem!,
       );
@@ -309,11 +304,11 @@ class BlueberryWarGameManager implements MiniGameManager {
       _logger.warning('Game loop called before initialization');
       return;
     }
-    if (_startTime == null) {
+    if (!_isMainTimerRunning) {
       if (Managers.instance.train.gameStatus ==
           WordsTrainGameStatus.miniGameStarted) {
-        _startTime = DateTime.now();
-        _logger.info('Blueberry war game started at $_startTime');
+        _isMainTimerRunning = true;
+        _logger.info('Blueberry war game started');
       }
       return;
     }
@@ -352,6 +347,14 @@ class BlueberryWarGameManager implements MiniGameManager {
       // movement and collisions
       onGameUpdated.notifyListeners((callback) => callback());
     }
+
+    _tickClock(deltaTime);
+  }
+
+  ///
+  /// Tick the clock by one second
+  void _tickClock(Duration deltaTime) {
+    _timeRemaining -= deltaTime;
   }
 
   void _manageForGameOver() {
@@ -376,7 +379,7 @@ class BlueberryWarGameManager implements MiniGameManager {
       _logger.info('All letters revealed in blueberry war, you win!');
       _isGameOver = true;
       _hasWon = true;
-    } else if (timeRemaining.isNegative) {
+    } else if (_timeRemaining.isNegative) {
       _logger.info('Blueberry war game over due to time running out');
       _isGameOver = true;
       _hasWon = false;
@@ -402,7 +405,6 @@ class BlueberryWarGameManager implements MiniGameManager {
       }
     }
 
-    _finalTime = DateTime.now();
     onGameEnded.notifyListeners((callback) => callback(hasWon: _hasWon!));
     Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
   }

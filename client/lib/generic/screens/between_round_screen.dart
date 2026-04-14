@@ -335,6 +335,13 @@ class _ContinueSectionState extends State<_ContinueSection> {
                 ThemedElevatedButton(
                     onPressed: _canClick
                         ? () => gm.handleNextRoundAsMiniGame(
+                            forceMinigame: MiniGames.warehouseCleaning)
+                        : null,
+                    buttonText: 'Nettoyer le bazar'),
+                const SizedBox(width: 24),
+                ThemedElevatedButton(
+                    onPressed: _canClick
+                        ? () => gm.handleNextRoundAsMiniGame(
                             forceMinigame: MiniGames.fixTracks)
                         : null,
                     buttonText: 'Jouer reparation'),

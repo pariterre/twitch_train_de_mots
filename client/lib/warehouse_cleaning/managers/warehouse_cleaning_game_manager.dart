@@ -12,7 +12,7 @@ import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/box_agent.dart';
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
-import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
@@ -25,7 +25,6 @@ final _random = Random();
 
 enum Direction { up, down, left, right }
 
-// TODO: Fix bug with mystery letter (does not fit the red tile and can currently be picked up)
 // TODO: Finalize the text on screen when winning or losing
 
 ///
@@ -123,7 +122,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
   bool get isGameOver =>
       _forceEndOfGame ||
       hasWon ||
-      _timeRemaining.inSeconds <= 0 ||
+      _timeRemaining.isNegative ||
       _triesRemaining <= 0;
 
   @override
@@ -163,10 +162,15 @@ class WarehouseCleaningGameManager implements MiniGameManager {
           WarehouseCleaningConfig.tileSize,
     );
     final startingTile = tileFromPosition(startingPosition);
+    if (startingTile == null) {
+      throw "Starting tile should not be null";
+    }
+
+    allAgents.clear();
     for (int i = 0; i < WarehouseCleaningConfig.initialAvatarCount; i++) {
       allAgents.add(AvatarAgent(
         id: i,
-        tileIndex: startingTile!.index,
+        tileIndex: startingTile.index,
         position: startingPosition,
         radius: WarehouseCleaningConfig.avatarRadius,
         maxVelocity: WarehouseCleaningConfig.avatarMaxVelocity,
@@ -185,6 +189,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
       } else if (tile.isLetter) {
         allAgents.add(LetterAgent(
           id: currentIndex,
+          tileIndex: tile.index,
           value: tile.letter!,
           position: vector_math.Vector2(
             tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
@@ -195,6 +200,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
       } else if (tile.isBox) {
         allAgents.add(BoxAgent(
           id: currentIndex,
+          tileIndex: tile.index,
           position: vector_math.Vector2(
             tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
             tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
@@ -212,9 +218,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     _isMainTimerRunning = false;
     _timeRemaining = Duration(
       seconds:
-          30 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
+          45 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
     );
-    _triesRemaining = 220;
+    _triesRemaining = 45;
     _playersPoints.clear();
     _isReady = true;
     _forceEndOfGame = false;
@@ -311,15 +317,17 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     // Reveal all the tiles in the grid
     for (int i = 0; i < _grid!.cellCount; i++) {
       final tile = _grid!.tileAt(index: i);
-      if (tile == null || !tile.isLetter) continue;
+      if (tile == null) continue;
       tile.reveal();
-      onLetterFound.notifyListeners((callback) => callback(tile));
+      if (tile.isLetter) {
+        onLetterFound.notifyListeners((callback) => callback(tile));
+      }
     }
   }
 
   void _collectLetter(LetterAgent letter) {
     final tile = tileFromPosition(letter.position);
-    if (tile == null) return;
+    if (tile == null || tile.isMysteryLetter) return;
 
     tile.reveal();
     letter.isCollected = true;

@@ -77,7 +77,7 @@ class _AvatarContainerState extends State<AvatarContainer> {
     if (!_isDragging) return;
 
     _dragCurrentPosition = details.localPosition;
-    final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 10;
+    final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 2;
     widget.onAvatarSlingShoot(
         widget.avatar, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
 

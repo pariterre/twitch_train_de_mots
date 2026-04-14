@@ -2,7 +2,7 @@ import 'package:vector_math/vector_math.dart';
 
 class WarehouseCleaningConfig {
   // Size of the grid
-  static const int rowCount = 31;
+  static const int rowCount = 21;
   static const int columnCount = 15;
 
   // Starting position of the avatar
@@ -11,7 +11,7 @@ class WarehouseCleaningConfig {
 
   ///
   /// Initial number of avatars in the game.
-  static const int initialAvatarCount = 1;
+  static const int initialAvatarCount = 6;
 
   ///
   /// Size of a unit tile in the game. This is used to convert between the game world coordinates and the screen coordinates.

@@ -31,6 +31,7 @@ class _WarehouseCleaningGameScreenState
     whgm.onGameIsReady.listen(_refresh);
     whgm.onAvatarMoved.listen(_refresh);
     whgm.onTrySolution.listen(_solutionWasTried);
+    whgm.onGameEnded.listen(_gameEnded);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
@@ -49,6 +50,7 @@ class _WarehouseCleaningGameScreenState
     whgm.onGameIsReady.cancel(_refresh);
     whgm.onAvatarMoved.cancel(_refresh);
     whgm.onTrySolution.cancel(_solutionWasTried);
+    whgm.onGameEnded.cancel(_gameEnded);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
@@ -57,6 +59,7 @@ class _WarehouseCleaningGameScreenState
   }
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
+  void _gameEnded({required bool hasWon}) => setState(() {});
   void _refresh() => setState(() {});
   void _solutionWasTried(
           {required String playerName,
@@ -86,8 +89,7 @@ class _WarehouseCleaningGameScreenState
                   child: WarehouseCleaningGameGrid(
                     rowCount: whgm.grid.rowCount,
                     columnCount: whgm.grid.columnCount,
-                    getTileAt: (int row, int col) =>
-                        whgm.grid.tileAt(row: row, col: col)!,
+                    getTileAt: whgm.grid.tileAt,
                     avatars: whgm.avatars,
                     boxes: whgm.boxes,
                     letters: whgm.letters,

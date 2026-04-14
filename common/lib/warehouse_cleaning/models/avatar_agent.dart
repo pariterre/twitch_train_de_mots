@@ -1,5 +1,5 @@
 import 'package:common/warehouse_cleaning/models/agent.dart';
-import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart';
 
 class AvatarAgent extends Agent {
   int tileIndex;

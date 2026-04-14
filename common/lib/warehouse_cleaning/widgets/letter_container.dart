@@ -1,5 +1,6 @@
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:flutter/material.dart';
 
 class LetterContainer extends StatefulWidget {
@@ -8,11 +9,13 @@ class LetterContainer extends StatefulWidget {
     required this.letter,
     required this.tileSize,
     required this.clockTicker,
+    required this.getTileAt,
   });
 
   final LetterAgent letter;
   final double tileSize;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
+  final Tile? Function({int? row, int? col, int? index}) getTileAt;
 
   @override
   State<LetterContainer> createState() => _LetterContainerState();
@@ -40,7 +43,12 @@ class _LetterContainerState extends State<LetterContainer> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.letter.isCollected
+    final tile = widget.getTileAt(index: widget.letter.tileIndex);
+
+    return widget.letter.isCollected ||
+            tile == null ||
+            tile.isConcealed ||
+            tile.isMysteryLetter
         ? SizedBox.shrink()
         : Positioned(
             left: widget.letter.position.x,

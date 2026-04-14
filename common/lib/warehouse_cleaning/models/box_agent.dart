@@ -2,8 +2,11 @@ import 'package:common/warehouse_cleaning/models/agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class BoxAgent extends Agent {
+  final int tileIndex;
+
   BoxAgent({
     required super.id,
+    required this.tileIndex,
     required super.position,
     required super.radius,
   }) : super(
@@ -23,11 +26,13 @@ class BoxAgent extends Agent {
         'agent_type': agentType.index,
         'position': position.serialize(),
         'radius': radius.serialize(),
+        'tile_index': tileIndex,
       };
 
   static BoxAgent deserialize(Map<String, dynamic> map) {
     return BoxAgent(
       id: map['id'] as int,
+      tileIndex: map['tile_index'] as int,
       position: Vector2Extension.deserialize(map['position']),
       radius: Vector2Extension.deserialize(map['radius']),
     );

@@ -2,7 +2,7 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/box_agent.dart';
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
-import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:common/warehouse_cleaning/widgets/avatar_container.dart';
 import 'package:common/warehouse_cleaning/widgets/box_container.dart';
@@ -26,7 +26,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
 
   final int rowCount;
   final int columnCount;
-  final Tile Function(int row, int col) getTileAt;
+  final Tile? Function({int? row, int? col, int? index}) getTileAt;
   final List<AvatarAgent> avatars;
   final List<BoxAgent> boxes;
   final List<LetterAgent> letters;
@@ -49,6 +49,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
             _WarehouseCleaningBackgroundLayer(
                 rowCount: rowCount,
                 columnCount: columnCount,
+                getTileAt: getTileAt,
                 tileSize: tileSize),
             _WarehouseCleaningAgentsOverlay(
               avatars: avatars,
@@ -58,6 +59,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
               clockTicker: clockTicker,
               onAvatarSlingShoot: onAvatarSlingShoot,
               tileSize: tileSize,
+              getTileAt: getTileAt,
             ),
             _WarehouseCleaningFogOfWarOverlay(
               rowCount: rowCount,
@@ -76,33 +78,42 @@ class _WarehouseCleaningBackgroundLayer extends StatelessWidget {
   const _WarehouseCleaningBackgroundLayer({
     required this.rowCount,
     required this.columnCount,
+    required this.getTileAt,
     required this.tileSize,
   });
 
   final int rowCount;
   final int columnCount;
+  final Tile? Function({int? row, int? col, int? index}) getTileAt;
   final double tileSize;
 
   @override
   Widget build(BuildContext context) {
+    final floorImage = Container(
+        width: tileSize,
+        height: tileSize,
+        decoration: BoxDecoration(
+          border: Border.all(width: tileSize * 0.02),
+        ),
+        child: Image.asset(
+            fit: BoxFit.fill,
+            'packages/common/assets/images/warehouse_cleaning/floor.png'));
+
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(columnCount, (col) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(rowCount, (row) {
-            return Container(
-                width: tileSize,
-                height: tileSize,
-                decoration: BoxDecoration(
-                  border: Border.all(width: tileSize * 0.02),
-                ),
-                child: Image.asset(
-                    fit: BoxFit.fill,
-                    'packages/common/assets/images/warehouse_cleaning/floor.png'));
-          }, growable: false),
-        );
-      }, growable: false),
+      children: List.generate(
+          columnCount,
+          (col) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(rowCount, (row) {
+                  final tile = getTileAt(row: row, col: col);
+                  if (tile == null || tile.isBox || tile.isConcealed) {
+                    return SizedBox(width: tileSize, height: tileSize);
+                  }
+                  return floorImage;
+                }, growable: false),
+              ),
+          growable: false),
     );
   }
 }
@@ -116,6 +127,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
     required this.isGameOver,
     required this.clockTicker,
     required this.onAvatarSlingShoot,
+    required this.getTileAt,
   });
 
   final List<AvatarAgent> avatars;
@@ -126,9 +138,18 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
+  final Tile? Function({int? row, int? col, int? index}) getTileAt;
 
   @override
   Widget build(BuildContext context) {
+    final boxImage = Container(
+      width: tileSize,
+      height: tileSize,
+      child: Image.asset(
+          fit: BoxFit.fill,
+          'packages/common/assets/images/warehouse_cleaning/box.png'),
+    );
+
     return Stack(
       alignment: Alignment.topLeft,
       children: [
@@ -138,13 +159,14 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
         ),
         ...boxes.map((e) => BoxContainer(
               box: e,
-              tileSize: tileSize,
-              clockTicker: clockTicker,
+              child: boxImage,
+              getTileAt: getTileAt,
             )),
         ...letters.map((e) => LetterContainer(
               letter: e,
               tileSize: tileSize,
               clockTicker: clockTicker,
+              getTileAt: getTileAt,
             )),
         ...avatars.map((e) => AvatarContainer(
             avatar: e,
@@ -167,7 +189,7 @@ class _WarehouseCleaningFogOfWarOverlay extends StatelessWidget {
 
   final int rowCount;
   final int columnCount;
-  final Tile? Function(int row, int col) getTileAt;
+  final Tile? Function({int? row, int? col, int? index}) getTileAt;
   final double tileSize;
 
   @override
@@ -179,13 +201,15 @@ class _WarehouseCleaningFogOfWarOverlay extends StatelessWidget {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: List.generate(rowCount, (row) {
-              final tile = getTileAt(row, col);
-              if (tile == null) return SizedBox.shrink();
+              final tile = getTileAt(row: row, col: col);
+              if (tile == null || tile.isRevealed) {
+                return SizedBox(width: tileSize, height: tileSize);
+              }
 
               return Container(
                 width: tileSize,
                 height: tileSize,
-                color: tile.isConcealed ? Colors.grey[800] : Colors.transparent,
+                color: Colors.grey[800],
               );
             }, growable: false),
           );

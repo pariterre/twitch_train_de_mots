@@ -2,6 +2,7 @@ import 'package:common/warehouse_cleaning/models/agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class LetterAgent extends Agent {
+  final int tileIndex;
   final String value;
   bool isCollected = false;
 
@@ -10,6 +11,7 @@ class LetterAgent extends Agent {
 
   LetterAgent({
     required super.id,
+    required this.tileIndex,
     required this.value,
     required super.position,
     required super.radius,
@@ -25,6 +27,7 @@ class LetterAgent extends Agent {
   @override
   Map<String, dynamic> serialize() => {
         'id': id,
+        'tile_index': tileIndex,
         'value': value,
         'agent_type': agentType.index,
         'position': position.serialize(),
@@ -34,6 +37,7 @@ class LetterAgent extends Agent {
   static LetterAgent deserialize(Map<String, dynamic> map) {
     return LetterAgent(
       id: map['id'] as int,
+      tileIndex: map['tile_index'] as int,
       value: map['value'] as String,
       position: Vector2Extension.deserialize(map['position']),
       radius: Vector2Extension.deserialize(map['radius']),

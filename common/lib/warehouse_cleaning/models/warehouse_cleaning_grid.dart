@@ -81,10 +81,10 @@ class WarehouseCleaningGrid {
             startingCol: startingCol) {
     // Add the letters in random positions of the grid
     if (problem != null) {
-      final mysteryIndex = _random.nextInt(problem.letters.length);
-
       for (int i = 0; i < problem.letters.length; i++) {
         final letter = problem.letters[i];
+        final isMystery =
+            problem.uselessLetterStatuses[i] == LetterStatus.revealed;
         while (true) {
           final row = _random.nextInt(rowCount);
           final col = _random.nextInt(columnCount);
@@ -93,7 +93,7 @@ class WarehouseCleaningGrid {
           final tile = tileAt(row: row, col: col);
           if (tile != null && tile.isEmpty) {
             tile.addLetter(
-                letter: letter, letterIndex: i, isMystery: i == mysteryIndex);
+                letter: letter, letterIndex: i, isMystery: isMystery);
             break;
           }
         }
@@ -183,8 +183,7 @@ class Tile {
     _isMysteryLetter = isMystery;
   }
 
-  bool get isLetter =>
-      content == TileContent.letter && _letter != null && !_isMysteryLetter;
+  bool get isLetter => content == TileContent.letter && _letter != null;
   bool get hasLetter => content == TileContent.letter;
   bool get isBox => content == TileContent.box;
   bool get isEmpty => content == TileContent.empty;
@@ -274,6 +273,26 @@ class _MazeGenerator {
         }
       }
     }
+
+    // Create holes in the perfect maze to make more paths
+    for (int i = 0; i < (rowCount * columnCount) ~/ 10; i++) {
+      final row = _random.nextInt(rowCount);
+      final col = _random.nextInt(columnCount);
+      // Do not create holes on the borders
+      if (row == 0 ||
+          row == rowCount - 1 ||
+          col == 0 ||
+          col == columnCount - 1) {
+        continue;
+      }
+
+      if (grid[row][col].isBox) {
+        grid[row][col]._content = TileContent.empty;
+      }
+    }
+
+    // Make sure the starting position is empty
+    grid[startingRow][startingCol]._content = TileContent.empty;
 
     // flatten
     for (final row in grid) {

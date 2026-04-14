@@ -114,7 +114,7 @@ class TreasureHuntGameManager implements MiniGameManager {
   bool get isGameOver =>
       _forceEndOfGame ||
       hasWon ||
-      _timeRemaining.inSeconds <= 0 ||
+      _timeRemaining.isNegative ||
       _triesRemaining <= 0;
 
   @override

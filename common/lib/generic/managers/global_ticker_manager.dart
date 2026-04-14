@@ -67,7 +67,7 @@ class GlobalTickerManager {
 
     // Call the fixed related callabaks as many times as needed, before then calling the regular clock callbacks
     _accumulator += _deltaTime;
-    final int maxAccumulatorTicks = 5;
+    final int maxAccumulatorTicks = 100;
     int tickCount = 0;
     while (_accumulator >= _fixedDeltaTime && tickCount < maxAccumulatorTicks) {
       onFixedClockTicked

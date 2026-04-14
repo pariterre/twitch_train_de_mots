@@ -112,12 +112,12 @@ class FixTracksGameManager implements MiniGameManager {
       ? null
       : (_hasWon
           ? EndGameStatus.won
-          : _timeRemaining.inSeconds <= 0
+          : _timeRemaining.isNegative
               ? EndGameStatus.lostOnTime
               : EndGameStatus.lostOnDeadEnd);
 
   bool get _isGameOver =>
-      _forceEndOfGame || _hasWon || _timeRemaining.inSeconds <= 0;
+      _forceEndOfGame || _hasWon || _timeRemaining.isNegative;
 
   @override
   String? get instructions =>
