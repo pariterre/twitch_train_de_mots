@@ -61,12 +61,6 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
               tileSize: tileSize,
               getTileAt: getTileAt,
             ),
-            _WarehouseCleaningFogOfWarOverlay(
-              rowCount: rowCount,
-              columnCount: columnCount,
-              getTileAt: getTileAt,
-              tileSize: tileSize,
-            ),
           ],
         ),
       ),
@@ -175,46 +169,6 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
             clockTicker: clockTicker,
             onAvatarSlingShoot: onAvatarSlingShoot)),
       ],
-    );
-  }
-}
-
-class _WarehouseCleaningFogOfWarOverlay extends StatelessWidget {
-  const _WarehouseCleaningFogOfWarOverlay({
-    required this.rowCount,
-    required this.columnCount,
-    required this.getTileAt,
-    required this.tileSize,
-  });
-
-  final int rowCount;
-  final int columnCount;
-  final Tile? Function({int? row, int? col, int? index}) getTileAt;
-  final double tileSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(columnCount, (col) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(rowCount, (row) {
-              final tile = getTileAt(row: row, col: col);
-              if (tile == null || tile.isRevealed) {
-                return SizedBox(width: tileSize, height: tileSize);
-              }
-
-              return Container(
-                width: tileSize,
-                height: tileSize,
-                color: Colors.grey[800],
-              );
-            }, growable: false),
-          );
-        }, growable: false),
-      ),
     );
   }
 }
