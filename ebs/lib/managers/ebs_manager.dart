@@ -319,6 +319,9 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.frontend:
           switch (ToFrontendMessages.values.byName(message.data!['type'])) {
             case ToFrontendMessages.gameState:
+              // TODO: Implement delta updates to avoid sending the whole game state every time
+              // This implies to send an additiona checksum of the game state to the frontend,
+              // this way, they know if they need to request the whole game state or if they can just apply the delta update
               gameState = SerializableGameState.deserialize(
                   message.data!['game_state'] as Map<String, dynamic>);
               _sendGameStateToFrontend();
