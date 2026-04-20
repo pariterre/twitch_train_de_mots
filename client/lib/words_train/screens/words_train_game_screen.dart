@@ -293,7 +293,7 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case WordsTrainGameStatus.miniGameReady:
       case WordsTrainGameStatus.miniGameStarted:
       case WordsTrainGameStatus.miniGameEnding:
-        Duration timeRemaining = mgm!.timeRemaining;
+        Duration timeRemaining = mgm!.timeRemaining ?? Duration.zero;
         text = timeRemaining.inSeconds > 0
             ? 'Temps restant à la manche : ${timeRemaining.inSeconds} secondes'
             : 'Retournons à la gare!';

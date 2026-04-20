@@ -48,7 +48,7 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
             fit: BoxFit.contain,
             child: ThemeCard(
               child: Text(
-                'Temps restant: ${max(Managers.instance.miniGames.blueberryWar.timeRemaining.inSeconds, 0)}',
+                'Temps restant: ${max(Managers.instance.miniGames.blueberryWar.timeRemaining?.inSeconds ?? 0, 0)}',
                 style: tm.clientMainTextStyle.copyWith(
                   fontWeight: FontWeight.bold,
                   fontSize: 26,

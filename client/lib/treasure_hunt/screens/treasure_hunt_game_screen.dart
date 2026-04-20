@@ -25,8 +25,8 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
     super.initState();
 
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.listen(_refresh);
-    gm.onGameIsReady.listen(_refresh);
+    gm.onRoundInitialized.listen(_refresh);
+    gm.onRoundStarted.listen(_refresh);
     gm.onTileRevealed.listen(_refreshWithOneParameter);
     gm.onTrySolution.listen(_solutionWasTried);
 
@@ -43,8 +43,8 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.cancel(_refresh);
-    gm.onGameIsReady.cancel(_refresh);
+    gm.onRoundInitialized.cancel(_refresh);
+    gm.onRoundStarted.cancel(_refresh);
     gm.onTileRevealed.cancel(_refreshWithOneParameter);
     gm.onTrySolution.cancel(_solutionWasTried);
 
@@ -67,9 +67,7 @@ class _TreasureHuntGameScreenState extends State<TreasureHuntGameScreen> {
   @override
   Widget build(BuildContext context) {
     final gm = Managers.instance.miniGames.treasureHunt;
-    if (!gm.isReady) {
-      return Container();
-    }
+    if (!gm.isRoundInitialized) return Container();
 
     return Stack(
       children: [

@@ -21,7 +21,7 @@ class _TreasureHuntLetterDisplayerState
     super.initState();
 
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.listen(refresh);
+    gm.onRoundStarted.listen(refresh);
     gm.onRewardFound.listen(_onRevealLetter);
     refresh();
   }
@@ -29,7 +29,7 @@ class _TreasureHuntLetterDisplayerState
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.cancel(refresh);
+    gm.onRoundStarted.cancel(refresh);
     gm.onRewardFound.cancel(_onRevealLetter);
 
     for (var e in _fireworksControllers) {

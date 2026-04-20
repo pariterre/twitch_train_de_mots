@@ -26,8 +26,8 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
     super.initState();
 
     final fgm = Managers.instance.miniGames.fixTracks;
-    fgm.onGameStarted.listen(_refresh);
-    fgm.onGameIsReady.listen(_refresh);
+    fgm.onRoundInitialized.listen(_refresh);
+    fgm.onRoundStarted.listen(_refresh);
     fgm.onTrySolution.listen(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -43,8 +43,8 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
   @override
   void dispose() {
     final fgm = Managers.instance.miniGames.fixTracks;
-    fgm.onGameStarted.cancel(_refresh);
-    fgm.onGameIsReady.cancel(_refresh);
+    fgm.onRoundInitialized.cancel(_refresh);
+    fgm.onRoundStarted.cancel(_refresh);
     fgm.onTrySolution.cancel(_solutionWasTried);
 
     final tm = Managers.instance.twitch;
@@ -66,9 +66,7 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
   @override
   Widget build(BuildContext context) {
     final fgm = Managers.instance.miniGames.fixTracks;
-    if (!fgm.isReady) {
-      return Container();
-    }
+    if (!fgm.isRoundInitialized) return Container();
 
     return Stack(
       children: [

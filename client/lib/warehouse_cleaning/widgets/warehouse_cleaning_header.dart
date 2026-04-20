@@ -14,14 +14,14 @@ class WarehouseCleaningHeader extends StatefulWidget {
 }
 
 class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
-  int _previousTimeRemainingInSeconds = 0;
+  Duration _previousTimeRemaining = Duration.zero;
 
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.miniGames.warehouseCleaning;
-    gm.onGameStarted.listen(_onGameStarted);
+    gm.onRoundStarted.listen(_refresh);
     gm.onAvatarMoved.listen(_refresh);
     gm.onLetterFound.listen(_onRewardFound);
 
@@ -31,7 +31,8 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.warehouseCleaning;
-    gm.onGameStarted.cancel(_refresh);
+    gm.onRoundStarted.cancel(_refresh);
+    gm.onAvatarMoved.cancel(_refresh);
     gm.onLetterFound.cancel(_onRewardFound);
 
     Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
@@ -39,15 +40,14 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
     super.dispose();
   }
 
-  void _onGameStarted() {
-    setState(() {});
-  }
-
   void _onClockTicked(Duration deltaTime) {
-    if (_previousTimeRemainingInSeconds !=
-        Managers.instance.miniGames.warehouseCleaning.timeRemaining.inSeconds) {
-      _previousTimeRemainingInSeconds =
-          Managers.instance.miniGames.warehouseCleaning.timeRemaining.inSeconds;
+    if (_previousTimeRemaining.inSeconds !=
+        (Managers.instance.miniGames.warehouseCleaning.timeRemaining
+                ?.inSeconds ??
+            0)) {
+      _previousTimeRemaining =
+          Managers.instance.miniGames.warehouseCleaning.timeRemaining ??
+              Duration.zero;
       setState(() {});
     }
   }
@@ -76,7 +76,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
               children: [
                 ThemeCard(
                   child: Text(
-                    'Temps restant: ${Managers.instance.miniGames.warehouseCleaning.timeRemaining.inSeconds}',
+                    'Temps restant: ${Managers.instance.miniGames.warehouseCleaning.timeRemaining?.inSeconds ?? 0}',
                     style: tm.clientMainTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 26,

@@ -33,6 +33,7 @@ class Player {
   }
 
   DateTime _cooldownEndAt = DateTime.now();
+  DateTime get cooldownEndAt => _cooldownEndAt;
   Duration get cooldownRemaining => _cooldownEndAt.difference(DateTime.now());
   Duration _cooldownDuration = Duration.zero;
   Duration get cooldownDuration => _cooldownDuration;

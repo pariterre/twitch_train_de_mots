@@ -47,14 +47,14 @@ class _WarehouseCleaningAnimatedTextOverlayState
 
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onTrySolution.listen(_warehouseCleaningTrySolution);
-    whgm.onGameEnded.listen(_warehouseCleaningFailed);
+    whgm.onRoundEnded.listen(_warehouseCleaningEnded);
   }
 
   @override
   void dispose() {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onTrySolution.cancel(_warehouseCleaningTrySolution);
-    whgm.onGameEnded.cancel(_warehouseCleaningFailed);
+    whgm.onRoundEnded.cancel(_warehouseCleaningEnded);
 
     super.dispose();
   }
@@ -73,9 +73,10 @@ class _WarehouseCleaningAnimatedTextOverlayState
     }
   }
 
-  void _warehouseCleaningFailed({required bool hasWon}) {
+  void _warehouseCleaningEnded() {
     // Do not write anything if the game was won, as the try solution will
-    if (hasWon) return;
+    final whgm = Managers.instance.miniGames.warehouseCleaning;
+    if (whgm.hasWon) return;
     _warehouseCleaningFailedController
         .triggerAnimation(const _WarehouseCleaningFailed());
   }
@@ -203,7 +204,7 @@ class _WarehouseCleaningFailed extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${Managers.instance.miniGames.warehouseCleaning.timeRemaining.inSeconds <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
+            '${(Managers.instance.miniGames.warehouseCleaning.timeRemaining?.inSeconds ?? 0) <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
             'On retourne immédiatement au train!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(

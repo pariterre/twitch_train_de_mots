@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
-import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
@@ -12,8 +11,6 @@ import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
-import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
-import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -50,7 +47,8 @@ class GameManager {
       _gameState.status == WordsTrainGameStatus.roundStarted;
   bool get isRoundSuccess => _gameState.isRoundSuccess;
 
-  Duration get timeRemaining => _gameState.timeRemaining;
+  DateTime get roundEndsAt => _gameState.roundEndsAt ?? DateTime.now();
+  Duration get timeRemaining => roundEndsAt.difference(DateTime.now());
 
   bool _hasPlayedAtLeastOneRound = false;
   bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
@@ -63,8 +61,8 @@ class GameManager {
     status: WordsTrainGameStatus.uninitialized,
     round: 0,
     isRoundSuccess: false,
-    timeRemaining: Duration.zero,
-    newCooldowns: {},
+    roundEndsAt: null,
+    cooldowns: {},
     letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
@@ -91,7 +89,7 @@ class GameManager {
       if (_gameState.status == WordsTrainGameStatus.roundStarted ||
           _gameState.round > 0) {
         _hasPlayedAtLeastOneRound = true;
-        _gameState.newCooldowns.clear();
+        _gameState.cooldowns.clear();
         _gameState.pardonners.clear();
         onPardonnersChanged.notifyListeners((callback) => callback());
         _gameState.boosters.clear();
@@ -109,15 +107,15 @@ class GameManager {
       _logger.info('Round changed to ${newGameState.round}');
     }
 
-    if (_gameState.timeRemaining != newGameState.timeRemaining) {
-      _gameState.timeRemaining = newGameState.timeRemaining;
-      _logger.info('Time remaining changed to ${newGameState.timeRemaining}');
+    if (_gameState.roundEndsAt != newGameState.roundEndsAt) {
+      _gameState.roundEndsAt = newGameState.roundEndsAt;
+      _logger.info('Round ends at changed to ${newGameState.roundEndsAt}');
     }
 
-    if (newGameState.newCooldowns.isNotEmpty) {
-      _gameState.newCooldowns = newGameState.newCooldowns;
+    if (newGameState.cooldowns != _gameState.cooldowns) {
+      _gameState.cooldowns = newGameState.cooldowns;
       _logger.info('New solution founders');
-      onNewCooldowns.notifyListeners((callback) => callback());
+      onCooldownsUpdated.notifyListeners((callback) => callback());
     }
 
     if (_gameState.letterProblem != newGameState.letterProblem) {
@@ -215,8 +213,6 @@ class GameManager {
   ///
   /// Callback for each tick
   Future<void> _tickGame(Duration deltaTime) async {
-    _gameState.timeRemaining -= deltaTime;
-
     _tickMiniGame(deltaTime);
   }
 
@@ -241,9 +237,8 @@ class GameManager {
 
   ///
   /// Callback to know when a solution was found
-  final onNewCooldowns = GenericListener<Function()>();
-  Map<String, Duration> get newCooldowns =>
-      Map.unmodifiable(_gameState.newCooldowns);
+  final onCooldownsUpdated = GenericListener<Function()>();
+  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.cooldowns);
 
   ///
   /// Callback to know when the letters were changed
@@ -318,22 +313,14 @@ class GameManager {
 
     final dt = deltaTime;
 
-    late final SerializableMiniGameState newGameState;
     switch (currentMiniGameType!) {
       case MiniGames.treasureHunt:
-        {
-          final thm =
-              _gameState.miniGameState as SerializableTreasureHuntGameState;
-          newGameState = thm.copyWith(timeRemaining: thm.timeRemaining - dt);
-          break;
-        }
+        break;
+
       case MiniGames.blueberryWar:
         {
           final bwm =
               _gameState.miniGameState as SerializableBlueberryWarGameState;
-          newGameState = bwm.copyWith(
-              timeRemaining:
-                  bwm.isStarted ? bwm.timeRemaining - dt : bwm.timeRemaining);
 
           BlueberryWarGameManagerHelpers.updateAllAgents(
               allAgents: bwm.allAgents, dt: dt, problem: bwm.problem);
@@ -351,23 +338,10 @@ class GameManager {
           break;
         }
       case MiniGames.warehouseCleaning:
-        {
-          final wcm = _gameState.miniGameState
-              as SerializableWarehouseCleaningGameState;
-          newGameState = wcm.copyWith(timeRemaining: wcm.timeRemaining - dt);
-          break;
-        }
+        break;
+
       case MiniGames.fixTracks:
-        {
-          final ffm =
-              _gameState.miniGameState as SerializableFixTracksGameState;
-          newGameState = ffm.copyWith(
-              timeRemaining: ffm.isTimerRunning
-                  ? ffm.timeRemaining - dt
-                  : ffm.timeRemaining);
-          break;
-        }
+        break;
     }
-    updateMiniGameState(newGameState);
   }
 }

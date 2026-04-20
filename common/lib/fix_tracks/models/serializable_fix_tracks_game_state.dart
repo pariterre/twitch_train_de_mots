@@ -1,51 +1,45 @@
 import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
+import 'package:common/generic/managers/serializable_game_round_manager.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 
 class SerializableFixTracksGameState implements SerializableMiniGameState {
   SerializableFixTracksGameState({
+    required this.round,
     required this.grid,
-    required this.isTimerRunning,
-    required this.timeRemaining,
   });
 
   @override
   MiniGames get type => MiniGames.fixTracks;
 
+  final SerializableGameRoundManager round;
   final FixTracksGrid grid;
-
-  final bool isTimerRunning;
-  final Duration timeRemaining;
 
   @override
   Map<String, dynamic> serialize() {
     return {
       'type': MiniGames.fixTracks.index,
+      'round': round.serialize(),
       'grid': grid.serialize(),
-      'is_timer_running': isTimerRunning,
-      'time_remaining': timeRemaining.inSeconds,
     };
   }
 
   static SerializableFixTracksGameState deserialize(Map<String, dynamic> data) {
     return SerializableFixTracksGameState(
+      round: SerializableGameRoundManager.deserialize(
+          data['round'] as Map<String, dynamic>),
       grid: FixTracksGrid.deserialize(data['grid'] as Map<String, dynamic>),
-      isTimerRunning: data['is_timer_running'] as bool,
-      timeRemaining: Duration(seconds: data['time_remaining'] as int),
     );
   }
 
   @override
   SerializableFixTracksGameState copyWith({
+    SerializableGameRoundManager? round,
     FixTracksGrid? grid,
-    bool? isTimerRunning,
-    Duration? timeRemaining,
-    int? triesRemaining,
   }) {
     return SerializableFixTracksGameState(
+      round: round ?? this.round,
       grid: grid ?? this.grid,
-      isTimerRunning: isTimerRunning ?? this.isTimerRunning,
-      timeRemaining: timeRemaining ?? this.timeRemaining,
     );
   }
 
@@ -55,11 +49,9 @@ class SerializableFixTracksGameState implements SerializableMiniGameState {
 
     return other is SerializableFixTracksGameState &&
         other.grid == grid &&
-        other.isTimerRunning == isTimerRunning &&
-        other.timeRemaining == timeRemaining;
+        other.round == round;
   }
 
   @override
-  int get hashCode =>
-      grid.hashCode ^ isTimerRunning.hashCode ^ timeRemaining.hashCode;
+  int get hashCode => grid.hashCode ^ round.hashCode;
 }

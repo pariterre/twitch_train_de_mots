@@ -458,47 +458,50 @@ class _CooldownClock extends StatefulWidget {
 }
 
 class _CooldownClockState extends State<_CooldownClock> {
-  Duration _cooldownDuration = Duration.zero;
-  Duration _cooldownRemaining = const Duration(seconds: -1);
+  Duration _maxDuration = const Duration(seconds: 0);
+  DateTime _cooldownEndsAt = DateTime.now();
+  Duration get _cooldownRemaining => _cooldownEndsAt.difference(DateTime.now());
+  bool get _isOnCooldown => !_cooldownRemaining.isNegative;
 
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onNewCooldowns.listen(_showCooldown);
+    gm.onCooldownsUpdated.listen(_updateCooldownTimer);
 
-    _showCooldown();
+    final ticker = gm.tickerManager;
+    ticker.onClockTicked.listen(_advanceCooldownIfNeeded);
+
+    _updateCooldownTimer();
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onNewCooldowns.cancel(_showCooldown);
+    gm.onCooldownsUpdated.cancel(_updateCooldownTimer);
     super.dispose();
   }
 
-  void _showCooldown() {
-    final cooldowns = GameManager.instance.newCooldowns;
+  void _updateCooldownTimer() {
+    final cooldowns = GameManager.instance.cooldowns;
     if (!cooldowns.keys.contains(TwitchManager.instance.userId)) return;
-    _logger.info('Showing the player cooldown');
 
-    _cooldownDuration = cooldowns[TwitchManager.instance.userId]!;
-    _cooldownRemaining = _cooldownDuration;
-
-    // Start a countdown that triggers a refresh every second
-    Future.doWhile(() async {
-      await Future.delayed(const Duration(seconds: 1));
-      _cooldownRemaining -= const Duration(seconds: 1);
-      if (!mounted) {
-        return false;
-      }
-      setState(() {});
-      return _cooldownRemaining >= Duration.zero;
-    });
+    if (cooldowns[TwitchManager.instance.userId]! != _cooldownEndsAt) {
+      _logger.info('Updating the player cooldown timer');
+      final now = DateTime.now();
+      _cooldownEndsAt = cooldowns[TwitchManager.instance.userId]!.isAfter(now)
+          ? cooldowns[TwitchManager.instance.userId]!
+          : now;
+      _maxDuration = cooldowns[TwitchManager.instance.userId]!.difference(now);
+    }
   }
 
-  bool get _isOnCooldown => _cooldownRemaining >= Duration.zero;
+  void _advanceCooldownIfNeeded(Duration deltaTime) {
+    // Only refresh while the clock is ticking
+    if (_isOnCooldown) return;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -528,7 +531,7 @@ class _CooldownClockState extends State<_CooldownClock> {
                 height: 20,
                 child: Clock(
                   timeRemaining: _cooldownRemaining,
-                  maxDuration: _cooldownDuration,
+                  maxDuration: _maxDuration,
                   borderWidth: 3,
                 )),
           ],

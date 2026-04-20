@@ -7,13 +7,13 @@ class BlueberryContainer extends StatefulWidget {
   const BlueberryContainer({
     super.key,
     required this.blueberry,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onBlueberrySlingShoot,
   });
 
   final BlueberryAgent blueberry;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
@@ -96,7 +96,9 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
   /// Only allow dragging if not teleporting and not moving
   bool get _canBeDragged => !_cannotBeDragged;
   bool get _cannotBeDragged =>
-      _isFading || !widget.blueberry.canBeSlingShot || widget.isGameOver;
+      _isFading ||
+      !widget.blueberry.canBeSlingShot ||
+      !widget.isRoundInProgress;
 
   void _onDragStart(DragStartDetails details) {
     if (_isDragging) return;

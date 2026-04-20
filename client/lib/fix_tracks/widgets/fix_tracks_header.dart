@@ -12,14 +12,14 @@ class FixTracksHeader extends StatefulWidget {
 }
 
 class _FixTracksHeaderState extends State<FixTracksHeader> {
-  int _previousTimeRemainingInSeconds = 0;
+  Duration _previousTimeRemaining = Duration.zero;
 
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.miniGames.fixTracks;
-    gm.onGameStarted.listen(_onGameStarted);
+    gm.onRoundInitialized.listen(_onGameStarted);
     gm.onTrySolution.listen(_onSolutionTried);
 
     Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
@@ -29,7 +29,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   void dispose() {
     Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
     final gm = Managers.instance.miniGames.fixTracks;
-    gm.onGameStarted.cancel(_onGameStarted);
+    gm.onRoundInitialized.cancel(_onGameStarted);
     gm.onTrySolution.cancel(_onSolutionTried);
 
     super.dispose();
@@ -40,10 +40,10 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
-    if (_previousTimeRemainingInSeconds !=
-        Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds) {
-      _previousTimeRemainingInSeconds =
-          Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds;
+    final timeRemaining =
+        Managers.instance.miniGames.fixTracks.timeRemaining ?? Duration.zero;
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
       setState(() {});
     }
   }
@@ -71,7 +71,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
           children: [
             ThemeCard(
               child: Text(
-                'Temps restant: ${Managers.instance.miniGames.fixTracks.timeRemaining.inSeconds}',
+                'Temps restant: ${Managers.instance.miniGames.fixTracks.timeRemaining?.inSeconds ?? 0}',
                 style: tm.clientMainTextStyle.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 26,

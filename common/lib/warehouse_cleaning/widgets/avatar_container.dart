@@ -8,14 +8,14 @@ class AvatarContainer extends StatefulWidget {
     super.key,
     required this.avatar,
     required this.tileSize,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onAvatarSlingShoot,
   });
 
   final AvatarAgent avatar;
   final double tileSize;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
@@ -53,7 +53,7 @@ class _AvatarContainerState extends State<AvatarContainer> {
   /// Only allow dragging if not teleporting and not moving
   bool get _canBeDragged => !_cannotBeDragged;
   bool get _cannotBeDragged =>
-      !widget.avatar.canBeSlingShot || widget.isGameOver;
+      !widget.avatar.canBeSlingShot || !widget.isRoundInProgress;
 
   void _onDragStart(DragStartDetails details) {
     if (_isDragging) return;

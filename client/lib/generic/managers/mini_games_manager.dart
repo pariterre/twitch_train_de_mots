@@ -4,49 +4,25 @@ import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
+import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 import 'package:train_de_mots/warehouse_cleaning/managers/warehouse_cleaning_game_manager.dart';
 
 final _logger = Logger('MiniGamesManager');
 
-abstract class MiniGameManager {
-  ///
-  /// How much time is left in the mini game
-  Duration get timeRemaining;
-
-  ///
-  /// If the mini game is ready to start. A signal to [onGameIsReady] is also
-  /// expected to be sent
-  bool get isReady;
-
+abstract class MiniGameManager with GameRoundManager {
   ///
   /// The instructions to display to the user on the telegram when first playing
   /// the minigame
   String? get instructions;
 
   ///
-  /// Prepare the mini game
-  Future<void> initialize();
-
-  ///
-  /// Start the mini game
-  Future<void> start();
-
-  ///
-  /// Callback when the game has initialized
-  GenericListener<Function()> get onGameIsReady;
-
-  ///
   /// Callback when the game updated
   GenericListener<Function()> get onGameUpdated;
 
   ///
-  /// Connect to the mini game results
-  GenericListener<Function({required bool hasWon})> get onGameEnded;
-
-  ///
-  /// Request the immediate end of the mini game
-  Future<void> end();
+  /// If the game has ended and the players have won
+  bool get hasWon;
 
   ///
   /// Get the points each player has earned in the mini game
@@ -54,7 +30,7 @@ abstract class MiniGameManager {
 
   ///
   /// Get a serialized version of the game state
-  SerializableMiniGameState serialize();
+  SerializableMiniGameState serializeMiniGame();
 }
 
 class MiniGamesManager {
@@ -105,7 +81,7 @@ class MiniGamesManager {
     }
     _isActive = true;
     _currentOrPreviousGame = game;
-    await manager!.initialize();
+    await manager!.initializeRound();
 
     // Register to the mini game events to relay them anything that needs to
     // listen to them too
@@ -136,7 +112,7 @@ class MiniGamesManager {
     manager!.onGameUpdated.cancel(_notifyThatMiniGameHasUpdated);
 
     // Terminate the mini game
-    await manager!.end();
+    await manager!.endRound();
     _isActive = false;
     onMinigameEnded.notifyListeners((callback) => callback());
   }

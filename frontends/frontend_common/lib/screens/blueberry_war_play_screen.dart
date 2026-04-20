@@ -1,6 +1,7 @@
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
+import 'package:common/generic/managers/serializable_game_round_manager.dart';
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
@@ -85,7 +86,8 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                   child: BlueberryWarPlayingField(
                     blueberries: thm.blueberries,
                     letters: thm.letters,
-                    isGameOver: thm.isOver,
+                    isRoundInProgress:
+                        thm.round.status == GameRoundStatus.inProgress,
                     clockTicker: gm.tickerManager.onClockTicked,
                     onBlueberrySlingShoot: (blueberry, newVelocity) {
                       twitchManager.slingShootBlueberry(
@@ -136,11 +138,11 @@ class _HeaderState extends State<_Header> {
     final tm = ThemeManager.instance;
 
     return LayoutBuilder(builder: (context, constraints) {
-      return thm.timeRemaining.inSeconds > 0
+      return (thm.round.timeRemaining?.inSeconds ?? 0) > 0
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Temps restant ${thm.timeRemaining.inSeconds}',
+                Text('Temps restant ${thm.round.timeRemaining?.inSeconds ?? 0}',
                     style: tm.textFrontendSc
                         .copyWith(fontSize: constraints.maxWidth * 0.05)),
                 const SizedBox(width: 20),

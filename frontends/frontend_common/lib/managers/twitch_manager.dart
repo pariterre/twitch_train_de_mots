@@ -6,6 +6,7 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/serializable_game_round_manager.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -634,8 +635,10 @@ class TwitchManagerMock extends TwitchManager {
                 status: WordsTrainGameStatus.miniGameStarted,
                 round: 11,
                 isRoundSuccess: true,
-                timeRemaining: const Duration(seconds: 83),
-                newCooldowns: {userId: const Duration(seconds: 5)},
+                roundEndsAt: DateTime.now().add(const Duration(seconds: 83)),
+                cooldowns: {
+                  userId: DateTime.now().add(const Duration(seconds: 5))
+                },
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
@@ -704,8 +707,10 @@ class TwitchManagerMock extends TwitchManager {
                 status: WordsTrainGameStatus.roundPreparing,
                 round: 13,
                 isRoundSuccess: false,
-                timeRemaining: const Duration(seconds: 83),
-                newCooldowns: {userId: const Duration(seconds: 5)},
+                roundEndsAt: DateTime.now().add(const Duration(seconds: 83)),
+                cooldowns: {
+                  userId: DateTime.now().add(const Duration(seconds: 5))
+                },
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
@@ -731,8 +736,10 @@ class TwitchManagerMock extends TwitchManager {
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableFixTracksGameState(
-                    isTimerRunning: true,
-                    timeRemaining: const Duration(seconds: 30),
+                    round: SerializableGameRoundManager(
+                        roundEndsAt:
+                            DateTime.now().add(const Duration(seconds: 30)),
+                        pauseStartedAt: null),
                     grid: FixTracksGrid.random(
                       rowCount: 20,
                       columnCount: 10,

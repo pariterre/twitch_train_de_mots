@@ -6,6 +6,7 @@ import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
+import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:train_de_mots/generic/managers/audio_context/audio_context_stub.dart'
@@ -212,7 +213,7 @@ class SoundManager {
         thm.onTileRevealed.listen(_onTreasureHuntPluckingGrass);
         thm.onRewardFound.listen(_onTreasureHuntLetterFound);
         thm.onTrySolution.listen(_onTreasureHuntSolutionTried);
-        thm.onGameEnded.listen(_onTreasureHuntGameIsOver);
+        thm.onRoundEnded.listen(_onTreasureHuntGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -228,7 +229,7 @@ class SoundManager {
         bwm.onLetterHitByLetter.listen(_onBlueberryWarLetterHitByLetter);
         bwm.onBlueberryDestroyed.listen(_onBlueberryWarBlueberryDestroyed);
         bwm.onTrySolution.listen(_onBlueberrySolutionTried);
-        bwm.onGameEnded.listen(_onBlueberryWarGameIsOver);
+        bwm.onRoundEnded.listen(_onBlueberryWarGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -241,7 +242,7 @@ class SoundManager {
       try {
         final tfm = Managers.instance.miniGames.fixTracks;
         tfm.onTrySolution.listen(_onFixTracksSolutionTried);
-        tfm.onGameEnded.listen(_onFixTracksGameIsOver);
+        tfm.onRoundEnded.listen(_onFixTracksGameIsOver);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -413,7 +414,7 @@ class SoundManager {
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
     final tm = Managers.instance.miniGames.treasureHunt;
-    if (tm.isGameOver) return;
+    if (tm.roundStatus != GameRoundStatus.inProgress) return;
 
     _playSoundEffect(tile.isLetter
         ? _SoundEffect.solutionFound
@@ -446,8 +447,9 @@ class SoundManager {
     }
   }
 
-  Future<void> _onTreasureHuntGameIsOver({required bool hasWon}) async {
-    if (hasWon) {
+  Future<void> _onTreasureHuntGameIsOver() async {
+    final thgm = Managers.instance.miniGames.treasureHunt;
+    if (thgm.hasWon) {
       _playSoundEffect(_SoundEffect.solutionFound);
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
@@ -459,7 +461,8 @@ class SoundManager {
   Future<void> _onBlueberryWarLetterHitByLetter(
       int first, int second, bool firstIsBoss, bool secondIsBoss) async {
     final tm = Managers.instance.miniGames.blueberryWar;
-    if (tm.isGameOver) return;
+    if (tm.roundStatus != GameRoundStatus.inProgress) return;
+
     // If both letters are not bosses, we don't play the sound
     if (!firstIsBoss && !secondIsBoss) return;
 
@@ -477,7 +480,7 @@ class SoundManager {
   Future<void> _onBlueberryWarLetterHitByBlueberry(
       int letterIndex, bool isDestroyed) async {
     final tm = Managers.instance.miniGames.blueberryWar;
-    if (tm.isGameOver) return;
+    if (tm.roundStatus != GameRoundStatus.inProgress) return;
 
     _playSoundEffect(_SoundEffect.blueberryWarLetterHit);
     if (isDestroyed) {
@@ -489,8 +492,9 @@ class SoundManager {
     _playSoundEffect(_SoundEffect.trainLostStation);
   }
 
-  Future<void> _onBlueberryWarGameIsOver({required bool hasWon}) async {
-    if (hasWon) {
+  Future<void> _onBlueberryWarGameIsOver() async {
+    final bwm = Managers.instance.miniGames.blueberryWar;
+    if (bwm.hasWon) {
       _playSoundEffect(_SoundEffect.solutionFound);
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
@@ -508,8 +512,9 @@ class SoundManager {
     }
   }
 
-  Future<void> _onFixTracksGameIsOver({required bool hasWon}) async {
-    if (hasWon) {
+  Future<void> _onFixTracksGameIsOver() async {
+    final ftgm = Managers.instance.miniGames.fixTracks;
+    if (ftgm.endGameStatus == EndGameStatus.won) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);
     } else {
       _playSoundEffect(_SoundEffect.roundIsOver);

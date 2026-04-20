@@ -106,8 +106,8 @@ class _HeaderState extends State<_Header> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-              thm.timeRemaining.inSeconds > 0
-                  ? 'Temps restant ${thm.timeRemaining.inSeconds}'
+              (thm.round.timeRemaining?.inSeconds ?? 0) > 0
+                  ? 'Temps restant ${thm.round.timeRemaining?.inSeconds ?? 0}'
                   : 'Retournons à la gare!',
               style: tm.textFrontendSc
                   .copyWith(fontSize: constraints.maxWidth * 0.05)),

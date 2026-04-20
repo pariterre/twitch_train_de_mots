@@ -214,8 +214,9 @@ class _ContinueSectionState extends State<_ContinueSection> {
       }
     }
 
-    if (gm.nextRoundStartIn != null) {
-      if (gm.nextRoundStartIn!.inSeconds <= 0) {
+    if (gm.nextRoundStartAt != null) {
+      final nextRoundStartIn = gm.nextRoundStartAt!.difference(DateTime.now());
+      if (nextRoundStartIn.inSeconds <= 0) {
         if (gm.gameStatus == WordsTrainGameStatus.miniGamePreparing) {
           buttonText += ' (C\'est parti!)';
         } else {
@@ -223,7 +224,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
         }
       } else {
         buttonText +=
-            ' (${gm.nextRoundStartIn!.inSeconds} seconde${gm.nextRoundStartIn!.inSeconds > 1 ? 's' : ''})';
+            ' (${nextRoundStartIn.inSeconds} seconde${nextRoundStartIn.inSeconds > 1 ? 's' : ''})';
       }
     }
 
@@ -265,7 +266,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
           ),
         ),
         const SizedBox(height: 12),
-        if (gm.nextRoundStartIn != null)
+        if (gm.nextRoundStartAt != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: TextButton(
@@ -275,7 +276,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     cm.shouldShowAutoplayDialog = false;
                     await _showAutoplayDialog();
                   }
-                  gm.cancelAutomaticStart();
+                  gm.cancelTrigger();
                   setState(() {});
                 },
                 child: Text(

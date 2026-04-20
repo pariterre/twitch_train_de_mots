@@ -19,7 +19,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
     required this.avatars,
     required this.boxes,
     required this.letters,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onAvatarSlingShoot,
   });
@@ -30,7 +30,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
   final List<AvatarAgent> avatars;
   final List<BoxAgent> boxes;
   final List<LetterAgent> letters;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
@@ -55,7 +55,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
               avatars: avatars,
               boxes: boxes,
               letters: letters,
-              isGameOver: isGameOver,
+              isRoundInProgress: isRoundInProgress,
               clockTicker: clockTicker,
               onAvatarSlingShoot: onAvatarSlingShoot,
               tileSize: tileSize,
@@ -118,7 +118,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
     required this.boxes,
     required this.letters,
     required this.tileSize,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onAvatarSlingShoot,
     required this.getTileAt,
@@ -128,7 +128,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
   final List<BoxAgent> boxes;
   final List<LetterAgent> letters;
   final double tileSize;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
       onAvatarSlingShoot;
@@ -165,7 +165,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
         ...avatars.map((e) => AvatarContainer(
             avatar: e,
             tileSize: tileSize,
-            isGameOver: isGameOver,
+            isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
             onAvatarSlingShoot: onAvatarSlingShoot)),
       ],

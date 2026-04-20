@@ -113,9 +113,9 @@ class SerializableGameState {
   WordsTrainGameStatus status;
   int round;
   bool isRoundSuccess;
-  Duration timeRemaining;
+  DateTime? roundEndsAt;
 
-  Map<String, Duration> newCooldowns;
+  Map<String, DateTime> cooldowns;
 
   int pardonRemaining;
   List<String> pardonners;
@@ -140,8 +140,8 @@ class SerializableGameState {
     required this.status,
     required this.round,
     required this.isRoundSuccess,
-    required this.timeRemaining,
-    required this.newCooldowns,
+    required this.roundEndsAt,
+    required this.cooldowns,
     required this.letterProblem,
     required this.pardonRemaining,
     required this.pardonners,
@@ -160,8 +160,8 @@ class SerializableGameState {
     WordsTrainGameStatus? status,
     int? round,
     bool? isRoundSuccess,
-    Duration? timeRemaining,
-    Map<String, Duration>? newCooldowns,
+    DateTime? roundEndsAt,
+    Map<String, DateTime>? cooldowns,
     SerializableLetterProblem? letterProblem,
     int? pardonRemaining,
     List<String>? pardonners,
@@ -179,8 +179,8 @@ class SerializableGameState {
         status: status ?? this.status,
         round: round ?? this.round,
         isRoundSuccess: isRoundSuccess ?? this.isRoundSuccess,
-        timeRemaining: timeRemaining ?? this.timeRemaining,
-        newCooldowns: newCooldowns ?? this.newCooldowns,
+        roundEndsAt: roundEndsAt ?? this.roundEndsAt,
+        cooldowns: cooldowns ?? this.cooldowns,
         letterProblem: letterProblem ?? this.letterProblem,
         pardonRemaining: pardonRemaining ?? this.pardonRemaining,
         pardonners: pardonners ?? this.pardonners,
@@ -204,9 +204,9 @@ class SerializableGameState {
       'game_status': status.index,
       'round': round,
       'is_round_success': isRoundSuccess,
-      'time_remaining': timeRemaining.inMilliseconds,
-      'new_cooldowns':
-          newCooldowns.map((key, value) => MapEntry(key, value.inMilliseconds)),
+      'round_ends_at': roundEndsAt?.millisecondsSinceEpoch,
+      'cooldowns': cooldowns
+          .map((key, value) => MapEntry(key, value.millisecondsSinceEpoch)),
       'letterProblem': letterProblem?.serialize(),
       'pardon_remaining': pardonRemaining,
       'pardonners': pardonners,
@@ -227,9 +227,10 @@ class SerializableGameState {
       status: WordsTrainGameStatus.values[data['game_status'] as int],
       round: data['round'] as int,
       isRoundSuccess: data['is_round_success'] as bool,
-      timeRemaining: Duration(milliseconds: data['time_remaining'] as int),
-      newCooldowns: (data['new_cooldowns'] as Map<String, dynamic>).map(
-          (key, value) => MapEntry(key, Duration(milliseconds: value as int))),
+      roundEndsAt:
+          DateTime.fromMillisecondsSinceEpoch(data['round_ends_at'] as int),
+      cooldowns: (data['cooldowns'] as Map<String, dynamic>).map((key, value) =>
+          MapEntry(key, DateTime.fromMillisecondsSinceEpoch(value as int))),
       letterProblem: data['letterProblem'] == null
           ? null
           : SerializableLetterProblem.deserialize(data['letterProblem']!),

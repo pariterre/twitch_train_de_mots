@@ -1,16 +1,14 @@
 import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
+import 'package:common/generic/managers/serializable_game_round_manager.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 
 class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   SerializableBlueberryWarGameState({
-    required this.isStarted,
-    required this.isOver,
-    required this.isWon,
-    required this.timeRemaining,
+    required this.round,
     required this.allAgents,
     required this.problem,
   });
@@ -18,10 +16,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.blueberryWar;
 
-  final bool isStarted;
-  final bool isOver;
-  final bool isWon;
-  final Duration timeRemaining;
+  final SerializableGameRoundManager round;
   final List<Agent> allAgents;
   List<BlueberryAgent> get blueberries =>
       allAgents.whereType<BlueberryAgent>().toList();
@@ -32,10 +27,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   Map<String, dynamic> serialize() {
     return {
       'type': MiniGames.blueberryWar.index,
-      'is_started': isStarted,
-      'is_over': isOver,
-      'is_won': isWon,
-      'time_remaining': timeRemaining.inSeconds,
+      'round': round.serialize(),
       'agents': allAgents.map((agent) => agent.serialize()).toList(),
       'problem': problem.serialize(),
     };
@@ -44,10 +36,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   static SerializableBlueberryWarGameState deserialize(
       Map<String, dynamic> data) {
     return SerializableBlueberryWarGameState(
-      isStarted: data['is_started'] as bool,
-      isOver: data['is_over'] as bool,
-      isWon: data['is_won'] as bool,
-      timeRemaining: Duration(seconds: data['time_remaining'] as int),
+      round: SerializableGameRoundManager.deserialize(
+          data['round'] as Map<String, dynamic>),
       allAgents: (data['agents'] as List)
           .map((agentData) => Agent.deserialize(agentData))
           .toList(),
@@ -57,18 +47,13 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
 
   @override
   SerializableBlueberryWarGameState copyWith({
-    bool? isStarted,
-    Duration? timeRemaining,
-    bool? isOver,
+    SerializableGameRoundManager? round,
     bool? isWon,
     List<Agent>? allAgents,
     SerializableLetterProblem? problem,
   }) {
     return SerializableBlueberryWarGameState(
-      isStarted: isStarted ?? this.isStarted,
-      isOver: isOver ?? this.isOver,
-      isWon: isWon ?? this.isWon,
-      timeRemaining: timeRemaining ?? this.timeRemaining,
+      round: round ?? this.round,
       allAgents: allAgents ?? this.allAgents,
       problem: problem ?? this.problem,
     );
@@ -79,10 +64,11 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     if (identical(this, other)) return true;
 
     return other is SerializableBlueberryWarGameState &&
-        other.isStarted == isStarted &&
-        other.timeRemaining == timeRemaining;
+        other.round == round &&
+        other.allAgents == allAgents &&
+        other.problem == problem;
   }
 
   @override
-  int get hashCode => isStarted.hashCode ^ timeRemaining.hashCode;
+  int get hashCode => round.hashCode ^ allAgents.hashCode ^ problem.hashCode;
 }

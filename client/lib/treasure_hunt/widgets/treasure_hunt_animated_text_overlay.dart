@@ -47,14 +47,14 @@ class _TreasureHuntAnimatedTextOverlayState
 
     final tgm = Managers.instance.miniGames.treasureHunt;
     tgm.onTrySolution.listen(_treasureHuntTrySolution);
-    tgm.onGameEnded.listen(_treasureHuntFailed);
+    tgm.onRoundEnded.listen(_treasureHuntEnded);
   }
 
   @override
   void dispose() {
     final tgm = Managers.instance.miniGames.treasureHunt;
     tgm.onTrySolution.cancel(_treasureHuntTrySolution);
-    tgm.onGameEnded.cancel(_treasureHuntFailed);
+    tgm.onRoundEnded.cancel(_treasureHuntEnded);
 
     super.dispose();
   }
@@ -73,9 +73,10 @@ class _TreasureHuntAnimatedTextOverlayState
     }
   }
 
-  void _treasureHuntFailed({required bool hasWon}) {
+  void _treasureHuntEnded() {
     // Do not write anything if the game was won, as the try solution will
-    if (hasWon) return;
+    final thgm = Managers.instance.miniGames.treasureHunt;
+    if (thgm.hasWon) return;
     _treasureHuntFailedController.triggerAnimation(const _TreasureHuntFailed());
   }
 
@@ -201,7 +202,7 @@ class _TreasureHuntFailed extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
+            '${(Managers.instance.miniGames.treasureHunt.timeRemaining?.isNegative ?? true) ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
             'On retourne immédiatement au train!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(

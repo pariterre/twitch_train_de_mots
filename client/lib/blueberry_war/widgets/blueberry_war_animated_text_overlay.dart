@@ -50,14 +50,14 @@ class _BlueberryWarAnimatedTextOverlayState
 
     final gm = Managers.instance.miniGames.blueberryWar;
     gm.onTrySolution.listen(_blueberryWarTrySolution);
-    gm.onGameEnded.listen(_blueberryWarFailed);
+    gm.onRoundEnded.listen(_blueberryWarEnded);
   }
 
   @override
   void dispose() {
     final tgm = Managers.instance.miniGames.blueberryWar;
     tgm.onTrySolution.cancel(_blueberryWarTrySolution);
-    tgm.onGameEnded.cancel(_blueberryWarFailed);
+    tgm.onRoundEnded.cancel(_blueberryWarEnded);
 
     super.dispose();
   }
@@ -79,9 +79,10 @@ class _BlueberryWarAnimatedTextOverlayState
     }
   }
 
-  void _blueberryWarFailed({required bool hasWon}) {
+  void _blueberryWarEnded() {
     // Do not write anything if the game was won, as the try solution will
-    if (hasWon) return;
+    final tgm = Managers.instance.miniGames.blueberryWar;
+    if (tgm.hasWon) return;
     _blueberryWarFailedController.triggerAnimation(const _BlueberryWarFailed());
   }
 

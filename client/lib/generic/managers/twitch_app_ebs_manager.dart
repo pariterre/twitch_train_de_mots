@@ -123,16 +123,16 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
   void _connectMiniGame() {
     final mgm = Managers.instance.miniGames.manager;
-    mgm?.onGameIsReady.listen(_sendGameStateToEbs);
+    mgm?.onRoundInitialized.listen(_sendGameStateToEbs);
     mgm?.onGameUpdated.listen(_sendGameStateToEbs);
-    mgm?.onGameEnded.listen(_sendMiniGameEndedToEbs);
+    mgm?.onRoundEnded.listen(_sendGameStateToEbs);
   }
 
   void _disconnectMiniGame() {
     final mgm = Managers.instance.miniGames.manager;
-    mgm?.onGameIsReady.cancel(_sendGameStateToEbs);
+    mgm?.onRoundInitialized.cancel(_sendGameStateToEbs);
     mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
-    mgm?.onGameEnded.cancel(_sendMiniGameEndedToEbs);
+    mgm?.onRoundEnded.cancel(_sendGameStateToEbs);
   }
 
   ///
@@ -175,15 +175,12 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   }
 
   Future<void> _sendCooldownToEbs(WordSolution solution) async {
-    _sendGameStateToEbs(newCooldowns: {
-      solution.foundBy.name: solution.foundBy.cooldownDuration
-    });
+    _sendGameStateToEbs();
   }
 
   ///
   /// Get a serializable version of the GameState
-  SerializableGameState serializableGameState(
-      {Map<String, Duration> newCooldowns = const {}}) {
+  SerializableGameState serializableGameState() {
     final cm = Managers.instance.configuration;
     final gm = Managers.instance.train;
     final mgm = Managers.instance.miniGames.manager;
@@ -192,8 +189,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       status: gm.gameStatus,
       round: gm.roundCount,
       isRoundSuccess: gm.successLevel.toInt() > 0,
-      timeRemaining: gm.timeRemaining ?? const Duration(seconds: 0),
-      newCooldowns: newCooldowns,
+      roundEndsAt: gm.roundEndsAt,
+      cooldowns: gm.players
+          .asMap()
+          .map((_, player) => MapEntry(player.name, player.cooldownEndAt)),
       letterProblem: gm.serializableProblem,
       pardonRemaining: gm.remainingPardon,
       pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
@@ -207,25 +206,19 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       isAttemptingFixTracksMiniGame: gm.isAttemptingFixTracksMiniGame,
       configuration: SerializableConfiguration(showExtension: cm.showExtension),
       miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
-          ? mgm?.serialize()
+          ? mgm?.serializeMiniGame()
           : null,
     );
   }
 
-  Future<void> _sendGameStateToEbs(
-          {Map<String, Duration> newCooldowns = const {}}) async =>
-      sendMessageToEbs(MessageProtocol(
+  Future<void> _sendGameStateToEbs() async => sendMessageToEbs(MessageProtocol(
           to: MessageTo.frontend,
           from: MessageFrom.app,
           type: MessageTypes.put,
           data: {
             'type': ToFrontendMessages.gameState.name,
-            'game_state':
-                serializableGameState(newCooldowns: newCooldowns).serialize(),
+            'game_state': serializableGameState().serialize(),
           }));
-
-  Future<void> _sendMiniGameEndedToEbs({required bool hasWon}) async =>
-      _sendGameStateToEbs();
 
   ///
   /// Send a message to the EBS server to notify that a round has ended

@@ -12,7 +12,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
     super.key,
     required this.blueberries,
     required this.letters,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onBlueberrySlingShoot,
     this.drawBlueberryFieldOnly = false,
@@ -20,7 +20,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
 
   final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
@@ -50,7 +50,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
           BlueberryWarFieldAgentsOverlay(
             blueberries: blueberries,
             letters: letters,
-            isGameOver: isGameOver,
+            isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
             onBlueberrySlingShoot: onBlueberrySlingShoot,
           ),
@@ -65,14 +65,14 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
     super.key,
     required this.blueberries,
     required this.letters,
-    required this.isGameOver,
+    required this.isRoundInProgress,
     required this.clockTicker,
     required this.onBlueberrySlingShoot,
   });
 
   final List<BlueberryAgent> blueberries;
   final List<LetterAgent> letters;
-  final bool isGameOver;
+  final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
       onBlueberrySlingShoot;
@@ -83,7 +83,7 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
       children: [
         ...blueberries.map((e) => BlueberryContainer(
             blueberry: e,
-            isGameOver: isGameOver,
+            isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
             onBlueberrySlingShoot: onBlueberrySlingShoot)),
         ...letters

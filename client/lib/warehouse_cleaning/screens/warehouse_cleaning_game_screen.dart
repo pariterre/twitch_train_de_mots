@@ -1,5 +1,6 @@
 import 'package:common/warehouse_cleaning/widgets/warehouse_cleaning_game_grid.dart';
 import 'package:flutter/material.dart';
+import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/warehouse_cleaning/widgets/warehouse_cleaning_animated_text_overlay.dart';
 import 'package:train_de_mots/warehouse_cleaning/widgets/warehouse_cleaning_header.dart';
@@ -27,11 +28,11 @@ class _WarehouseCleaningGameScreenState
     super.initState();
 
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onGameStarted.listen(_refresh);
-    whgm.onGameIsReady.listen(_refresh);
+    whgm.onRoundInitialized.listen(_refresh);
+    whgm.onRoundStarted.listen(_refresh);
     whgm.onAvatarMoved.listen(_refresh);
     whgm.onTrySolution.listen(_solutionWasTried);
-    whgm.onGameEnded.listen(_gameEnded);
+    whgm.onRoundEnded.listen(_refresh);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
@@ -46,11 +47,11 @@ class _WarehouseCleaningGameScreenState
   @override
   void dispose() {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onGameStarted.cancel(_refresh);
-    whgm.onGameIsReady.cancel(_refresh);
+    whgm.onRoundInitialized.cancel(_refresh);
+    whgm.onRoundStarted.cancel(_refresh);
     whgm.onAvatarMoved.cancel(_refresh);
     whgm.onTrySolution.cancel(_solutionWasTried);
-    whgm.onGameEnded.cancel(_gameEnded);
+    whgm.onRoundEnded.cancel(_refresh);
 
     final tm = Managers.instance.twitch;
     tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
@@ -59,7 +60,6 @@ class _WarehouseCleaningGameScreenState
   }
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
-  void _gameEnded({required bool hasWon}) => setState(() {});
   void _refresh() => setState(() {});
   void _solutionWasTried(
           {required String playerName,
@@ -71,7 +71,7 @@ class _WarehouseCleaningGameScreenState
   @override
   Widget build(BuildContext context) {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    if (!whgm.isReady) {
+    if (!whgm.isRoundInitialized) {
       return Container();
     }
 
@@ -93,7 +93,8 @@ class _WarehouseCleaningGameScreenState
                     avatars: whgm.avatars,
                     boxes: whgm.boxes,
                     letters: whgm.letters,
-                    isGameOver: whgm.isGameOver,
+                    isRoundInProgress:
+                        whgm.roundStatus == GameRoundStatus.inProgress,
                     clockTicker: Managers.instance.tickerManager.onClockTicked,
                     onAvatarSlingShoot: whgm.slingShoot,
                   ),

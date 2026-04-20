@@ -13,14 +13,14 @@ class TreasureHuntHeader extends StatefulWidget {
 }
 
 class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
-  int _previousTimeRemainingInSeconds = 0;
+  Duration _previousTimeRemaining = Duration.zero;
 
   @override
   void initState() {
     super.initState();
 
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.listen(_onGameStarted);
+    gm.onRoundStarted.listen(_onGameStarted);
     gm.onTileRevealed.listen(_onTileRevealed);
     gm.onRewardFound.listen(_onRewardFound);
 
@@ -30,7 +30,7 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onGameStarted.cancel(_onGameStarted);
+    gm.onRoundStarted.cancel(_onGameStarted);
     gm.onTileRevealed.cancel(_onTileRevealed);
     gm.onRewardFound.cancel(_onRewardFound);
 
@@ -44,10 +44,12 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
-    if (_previousTimeRemainingInSeconds !=
-        Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds) {
-      _previousTimeRemainingInSeconds =
-          Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds;
+    if (_previousTimeRemaining.inSeconds !=
+        (Managers.instance.miniGames.treasureHunt.timeRemaining?.inSeconds ??
+            0)) {
+      _previousTimeRemaining =
+          Managers.instance.miniGames.treasureHunt.timeRemaining ??
+              Duration.zero;
       setState(() {});
     }
   }
@@ -75,7 +77,7 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
               children: [
                 ThemeCard(
                   child: Text(
-                    'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining.inSeconds}',
+                    'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining?.inSeconds ?? 0}',
                     style: tm.clientMainTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 26,

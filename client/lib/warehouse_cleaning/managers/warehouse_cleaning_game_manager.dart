@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/models/exceptions.dart';
-import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
@@ -16,6 +15,7 @@ import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart'
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
+import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
@@ -31,7 +31,7 @@ enum Direction { up, down, left, right }
 /// Easy accessors translating index into row/col pair or row/col pair into
 /// index
 
-class WarehouseCleaningGameManager implements MiniGameManager {
+class WarehouseCleaningGameManager extends MiniGameManager {
   WarehouseCleaningGameManager() {
     _asyncInitializations();
   }
@@ -60,17 +60,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
   Map<String, int> get playersPoints => Map.from(_playersPoints);
 
   ///
-  /// Time remaining
-  bool _isReady = false;
-  @override
-  bool get isReady => _isReady;
-  bool _isMainTimerRunning = false;
-  Duration _timeRemaining = Duration.zero;
-  @override
-  Duration get timeRemaining => _timeRemaining;
-  bool _forceEndOfGame = false;
-
-  ///
   /// Current problem
   final _dictionary = DictionaryManager.wordsWithAtLeast(6).toList();
   SerializableLetterProblem? _problem;
@@ -92,9 +81,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   // Listeners
   @override
-  final onGameIsReady = GenericListener<Function()>();
-  final onGameStarted = GenericListener<Function()>();
-  @override
   final onGameUpdated = GenericListener<Function()>();
   final onTrySolution = GenericListener<
       Function(
@@ -103,8 +89,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
           required bool isSolutionRight,
           required int pointsAwarded})>();
   final onLetterFound = GenericListener<Function(Tile)>();
-  @override
-  final onGameEnded = GenericListener<Function({required bool hasWon})>();
   final onAvatarMoved = GenericListener<Function()>();
 
   WarehouseCleaningGrid? _grid;
@@ -116,14 +100,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
       0, (prev, status) => prev + (status == LetterStatus.normal ? 1 : 0));
 
   ///
-  /// If the game is over
+  /// End game status
+  @override
   bool get hasWon => letterFoundCount == problem.letters.length;
-  bool get hasLost => isGameOver && !hasWon;
-  bool get isGameOver =>
-      _forceEndOfGame ||
-      hasWon ||
-      _timeRemaining.isNegative ||
-      _triesRemaining <= 0;
 
   @override
   String? get instructions => null;
@@ -144,7 +123,7 @@ class WarehouseCleaningGameManager implements MiniGameManager {
       allAgents.whereType<LetterAgent>().toList(growable: false);
 
   @override
-  Future<void> initialize() async {
+  Future<void> initializeRound() async {
     _generateProblem();
 
     _grid = WarehouseCleaningGrid.random(
@@ -215,42 +194,35 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     final avatarTile = tileFromPosition(avatars.first.position);
     avatarTile == null ? null : _grid!.revealAt(index: avatarTile.index);
 
-    _isMainTimerRunning = false;
-    _timeRemaining = Duration(
-      seconds:
-          45 + Managers.instance.train.previousRoundTimeRemaining.inSeconds,
-    );
     _triesRemaining = 45;
     _playersPoints.clear();
-    _isReady = true;
-    _forceEndOfGame = false;
-    onGameIsReady.notifyListeners((callback) => callback());
+
+    await super.initializeRound();
   }
 
   @override
-  SerializableWarehouseCleaningGameState serialize() {
+  SerializableWarehouseCleaningGameState serializeMiniGame() {
     return SerializableWarehouseCleaningGameState(
+      round: toSerializableRound(),
       grid: _grid!,
-      isTimerRunning: _isMainTimerRunning,
-      timeRemaining: _timeRemaining,
       triesRemaining: _triesRemaining,
     );
   }
 
   @override
-  Future<void> start() async {
-    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
+  Future<void> startRound({Duration? duration}) async {
+    if (duration != null) {
+      throw ArgumentError(
+          'Duration should not be provided, it is determined by the game manager based on the previous round time remaining');
+    }
 
-    onGameStarted.notifyListeners((callback) => callback());
-  }
-
-  @override
-  Future<void> end() async {
-    _forceEndOfGame = true;
+    await super.startRound(
+        duration: const Duration(seconds: 45) +
+            Managers.instance.train.previousRoundTimeRemaining);
   }
 
   void trySolution(String playerName, String message) {
-    if (!_isMainTimerRunning) return;
+    if (roundStatus != GameRoundStatus.inProgress) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -284,6 +256,8 @@ class WarehouseCleaningGameManager implements MiniGameManager {
   }
 
   void slingShoot(AvatarAgent avatar, vector_math.Vector2 newVelocity) {
+    if (roundStatus != GameRoundStatus.inProgress) return;
+
     if (avatar.canBeSlingShot) {
       _logger.fine(
           'Sling shooting avatar ${avatar.id} with velocity $newVelocity');
@@ -338,18 +312,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
 
   ///
   /// The game loop
-  void _gameLoop(Duration deltaTime) {
-    if (isGameOver) return _processGameOver();
-    if (!_isMainTimerRunning) {
-      if (Managers.instance.train.gameStatus ==
-          WordsTrainGameStatus.miniGameStarted) {
-        _isMainTimerRunning = true;
-      }
-      return;
-    }
-
+  @override
+  Future<void> processRound(Duration deltaTime) async {
     // Update the position of the avatar
-
     _updateAllAvatarAgents(
         dt: deltaTime,
         avatars: avatars,
@@ -367,8 +332,6 @@ class WarehouseCleaningGameManager implements MiniGameManager {
         onAvatarMoved.notifyListeners((callback) => callback());
       }
     }
-
-    _tickClock(deltaTime);
   }
 
   ///
@@ -392,21 +355,9 @@ class WarehouseCleaningGameManager implements MiniGameManager {
     );
   }
 
-  void _processGameOver() {
-    if (!_isMainTimerRunning) return;
-
-    _isMainTimerRunning = false;
-    _forceEndOfGame = false;
-
+  @override
+  Future<void> processRoundIsEnding() async {
     _revealSolution();
-    onGameEnded.notifyListeners((callback) => callback(hasWon: hasWon));
-    Managers.instance.tickerManager.onFixedClockTicked.cancel(_gameLoop);
-  }
-
-  ///
-  /// Tick the clock by one second
-  void _tickClock(Duration deltaTime) {
-    _timeRemaining -= deltaTime;
   }
 
   ///

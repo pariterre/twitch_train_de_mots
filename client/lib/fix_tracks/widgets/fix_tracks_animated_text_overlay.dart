@@ -48,14 +48,14 @@ class _FixTracksAnimatedTextOverlayState
 
     final fgm = Managers.instance.miniGames.fixTracks;
     fgm.onTrySolution.listen(_fixTracksTrySolution);
-    fgm.onGameEnded.listen(_fixTracksFailed);
+    fgm.onRoundEnded.listen(_fixTracksEnded);
   }
 
   @override
   void dispose() {
     final fgm = Managers.instance.miniGames.fixTracks;
     fgm.onTrySolution.cancel(_fixTracksTrySolution);
-    fgm.onGameEnded.cancel(_fixTracksFailed);
+    fgm.onRoundEnded.cancel(_fixTracksEnded);
 
     super.dispose();
   }
@@ -82,8 +82,9 @@ class _FixTracksAnimatedTextOverlayState
     }
   }
 
-  void _fixTracksFailed({required bool hasWon}) {
-    if (hasWon) {
+  void _fixTracksEnded() {
+    final fgm = Managers.instance.miniGames.fixTracks;
+    if (fgm.endGameStatus == EndGameStatus.won) {
       _fixTracksHasWonController.triggerAnimation(_FixTracksHasWon());
     } else {
       _fixTracksHasLostController.triggerAnimation(const _FixTracksHasLost());

@@ -25,8 +25,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     status: WordsTrainGameStatus.initializing,
     round: 0,
     isRoundSuccess: false,
-    timeRemaining: Duration.zero,
-    newCooldowns: {},
+    roundEndsAt: null,
+    cooldowns: {},
     letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
@@ -45,11 +45,11 @@ class EbsManager extends TwitchEbsManagerAbstract {
     _gameState = value;
 
     // Convert the cooldowns from login to opaque id
-    for (final login in _gameState.newCooldowns.keys.toList()) {
+    for (final login in _gameState.cooldowns.keys.toList()) {
       final opaqueId =
           registeredFrontendUsers.from(login: login)?.opaqueId ?? '';
-      _gameState.newCooldowns[opaqueId] = _gameState.newCooldowns[login]!;
-      _gameState.newCooldowns.remove(login);
+      _gameState.cooldowns[opaqueId] = _gameState.cooldowns[login]!;
+      _gameState.cooldowns.remove(login);
     }
 
     // Convert the pardonners from login to opaque id

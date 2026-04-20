@@ -9,6 +9,7 @@ import 'package:common/generic/models/random_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/managers/time_trigger.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -18,7 +19,7 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
 
-class WordsTrainGameManager {
+class WordsTrainGameManager with TimeTrigger {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
   WordsTrainGameManager() {
@@ -66,7 +67,7 @@ class WordsTrainGameManager {
 
     if (_gameStatus == WordsTrainGameStatus.roundPreparing ||
         _gameStatus == WordsTrainGameStatus.roundReady) {
-      return Managers.instance.miniGames.manager?.isReady == false
+      return Managers.instance.miniGames.manager?.isRoundInitialized == false
           ? WordsTrainGameStatus.miniGameReady
           : WordsTrainGameStatus.miniGamePreparing;
     } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
@@ -79,30 +80,15 @@ class WordsTrainGameManager {
 
   final _random = Random();
 
-  int? _roundDuration;
+  DateTime? _roundEndsAt;
+  DateTime? get roundEndsAt => _roundEndsAt;
   Duration? get timeRemaining =>
-      _roundDuration == null || _roundStartedSince == null
-          ? null
-          : Duration(
-              seconds: ((_roundDuration! ~/ 1000 - _roundStartedSince!)) -
-                  Managers.instance.configuration.postRoundGracePeriodDuration
-                      .inSeconds);
+      _roundEndsAt?.difference(DateTime.now()) ?? Duration.zero;
   Duration _previousRoundTimeRemaining = Duration.zero;
   Duration get previousRoundTimeRemaining =>
       Duration(seconds: max(_previousRoundTimeRemaining.inSeconds, 0));
-  int? get _roundStartedSince => _roundStartedAt == null
-      ? null
-      : (DateTime.now().millisecondsSinceEpoch -
-              _roundStartedAt!.millisecondsSinceEpoch) ~/
-          1000;
-  DateTime? _roundStartedAt;
-  DateTime? _nextRoundStartAt;
-  Duration? get nextRoundStartIn =>
-      _nextRoundStartAt?.difference(DateTime.now());
-  void cancelAutomaticStart() {
-    _logger.info('Automatic start of the round has been canceled');
-    _nextRoundStartAt = null;
-  }
+
+  DateTime? _pauseStartedAt;
 
   int _roundCount = 0;
   int get roundCount => _roundCount;
@@ -244,6 +230,8 @@ class WordsTrainGameManager {
       (_playerPreparingCongratulationFireworks == null ||
           _playerPreparingCongratulationFireworks == playerName);
 
+  DateTime? get nextRoundStartAt => triggerAt;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -251,6 +239,35 @@ class WordsTrainGameManager {
   /// ----------- ///
   /// INTERACTION ///
   /// ----------- ///
+
+  ///
+  /// Pause the game by stopping the round timer.
+  ///
+  void pauseGame() {
+    // TODO Add this when someone tries to exchange bits
+    if (_pauseStartedAt != null) {
+      _logger.warning('Game is already paused');
+      return;
+    }
+    _logger.info('Pausing the game...');
+    _pauseStartedAt = DateTime.now();
+    pauseTrigger();
+  }
+
+  ///
+  /// Resume the game by restarting the round timer with the remaining time when the game was paused.
+  ///
+  void resumeGame() {
+    if (_pauseStartedAt == null) {
+      _logger.warning('Game is not paused');
+      return;
+    }
+    _logger.info('Resuming the game...');
+    final pauseDuration = DateTime.now().difference(_pauseStartedAt!);
+    _roundEndsAt = _roundEndsAt?.add(pauseDuration);
+    _pauseStartedAt = null;
+    resumeTrigger();
+  }
 
   ///
   /// Provide a way to request the start of a new round, if the game is not
@@ -454,6 +471,7 @@ class WordsTrainGameManager {
   /// game if needed.
   Future<void> _startNewRound() async {
     _logger.info('Starting a new round...');
+    cancelTrigger();
 
     if (_gameStatus == WordsTrainGameStatus.initializing) {
       _initializeCallbacks();
@@ -472,12 +490,12 @@ class WordsTrainGameManager {
 
       Managers.instance.miniGames.initialize(_currentMiniGame!);
       final mgm = Managers.instance.miniGames.manager!;
-      while (!mgm.isReady) {
+      while (!mgm.isRoundInitialized) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      mgm.onGameEnded.listen(_miniGameEnded);
+      mgm.onRoundEnded.listen(_miniGameEnded);
       _roundSuccesses.clear();
-      mgm.start();
+      mgm.startRound();
     } else {
       _logger.info('Preparing a normal round...');
       _isRoundAMiniGame = false;
@@ -496,7 +514,11 @@ class WordsTrainGameManager {
     await _sendTelegramToPlayers();
     _gameStatus = WordsTrainGameStatus.roundStarted;
 
-    _roundStartedAt = DateTime.now();
+    final cm = Managers.instance.configuration;
+    _roundEndsAt = DateTime.now()
+        .add(cm.roundDuration)
+        .add(cm.postRoundGracePeriodDuration)
+        .subtract(Duration(seconds: roundCount));
     onRoundStarted.notifyListeners((callback) => callback());
 
     _logger.info('New round started');
@@ -537,9 +559,6 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
 
     // Reinitialize the round timer and players
-    _roundDuration = cm.roundDuration.inMilliseconds +
-        cm.postRoundGracePeriodDuration.inMilliseconds -
-        (roundCount * 1000);
     for (final player in players) {
       player.resetForNextRound();
     }
@@ -551,7 +570,6 @@ class WordsTrainGameManager {
     _hasPlayedAtLeastOnce = true;
     _isUselessLetterRevealed = false;
     _isHiddenLetterRevealed = false;
-    _nextRoundStartAt = null;
     _scramblingLetterTimer = cm.timeBeforeScramblingLetters;
 
     // Transfer the next problem to the current problem
@@ -867,7 +885,9 @@ class WordsTrainGameManager {
         (callback) => callback(playerName: playerName, isActive: true));
 
     // Give 15 seconds to actually redeem the fireworks
+    pauseGame();
     await Future.delayed(Duration(seconds: 15));
+    if (!_areCongratulationFireworksFiring) resumeGame();
 
     if (_playerPreparingCongratulationFireworks == null) return;
     _playerPreparingCongratulationFireworks = null;
@@ -886,7 +906,11 @@ class WordsTrainGameManager {
     // This is triggered if a user sends fireworks to the screen
     onCongratulationFireworks.notifyListeners(
         (callback) => callback(playerName: playerName, isActive: true));
+
+    pauseGame();
     await Future.delayed(Duration(seconds: 10));
+    resumeGame();
+
     // This should be stopped before that, but just in case we call stop anyway
     await requestStopFireworks(playerName: playerName);
   }
@@ -936,52 +960,30 @@ class WordsTrainGameManager {
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
   void _gameLoop(Duration deltaTime) async {
     _tickingClock(deltaTime);
-    if (_checkIfShouldAutomaticallyStartRound(deltaTime)) _autoStartingRound();
     if (_checkForEndOfRound()) _endingRound();
   }
 
-  bool _checkIfShouldAutomaticallyStartRound(Duration deltaTime) {
-    _logger.fine('Checking if the round should start automatically...');
-
-    if (_nextRoundStartAt == null) {
-      _logger.fine('No automatic start of the round planned');
-      return false;
-    }
-    if (_areCongratulationFireworksFiring) {
-      _logger
-          .fine('Congratulation fireworks are firing, so we delay the start');
-      _nextRoundStartAt = _nextRoundStartAt!.add(deltaTime);
-      return false;
-    }
-    if (_playerPreparingCongratulationFireworks != null ||
-        _playerPreparingTheBigHeist != null ||
-        _playerPreparingFixTracksMiniGame != null) {
-      _logger.fine('The game is in pause while someone is redeeming something');
-      return false;
-    }
-
+  @override
+  void onTriggerClockTicked(Duration deltaTime) {
+    // If we are waiting for the round to start preparing
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
-      _nextRoundStartAt = _nextRoundStartAt!.add(deltaTime);
-      return false;
-    }
-    if (!isNextProblemReady) {
-      _logger.fine('Next problem is not ready, so cannot start automatically');
-      return false;
-    }
-    if (DateTime.now().isBefore(_nextRoundStartAt!)) {
-      _logger.fine(
-          'Next round start is in the future, so cannot start automatically');
-      return false;
+      addTimeToTrigger(deltaTime);
     }
 
-    _logger.fine('Automatic start');
-    return true;
+    // If the next problem is not ready and we are close to the end of the trigger,
+    //we delay the start to avoid starting the round without a problem
+    if (!isNextProblemReady &&
+        (timeBeforeTrigger?.inMilliseconds ?? 1000) <
+            2 * deltaTime.inMilliseconds) {
+      _logger.fine('Next problem is not ready, so cannot start automatically');
+      addTimeToTrigger(deltaTime);
+    }
   }
 
-  void _autoStartingRound() {
+  @override
+  void onTriggerWentOff() {
     _logger.info('Automatic start of the round');
-    _nextRoundStartAt = null;
     _startNewRound();
   }
 
@@ -1132,7 +1134,7 @@ class WordsTrainGameManager {
     if (_isRoundAMiniGame) {
       _logger.fine('Mini game is running, so nothing to do unless forced');
       if (_forceEndTheRound) {
-        Managers.instance.miniGames.manager?.end();
+        Managers.instance.miniGames.manager?.endRound();
         _forceEndTheRound = false;
       }
       return false;
@@ -1215,8 +1217,6 @@ class WordsTrainGameManager {
     // Prepare next round
     _previousRoundTimeRemaining = timeRemaining!;
     _forceEndTheRound = false;
-    _roundDuration = null;
-    _roundStartedAt = null;
     _boostStartedAt = null;
     _canRequestCongratulationFireworks = true;
     _canChangeLane = false;
@@ -1238,11 +1238,10 @@ class WordsTrainGameManager {
 
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
-      _nextRoundStartAt = DateTime.now().add(
-          (_successLevel == SuccessLevel.failed
-                  ? cm.autoplayFailedDuration
-                  : cm.autoplayDuration) +
-              Duration(seconds: 1));
+      startTrigger((_successLevel == SuccessLevel.failed
+              ? cm.autoplayFailedDuration
+              : cm.autoplayDuration) +
+          Duration(seconds: 1));
     }
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
@@ -1342,14 +1341,21 @@ class WordsTrainGameManager {
         _random.nextInt(MiniGames.betweenRoundsGames.length)];
   }
 
-  void _miniGameEnded({required bool hasWon}) {
+  void _miniGameEnded() {
     _logger.info('Mini game ended');
-    Managers.instance.miniGames.manager?.onGameEnded.cancel(_miniGameEnded);
+    final mgm = Managers.instance.miniGames.manager;
+    if (mgm == null) {
+      _logger
+          .warning('Mini game manager is null, cannot end mini game properly');
+      return;
+    }
+
+    mgm.onRoundEnded.cancel(_miniGameEnded);
     final playerPoints = Managers.instance.miniGames.getPlayersPoints();
     Managers.instance.miniGames.finalize();
 
     // Give some perks based on the mini game
-    if (hasWon) {
+    if (mgm.hasWon) {
       // If we played an end of railway mini game successfully, we can retried the
       // failed round. Otherwise, the players get perks
       if (_isAttemptingFixTracksMiniGame) {
@@ -1373,8 +1379,6 @@ class WordsTrainGameManager {
 
     // Reset some flags
     _forceEndTheRound = false;
-    _roundDuration = null;
-    _roundStartedAt = null;
     _boostStartedAt = null;
 
     _gameStatus = WordsTrainGameStatus.roundEnding;
@@ -1383,8 +1387,7 @@ class WordsTrainGameManager {
     // Launch the automatic start of the round timer if needed
     final cm = Managers.instance.configuration;
     if (cm.autoplay) {
-      _nextRoundStartAt = DateTime.now()
-          .add(cm.autoplayDuration + cm.postRoundShowCaseDuration);
+      startTrigger(cm.autoplayDuration + cm.postRoundShowCaseDuration);
     }
 
     _isAttemptingFixTracksMiniGame = false;
