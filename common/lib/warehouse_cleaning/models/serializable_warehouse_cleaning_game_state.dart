@@ -1,4 +1,4 @@
-import 'package:common/generic/managers/serializable_game_round_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
@@ -6,7 +6,7 @@ import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 class SerializableWarehouseCleaningGameState
     implements SerializableMiniGameState {
   SerializableWarehouseCleaningGameState({
-    required this.round,
+    required this.roundTimer,
     required this.grid,
     required this.triesRemaining,
   });
@@ -14,7 +14,7 @@ class SerializableWarehouseCleaningGameState
   @override
   MiniGames get type => MiniGames.warehouseCleaning;
 
-  final SerializableGameRoundManager round;
+  final SerializableControllableTimer roundTimer;
   final WarehouseCleaningGrid grid;
   final int triesRemaining;
 
@@ -22,7 +22,7 @@ class SerializableWarehouseCleaningGameState
   Map<String, dynamic> serialize() {
     return {
       'type': MiniGames.warehouseCleaning.index,
-      'round': round.serialize(),
+      'round_timer': roundTimer.serialize(),
       'grid': grid.serialize(),
       'tries_remaining': triesRemaining,
     };
@@ -31,8 +31,8 @@ class SerializableWarehouseCleaningGameState
   static SerializableWarehouseCleaningGameState deserialize(
       Map<String, dynamic> data) {
     return SerializableWarehouseCleaningGameState(
-      round: SerializableGameRoundManager.deserialize(
-          data['round'] as Map<String, dynamic>),
+      roundTimer: SerializableControllableTimer.deserialize(
+          data['round_timer'] as Map<String, dynamic>),
       grid: WarehouseCleaningGrid.deserialize(
           data['grid'] as Map<String, dynamic>),
       triesRemaining: data['tries_remaining'] as int,
@@ -41,12 +41,12 @@ class SerializableWarehouseCleaningGameState
 
   @override
   SerializableWarehouseCleaningGameState copyWith({
-    SerializableGameRoundManager? round,
+    SerializableControllableTimer? roundTimer,
     WarehouseCleaningGrid? grid,
     int? triesRemaining,
   }) {
     return SerializableWarehouseCleaningGameState(
-      round: round ?? this.round,
+      roundTimer: roundTimer ?? this.roundTimer,
       grid: grid ?? this.grid,
       triesRemaining: triesRemaining ?? this.triesRemaining,
     );
@@ -57,11 +57,12 @@ class SerializableWarehouseCleaningGameState
     if (identical(this, other)) return true;
 
     return other is SerializableWarehouseCleaningGameState &&
-        other.round == round &&
+        other.roundTimer == roundTimer &&
         other.grid == grid &&
         other.triesRemaining == triesRemaining;
   }
 
   @override
-  int get hashCode => round.hashCode ^ grid.hashCode ^ triesRemaining.hashCode;
+  int get hashCode =>
+      roundTimer.hashCode ^ grid.hashCode ^ triesRemaining.hashCode;
 }

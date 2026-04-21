@@ -6,7 +6,7 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
-import 'package:common/generic/managers/serializable_game_round_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -736,10 +736,10 @@ class TwitchManagerMock extends TwitchManager {
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
                 miniGameState: SerializableFixTracksGameState(
-                    round: SerializableGameRoundManager(
-                        roundEndsAt:
-                            DateTime.now().add(const Duration(seconds: 30)),
-                        pauseStartedAt: null),
+                    roundTimer: SerializableControllableTimer(
+                        isInitialized: true,
+                        endsAt: DateTime.now().add(const Duration(seconds: 30)),
+                        pausedAt: null),
                     grid: FixTracksGrid.random(
                       rowCount: 20,
                       columnCount: 10,

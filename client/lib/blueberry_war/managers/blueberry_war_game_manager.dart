@@ -7,13 +7,13 @@ import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.d
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:vector_math/vector_math.dart';
@@ -52,8 +52,6 @@ class BlueberryWarGameManager extends MiniGameManager {
       allAgents.whereType<BlueberryAgent>().toList(growable: false);
 
   // Listeners
-  @override
-  final onGameUpdated = GenericListener<Function()>();
   final onLetterHitByBlueberry =
       GenericListener<Function(int letterIndex, bool isDestroyed)>();
   final onLetterHitByLetter = GenericListener<
@@ -102,8 +100,9 @@ class BlueberryWarGameManager extends MiniGameManager {
   ///
   /// Initialize the game manager
   @override
-  Future<void> initializeRound() async {
+  Future<void> initialize() async {
     _logger.fine('BlueberryWarGameManager initializing');
+
     _playersPoints.clear();
     _generateProblem();
 
@@ -155,29 +154,17 @@ class BlueberryWarGameManager extends MiniGameManager {
       );
     }
 
-    await super.initializeRound();
-  }
-
-  void dispose() {
-    terminateRound();
-    _logger.fine('Disposing BlueberryWarGameManager');
+    await super.initialize();
   }
 
   @override
-  Future<void> startRound({Duration? duration}) async {
-    if (duration != null) {
-      throw ArgumentError(
-          'Duration should not be provided, it is determined by the game manager based on the previous round time remaining');
-    }
-
-    await super.startRound(
-        duration: const Duration(seconds: 35) +
-            Managers.instance.train.previousRoundTimeRemaining);
-  }
+  Duration get initialRoundDuration =>
+      const Duration(seconds: 35) +
+      Managers.instance.train.previousRoundTimeRemaining;
 
   void slingShoot(
       {required BlueberryAgent blueberry, required Vector2 newVelocity}) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     if (blueberry.canBeSlingShot) {
       _logger.fine(
@@ -200,7 +187,7 @@ class BlueberryWarGameManager extends MiniGameManager {
   }
 
   void trySolution(String playerName, String message) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -256,7 +243,7 @@ class BlueberryWarGameManager extends MiniGameManager {
   @override
   SerializableBlueberryWarGameState serializeMiniGame() =>
       SerializableBlueberryWarGameState(
-        round: toSerializableRound(),
+        roundTimer: roundTimer,
         allAgents: allAgents,
         problem: _problem!,
       );
@@ -264,7 +251,31 @@ class BlueberryWarGameManager extends MiniGameManager {
   ///
   /// The game loop
   @override
-  Future<void> processRound(Duration deltaTime) async {
+  Future<void> onRoundClockTicked(
+      Duration deltaTime, ControllableTimerStatus status) async {
+    switch (status) {
+      case ControllableTimerStatus.notInitialized:
+        break;
+      case ControllableTimerStatus.initialized:
+        break;
+      case ControllableTimerStatus.inProgress:
+        await _processRound(deltaTime);
+        break;
+      case ControllableTimerStatus.paused:
+        break;
+      case ControllableTimerStatus.ended:
+        break;
+    }
+  }
+
+  @override
+  void onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    super.onRoundStatusChanged(newStatus);
+
+    if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+  }
+
+  Future<void> _processRound(Duration deltaTime) async {
     // Check if the game is over
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
@@ -305,8 +316,7 @@ class BlueberryWarGameManager extends MiniGameManager {
     return hasWon;
   }
 
-  @override
-  Future<void> processRoundIsEnding() async {
+  Future<void> _processRoundIsEnding() async {
     // Make all the agents quickly slowing down
     for (final agent in allAgents) {
       agent.coefficientOfFriction = 0.9;
@@ -321,18 +331,6 @@ class BlueberryWarGameManager extends MiniGameManager {
       } else {
         _problem!.hiddenLetterStatuses[i] = LetterStatus.revealed;
       }
-    }
-  }
-
-  @override
-  Future<void> processPostRound(Duration deltaTime) async {
-    // Stop the timer if all the agents have stopped moving
-    if (allAgents.every(
-      (agent) =>
-          agent.velocity.length2 < BlueberryWarConfig.velocityThreshold2 ||
-          agent.isDestroyed,
-    )) {
-      terminateRound();
     }
   }
 }

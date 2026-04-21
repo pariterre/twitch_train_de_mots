@@ -276,7 +276,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     cm.shouldShowAutoplayDialog = false;
                     await _showAutoplayDialog();
                   }
-                  gm.cancelTrigger();
+                  gm.cancelAutoStart();
                   setState(() {});
                 },
                 child: Text(

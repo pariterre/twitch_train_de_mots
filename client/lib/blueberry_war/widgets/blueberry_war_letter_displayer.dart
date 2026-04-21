@@ -20,7 +20,7 @@ class _BlueberryWarLetterDisplayerState
     super.initState();
 
     final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onRoundInitialized.listen(refresh);
+    gm.onInitialized.listen(refresh);
     gm.onLetterHitByBlueberry.listen(_onRevealLetter);
     refresh();
   }
@@ -28,7 +28,7 @@ class _BlueberryWarLetterDisplayerState
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.blueberryWar;
-    gm.onRoundInitialized.cancel(refresh);
+    gm.onInitialized.cancel(refresh);
     gm.onLetterHitByBlueberry.cancel(_onRevealLetter);
 
     for (var e in _fireworksControllers) {

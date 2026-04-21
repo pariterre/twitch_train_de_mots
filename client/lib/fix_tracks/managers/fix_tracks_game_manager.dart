@@ -4,12 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/valuable_letter.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 
@@ -68,8 +68,6 @@ class FixTracksGameManager extends MiniGameManager {
   Map<String, int> get playersPoints => Map.from(_playersPoints);
 
   // Listeners
-  @override
-  final onGameUpdated = GenericListener<Function()>();
   final onTrySolution = GenericListener<
       Function({
         required String playerName,
@@ -105,7 +103,7 @@ class FixTracksGameManager extends MiniGameManager {
       'n\'arrivons pas à atteindre la fin du rail dans le temps imparti, le train restera bloqué!\n';
 
   @override
-  Future<void> initializeRound() async {
+  Future<void> initialize() async {
     while (true) {
       _grid = FixTracksGrid.random(
         rowCount: _rowCount,
@@ -124,29 +122,23 @@ class FixTracksGameManager extends MiniGameManager {
       break;
     }
     _playersPoints.clear();
-    await super.initializeRound();
+
+    await super.initialize();
   }
 
   @override
   SerializableFixTracksGameState serializeMiniGame() {
     return SerializableFixTracksGameState(
-      round: toSerializableRound(),
+      roundTimer: roundTimer,
       grid: _grid!,
     );
   }
 
   @override
-  Future<void> startRound({Duration? duration}) async {
-    if (duration != null) {
-      throw ArgumentError(
-          'Duration should not be provided, it is determined by the game manager based on the previous round time remaining');
-    }
-
-    await super.startRound(duration: duration);
-  }
+  Duration get initialRoundDuration => const Duration(minutes: 1);
 
   void trySolution(String playerName, String message) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -182,7 +174,23 @@ class FixTracksGameManager extends MiniGameManager {
   }
 
   @override
-  Future<void> processRoundIsEnding() async {
+  void onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    switch (newStatus) {
+      case ControllableTimerStatus.notInitialized:
+        break;
+      case ControllableTimerStatus.initialized:
+        break;
+      case ControllableTimerStatus.inProgress:
+        break;
+      case ControllableTimerStatus.paused:
+        break;
+      case ControllableTimerStatus.ended:
+        _processRoundIsEnding();
+        break;
+    }
+  }
+
+  Future<void> _processRoundIsEnding() async {
     if (_grid?.allSegmentsAreFixed ?? false) {
       _endGameStatus = EndGameStatus.won;
     } else if (timeRemaining?.isNegative ?? true) {

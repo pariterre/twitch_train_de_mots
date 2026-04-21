@@ -1,24 +1,91 @@
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/blueberry_war/managers/blueberry_war_game_manager.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
+import 'package:train_de_mots/generic/managers/controllable_timer.dart';
 import 'package:train_de_mots/treasure_hunt/managers/treasure_hunt_game_manager.dart';
 import 'package:train_de_mots/warehouse_cleaning/managers/warehouse_cleaning_game_manager.dart';
 
 final _logger = Logger('MiniGamesManager');
 
-abstract class MiniGameManager with GameRoundManager {
+abstract class MiniGameManager {
+  ///
+  /// Initialize the mini game manager. It should prepare everything to be able to
+  /// start the mini game, but it should not start the round yet. It is called when
+  /// the mini game is selected, and it is followed by a call to [startRound] when the round actually starts.
+  Future<void> initialize() async {
+    _roundTimer.initialize();
+  }
+
+  bool get isInitialized => _roundTimer.isInitialized;
+
+  void dispose() {
+    if (_roundTimer.isInitialized) _roundTimer.dispose();
+  }
+
   ///
   /// The instructions to display to the user on the telegram when first playing
   /// the minigame
   String? get instructions;
 
   ///
-  /// Callback when the game updated
-  GenericListener<Function()> get onGameUpdated;
+  /// The status of the round, which can be used to know if the round is in progress, paused, ended, etc.
+  late final _roundTimer = ControllableTimer(
+    onStatusChanged: onRoundStatusChanged,
+    onClockTicked: onRoundClockTicked,
+    shouldEndImmediately: shouldEndRoundImmediately,
+  );
+  SerializableControllableTimer get roundTimer => _roundTimer.toSerializable();
+
+  ControllableTimerStatus get roundStatus => _roundTimer.status;
+
+  ///
+  /// The duration the minigame round should last.
+  Duration get initialRoundDuration;
+
+  ///
+  /// Add time to the round timer. It can be used to reward players by giving them more time to solve the puzzle.
+  void addTime(Duration time) {
+    _roundTimer.addTime(time);
+  }
+
+  ///
+  /// The time remaining in the round. It can be used to display a timer to the users, or to know when the round is about to end.
+  /// If the round is not started yet, or if it has ended, it should return null.
+  Duration? get timeRemaining => _roundTimer.timeRemaining;
+
+  ///
+  /// Start the mini game round. It should start the round timer, and trigger any
+  /// event that should happen at the start of the round. It is called after [initialize],
+  /// when the round actually starts.
+  void startRound() {
+    _roundTimer.start(duration: initialRoundDuration);
+    onRoundStarted.notifyListeners((callback) => callback());
+  }
+
+  void terminateRound() {
+    _roundTimer.stop();
+    onRoundEnded.notifyListeners((callback) => callback());
+  }
+
+  ///
+  /// Callback when the Minigame initialized
+  final onInitialized = GenericListener<Function()>();
+
+  ///
+  /// Callback when the game starts
+  final onRoundStarted = GenericListener<Function()>();
+
+  ///
+  /// Callback when the game updates, for example when a player tries a solution. It can be used to trigger a UI update.
+  final onGameUpdated = GenericListener<Function()>();
+
+  ///
+  /// Callback when the game ends
+  final onRoundEnded = GenericListener<Function()>();
 
   ///
   /// If the game has ended and the players have won
@@ -31,6 +98,31 @@ abstract class MiniGameManager with GameRoundManager {
   ///
   /// Get a serialized version of the game state
   SerializableMiniGameState serializeMiniGame();
+
+  ///
+  /// Callback when the round status changes, with the new status as a parameter
+  void onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    switch (newStatus) {
+      case ControllableTimerStatus.notInitialized:
+      case ControllableTimerStatus.initialized:
+        onInitialized.notifyListeners((callback) => callback());
+        break;
+      case ControllableTimerStatus.inProgress:
+      case ControllableTimerStatus.paused:
+        break;
+      case ControllableTimerStatus.ended:
+        onRoundEnded.notifyListeners((callback) => callback());
+        break;
+    }
+  }
+
+  ///
+  /// Callback on every clock tick, with the time elapsed since the last tick and the current status as parameters
+  void onRoundClockTicked(Duration deltaTime, ControllableTimerStatus status) {}
+
+  ///
+  /// Callback on every clock tick. If it returns true, the round will end immediately, granted it is not on pause.
+  Future<bool> shouldEndRoundImmediately() async => false;
 }
 
 class MiniGamesManager {
@@ -81,7 +173,7 @@ class MiniGamesManager {
     }
     _isActive = true;
     _currentOrPreviousGame = game;
-    await manager!.initializeRound();
+    await manager!.initialize();
 
     // Register to the mini game events to relay them anything that needs to
     // listen to them too
@@ -112,7 +204,7 @@ class MiniGamesManager {
     manager!.onGameUpdated.cancel(_notifyThatMiniGameHasUpdated);
 
     // Terminate the mini game
-    await manager!.endRound();
+    manager!.dispose();
     _isActive = false;
     onMinigameEnded.notifyListeners((callback) => callback());
   }

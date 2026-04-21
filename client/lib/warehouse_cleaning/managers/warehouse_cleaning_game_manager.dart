@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -15,7 +16,6 @@ import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart'
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
@@ -80,8 +80,6 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       col: (position.x / WarehouseCleaningConfig.tileSize).round());
 
   // Listeners
-  @override
-  final onGameUpdated = GenericListener<Function()>();
   final onTrySolution = GenericListener<
       Function(
           {required String playerName,
@@ -123,7 +121,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       allAgents.whereType<LetterAgent>().toList(growable: false);
 
   @override
-  Future<void> initializeRound() async {
+  Future<void> initialize() async {
     _generateProblem();
 
     _grid = WarehouseCleaningGrid.random(
@@ -197,32 +195,25 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     _triesRemaining = 45;
     _playersPoints.clear();
 
-    await super.initializeRound();
+    await super.initialize();
   }
 
   @override
   SerializableWarehouseCleaningGameState serializeMiniGame() {
     return SerializableWarehouseCleaningGameState(
-      round: toSerializableRound(),
+      roundTimer: roundTimer,
       grid: _grid!,
       triesRemaining: _triesRemaining,
     );
   }
 
   @override
-  Future<void> startRound({Duration? duration}) async {
-    if (duration != null) {
-      throw ArgumentError(
-          'Duration should not be provided, it is determined by the game manager based on the previous round time remaining');
-    }
-
-    await super.startRound(
-        duration: const Duration(seconds: 45) +
-            Managers.instance.train.previousRoundTimeRemaining);
-  }
+  Duration get initialRoundDuration =>
+      const Duration(seconds: 45) +
+      Managers.instance.train.previousRoundTimeRemaining;
 
   void trySolution(String playerName, String message) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -256,7 +247,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   }
 
   void slingShoot(AvatarAgent avatar, vector_math.Vector2 newVelocity) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     if (avatar.canBeSlingShot) {
       _logger.fine(
@@ -313,7 +304,31 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   ///
   /// The game loop
   @override
-  Future<void> processRound(Duration deltaTime) async {
+  Future<void> onRoundClockTicked(
+      Duration deltaTime, ControllableTimerStatus status) async {
+    switch (status) {
+      case ControllableTimerStatus.notInitialized:
+        break;
+      case ControllableTimerStatus.initialized:
+        break;
+      case ControllableTimerStatus.inProgress:
+        await _processRound(deltaTime);
+        break;
+      case ControllableTimerStatus.paused:
+        break;
+      case ControllableTimerStatus.ended:
+        break;
+    }
+  }
+
+  @override
+  void onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    super.onRoundStatusChanged(newStatus);
+
+    if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+  }
+
+  Future<void> _processRound(Duration deltaTime) async {
     // Update the position of the avatar
     _updateAllAvatarAgents(
         dt: deltaTime,
@@ -355,8 +370,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     );
   }
 
-  @override
-  Future<void> processRoundIsEnding() async {
+  Future<void> _processRoundIsEnding() async {
     _revealSolution();
   }
 

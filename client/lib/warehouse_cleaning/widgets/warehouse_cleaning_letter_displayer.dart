@@ -21,7 +21,7 @@ class _WarehouseCleaningLetterDisplayerState
     super.initState();
 
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onRoundInitialized.listen(refresh);
+    whgm.onInitialized.listen(refresh);
     whgm.onRoundStarted.listen(refresh);
     whgm.onLetterFound.listen(_onRevealLetter);
     refresh();
@@ -30,7 +30,7 @@ class _WarehouseCleaningLetterDisplayerState
   @override
   void dispose() {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onRoundInitialized.cancel(refresh);
+    whgm.onInitialized.cancel(refresh);
     whgm.onRoundStarted.cancel(refresh);
     whgm.onLetterFound.cancel(_onRevealLetter);
 

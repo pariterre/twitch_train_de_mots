@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -8,8 +9,8 @@ import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/random_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
+import 'package:train_de_mots/generic/managers/controllable_timer.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/generic/managers/time_trigger.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -19,7 +20,7 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
 
-class WordsTrainGameManager with TimeTrigger {
+class WordsTrainGameManager {
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
   WordsTrainGameManager() {
@@ -67,7 +68,7 @@ class WordsTrainGameManager with TimeTrigger {
 
     if (_gameStatus == WordsTrainGameStatus.roundPreparing ||
         _gameStatus == WordsTrainGameStatus.roundReady) {
-      return Managers.instance.miniGames.manager?.isRoundInitialized == false
+      return Managers.instance.miniGames.manager?.isInitialized == false
           ? WordsTrainGameStatus.miniGameReady
           : WordsTrainGameStatus.miniGamePreparing;
     } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
@@ -230,7 +231,11 @@ class WordsTrainGameManager with TimeTrigger {
       (_playerPreparingCongratulationFireworks == null ||
           _playerPreparingCongratulationFireworks == playerName);
 
-  DateTime? get nextRoundStartAt => triggerAt;
+  late final _autoStart = ControllableTimer(
+      onClockTicked: _onAutoStartClockTicked,
+      onStatusChanged: _onRoundStatusChanged);
+  DateTime? get nextRoundStartAt => _autoStart.endsAt;
+  void cancelAutoStart() => _autoStart.dispose();
 
   /// ----------- ///
   /// CONSTRUCTOR ///
@@ -251,7 +256,7 @@ class WordsTrainGameManager with TimeTrigger {
     }
     _logger.info('Pausing the game...');
     _pauseStartedAt = DateTime.now();
-    pauseTrigger();
+    _autoStart.pause();
   }
 
   ///
@@ -266,7 +271,7 @@ class WordsTrainGameManager with TimeTrigger {
     final pauseDuration = DateTime.now().difference(_pauseStartedAt!);
     _roundEndsAt = _roundEndsAt?.add(pauseDuration);
     _pauseStartedAt = null;
-    resumeTrigger();
+    _autoStart.resume();
   }
 
   ///
@@ -471,7 +476,7 @@ class WordsTrainGameManager with TimeTrigger {
   /// game if needed.
   Future<void> _startNewRound() async {
     _logger.info('Starting a new round...');
-    cancelTrigger();
+    _autoStart.dispose();
 
     if (_gameStatus == WordsTrainGameStatus.initializing) {
       _initializeCallbacks();
@@ -490,7 +495,7 @@ class WordsTrainGameManager with TimeTrigger {
 
       Managers.instance.miniGames.initialize(_currentMiniGame!);
       final mgm = Managers.instance.miniGames.manager!;
-      while (!mgm.isRoundInitialized) {
+      while (!mgm.isInitialized) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
       mgm.onRoundEnded.listen(_miniGameEnded);
@@ -963,28 +968,29 @@ class WordsTrainGameManager with TimeTrigger {
     if (_checkForEndOfRound()) _endingRound();
   }
 
-  @override
-  void onTriggerClockTicked(Duration deltaTime) {
+  void _onAutoStartClockTicked(
+      Duration deltaTime, ControllableTimerStatus status) {
     // If we are waiting for the round to start preparing
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
-      addTimeToTrigger(deltaTime);
+      _autoStart.addTime(deltaTime);
     }
 
-    // If the next problem is not ready and we are close to the end of the trigger,
-    //we delay the start to avoid starting the round without a problem
+    // If the next problem is not ready and we are close to the end of the autostart timer,
+    // we delay the start to avoid starting the round without a problem
     if (!isNextProblemReady &&
-        (timeBeforeTrigger?.inMilliseconds ?? 1000) <
+        (_autoStart.timeRemaining?.inMilliseconds ?? 1000) <
             2 * deltaTime.inMilliseconds) {
       _logger.fine('Next problem is not ready, so cannot start automatically');
-      addTimeToTrigger(deltaTime);
+      _autoStart.addTime(deltaTime);
     }
   }
 
-  @override
-  void onTriggerWentOff() {
-    _logger.info('Automatic start of the round');
-    _startNewRound();
+  void _onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    if (newStatus == ControllableTimerStatus.ended) {
+      _startNewRound();
+      _logger.info('Automatic start of the round');
+    }
   }
 
   ///
@@ -1134,7 +1140,7 @@ class WordsTrainGameManager with TimeTrigger {
     if (_isRoundAMiniGame) {
       _logger.fine('Mini game is running, so nothing to do unless forced');
       if (_forceEndTheRound) {
-        Managers.instance.miniGames.manager?.endRound();
+        Managers.instance.miniGames.manager?.terminateRound();
         _forceEndTheRound = false;
       }
       return false;
@@ -1238,10 +1244,10 @@ class WordsTrainGameManager with TimeTrigger {
 
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
-      startTrigger((_successLevel == SuccessLevel.failed
+      _autoStart.start(
+          duration: _successLevel == SuccessLevel.failed
               ? cm.autoplayFailedDuration
-              : cm.autoplayDuration) +
-          Duration(seconds: 1));
+              : cm.autoplayDuration);
     }
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
@@ -1387,7 +1393,7 @@ class WordsTrainGameManager with TimeTrigger {
     // Launch the automatic start of the round timer if needed
     final cm = Managers.instance.configuration;
     if (cm.autoplay) {
-      startTrigger(cm.autoplayDuration + cm.postRoundShowCaseDuration);
+      _autoStart.start(duration: cm.autoplayDuration);
     }
 
     _isAttemptingFixTracksMiniGame = false;

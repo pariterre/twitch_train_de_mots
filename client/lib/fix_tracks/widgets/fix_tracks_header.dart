@@ -19,7 +19,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
     super.initState();
 
     final gm = Managers.instance.miniGames.fixTracks;
-    gm.onRoundInitialized.listen(_onGameStarted);
+    gm.onInitialized.listen(_onGameStarted);
     gm.onTrySolution.listen(_onSolutionTried);
 
     Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
@@ -29,7 +29,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   void dispose() {
     Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
     final gm = Managers.instance.miniGames.fixTracks;
-    gm.onRoundInitialized.cancel(_onGameStarted);
+    gm.onInitialized.cancel(_onGameStarted);
     gm.onTrySolution.cancel(_onSolutionTried);
 
     super.dispose();

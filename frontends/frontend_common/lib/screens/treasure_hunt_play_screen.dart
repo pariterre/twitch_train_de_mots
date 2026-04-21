@@ -47,7 +47,7 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
     final thm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
     if (thm.triesRemaining <= 0 ||
-        (thm.round.timeRemaining ?? Duration.zero) < Duration.zero) {
+        (thm.roundTimer.timeRemaining ?? Duration.zero) < Duration.zero) {
       return;
     }
 
@@ -61,8 +61,8 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
     final bonusTime =
         tile.isLetter ? const Duration(seconds: 5) : Duration.zero;
     GameManager.instance.updateMiniGameState(thm.copyWith(
-        round: thm.round
-            .copyWith(roundEndsAt: thm.round.roundEndsAt?.add(bonusTime)),
+        roundTimer: thm.roundTimer
+            .copyWith(endsAt: thm.roundTimer.endsAt?.add(bonusTime)),
         triesRemaining: triesRemaining));
 
     TwitchManager.instance.revealTileAt(index: tile.index);
@@ -107,11 +107,12 @@ class _HeaderState extends State<_Header> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      return (thm.round.timeRemaining?.inSeconds ?? 0) > 0
+      return (thm.roundTimer.timeRemaining?.inSeconds ?? 0) > 0
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Temps restant ${thm.round.timeRemaining?.inSeconds ?? 0}',
+                Text(
+                    'Temps restant ${thm.roundTimer.timeRemaining?.inSeconds ?? 0}',
                     style: tm.textFrontendSc
                         .copyWith(fontSize: constraints.maxWidth * 0.05)),
                 const SizedBox(width: 20),

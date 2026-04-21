@@ -123,14 +123,14 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
   void _connectMiniGame() {
     final mgm = Managers.instance.miniGames.manager;
-    mgm?.onRoundInitialized.listen(_sendGameStateToEbs);
+    mgm?.onInitialized.listen(_sendGameStateToEbs);
     mgm?.onGameUpdated.listen(_sendGameStateToEbs);
     mgm?.onRoundEnded.listen(_sendGameStateToEbs);
   }
 
   void _disconnectMiniGame() {
     final mgm = Managers.instance.miniGames.manager;
-    mgm?.onRoundInitialized.cancel(_sendGameStateToEbs);
+    mgm?.onInitialized.cancel(_sendGameStateToEbs);
     mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
     mgm?.onRoundEnded.cancel(_sendGameStateToEbs);
   }

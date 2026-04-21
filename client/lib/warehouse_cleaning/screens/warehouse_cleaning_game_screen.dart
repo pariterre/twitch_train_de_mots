@@ -1,6 +1,6 @@
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/warehouse_cleaning/widgets/warehouse_cleaning_game_grid.dart';
 import 'package:flutter/material.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/warehouse_cleaning/widgets/warehouse_cleaning_animated_text_overlay.dart';
 import 'package:train_de_mots/warehouse_cleaning/widgets/warehouse_cleaning_header.dart';
@@ -28,7 +28,7 @@ class _WarehouseCleaningGameScreenState
     super.initState();
 
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onRoundInitialized.listen(_refresh);
+    whgm.onInitialized.listen(_refresh);
     whgm.onRoundStarted.listen(_refresh);
     whgm.onAvatarMoved.listen(_refresh);
     whgm.onTrySolution.listen(_solutionWasTried);
@@ -47,7 +47,7 @@ class _WarehouseCleaningGameScreenState
   @override
   void dispose() {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    whgm.onRoundInitialized.cancel(_refresh);
+    whgm.onInitialized.cancel(_refresh);
     whgm.onRoundStarted.cancel(_refresh);
     whgm.onAvatarMoved.cancel(_refresh);
     whgm.onTrySolution.cancel(_solutionWasTried);
@@ -71,7 +71,7 @@ class _WarehouseCleaningGameScreenState
   @override
   Widget build(BuildContext context) {
     final whgm = Managers.instance.miniGames.warehouseCleaning;
-    if (!whgm.isRoundInitialized) {
+    if (!whgm.isInitialized) {
       return Container();
     }
 
@@ -94,7 +94,7 @@ class _WarehouseCleaningGameScreenState
                     boxes: whgm.boxes,
                     letters: whgm.letters,
                     isRoundInProgress:
-                        whgm.roundStatus == GameRoundStatus.inProgress,
+                        whgm.roundStatus == ControllableTimerStatus.inProgress,
                     clockTicker: Managers.instance.tickerManager.onClockTicked,
                     onAvatarSlingShoot: whgm.slingShoot,
                   ),

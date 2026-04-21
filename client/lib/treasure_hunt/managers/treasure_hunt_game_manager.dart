@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/generic/managers/dictionary_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -10,7 +11,6 @@ import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_stat
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/mini_games_manager.dart';
 
@@ -68,8 +68,6 @@ class TreasureHuntGameManager extends MiniGameManager {
   final int _rewardInTrials = 1;
 
   // Listeners
-  @override
-  final onGameUpdated = GenericListener<Function()>();
   final onTrySolution = GenericListener<
       Function(
           {required String playerName,
@@ -104,7 +102,7 @@ class TreasureHuntGameManager extends MiniGameManager {
       'Mais attention, chaque tentative de mot ou de case vous coûtera un essai!\n\n';
 
   @override
-  Future<void> initializeRound() async {
+  Future<void> initialize() async {
     _generateProblem();
     _grid = TreasureHuntGrid.random(
         rowCount: _rowCount,
@@ -113,32 +111,26 @@ class TreasureHuntGameManager extends MiniGameManager {
         problem: _problem!);
     _triesRemaining = 10;
     _playersPoints.clear();
-    await super.initializeRound();
+
+    await super.initialize();
   }
 
   @override
   SerializableTreasureHuntGameState serializeMiniGame() {
     return SerializableTreasureHuntGameState(
-      round: toSerializableRound(),
+      roundTimer: roundTimer,
       grid: _grid!,
       triesRemaining: _triesRemaining,
     );
   }
 
   @override
-  Future<void> startRound({Duration? duration}) async {
-    if (duration != null) {
-      throw ArgumentError(
-          'Duration should not be provided, it is determined by the game manager based on the previous round time remaining');
-    }
-
-    await super.startRound(
-        duration: const Duration(seconds: 20) +
-            Managers.instance.train.previousRoundTimeRemaining);
-  }
+  Duration get initialRoundDuration =>
+      const Duration(seconds: 20) +
+      Managers.instance.train.previousRoundTimeRemaining;
 
   void trySolution(String playerName, String message) {
-    if (roundStatus != GameRoundStatus.inProgress) return;
+    if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
@@ -174,10 +166,10 @@ class TreasureHuntGameManager extends MiniGameManager {
   ///
   /// Main interface for a user to reveal a tile from the grid
   bool revealTile({int? row, int? col, int? tileIndex}) {
-    if (roundStatus == GameRoundStatus.initialized) {
+    if (roundStatus == ControllableTimerStatus.initialized) {
       // The first revealed tile starts the game
       startRound();
-    } else if (roundStatus != GameRoundStatus.inProgress) {
+    } else if (roundStatus != ControllableTimerStatus.inProgress) {
       return false;
     }
 
@@ -190,7 +182,7 @@ class TreasureHuntGameManager extends MiniGameManager {
         _triesRemaining += _rewardInTrials;
         if (tile.isLetter) {
           problem.hiddenLetterStatuses[tile.letterIndex!] = LetterStatus.normal;
-          addTimeToRound(_rewardInTime);
+          addTime(_rewardInTime);
         }
 
         onRewardFound.notifyListeners((callback) => callback(tile));
@@ -244,7 +236,13 @@ class TreasureHuntGameManager extends MiniGameManager {
   }
 
   @override
-  Future<void> processRoundIsEnding() async {
+  void onRoundStatusChanged(ControllableTimerStatus newStatus) {
+    super.onRoundStatusChanged(newStatus);
+
+    if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+  }
+
+  Future<void> _processRoundIsEnding() async {
     _revealSolution();
   }
 }

@@ -1,9 +1,9 @@
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_animated_text_overlay.dart';
 import 'package:train_de_mots/blueberry_war/widgets/blueberry_war_header.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 
 class BlueberryWarGameScreen extends StatefulWidget {
@@ -78,8 +78,8 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                         child: BlueberryWarPlayingField(
                           blueberries: bwm.blueberries,
                           letters: bwm.letters,
-                          isRoundInProgress:
-                              bwm.roundStatus == GameRoundStatus.inProgress,
+                          isRoundInProgress: bwm.roundStatus ==
+                              ControllableTimerStatus.inProgress,
                           clockTicker:
                               Managers.instance.tickerManager.onClockTicked,
                           onBlueberrySlingShoot: (blueberry, newVelocity) {

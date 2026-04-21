@@ -1,16 +1,16 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
-import 'package:train_de_mots/generic/managers/game_round_manager.dart';
-import 'package:train_de_mots/generic/managers/managers.dart';
-import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:train_de_mots/generic/managers/audio_context/audio_context_stub.dart'
     if (dart.library.html) 'package:train_de_mots/generic/managers/audio_context/audio_context_web.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
 
@@ -414,7 +414,7 @@ class SoundManager {
 
   Future<void> _onTreasureHuntLetterFound(Tile tile) async {
     final tm = Managers.instance.miniGames.treasureHunt;
-    if (tm.roundStatus != GameRoundStatus.inProgress) return;
+    if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
     _playSoundEffect(tile.isLetter
         ? _SoundEffect.solutionFound
@@ -461,7 +461,7 @@ class SoundManager {
   Future<void> _onBlueberryWarLetterHitByLetter(
       int first, int second, bool firstIsBoss, bool secondIsBoss) async {
     final tm = Managers.instance.miniGames.blueberryWar;
-    if (tm.roundStatus != GameRoundStatus.inProgress) return;
+    if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
     // If both letters are not bosses, we don't play the sound
     if (!firstIsBoss && !secondIsBoss) return;
@@ -480,7 +480,7 @@ class SoundManager {
   Future<void> _onBlueberryWarLetterHitByBlueberry(
       int letterIndex, bool isDestroyed) async {
     final tm = Managers.instance.miniGames.blueberryWar;
-    if (tm.roundStatus != GameRoundStatus.inProgress) return;
+    if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
     _playSoundEffect(_SoundEffect.blueberryWarLetterHit);
     if (isDestroyed) {
