@@ -199,12 +199,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
       };
     } else {
       if (!gm.canProceedToNextRound) {
-        if (!gm.canRequestFixTracksMiniGame(playerName: null) ||
-            !gm.canRequestCongratulationFireworks(playerName: null) ||
-            !gm.canRequestTheBigHeist(playerName: null)) {
-          buttonText += 'Quelqu\'un prépare quelque chose!';
-        } else {
+        if (!gm.isNextProblemReady) {
           buttonText += 'Aiguillage du train en cours...';
+        } else {
+          buttonText += 'Quelqu\'un prépare quelque chose!';
         }
       } else if (gm.successLevel == SuccessLevel.failed &&
           gm.hasPlayedAtLeastOnce) {

@@ -476,7 +476,7 @@ class WordsTrainGameManager {
   /// game if needed.
   Future<void> _startNewRound() async {
     _logger.info('Starting a new round...');
-    _autoStart.dispose();
+    if (_autoStart.isInitialized) _autoStart.dispose();
 
     if (_gameStatus == WordsTrainGameStatus.initializing) {
       _initializeCallbacks();
@@ -979,10 +979,9 @@ class WordsTrainGameManager {
     // If the next problem is not ready and we are close to the end of the autostart timer,
     // we delay the start to avoid starting the round without a problem
     if (!isNextProblemReady &&
-        (_autoStart.timeRemaining?.inMilliseconds ?? 1000) <
-            2 * deltaTime.inMilliseconds) {
+        (_autoStart.timeRemaining?.inMilliseconds ?? 1000) < 500) {
       _logger.fine('Next problem is not ready, so cannot start automatically');
-      _autoStart.addTime(deltaTime);
+      _autoStart.addTime(Duration(milliseconds: 100));
     }
   }
 
@@ -1244,6 +1243,7 @@ class WordsTrainGameManager {
 
     // Launch the automatic start of the round timer if needed
     if (cm.autoplay) {
+      _autoStart.initialize();
       _autoStart.start(
           duration: _successLevel == SuccessLevel.failed
               ? cm.autoplayFailedDuration
@@ -1393,6 +1393,7 @@ class WordsTrainGameManager {
     // Launch the automatic start of the round timer if needed
     final cm = Managers.instance.configuration;
     if (cm.autoplay) {
+      _autoStart.initialize();
       _autoStart.start(duration: cm.autoplayDuration);
     }
 
