@@ -533,7 +533,6 @@ class WordsTrainGameManager {
       final cm = Managers.instance.configuration;
       _roundEndsAt = DateTime.now()
           .add(cm.roundDuration)
-          .add(cm.postRoundGracePeriodDuration)
           .subtract(Duration(seconds: roundCount));
     }
     onRoundStarted.notifyListeners((callback) => callback());
@@ -1037,7 +1036,8 @@ class WordsTrainGameManager {
     _logger.fine('Managing golden solution...');
     if (!_roundHasGoldenSolution &&
         timeRemaining! > cm.goldenSolutionMinimumDuration &&
-        (_random.nextDouble() < cm.goldenSolutionProbability ||
+        ((_random.nextDouble() * deltaTime.inMilliseconds) <
+                cm.goldenSolutionProbability ||
             _forceGoldenSolution)) {
       _logger.info('A new golden solution appears');
 

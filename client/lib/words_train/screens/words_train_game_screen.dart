@@ -271,7 +271,10 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     late String text;
     switch (gm.gameStatus) {
       case WordsTrainGameStatus.roundStarted:
-        int timeRemaining = gm.timeRemaining?.inSeconds ?? 0;
+        final timeRemaining = (gm.timeRemaining?.isNegative ?? true)
+            ? 0
+            : gm.timeRemaining!.inSeconds + 1;
+
         text = timeRemaining > 0
             ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Arrivée en gare';
@@ -293,9 +296,12 @@ class _HeaderTimerState extends State<_HeaderTimer> {
       case WordsTrainGameStatus.miniGameReady:
       case WordsTrainGameStatus.miniGameStarted:
       case WordsTrainGameStatus.miniGameEnding:
-        Duration timeRemaining = mgm!.timeRemaining ?? Duration.zero;
-        text = timeRemaining.inSeconds > 0
-            ? 'Temps restant à la manche : ${timeRemaining.inSeconds} secondes'
+        final timeRemaining = (mgm?.timeRemaining?.isNegative ?? true)
+            ? 0
+            : mgm!.timeRemaining!.inSeconds + 1;
+
+        text = timeRemaining > 0
+            ? 'Temps restant à la manche : $timeRemaining secondes'
             : 'Retournons à la gare!';
         break;
     }
