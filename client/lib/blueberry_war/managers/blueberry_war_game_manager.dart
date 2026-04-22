@@ -28,9 +28,9 @@ final _dictionary = DictionaryManager.wordsWithAtLeast(10).toList();
 /// index
 
 class BlueberryWarGameManager extends MiniGameManager {
+  bool _hasWon = false;
   @override
-  bool get hasWon => problem.hiddenLetterStatuses
-      .every((status) => status != LetterStatus.hidden);
+  bool get hasWon => _hasWon;
 
   ///
   /// The points each player has earned in the mini game
@@ -103,6 +103,7 @@ class BlueberryWarGameManager extends MiniGameManager {
   Future<void> initialize() async {
     _logger.fine('BlueberryWarGameManager initializing');
 
+    _hasWon = false;
     _playersPoints.clear();
     _generateProblem();
 
@@ -205,7 +206,9 @@ class BlueberryWarGameManager extends MiniGameManager {
 
     final isSolutionRight = word == problem.letters.join();
     if (isSolutionRight) {
+      _hasWon = true;
       for (int i = 0; i < _problem!.uselessLetterStatuses.length; i++) {
+        _problem!.uselessLetterStatuses[i] = LetterStatus.normal;
         _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
       }
       _playersPoints[playerName] = wordValue;
@@ -255,24 +258,21 @@ class BlueberryWarGameManager extends MiniGameManager {
       Duration deltaTime, ControllableTimerStatus status) async {
     switch (status) {
       case ControllableTimerStatus.notInitialized:
-        break;
       case ControllableTimerStatus.initialized:
         break;
-      case ControllableTimerStatus.inProgress:
-        await _processRound(deltaTime);
-        break;
       case ControllableTimerStatus.paused:
-        break;
+      case ControllableTimerStatus.inProgress:
       case ControllableTimerStatus.ended:
+        await _processRound(deltaTime);
         break;
     }
   }
 
   @override
   void onRoundStatusChanged(ControllableTimerStatus newStatus) {
-    super.onRoundStatusChanged(newStatus);
-
     if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+
+    super.onRoundStatusChanged(newStatus);
   }
 
   Future<void> _processRound(Duration deltaTime) async {
@@ -324,13 +324,10 @@ class BlueberryWarGameManager extends MiniGameManager {
 
     // Reveal the problem
     for (int i = 0; i < _problem!.hiddenLetterStatuses.length; i++) {
-      if (hasWon) {
-        _problem!.hiddenLetterStatuses[i] = LetterStatus.normal;
-        _problem!.uselessLetterStatuses[i] = LetterStatus.normal;
-        onLetterHitByBlueberry.notifyListeners((callback) => callback(i, true));
-      } else {
-        _problem!.hiddenLetterStatuses[i] = LetterStatus.revealed;
+      if (problem.hiddenLetterStatuses[i] == LetterStatus.hidden) {
+        problem.hiddenLetterStatuses[i] = LetterStatus.revealed;
       }
+      onLetterHitByBlueberry.notifyListeners((callback) => callback(i, true));
     }
   }
 }

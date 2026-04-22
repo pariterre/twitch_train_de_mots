@@ -15,8 +15,11 @@ class ControllableTimer {
   /// How much time is left
   DateTime? _endsAt;
   DateTime? get endsAt => _endsAt;
-  Duration? get timeRemaining => _endsAt?.difference(DateTime.now());
-  // TODO Add a timeRemaining that stop decreasing when the timer is paused or ended
+  Duration? get timeRemaining =>
+      (_endsAt?.difference(DateTime.now()) ?? Duration.zero) +
+      (pauseTime ?? Duration.zero);
+  Duration? get pauseTime =>
+      _pausedAt != null ? DateTime.now().difference(_pausedAt!) : null;
 
   ///
   /// Manage ending flag
@@ -116,6 +119,20 @@ class ControllableTimer {
 
     _endsAt = _endsAt?.add(duration);
     _logger.finer('Added ${duration.inMilliseconds} milliseconds to the round');
+  }
+
+  ///
+  /// Subtract time from the timer.
+  void subtractTime(Duration duration) {
+    if (!isInitialized) throw Exception('Timer is not initialized.');
+    if (status != ControllableTimerStatus.inProgress &&
+        status != ControllableTimerStatus.paused) {
+      throw Exception('Timer is not started.');
+    }
+
+    _endsAt = _endsAt?.subtract(duration);
+    _logger.finer(
+        'Subtracted ${duration.inMilliseconds} milliseconds from the round');
   }
 
   ///

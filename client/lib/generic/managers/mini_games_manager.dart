@@ -40,6 +40,17 @@ abstract class MiniGameManager {
   );
   SerializableControllableTimer get roundTimer => _roundTimer.toSerializable();
 
+  ///
+  /// Pause the round timer
+  void pauseRound() {
+    _roundTimer.pause();
+  }
+
+  /// Resume the round timer
+  void resumeRound() {
+    _roundTimer.resume();
+  }
+
   ControllableTimerStatus get roundStatus => _roundTimer.status;
 
   ///
@@ -68,7 +79,6 @@ abstract class MiniGameManager {
 
   void terminateRound() {
     _roundTimer.stop();
-    onRoundEnded.notifyListeners((callback) => callback());
   }
 
   ///
@@ -111,6 +121,7 @@ abstract class MiniGameManager {
       case ControllableTimerStatus.paused:
         break;
       case ControllableTimerStatus.ended:
+        pauseRound();
         onRoundEnded.notifyListeners((callback) => callback());
         break;
     }

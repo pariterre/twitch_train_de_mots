@@ -83,8 +83,7 @@ class WordsTrainGameManager {
 
   DateTime? _roundEndsAt;
   DateTime? get roundEndsAt => _roundEndsAt;
-  Duration? get timeRemaining =>
-      _roundEndsAt?.difference(DateTime.now()) ?? Duration.zero;
+  Duration? get timeRemaining => _roundEndsAt?.difference(DateTime.now());
   Duration _previousRoundTimeRemaining = Duration.zero;
   Duration get previousRoundTimeRemaining =>
       Duration(seconds: max(_previousRoundTimeRemaining.inSeconds, 0));
@@ -256,7 +255,8 @@ class WordsTrainGameManager {
     }
     _logger.info('Pausing the game...');
     _pauseStartedAt = DateTime.now();
-    _autoStart.pause();
+    if (_autoStart.isInitialized) _autoStart.pause();
+    Managers.instance.miniGames.manager?.pauseRound();
   }
 
   ///
@@ -271,7 +271,8 @@ class WordsTrainGameManager {
     final pauseDuration = DateTime.now().difference(_pauseStartedAt!);
     _roundEndsAt = _roundEndsAt?.add(pauseDuration);
     _pauseStartedAt = null;
-    _autoStart.resume();
+    if (_autoStart.isInitialized) _autoStart.resume();
+    Managers.instance.miniGames.manager?.resumeRound();
   }
 
   ///
@@ -487,6 +488,11 @@ class WordsTrainGameManager {
       return;
     }
 
+    if (Managers.instance.miniGames.current != null) {
+      // If the previous round was a minigame, we need to finalize it before starting a new round
+      Managers.instance.miniGames.finalize();
+    }
+
     onRoundIsPreparing.notifyListeners((callback) => callback());
     if (_isNextRoundAMiniGame) {
       _logger.info('Preparing the mini game $_currentMiniGame...');
@@ -516,16 +522,21 @@ class WordsTrainGameManager {
     }
 
     // Start the round
+    pauseGame();
     await _sendTelegramToPlayers();
+    resumeGame();
     _gameStatus = WordsTrainGameStatus.roundStarted;
 
-    final cm = Managers.instance.configuration;
-    _roundEndsAt = DateTime.now()
-        .add(cm.roundDuration)
-        .add(cm.postRoundGracePeriodDuration)
-        .subtract(Duration(seconds: roundCount));
+    if (_isRoundAMiniGame) {
+      // Do any minigame configuration if needed
+    } else {
+      final cm = Managers.instance.configuration;
+      _roundEndsAt = DateTime.now()
+          .add(cm.roundDuration)
+          .add(cm.postRoundGracePeriodDuration)
+          .subtract(Duration(seconds: roundCount));
+    }
     onRoundStarted.notifyListeners((callback) => callback());
-
     _logger.info('New round started');
   }
 
@@ -1358,7 +1369,6 @@ class WordsTrainGameManager {
 
     mgm.onRoundEnded.cancel(_miniGameEnded);
     final playerPoints = Managers.instance.miniGames.getPlayersPoints();
-    Managers.instance.miniGames.finalize();
 
     // Give some perks based on the mini game
     if (mgm.hasWon) {

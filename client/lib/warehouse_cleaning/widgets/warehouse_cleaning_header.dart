@@ -41,13 +41,12 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
-    if (_previousTimeRemaining.inSeconds !=
-        (Managers.instance.miniGames.warehouseCleaning.timeRemaining
-                ?.inSeconds ??
-            0)) {
-      _previousTimeRemaining =
-          Managers.instance.miniGames.warehouseCleaning.timeRemaining ??
-              Duration.zero;
+    final timeRemaining =
+        Managers.instance.miniGames.warehouseCleaning.timeRemaining ??
+            Duration.zero;
+
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
       setState(() {});
     }
   }
@@ -64,6 +63,11 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
+    final whgm = Managers.instance.miniGames.warehouseCleaning;
+
+    final timeRemaining = (whgm.timeRemaining?.isNegative ?? true)
+        ? 0
+        : whgm.timeRemaining!.inSeconds + 1;
 
     return Column(
       children: [
@@ -76,7 +80,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
               children: [
                 ThemeCard(
                   child: Text(
-                    'Temps restant: ${Managers.instance.miniGames.warehouseCleaning.timeRemaining?.inSeconds ?? 0}',
+                    'Temps restant: $timeRemaining',
                     style: tm.clientMainTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 26,
@@ -85,7 +89,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
                 ),
                 ThemeCard(
                   child: Text(
-                    'Essais restants: ${Managers.instance.miniGames.warehouseCleaning.triesRemaining}',
+                    'Essais restants: ${whgm.triesRemaining}',
                     style: tm.clientMainTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 26,

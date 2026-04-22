@@ -18,9 +18,10 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   void initState() {
     super.initState();
 
-    final gm = Managers.instance.miniGames.fixTracks;
-    gm.onInitialized.listen(_onGameStarted);
-    gm.onTrySolution.listen(_onSolutionTried);
+    final ftgm = Managers.instance.miniGames.fixTracks;
+    ftgm.onInitialized.listen(_refresh);
+    ftgm.onTrySolution.listen(_onSolutionTried);
+    ftgm.onRoundEnded.listen(_refresh);
 
     Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
@@ -28,20 +29,24 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   @override
   void dispose() {
     Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
-    final gm = Managers.instance.miniGames.fixTracks;
-    gm.onInitialized.cancel(_onGameStarted);
-    gm.onTrySolution.cancel(_onSolutionTried);
+
+    final ftgm = Managers.instance.miniGames.fixTracks;
+    ftgm.onInitialized.cancel(_refresh);
+    ftgm.onTrySolution.cancel(_onSolutionTried);
+    ftgm.onRoundEnded.cancel(_refresh);
 
     super.dispose();
   }
 
-  void _onGameStarted() {
+  void _refresh() {
+    if (!mounted) return;
     setState(() {});
   }
 
   void _onClockTicked(Duration deltaTime) {
     final timeRemaining =
         Managers.instance.miniGames.fixTracks.timeRemaining ?? Duration.zero;
+
     if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
       _previousTimeRemaining = timeRemaining;
       setState(() {});
@@ -59,8 +64,13 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
-    final nextSegment =
-        Managers.instance.miniGames.fixTracks.grid.nextEmptySegment;
+    final ftgm = Managers.instance.miniGames.fixTracks;
+
+    final timeRemaining = (ftgm.timeRemaining?.isNegative ?? true)
+        ? 0
+        : ftgm.timeRemaining!.inSeconds + 1;
+
+    final nextSegment = ftgm.grid.nextEmptySegment;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 75.0),
@@ -71,7 +81,7 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
           children: [
             ThemeCard(
               child: Text(
-                'Temps restant: ${Managers.instance.miniGames.fixTracks.timeRemaining?.inSeconds ?? 0}',
+                'Temps restant: $timeRemaining',
                 style: tm.clientMainTextStyle.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 26,

@@ -237,9 +237,14 @@ class TreasureHuntGameManager extends MiniGameManager {
 
   @override
   void onRoundStatusChanged(ControllableTimerStatus newStatus) {
-    super.onRoundStatusChanged(newStatus);
-
     if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+
+    super.onRoundStatusChanged(newStatus);
+  }
+
+  @override
+  Future<bool> shouldEndRoundImmediately() async {
+    return triesRemaining <= 0 || hasWon;
   }
 
   Future<void> _processRoundIsEnding() async {

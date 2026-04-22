@@ -20,7 +20,8 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
     super.initState();
 
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onRoundStarted.listen(_onGameStarted);
+    gm.onRoundStarted.listen(_onGameUpdated);
+    gm.onGameUpdated.listen(_onGameUpdated);
     gm.onTileRevealed.listen(_onTileRevealed);
     gm.onRewardFound.listen(_onRewardFound);
 
@@ -30,7 +31,8 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   @override
   void dispose() {
     final gm = Managers.instance.miniGames.treasureHunt;
-    gm.onRoundStarted.cancel(_onGameStarted);
+    gm.onRoundStarted.cancel(_onGameUpdated);
+    gm.onGameUpdated.cancel(_onGameUpdated);
     gm.onTileRevealed.cancel(_onTileRevealed);
     gm.onRewardFound.cancel(_onRewardFound);
 
@@ -39,17 +41,17 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
     super.dispose();
   }
 
-  void _onGameStarted() {
+  void _onGameUpdated() {
+    if (!mounted) return;
     setState(() {});
   }
 
   void _onClockTicked(Duration deltaTime) {
-    if (_previousTimeRemaining.inSeconds !=
-        (Managers.instance.miniGames.treasureHunt.timeRemaining?.inSeconds ??
-            0)) {
-      _previousTimeRemaining =
-          Managers.instance.miniGames.treasureHunt.timeRemaining ??
-              Duration.zero;
+    final timeRemaining =
+        Managers.instance.miniGames.treasureHunt.timeRemaining ?? Duration.zero;
+
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
       setState(() {});
     }
   }
@@ -65,6 +67,11 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
+    final thgm = Managers.instance.miniGames.treasureHunt;
+
+    final timeRemaining = (thgm.timeRemaining?.isNegative ?? true)
+        ? 0
+        : thgm.timeRemaining!.inSeconds + 1;
 
     return Column(
       children: [
@@ -77,7 +84,7 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
               children: [
                 ThemeCard(
                   child: Text(
-                    'Temps restant: ${Managers.instance.miniGames.treasureHunt.timeRemaining?.inSeconds ?? 0}',
+                    'Temps restant: $timeRemaining',
                     style: tm.clientMainTextStyle.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 26,

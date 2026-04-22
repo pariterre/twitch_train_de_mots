@@ -308,24 +308,21 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       Duration deltaTime, ControllableTimerStatus status) async {
     switch (status) {
       case ControllableTimerStatus.notInitialized:
-        break;
       case ControllableTimerStatus.initialized:
         break;
-      case ControllableTimerStatus.inProgress:
-        await _processRound(deltaTime);
-        break;
       case ControllableTimerStatus.paused:
-        break;
+      case ControllableTimerStatus.inProgress:
       case ControllableTimerStatus.ended:
+        await _processRound(deltaTime);
         break;
     }
   }
 
   @override
   void onRoundStatusChanged(ControllableTimerStatus newStatus) {
-    super.onRoundStatusChanged(newStatus);
-
     if (newStatus == ControllableTimerStatus.ended) _processRoundIsEnding();
+
+    super.onRoundStatusChanged(newStatus);
   }
 
   Future<void> _processRound(Duration deltaTime) async {
@@ -368,6 +365,11 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       hiddenLetterStatuses:
           List.generate(word.length, (_) => LetterStatus.hidden),
     );
+  }
+
+  @override
+  Future<bool> shouldEndRoundImmediately() async {
+    return triesRemaining <= 0 || hasWon;
   }
 
   Future<void> _processRoundIsEnding() async {

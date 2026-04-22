@@ -188,6 +188,8 @@ class FixTracksGameManager extends MiniGameManager {
         _processRoundIsEnding();
         break;
     }
+
+    super.onRoundStatusChanged(newStatus);
   }
 
   Future<void> _processRoundIsEnding() async {

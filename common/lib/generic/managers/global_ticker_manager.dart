@@ -18,6 +18,7 @@ class GlobalTickerManager {
 
   Ticker? _ticker;
   final Duration _fixedDeltaTime;
+  Duration get fixedDeltaTime => _fixedDeltaTime;
 
   /// Recreates the [Ticker] with the new [TickerProvider].
   void resync(TickerProvider vsync) {

@@ -22,6 +22,7 @@ class _BlueberryWarLetterDisplayerState
     final gm = Managers.instance.miniGames.blueberryWar;
     gm.onInitialized.listen(refresh);
     gm.onLetterHitByBlueberry.listen(_onRevealLetter);
+
     refresh();
   }
 
@@ -45,6 +46,7 @@ class _BlueberryWarLetterDisplayerState
 
   void _onRevealLetter(int letterIndex, bool isDestroyed) {
     if (!isDestroyed) return;
+
     _fireworksControllers[letterIndex].trigger();
     setState(() {});
   }
