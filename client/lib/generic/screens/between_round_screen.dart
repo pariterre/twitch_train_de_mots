@@ -343,7 +343,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
                         ? () => gm.handleNextRoundAsMiniGame(
                             forceMinigame: MiniGames.fixTracks)
                         : null,
-                    buttonText: 'Jouer reparation'),
+                    buttonText: 'Jouer réparation'),
               ],
             ),
           ),
