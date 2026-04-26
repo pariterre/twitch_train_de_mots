@@ -626,7 +626,8 @@ class WordsTrainGameManager {
 
     _logger.fine('Trying solution from $playerName: $word');
 
-    if (problem == null || timeRemaining == null) {
+    if (_gameStatus != WordsTrainGameStatus.roundStarted ||
+        _currentProblem == null) {
       _logger.fine('Cannot try solution at this time');
       return false;
     }
@@ -1008,8 +1009,7 @@ class WordsTrainGameManager {
   Future<void> _tickingClock(Duration deltaTime) async {
     _logger.fine('Tic...');
 
-    if (_gameStatus != WordsTrainGameStatus.roundStarted ||
-        timeRemaining == null) {
+    if (_isRoundAMiniGame || _gameStatus != WordsTrainGameStatus.roundStarted) {
       _logger.fine('The game is not running, so nothing more to do');
       _logger.fine('Toc');
       return;
