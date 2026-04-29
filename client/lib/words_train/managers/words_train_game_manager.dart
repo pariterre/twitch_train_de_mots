@@ -944,6 +944,8 @@ class WordsTrainGameManager {
 
   void _onAutoStartClockTicked(
       Duration deltaTime, ControllableTimerStatus status) {
+    if (_autoStart.status == ControllableTimerStatus.notInitialized) return;
+
     // If we are waiting for the round to start preparing
     if (_gameStatus != WordsTrainGameStatus.roundPreparing) {
       _logger.fine('Round is not preparing, so we delay the start');
@@ -970,6 +972,8 @@ class WordsTrainGameManager {
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   Future<void> _tickingClock(Duration deltaTime) async {
+    // TODO Find why cooldown sometimes is not working anymore
+    // TODO Find why minigames won't start if we find all words
     _logger.fine('Tic...');
 
     if (_isRoundAMiniGame || _gameStatus != WordsTrainGameStatus.roundStarted) {
