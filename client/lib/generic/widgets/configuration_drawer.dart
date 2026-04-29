@@ -85,10 +85,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           : 'Afficher le tableau des cheminot·e·s'),
                       enabled: true,
                       onTap: !gm.hasPlayedAtLeastOnce ||
-                              gm.gameStatus ==
-                                  WordsTrainGameStatus.roundStarted ||
-                              gm.gameStatus ==
-                                  WordsTrainGameStatus.miniGameStarted
+                              gm.gameStatus == WordsTrainGameStatus.roundStarted
                           ? () async {
                               await gm.requestTerminateRound();
                               if (context.mounted) Navigator.pop(context);

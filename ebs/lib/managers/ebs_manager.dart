@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
@@ -22,11 +23,13 @@ class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SerializableGameState _gameState = SerializableGameState(
-    status: WordsTrainGameStatus.initializing,
-    round: 0,
+    roundCount: 0,
+    gameStatus: WordsTrainGameStatus.initializing,
+    isRoundAMiniGame: false,
     isRoundSuccess: false,
-    roundEndsAt: null,
-    cooldowns: {},
+    roundTimer: SerializableControllableTimer(
+        isInitialized: false, endsAt: null, pausedAt: null),
+    players: {},
     letterProblem: null,
     pardonRemaining: 0,
     pardonners: [],
@@ -45,11 +48,11 @@ class EbsManager extends TwitchEbsManagerAbstract {
     _gameState = value;
 
     // Convert the cooldowns from login to opaque id
-    for (final login in _gameState.cooldowns.keys.toList()) {
+    for (final login in _gameState.players.keys.toList()) {
       final opaqueId =
           registeredFrontendUsers.from(login: login)?.opaqueId ?? '';
-      _gameState.cooldowns[opaqueId] = _gameState.cooldowns[login]!;
-      _gameState.cooldowns.remove(login);
+      _gameState.players[opaqueId] = _gameState.players[login]!;
+      _gameState.players.remove(login);
     }
 
     // Convert the pardonners from login to opaque id

@@ -75,13 +75,14 @@ class _MainExtensionState extends State<MainExtension>
     final gm = GameManager.instance;
 
     double sizeFactor = 1.2;
-    if (gm.status == WordsTrainGameStatus.miniGameStarted &&
+    if (gm.isRoundAMiniGame &&
+        gm.status == WordsTrainGameStatus.roundStarted &&
         boxSizeController.factor != sizeFactor) {
       setState(() {
         boxSizeController.factor = sizeFactor;
       });
-    } else if (gm.status != WordsTrainGameStatus.miniGameStarted &&
-        boxSizeController.factor == sizeFactor) {
+    } else if (boxSizeController.factor == sizeFactor) {
+      // TODO check this
       setState(() {
         boxSizeController.factor = 1 / sizeFactor;
       });
@@ -241,33 +242,24 @@ class _MainScreenState extends State<_MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    switch (GameManager.instance.status) {
-      case WordsTrainGameStatus.uninitialized:
-      case WordsTrainGameStatus.initializing:
-      case WordsTrainGameStatus.roundPreparing:
-      case WordsTrainGameStatus.roundReady:
-      case WordsTrainGameStatus.roundEnding:
-        return const WaitingScreen();
-      case WordsTrainGameStatus.roundStarted:
-        return PlayScreen(
-            isMobile: widget.isMobile, showTextInput: widget.showTextInput);
-      case WordsTrainGameStatus.miniGamePreparing:
-      case WordsTrainGameStatus.miniGameReady:
-      case WordsTrainGameStatus.miniGameEnding:
-        return const WaitingScreen();
-      case WordsTrainGameStatus.miniGameStarted:
-        {
-          switch (GameManager.instance.currentMiniGameType!) {
-            case MiniGames.treasureHunt:
-              return const TreasureHuntPlayScreen();
-            case MiniGames.blueberryWar:
-              return const BlueberryWarPlayScreen();
-            case MiniGames.warehouseCleaning:
-              return const WarehouseCleaningPlayScreen();
-            case MiniGames.fixTracks:
-              return const FixTracksPlayScreen();
+    final gm = GameManager.instance;
+
+    return gm.isRoundAMiniGame
+        ? switch (GameManager.instance.currentMiniGameType!) {
+            MiniGames.treasureHunt => const TreasureHuntPlayScreen(),
+            MiniGames.blueberryWar => const BlueberryWarPlayScreen(),
+            MiniGames.warehouseCleaning => const WarehouseCleaningPlayScreen(),
+            MiniGames.fixTracks => const FixTracksPlayScreen(),
           }
-        }
-    }
+        : switch (GameManager.instance.status) {
+            WordsTrainGameStatus.uninitialized ||
+            WordsTrainGameStatus.initializing ||
+            WordsTrainGameStatus.roundPreparing ||
+            WordsTrainGameStatus.roundReady ||
+            WordsTrainGameStatus.roundEnding =>
+              const WaitingScreen(),
+            WordsTrainGameStatus.roundStarted => PlayScreen(
+                isMobile: widget.isMobile, showTextInput: widget.showTextInput),
+          };
   }
 }

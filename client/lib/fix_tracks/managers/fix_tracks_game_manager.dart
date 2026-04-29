@@ -177,11 +177,8 @@ class FixTracksGameManager extends MiniGameManager {
   void onRoundStatusChanged(ControllableTimerStatus newStatus) {
     switch (newStatus) {
       case ControllableTimerStatus.notInitialized:
-        break;
       case ControllableTimerStatus.initialized:
-        break;
       case ControllableTimerStatus.inProgress:
-        break;
       case ControllableTimerStatus.paused:
         break;
       case ControllableTimerStatus.ended:

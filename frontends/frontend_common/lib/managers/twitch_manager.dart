@@ -632,13 +632,15 @@ class TwitchManagerMock extends TwitchManager {
             data: jsonDecode(jsonEncode({
               'type': ToFrontendMessages.gameState.name,
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.miniGameStarted,
-                round: 11,
+                roundCount: 11,
+                gameStatus: WordsTrainGameStatus.roundStarted,
+                isRoundAMiniGame: true,
                 isRoundSuccess: true,
-                roundEndsAt: DateTime.now().add(const Duration(seconds: 83)),
-                cooldowns: {
-                  userId: DateTime.now().add(const Duration(seconds: 5))
-                },
+                roundTimer: SerializableControllableTimer(
+                    isInitialized: true,
+                    endsAt: DateTime.now().add(const Duration(seconds: 83)),
+                    pausedAt: null),
+                players: {},
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
@@ -704,13 +706,15 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
-                status: WordsTrainGameStatus.roundPreparing,
-                round: 13,
+                roundCount: 13,
+                gameStatus: WordsTrainGameStatus.roundPreparing,
+                isRoundAMiniGame: true,
                 isRoundSuccess: false,
-                roundEndsAt: DateTime.now().add(const Duration(seconds: 83)),
-                cooldowns: {
-                  userId: DateTime.now().add(const Duration(seconds: 5))
-                },
+                roundTimer: SerializableControllableTimer(
+                    isInitialized: true,
+                    endsAt: DateTime.now().add(const Duration(seconds: 83)),
+                    pausedAt: null),
+                players: {},
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
                   scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],

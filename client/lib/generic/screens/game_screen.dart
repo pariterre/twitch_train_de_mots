@@ -1,5 +1,4 @@
 import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/blueberry_war/screens/blueberry_war_game_screen.dart';
@@ -15,30 +14,22 @@ class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final twitchManager = Managers.instance.twitch;
-    final tm = ThemeManager.instance;
+    final tm = Managers.instance.train;
 
     return twitchManager.isNotConnected
-        ? Center(child: CircularProgressIndicator(color: tm.mainColor))
+        ? Center(
+            child: CircularProgressIndicator(
+                color: ThemeManager.instance.mainColor))
         : twitchManager.debugOverlay(
-            child: switch (Managers.instance.train.gameStatus) {
-            WordsTrainGameStatus.uninitialized ||
-            WordsTrainGameStatus.initializing ||
-            WordsTrainGameStatus.roundPreparing ||
-            WordsTrainGameStatus.roundReady ||
-            WordsTrainGameStatus.roundStarted ||
-            WordsTrainGameStatus.roundEnding =>
-              const WordsTrainGameScreen(),
-            WordsTrainGameStatus.miniGamePreparing ||
-            WordsTrainGameStatus.miniGameReady ||
-            WordsTrainGameStatus.miniGameStarted ||
-            WordsTrainGameStatus.miniGameEnding =>
-              switch (Managers.instance.miniGames.currentOrPrevious) {
-                MiniGames.blueberryWar => const BlueberryWarGameScreen(),
-                MiniGames.treasureHunt => const TreasureHuntGameScreen(),
-                MiniGames.warehouseCleaning =>
-                  const WarehouseCleaningGameScreen(),
-                MiniGames.fixTracks => const FixTracksGameScreen(),
-              }
-          });
+            child: tm.isRoundAMiniGame
+                ? switch (Managers.instance.miniGames.currentOrPrevious) {
+                    MiniGames.blueberryWar => const BlueberryWarGameScreen(),
+                    MiniGames.treasureHunt => const TreasureHuntGameScreen(),
+                    MiniGames.warehouseCleaning =>
+                      const WarehouseCleaningGameScreen(),
+                    MiniGames.fixTracks => const FixTracksGameScreen(),
+                  }
+                : const WordsTrainGameScreen(),
+          );
   }
 }

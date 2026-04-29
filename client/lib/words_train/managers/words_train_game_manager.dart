@@ -11,6 +11,7 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/controllable_timer.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/words_train/managers/two_step_requester.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
@@ -21,81 +22,50 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 final _logger = Logger('GameManager');
 
 class WordsTrainGameManager {
+  /// ---------------- ///
+  /// MEMBER VARIABLES ///
+  /// ---------------- ///
+
+  ///
+  /// Whether the game manager is ready to be used.
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
-  WordsTrainGameManager() {
-    _asyncInitializations();
-  }
 
-  Future<void> _asyncInitializations() async {
-    _logger.config('Initializing...');
+  ///
+  /// Random generator.
+  final _random = Random();
 
-    while (true) {
-      try {
-        Managers.instance.configuration.onChanged.listen(_checkForInvalidRules);
-        break;
-      } on ManagerNotInitializedException {
-        // Wait and repeat
-        await Future.delayed(const Duration(milliseconds: 100));
-      }
-    }
-
-    _isInitialized = true;
-
-    _logger.config('Ready');
-    while (!Managers.instance.allManagersInitialized) {
-      // Wait for all managers to be initialized before allowing the game to start
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
-  }
-
-  /// ---------- ///
-  /// GAME LOGIC ///
-  /// ---------- ///
-
+  ///
+  /// All the players currently registered in the game.
   final Players players = Players();
 
   WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
   WordsTrainGameStatus get gameStatus {
-    if (!_isRoundAMiniGame) {
-      if (_gameStatus == WordsTrainGameStatus.roundPreparing &&
-          isNextProblemReady) {
-        return WordsTrainGameStatus.roundReady;
-      }
-      return _gameStatus;
-    }
-
-    if (_gameStatus == WordsTrainGameStatus.roundPreparing ||
-        _gameStatus == WordsTrainGameStatus.roundReady) {
-      return Managers.instance.miniGames.manager?.isInitialized == false
-          ? WordsTrainGameStatus.miniGameReady
-          : WordsTrainGameStatus.miniGamePreparing;
-    } else if (_gameStatus == WordsTrainGameStatus.roundStarted) {
-      return WordsTrainGameStatus.miniGameStarted;
-    } else if (_gameStatus == WordsTrainGameStatus.roundEnding) {
-      return WordsTrainGameStatus.miniGameEnding;
+    if (_gameStatus == WordsTrainGameStatus.roundPreparing &&
+        isNextProblemReady) {
+      return WordsTrainGameStatus.roundReady;
     }
     return _gameStatus;
   }
 
-  final _random = Random();
+  int _roundCount = 0;
+  int get roundCount => _roundCount;
 
-  DateTime? _roundEndsAt;
-  DateTime? get roundEndsAt => _roundEndsAt;
-  Duration? get timeRemaining => _roundEndsAt?.difference(DateTime.now());
+  final _roundTimer = ControllableTimer(
+    onStatusChanged: (status) {},
+    onClockTicked: (deltaTime, status) {},
+  )..initialize();
+  ControllableTimer get roundTimer => _roundTimer;
+  DateTime? get roundEndsAt => _roundTimer.endsAt;
+  Duration? get timeRemaining => _roundTimer.timeRemaining;
   Duration _previousRoundTimeRemaining = Duration.zero;
   Duration get previousRoundTimeRemaining =>
       Duration(seconds: max(_previousRoundTimeRemaining.inSeconds, 0));
 
-  DateTime? _pauseStartedAt;
+  Difficulty get _currentDifficulty =>
+      Managers.instance.configuration.difficulty(_roundCount);
 
-  int _roundCount = 0;
-  int get roundCount => _roundCount;
-  late Difficulty _currentDifficulty =
-      Managers.instance.configuration.difficulty(0);
-
-  Duration cooldownDuration({required Player player}) {
+  Duration _computeCooldownDuration({required Player player}) {
     final cm = Managers.instance.configuration;
     return Duration(
         seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
@@ -112,10 +82,7 @@ class WordsTrainGameManager {
       (!_isGeneratingProblem && _nextProblem != null);
   bool get canProceedToNextRound =>
       (isNextProblemReady || _isNextRoundAMiniGame) &&
-      (_playerPreparingCongratulationFireworks == null &&
-          _playerPreparingTheBigHeist == null &&
-          _playerPreparingFixTracksMiniGame == null) &&
-      !_areCongratulationFireworksFiring;
+      _roundTimer.status != ControllableTimerStatus.paused;
 
   LetterProblem? get problem => _currentProblem;
   List<LetterStatus> get uselessLetterStatuses => problem == null
@@ -190,55 +157,129 @@ class WordsTrainGameManager {
   bool _canChangeLane = false;
   bool _isChangingLane = false;
   bool get canChangeLane => _canChangeLane && !_isChangingLane;
-  bool canRequestChangeOfLane({required String? playerName}) => canChangeLane;
+  late final changeLaneRequester = TwoStepRequester(
+    canRequest: () async => canChangeLane,
+    onRequestInitialized: (playerName) async {},
+    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+      if (isConfirmed) _performChangeOfLane();
+    },
+  );
 
   bool _canAttemptTheBigHeist = false;
   bool _isAttemptingTheBigHeist = false;
-  String? _playerPreparingTheBigHeist;
-  bool canRequestTheBigHeist({required String? playerName}) =>
-      _canAttemptTheBigHeist &&
-      !_isAttemptingTheBigHeist &&
-      (_playerPreparingTheBigHeist == null ||
-          _playerPreparingTheBigHeist == playerName);
+  bool get canRequestTheBigHeist =>
+      _canAttemptTheBigHeist && !_isAttemptingTheBigHeist;
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
+  late final attemptTheBigHeistRequester = TwoStepRequester(
+    canRequest: () async => canRequestTheBigHeist,
+    onRequestInitialized: (playerName) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+      resumeGame();
+      if (isConfirmed) _attemptTheBigHeist(playerName: playerName);
+    },
+  );
 
+  int _fixTracksMiniGamesAttempted = 0;
   bool _canAttemptFixTracksMiniGame = false;
   bool _isAttemptingFixTracksMiniGame = false;
-  String? _playerPreparingFixTracksMiniGame;
-  bool canRequestFixTracksMiniGame({required String? playerName}) =>
-      _canAttemptFixTracksMiniGame &&
-      !_isAttemptingFixTracksMiniGame &&
-      (_playerPreparingFixTracksMiniGame == null ||
-          _playerPreparingFixTracksMiniGame == playerName);
+  bool get canRequestFixTracksMiniGame =>
+      _canAttemptFixTracksMiniGame && !_isAttemptingFixTracksMiniGame;
   bool get isAttemptingFixTracksMiniGame => _isAttemptingFixTracksMiniGame;
-  int _railwayMiniGamesAttempted = 0;
+  late final fixTracksMiniGameRequester = TwoStepRequester(
+    canRequest: () async => canRequestFixTracksMiniGame,
+    onRequestInitialized: (playerName) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+      resumeGame();
+      if (isConfirmed) _prepareFixTracksMiniGame();
+    },
+  );
 
   bool _isNextRoundAMiniGame = false;
   bool get isNextRoundAMiniGame => _isNextRoundAMiniGame;
   bool _isRoundAMiniGame = false;
   bool get isRoundAMiniGame => _isRoundAMiniGame;
   MiniGames? _currentMiniGame;
+  MiniGames? get currentMiniGame => _isRoundAMiniGame ? _currentMiniGame : null;
   MiniGames? get nextRoundMiniGame =>
       _isNextRoundAMiniGame ? _currentMiniGame : null;
 
   bool _canRequestCongratulationFireworks = false;
   bool _areCongratulationFireworksFiring = false;
-  String? _playerPreparingCongratulationFireworks;
-  bool canRequestCongratulationFireworks({required String? playerName}) =>
-      _canRequestCongratulationFireworks &&
-      !_areCongratulationFireworksFiring &&
-      (_playerPreparingCongratulationFireworks == null ||
-          _playerPreparingCongratulationFireworks == playerName);
+  bool get canRequestCongratulationFireworks =>
+      _canRequestCongratulationFireworks && !_areCongratulationFireworksFiring;
+  late final congratulationFireworksRequester = TwoStepRequester(
+    canRequest: () async => canRequestCongratulationFireworks,
+    onRequestInitialized: (playerName) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+      resumeGame();
+      if (isConfirmed) _performCongratulationFireworks(playerName: playerName);
+    },
+  );
 
   late final _autoStart = ControllableTimer(
       onClockTicked: _onAutoStartClockTicked,
-      onStatusChanged: _onRoundStatusChanged);
-  DateTime? get nextRoundStartAt => _autoStart.endsAt;
+      onStatusChanged: _onAutoStartStatusChanged);
+  Duration? get timeRemainingBeforeAutoStart => _autoStart.timeRemaining;
   void cancelAutoStart() => _autoStart.dispose();
 
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
+
+  WordsTrainGameManager() {
+    _asyncInitializations();
+  }
+
+  Future<void> _asyncInitializations() async {
+    _logger.config('Initializing...');
+
+    while (true) {
+      try {
+        Managers.instance.configuration.onChanged.listen(_checkForInvalidRules);
+        break;
+      } on ManagerNotInitializedException {
+        // Wait and repeat
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    _isInitialized = true;
+
+    _logger.config('Ready');
+    while (!Managers.instance.allManagersInitialized) {
+      // Wait for all managers to be initialized before allowing the game to start
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
+  }
+
+  SerializableGameState serialize() {
+    return SerializableGameState(
+      roundCount: roundCount,
+      gameStatus: gameStatus,
+      isRoundAMiniGame: isRoundAMiniGame,
+      isRoundSuccess: successLevel.toInt() > 0,
+      roundTimer: _roundTimer.toSerializable(),
+      players: players
+          .asMap()
+          .map((_, player) => MapEntry(player.name, player.serialize())),
+      letterProblem: serializableProblem,
+      pardonRemaining: remainingPardon,
+      pardonners: [lastStolenSolution?.stolenFrom.name ?? ''],
+      boostRemaining: remainingBoosts,
+      boostStillNeeded: numberOfBoostStillNeeded,
+      boosters: requestedBoost.map((e) => e.name).toList(),
+      canRequestTheBigHeist: canRequestTheBigHeist,
+      isAttemptingTheBigHeist: isAttemptingTheBigHeist,
+      canRequestFixTracksMiniGame: canRequestFixTracksMiniGame,
+      isAttemptingFixTracksMiniGame: isAttemptingFixTracksMiniGame,
+      configuration: SerializableConfiguration(
+          showExtension: Managers.instance.configuration.showExtension),
+      miniGameState: isRoundAMiniGame || isNextRoundAMiniGame
+          ? Managers.instance.miniGames.manager?.serializeMiniGame()
+          : null,
+    );
+  }
 
   /// ----------- ///
   /// INTERACTION ///
@@ -248,13 +289,8 @@ class WordsTrainGameManager {
   /// Pause the game by stopping the round timer.
   ///
   void pauseGame() {
-    // TODO Add this when someone tries to exchange bits
-    if (_pauseStartedAt != null) {
-      _logger.warning('Game is already paused');
-      return;
-    }
     _logger.info('Pausing the game...');
-    _pauseStartedAt = DateTime.now();
+    _roundTimer.pause();
     if (_autoStart.isInitialized) _autoStart.pause();
     Managers.instance.miniGames.manager?.pauseRound();
   }
@@ -263,14 +299,8 @@ class WordsTrainGameManager {
   /// Resume the game by restarting the round timer with the remaining time when the game was paused.
   ///
   void resumeGame() {
-    if (_pauseStartedAt == null) {
-      _logger.warning('Game is not paused');
-      return;
-    }
     _logger.info('Resuming the game...');
-    final pauseDuration = DateTime.now().difference(_pauseStartedAt!);
-    _roundEndsAt = _roundEndsAt?.add(pauseDuration);
-    _pauseStartedAt = null;
+    _roundTimer.resume();
     if (_autoStart.isInitialized) _autoStart.resume();
     Managers.instance.miniGames.manager?.resumeRound();
   }
@@ -344,9 +374,7 @@ class WordsTrainGameManager {
   final onStealerPardoned = GenericListener<Function(WordSolution?)>();
   final onNewPardonGranted = GenericListener<Function()>();
   final onMiniGameGranted = GenericListener<Function(MiniGames)>();
-  final onFixTracksMiniGameIsBeingPrepared = GenericListener<
-      Function({required String playerName, required bool isActive})>();
-  final onRailwayMiniGameUpdated = GenericListener<Function()>();
+  final onFixTracksMiniGameUpdated = GenericListener<Function()>();
   final onNewBoostGranted = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onTrainBoostEnded = GenericListener<Function()>();
@@ -505,7 +533,7 @@ class WordsTrainGameManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
       mgm.onRoundEnded.listen(_miniGameEnded);
-      _roundSuccesses.clear();
+      _setValuesAtMiniGameStart();
       mgm.startRound();
     } else {
       _logger.info('Preparing a normal round...');
@@ -519,23 +547,18 @@ class WordsTrainGameManager {
       // Prepare next round
       if (_successLevel == SuccessLevel.failed) _restartGame();
       _setValuesAtStartRound();
+      final cm = Managers.instance.configuration;
+      _roundTimer.start(
+          duration: cm.roundDuration - Duration(seconds: roundCount));
     }
+    _gameStatus = WordsTrainGameStatus.roundStarted;
+    onRoundStarted.notifyListeners((callback) => callback());
 
     // Start the round
     pauseGame();
     await _sendTelegramToPlayers();
     resumeGame();
-    _gameStatus = WordsTrainGameStatus.roundStarted;
 
-    if (_isRoundAMiniGame) {
-      // Do any minigame configuration if needed
-    } else {
-      final cm = Managers.instance.configuration;
-      _roundEndsAt = DateTime.now()
-          .add(cm.roundDuration)
-          .subtract(Duration(seconds: roundCount));
-    }
-    onRoundStarted.notifyListeners((callback) => callback());
     _logger.info('New round started');
   }
 
@@ -608,6 +631,10 @@ class WordsTrainGameManager {
     _logger.info('Values set at the start of the round');
   }
 
+  void _setValuesAtMiniGameStart() {
+    _roundSuccesses.clear();
+  }
+
   ///
   /// Initialize the callbacks from Twitch chat to [trySolution]
   Future<void> _initializeTrySolutionCallback() async =>
@@ -619,18 +646,12 @@ class WordsTrainGameManager {
   /// the player score and notifies the listeners.
   Future<bool> trySolution(
       {required String playerName, required String word}) async {
-    if (_isRoundAMiniGame) {
-      _logger.fine('Cannot try solution while playing a mini game');
+    if (gameStatus != WordsTrainGameStatus.roundStarted) {
+      _logger.fine('Cannot try solution while not playing a round');
       return false;
     }
 
     _logger.fine('Trying solution from $playerName: $word');
-
-    if (_gameStatus != WordsTrainGameStatus.roundStarted ||
-        _currentProblem == null) {
-      _logger.fine('Cannot try solution at this time');
-      return false;
-    }
     final cm = Managers.instance.configuration;
 
     // Get the player from the players list
@@ -704,7 +725,7 @@ class WordsTrainGameManager {
     player.score += solution.value;
     if (solution.isGolden) player.starsCollected++;
 
-    player.startCooldown(duration: cooldownDuration(player: player));
+    player.startCooldown(duration: _computeCooldownDuration(player: player));
 
     // Call the listeners of solution found
     onSolutionFound.notifyListeners((callback) => callback(solution));
@@ -793,31 +814,13 @@ class WordsTrainGameManager {
     return true;
   }
 
-  Future<void> requestTheBigHeistPreparation(
-      {required String playerName}) async {
-    if (!canRequestTheBigHeist(playerName: playerName)) return;
-
-    _playerPreparingTheBigHeist = playerName;
-    onBigHeistIsBeingPrepared.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: true));
-
-    // Give 15 seconds to actually redeem the big heist
-    await Future.delayed(Duration(seconds: 15));
-
-    if (_playerPreparingTheBigHeist == null) return;
-    _playerPreparingTheBigHeist = null;
-    onBigHeistIsBeingPrepared.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: false));
-  }
-
-  bool requestTheBigHeist({required String playerName}) {
+  bool _attemptTheBigHeist({required String playerName}) {
     _logger.info('Requesting the big heist...');
-    if (!canRequestTheBigHeist(playerName: playerName)) {
+    if (!canRequestTheBigHeist) {
       _logger.warning('Big heist cannot be attempted');
       return false;
     }
 
-    _playerPreparingTheBigHeist = null;
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = true;
     onAttemptingTheBigHeist
@@ -827,52 +830,30 @@ class WordsTrainGameManager {
     return true;
   }
 
-  bool requestChangeOfLane({required String playerName}) {
-    _logger.info('Requesting the change of lane...');
-
-    if (!canChangeLane) {
-      _logger.warning('Cannot change lane at this time');
-      return false;
+  void _prepareFixTracksMiniGame() {
+    _logger.info('Preparing the fix tracks mini game...');
+    if (!canRequestFixTracksMiniGame) {
+      _logger.warning('Fix tracks mini game cannot be attempted');
+      return;
     }
 
-    _performChangeOfLane();
-    return true;
-  }
-
-  Future<void> requestFixTracksMiniGamePreparation(
-      {required String playerName}) async {
-    if (!canRequestFixTracksMiniGame(playerName: playerName)) return;
-
-    _playerPreparingFixTracksMiniGame = playerName;
-    onFixTracksMiniGameIsBeingPrepared.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: true));
-
-    // Give 15 seconds to actually redeem the end of railway mini game
-    await Future.delayed(Duration(seconds: 15));
-
-    if (_playerPreparingFixTracksMiniGame == null) return;
-    _playerPreparingFixTracksMiniGame = null;
-    onFixTracksMiniGameIsBeingPrepared.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: false));
-  }
-
-  bool requestFixTracksMiniGame({required String playerName}) {
-    _logger.info('Requesting an end of railway mini game...');
-
-    if (!canRequestFixTracksMiniGame(playerName: playerName)) return false;
-    _playerPreparingFixTracksMiniGame = null;
     _canAttemptFixTracksMiniGame = false;
-    _railwayMiniGamesAttempted += 1;
+    _fixTracksMiniGamesAttempted += 1;
 
     _isAttemptingFixTracksMiniGame = true;
     _isNextRoundAMiniGame = true;
     _currentMiniGame = MiniGames.fixTracksGames;
 
-    onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
-    return true;
+    onFixTracksMiniGameUpdated.notifyListeners((callback) => callback());
   }
 
   Future<void> _performChangeOfLane() async {
+    _logger.info('Changing lane...');
+    if (!canChangeLane) {
+      _logger.warning('Cannot change lane at this time');
+      return;
+    }
+
     // Perform a huge scramble of the letters
     _isChangingLane = true;
     bool hasNotified = false;
@@ -891,32 +872,15 @@ class WordsTrainGameManager {
   }
 
   ///
-  /// Request a stop in countdown or capability to launch the game, so a player
-  /// who is currenly redeeming a firework can do it
-  Future<void> requestFireworksPreparation({required String playerName}) async {
-    if (!canRequestCongratulationFireworks(playerName: playerName)) return;
-
-    _playerPreparingCongratulationFireworks = playerName;
-    onCongratulationFireworksPreparing.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: true));
-
-    // Give 15 seconds to actually redeem the fireworks
-    pauseGame();
-    await Future.delayed(Duration(seconds: 15));
-    if (!_areCongratulationFireworksFiring) resumeGame();
-
-    if (_playerPreparingCongratulationFireworks == null) return;
-    _playerPreparingCongratulationFireworks = null;
-    onCongratulationFireworksPreparing.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: false));
-  }
-
-  ///
   /// Request the actual firework process
-  Future<void> requestFireworks({required String playerName}) async {
-    if (!canRequestCongratulationFireworks(playerName: playerName)) return;
+  Future<void> _performCongratulationFireworks(
+      {required String playerName}) async {
+    _logger.info('Performing congratulation fireworks...');
+    if (!canRequestCongratulationFireworks) {
+      _logger.warning('Cannot request congratulation fireworks at this time');
+      return;
+    }
 
-    _playerPreparingCongratulationFireworks = null;
     _areCongratulationFireworksFiring = true;
 
     // This is triggered if a user sends fireworks to the screen
@@ -949,7 +913,6 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
 
     _roundCount = 0;
-    _currentDifficulty = cm.difficulty(_roundCount);
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 
     _remainingPardons = cm.numberOfPardons;
@@ -962,7 +925,7 @@ class WordsTrainGameManager {
     // There is no mini game at the start
     _isNextRoundAMiniGame = false;
     _isAttemptingFixTracksMiniGame = false;
-    _railwayMiniGamesAttempted = 0;
+    _fixTracksMiniGamesAttempted = 0;
     _isRoundAMiniGame = false;
     _currentMiniGame = null;
     _forceGoldenSolution = false;
@@ -996,7 +959,7 @@ class WordsTrainGameManager {
     }
   }
 
-  void _onRoundStatusChanged(ControllableTimerStatus newStatus) {
+  void _onAutoStartStatusChanged(ControllableTimerStatus newStatus) {
     if (newStatus == ControllableTimerStatus.ended) {
       _startNewRound();
       _logger.info('Automatic start of the round');
@@ -1239,11 +1202,10 @@ class WordsTrainGameManager {
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
     _roundCount += _successLevel.toInt();
-    _currentDifficulty = cm.difficulty(_roundCount);
 
     _generateNextProblem(force: false);
     if (_successLevel == SuccessLevel.failed) {
-      if (_railwayMiniGamesAttempted == 0) {
+      if (_fixTracksMiniGamesAttempted == 0) {
         _canAttemptFixTracksMiniGame = true;
       }
     } else {
@@ -1350,7 +1312,7 @@ class WordsTrainGameManager {
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
     _isAttemptingFixTracksMiniGame = false;
-    onRailwayMiniGameUpdated.notifyListeners((callback) => callback());
+    onFixTracksMiniGameUpdated.notifyListeners((callback) => callback());
   }
 
   MiniGames? _selectNextMiniGame() {
@@ -1451,8 +1413,6 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _roundCount += successLevel.toInt();
       _successLevel = successLevel;
     }
-    _currentDifficulty =
-        Managers.instance.configuration.difficulty(roundCount!);
 
     _initializeTrySolutionCallback();
     if (problem == null) {
@@ -1472,12 +1432,12 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     if (shouldAttemptTheBigHeist) {
       _canAttemptTheBigHeist = true;
-      requestTheBigHeist(playerName: 'Anonyme');
+      _attemptTheBigHeist(playerName: 'Anonyme');
     }
 
     if (shouldChangeLane) {
       Future.delayed(const Duration(seconds: 15))
-          .then((_) => requestChangeOfLane(playerName: 'Anonyme'));
+          .then((_) => _performChangeOfLane());
     }
 
     if (gameStatus != null) _gameStatus = gameStatus;

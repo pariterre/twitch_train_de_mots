@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/mini_games.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/widgets/theme_card.dart';
@@ -161,28 +162,26 @@ class _HeaderState extends State<_Header> {
 
     if (gm.problem == null) return Container();
 
-    late String title;
-    switch (gm.gameStatus) {
-      case WordsTrainGameStatus.roundStarted:
-        title = ' En direction de la Station N\u00b0${gm.roundCount + 1}!';
-        break;
-      case WordsTrainGameStatus.roundEnding:
-        title = 'Après avoir bien voyagé, le Train du Nord s\'arrête...';
-        break;
-      case WordsTrainGameStatus.uninitialized:
-      case WordsTrainGameStatus.initializing:
-      case WordsTrainGameStatus.roundReady:
-      case WordsTrainGameStatus.roundPreparing:
-        title = 'Le Train de mots!';
-        break;
-      case WordsTrainGameStatus.miniGamePreparing:
-        title = 'Ouverture du sentier...';
-        break;
-      case WordsTrainGameStatus.miniGameReady:
-      case WordsTrainGameStatus.miniGameStarted:
-      case WordsTrainGameStatus.miniGameEnding:
-        title = 'Promenons-nous dans les bois!';
-    }
+    String title = gm.isRoundAMiniGame
+        ? switch (gm.nextRoundMiniGame!) {
+            MiniGames.blueberryWar => 'La Guerre des Bleuets!',
+            MiniGames.treasureHunt => 'La Chasse au Trésor!',
+            MiniGames.warehouseCleaning => 'Nettoyons ce Hangar!',
+            MiniGames.fixTracks => 'Réparons les Rails!',
+          }
+        : switch (gm.gameStatus) {
+            WordsTrainGameStatus.uninitialized ||
+            WordsTrainGameStatus.initializing =>
+              'Le Train de mots!',
+            WordsTrainGameStatus.roundStarted =>
+              ' En direction de la Station N\u00b0${gm.roundCount + 1}!',
+            WordsTrainGameStatus.roundReady ||
+            WordsTrainGameStatus.roundPreparing ||
+            WordsTrainGameStatus.roundEnding =>
+              gm.hasPlayedAtLeastOnce
+                  ? 'Le Train du Nord prend enfin une pause'
+                  : 'Le Train de mots!',
+          };
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -268,43 +267,25 @@ class _HeaderTimerState extends State<_HeaderTimer> {
     final tm = ThemeManager.instance;
     final mgm = Managers.instance.miniGames.manager;
 
-    late String text;
-    switch (gm.gameStatus) {
-      case WordsTrainGameStatus.roundStarted:
-        final timeRemaining = (gm.timeRemaining?.isNegative ?? true)
-            ? 0
-            : gm.timeRemaining!.inSeconds + 1;
+    final timeRemainning =
+        (gm.isRoundAMiniGame ? mgm?.timeRemaining : gm.timeRemaining) ??
+            Duration(seconds: -1);
+    final timeRemainingInSeconds =
+        timeRemainning.isNegative ? 0 : timeRemainning.inSeconds + 1;
 
-        text = timeRemaining > 0
-            ? 'Temps restant à la manche : $timeRemaining secondes'
-            : 'Arrivée en gare';
-        break;
-      case WordsTrainGameStatus.roundPreparing:
-        text = 'Préparation de la manche...';
-        break;
-      case WordsTrainGameStatus.roundReady:
-        text = 'Prochaine manche prête!';
-        break;
-      case WordsTrainGameStatus.roundEnding:
-        text = 'Les solutions étaient :';
-        break;
-      case WordsTrainGameStatus.uninitialized:
-      case WordsTrainGameStatus.initializing:
-        text = 'Initialisation...';
-        break;
-      case WordsTrainGameStatus.miniGamePreparing:
-      case WordsTrainGameStatus.miniGameReady:
-      case WordsTrainGameStatus.miniGameStarted:
-      case WordsTrainGameStatus.miniGameEnding:
-        final timeRemaining = (mgm?.timeRemaining?.isNegative ?? true)
-            ? 0
-            : mgm!.timeRemaining!.inSeconds + 1;
-
-        text = timeRemaining > 0
-            ? 'Temps restant à la manche : $timeRemaining secondes'
-            : 'Retournons à la gare!';
-        break;
-    }
+    String text = switch (gm.gameStatus) {
+      WordsTrainGameStatus.roundPreparing => 'Préparation de la manche...',
+      WordsTrainGameStatus.roundReady => 'Prochaine manche prête!',
+      WordsTrainGameStatus.roundStarted => timeRemainingInSeconds > 0
+          ? 'Temps restant à la manche : $timeRemainingInSeconds secondes'
+          : 'Arrivée en gare',
+      WordsTrainGameStatus.roundEnding => gm.isRoundAMiniGame
+          ? 'Retournons à la gare'
+          : 'Les solutions étaient :',
+      WordsTrainGameStatus.uninitialized ||
+      WordsTrainGameStatus.initializing =>
+        'Initialisation...',
+    };
 
     return Text(
       text,

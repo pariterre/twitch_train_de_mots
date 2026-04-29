@@ -180,36 +180,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
   ///
   /// Get a serializable version of the GameState
-  SerializableGameState serializableGameState() {
-    final cm = Managers.instance.configuration;
-    final gm = Managers.instance.train;
-    final mgm = Managers.instance.miniGames.manager;
-
-    return SerializableGameState(
-      status: gm.gameStatus,
-      round: gm.roundCount,
-      isRoundSuccess: gm.successLevel.toInt() > 0,
-      roundEndsAt: gm.roundEndsAt,
-      cooldowns: gm.players
-          .asMap()
-          .map((_, player) => MapEntry(player.name, player.cooldownEndAt)),
-      letterProblem: gm.serializableProblem,
-      pardonRemaining: gm.remainingPardon,
-      pardonners: [gm.lastStolenSolution?.stolenFrom.name ?? ''],
-      boostRemaining: gm.remainingBoosts,
-      boostStillNeeded: gm.numberOfBoostStillNeeded,
-      boosters: gm.requestedBoost.map((e) => e.name).toList(),
-      canRequestTheBigHeist: gm.canRequestTheBigHeist(playerName: null),
-      isAttemptingTheBigHeist: gm.isAttemptingTheBigHeist,
-      canRequestFixTracksMiniGame:
-          gm.canRequestFixTracksMiniGame(playerName: null),
-      isAttemptingFixTracksMiniGame: gm.isAttemptingFixTracksMiniGame,
-      configuration: SerializableConfiguration(showExtension: cm.showExtension),
-      miniGameState: gm.isRoundAMiniGame || gm.isNextRoundAMiniGame
-          ? mgm?.serializeMiniGame()
-          : null,
-    );
-  }
+  SerializableGameState serializableGameState() =>
+      Managers.instance.train.serialize();
 
   Future<void> _sendGameStateToEbs() async => sendMessageToEbs(MessageProtocol(
           to: MessageTo.frontend,
@@ -234,177 +206,28 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   @override
   Future<void> handleGetRequest(MessageProtocol message) async {
     try {
-      final gm = Managers.instance.train;
-
-      switch (ToAppMessages.values.byName(message.data!['type'])) {
+      final requestType = ToAppMessages.values.byName(message.data!['type']);
+      switch (requestType) {
+        // General requests
         case ToAppMessages.isExtensionActive:
-          final activeVersion = message.data!['active_version'] as String?;
-          final acceptedExtensionVersions =
-              (message.data!['accepted_versions'] as List).cast<String>();
-          isExtensionActive = activeVersion != null &&
-              acceptedExtensionVersions.contains(activeVersion);
-          _logger.info(
-              'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
-          break;
-
         case ToAppMessages.gameStateRequest:
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: true,
-              data: {
-                'type': ToFrontendMessages.gameState.name,
-                'game_state': serializableGameState().serialize(),
-              }));
-          break;
+          return await _handleGeneralRequests(message);
 
+        // Main game requests
         case ToAppMessages.tryWord:
-          final playerName = message.data!['player_name'] as String;
-          final attemptedWord = message.data!['word'] as String;
-
-          final isSuccess =
-              await gm.trySolution(playerName: playerName, word: attemptedWord);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-          break;
-
         case ToAppMessages.pardonRequest:
-          final playerName = message.data!['player_name'] as String;
-          final player = gm.players.firstWhereOrAdd(playerName);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: gm.pardonLastStealer(pardonner: player)));
-          break;
-
         case ToAppMessages.boostRequest:
-          final playerName = message.data!['player_name'] as String;
-          final player = gm.players.firstWhereOrAdd(playerName);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: gm.boostTrain(player: player)));
-          break;
-
         case ToAppMessages.fireworksRequest:
-          final playerName = message.data!['player_name'] as String;
-          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest =
-              gm.canRequestCongratulationFireworks(playerName: playerName);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: canRequest));
-
-          if (canRequest) {
-            if (isRedeemed) {
-              gm.requestFireworks(playerName: playerName);
-            } else {
-              gm.requestFireworksPreparation(playerName: playerName);
-            }
-          }
-
-          break;
-
         case ToAppMessages.attemptTheBigHeist:
-          final playerName = message.data!['player_name'] as String;
-          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canRequestTheBigHeist(playerName: playerName);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: canRequest));
-
-          if (canRequest) {
-            if (isRedeemed) {
-              gm.requestTheBigHeist(playerName: playerName);
-              _sendGameStateToEbs();
-            } else {
-              gm.requestTheBigHeistPreparation(playerName: playerName);
-            }
-          }
-
-          break;
-
         case ToAppMessages.changeLaneRequest:
-          final playerName = message.data!['player_name'] as String;
-          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest = gm.canRequestChangeOfLane(playerName: playerName);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: canRequest));
-
-          if (canRequest && isRedeemed) {
-            gm.requestChangeOfLane(playerName: playerName);
-          }
-          break;
-
         case ToAppMessages.fixTracksMiniGameRequest:
-          final playerName = message.data!['player_name'] as String;
-          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
-          final canRequest =
-              gm.canRequestFixTracksMiniGame(playerName: playerName);
+          return await _handleMainGameRequest(message);
 
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: canRequest));
-
-          if (canRequest) {
-            if (isRedeemed) {
-              gm.requestFixTracksMiniGame(playerName: playerName);
-              _sendGameStateToEbs();
-            } else {
-              gm.requestFixTracksMiniGamePreparation(playerName: playerName);
-            }
-          }
-          break;
-
+        // Mini-game requests
         case ToAppMessages.revealTileAt:
-          final playerName = message.data!['player_name'] as String;
-          final isSuccess = gm.players.hasPlayer(playerName)
-              ? Managers.instance.miniGames.treasureHunt
-                  .revealTile(tileIndex: message.data!['index'] as int)
-              : false;
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-
         case ToAppMessages.slingShootBlueberry:
-          final bwm = Managers.instance.miniGames.blueberryWar;
-          final blueberryId = message.data!['id'] as int;
-          final blueberry = bwm.allAgents
-              .firstWhere((agent) => agent.id == blueberryId) as BlueberryAgent;
+          return await _handleMiniGameRequest(message);
 
-          final velocity =
-              Vector2Extension.deserialize(message.data!['velocity']);
-          bwm.slingShoot(blueberry: blueberry, newVelocity: velocity);
-
-          sendResponseToEbs(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.app,
-              type: MessageTypes.response,
-              isSuccess: true));
         case ToAppMessages.bitsRedeemed:
           throw UnimplementedError(
               'Bits redeemed should be handled by the EBS and rerouted properly');
@@ -417,6 +240,171 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           type: MessageTypes.response,
           isSuccess: false));
     }
+  }
+
+  Future<void> _handleGeneralRequests(MessageProtocol message) async {
+    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    switch (requestType) {
+      // General requests
+      case ToAppMessages.isExtensionActive:
+        final activeVersion = message.data!['active_version'] as String?;
+        final acceptedExtensionVersions =
+            (message.data!['accepted_versions'] as List).cast<String>();
+        isExtensionActive = activeVersion != null &&
+            acceptedExtensionVersions.contains(activeVersion);
+        _logger.info(
+            'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
+        break;
+
+      case ToAppMessages.gameStateRequest:
+        sendResponseToEbs(message.copyWith(
+            to: MessageTo.frontend,
+            from: MessageFrom.app,
+            type: MessageTypes.response,
+            isSuccess: true,
+            data: {
+              'type': ToFrontendMessages.gameState.name,
+              'game_state': serializableGameState().serialize(),
+            }));
+        break;
+
+      // Non-general requests
+      case ToAppMessages.tryWord:
+      case ToAppMessages.pardonRequest:
+      case ToAppMessages.boostRequest:
+      case ToAppMessages.fireworksRequest:
+      case ToAppMessages.attemptTheBigHeist:
+      case ToAppMessages.changeLaneRequest:
+      case ToAppMessages.fixTracksMiniGameRequest:
+      case ToAppMessages.revealTileAt:
+      case ToAppMessages.slingShootBlueberry:
+      case ToAppMessages.bitsRedeemed:
+        throw UnimplementedError(
+            'This is not a main game request and should be handled in the main handler');
+    }
+  }
+
+  Future<void> _handleMainGameRequest(MessageProtocol message) async {
+    final gm = Managers.instance.train;
+
+    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    final playerName = message.data!['player_name'] as String;
+    final player = gm.players.firstWhereOrAdd(playerName);
+
+    switch (requestType) {
+      // Single-pass requests
+      case ToAppMessages.tryWord:
+      case ToAppMessages.pardonRequest:
+      case ToAppMessages.boostRequest:
+        final isSuccess = switch (requestType) {
+          ToAppMessages.tryWord => await gm.trySolution(
+              playerName: playerName, word: message.data!['word'] as String),
+          ToAppMessages.pardonRequest =>
+            gm.pardonLastStealer(pardonner: player),
+          ToAppMessages.boostRequest => gm.boostTrain(player: player),
+          _ => throw UnimplementedError(
+              'Handler for $requestType is not implemented'),
+        };
+
+        sendResponseToEbs(message.copyWith(
+            to: MessageTo.frontend,
+            from: MessageFrom.app,
+            type: MessageTypes.response,
+            isSuccess: isSuccess));
+        break;
+
+      // Two-pass requests
+      case ToAppMessages.fireworksRequest:
+      case ToAppMessages.attemptTheBigHeist:
+      case ToAppMessages.changeLaneRequest:
+      case ToAppMessages.fixTracksMiniGameRequest:
+        final requester = switch (requestType) {
+          ToAppMessages.fireworksRequest => gm.congratulationFireworksRequester,
+          ToAppMessages.attemptTheBigHeist => gm.attemptTheBigHeistRequester,
+          ToAppMessages.changeLaneRequest => gm.changeLaneRequester,
+          ToAppMessages.fixTracksMiniGameRequest =>
+            gm.fixTracksMiniGameRequester,
+          _ => throw UnimplementedError(
+              'Requester for $requestType is not implemented'),
+        };
+
+        final canRequest = await requester.canRequest(playerName: playerName);
+        sendResponseToEbs(message.copyWith(
+            to: MessageTo.frontend,
+            from: MessageFrom.app,
+            type: MessageTypes.response,
+            isSuccess: canRequest));
+
+        if (canRequest) {
+          // False if it is the first pass, true if the permission was granted and it is the second pass.
+          final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
+          if (isRedeemed) {
+            requester.confirmRequest(playerName: playerName, isConfirmed: true);
+          } else {
+            requester.initiateRequest(playerName: playerName);
+          }
+        }
+
+        break;
+
+      // Non-game requests
+      case ToAppMessages.isExtensionActive:
+      case ToAppMessages.gameStateRequest:
+      case ToAppMessages.revealTileAt:
+      case ToAppMessages.slingShootBlueberry:
+      case ToAppMessages.bitsRedeemed:
+        // These requests are not handled in this method
+        throw UnimplementedError(
+            'This is not a main game request and should be handled in the main handler');
+    }
+  }
+
+  Future<void> _handleMiniGameRequest(MessageProtocol message) async {
+    final gm = Managers.instance.train;
+
+    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    late bool isSuccess;
+    switch (requestType) {
+      case ToAppMessages.revealTileAt:
+        final playerName = message.data!['player_name'] as String;
+        isSuccess = gm.players.hasPlayer(playerName)
+            ? Managers.instance.miniGames.treasureHunt
+                .revealTile(tileIndex: message.data!['index'] as int)
+            : false;
+        break;
+
+      case ToAppMessages.slingShootBlueberry:
+        final bwm = Managers.instance.miniGames.blueberryWar;
+        final blueberryId = message.data!['id'] as int;
+        final blueberry = bwm.allAgents
+            .firstWhere((agent) => agent.id == blueberryId) as BlueberryAgent;
+
+        final velocity =
+            Vector2Extension.deserialize(message.data!['velocity']);
+        bwm.slingShoot(blueberry: blueberry, newVelocity: velocity);
+        isSuccess = true;
+        break;
+
+      // Non-mini-game requests
+      case ToAppMessages.isExtensionActive:
+      case ToAppMessages.gameStateRequest:
+      case ToAppMessages.tryWord:
+      case ToAppMessages.pardonRequest:
+      case ToAppMessages.boostRequest:
+      case ToAppMessages.fireworksRequest:
+      case ToAppMessages.attemptTheBigHeist:
+      case ToAppMessages.changeLaneRequest:
+      case ToAppMessages.fixTracksMiniGameRequest:
+      case ToAppMessages.bitsRedeemed:
+        throw UnimplementedError(
+            'Bits redeemed should be handled by the EBS and rerouted properly');
+    }
+
+    sendResponseToEbs(message.copyWith(
+        to: MessageTo.frontend,
+        from: MessageFrom.app,
+        type: MessageTypes.response,
+        isSuccess: isSuccess));
   }
 
   @override

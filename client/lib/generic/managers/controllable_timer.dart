@@ -15,9 +15,11 @@ class ControllableTimer {
   /// How much time is left
   DateTime? _endsAt;
   DateTime? get endsAt => _endsAt;
-  Duration? get timeRemaining =>
-      (_endsAt?.difference(DateTime.now()) ?? Duration.zero) +
-      (pauseTime ?? Duration.zero);
+  Duration? get timeRemaining => !_isInitialized || _endsAt == null
+      ? null
+      : (_endsAt?.difference(DateTime.now()) ?? Duration.zero) +
+          (pauseTime ?? Duration.zero);
+  bool get isPaused => pauseTime != null;
   Duration? get pauseTime =>
       _pausedAt != null ? DateTime.now().difference(_pausedAt!) : null;
 
@@ -164,6 +166,10 @@ class ControllableTimer {
 
     reset();
     _isInitialized = false;
+    _endsAt = null;
+    _pausedAt = null;
+    _shouldEndImmediately = false;
+    _previousStatus = ControllableTimerStatus.notInitialized;
     Managers.instance.tickerManager.onFixedClockTicked.cancel(_loop);
   }
 
@@ -175,10 +181,10 @@ class ControllableTimer {
 
     if (!isInitialized) {
       return ControllableTimerStatus.notInitialized;
-    } else if (isPaused) {
-      return ControllableTimerStatus.paused;
     } else if (isOver) {
       return ControllableTimerStatus.ended;
+    } else if (isPaused) {
+      return ControllableTimerStatus.paused;
     } else if (isStarted) {
       return ControllableTimerStatus.inProgress;
     } else {

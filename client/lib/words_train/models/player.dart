@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:common/generic/models/serializable_player.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class Player {
@@ -28,24 +29,38 @@ class Player {
   WordSolution? lastSolutionFound;
 
   void startCooldown({required Duration duration}) {
-    _cooldownDuration = duration;
-    _cooldownEndAt = DateTime.now().add(_cooldownDuration);
+    _cooldownStartedAt = DateTime.now();
+    _cooldownEndAt = _cooldownEndAt.add(duration);
   }
 
+  DateTime _cooldownStartedAt = DateTime.now();
   DateTime _cooldownEndAt = DateTime.now();
   DateTime get cooldownEndAt => _cooldownEndAt;
   Duration get cooldownRemaining => _cooldownEndAt.difference(DateTime.now());
-  Duration _cooldownDuration = Duration.zero;
-  Duration get cooldownDuration => _cooldownDuration;
+  Duration get cooldownDuration =>
+      _cooldownEndAt.difference(_cooldownStartedAt);
 
   bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
 
   void resetForNextRound() {
     _roundStealCount = 0;
     _cooldownEndAt = DateTime.now();
+    _cooldownStartedAt = DateTime.now();
   }
 
   Player({required this.name});
+
+  SerializablePlayer serialize() {
+    return SerializablePlayer(
+      name: name,
+      score: score,
+      starsCollected: starsCollected,
+      roundStealCount: roundStealCount,
+      gameStealCount: gameStealCount,
+      cooldownStartedAt: _cooldownStartedAt,
+      cooldownEndAt: cooldownEndAt,
+    );
+  }
 }
 
 class Players extends DelegatingList<Player> {

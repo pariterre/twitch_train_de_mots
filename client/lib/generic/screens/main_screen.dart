@@ -136,10 +136,7 @@ class _MainScreenState extends State<MainScreen> {
                       GameScreen(),
                       if (gm.gameStatus ==
                               WordsTrainGameStatus.roundPreparing ||
-                          gm.gameStatus == WordsTrainGameStatus.roundReady ||
-                          gm.gameStatus ==
-                              WordsTrainGameStatus.miniGamePreparing ||
-                          gm.gameStatus == WordsTrainGameStatus.miniGameReady)
+                          gm.gameStatus == WordsTrainGameStatus.roundReady)
                         const BetweenRoundsOverlay(),
                       const CongratulationLayer(),
                     ],

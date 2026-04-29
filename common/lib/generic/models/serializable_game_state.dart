@@ -1,6 +1,8 @@
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
+import 'package:common/generic/models/serializable_player.dart';
 
 enum LetterStatus {
   normal,
@@ -110,12 +112,14 @@ class SerializableLetterProblem {
 }
 
 class SerializableGameState {
-  WordsTrainGameStatus status;
-  int round;
-  bool isRoundSuccess;
-  DateTime? roundEndsAt;
+  Map<String, SerializablePlayer> players;
 
-  Map<String, DateTime> cooldowns;
+  WordsTrainGameStatus gameStatus;
+  bool isRoundAMiniGame;
+
+  int roundCount;
+  bool isRoundSuccess;
+  SerializableControllableTimer roundTimer;
 
   int pardonRemaining;
   List<String> pardonners;
@@ -137,11 +141,12 @@ class SerializableGameState {
   SerializableMiniGameState? miniGameState;
 
   SerializableGameState({
-    required this.status,
-    required this.round,
+    required this.roundCount,
+    required this.gameStatus,
+    required this.isRoundAMiniGame,
+    required this.roundTimer,
     required this.isRoundSuccess,
-    required this.roundEndsAt,
-    required this.cooldowns,
+    required this.players,
     required this.letterProblem,
     required this.pardonRemaining,
     required this.pardonners,
@@ -157,11 +162,12 @@ class SerializableGameState {
   });
 
   SerializableGameState copyWith({
-    WordsTrainGameStatus? status,
-    int? round,
+    int? roundCount,
+    WordsTrainGameStatus? gameStatus,
+    bool? isRoundAMiniGame,
     bool? isRoundSuccess,
-    DateTime? roundEndsAt,
-    Map<String, DateTime>? cooldowns,
+    SerializableControllableTimer? roundTimer,
+    Map<String, SerializablePlayer>? players,
     SerializableLetterProblem? letterProblem,
     int? pardonRemaining,
     List<String>? pardonners,
@@ -176,11 +182,12 @@ class SerializableGameState {
     SerializableMiniGameState? miniGameState,
   }) =>
       SerializableGameState(
-        status: status ?? this.status,
-        round: round ?? this.round,
+        roundCount: roundCount ?? this.roundCount,
+        gameStatus: gameStatus ?? this.gameStatus,
+        isRoundAMiniGame: isRoundAMiniGame ?? this.isRoundAMiniGame,
         isRoundSuccess: isRoundSuccess ?? this.isRoundSuccess,
-        roundEndsAt: roundEndsAt ?? this.roundEndsAt,
-        cooldowns: cooldowns ?? this.cooldowns,
+        roundTimer: roundTimer ?? this.roundTimer,
+        players: players ?? this.players,
         letterProblem: letterProblem ?? this.letterProblem,
         pardonRemaining: pardonRemaining ?? this.pardonRemaining,
         pardonners: pardonners ?? this.pardonners,
@@ -199,14 +206,37 @@ class SerializableGameState {
         miniGameState: miniGameState ?? this.miniGameState,
       );
 
+  int checksum() {
+    return Object.hash(
+      roundCount,
+      gameStatus,
+      isRoundAMiniGame,
+      isRoundSuccess,
+      roundTimer,
+      players.entries.map((e) => Object.hash(e.key, e.value)).toList(),
+      letterProblem,
+      pardonRemaining,
+      pardonners,
+      boostRemaining,
+      boostStillNeeded,
+      boosters,
+      canRequestTheBigHeist,
+      isAttemptingTheBigHeist,
+      canRequestFixTracksMiniGame,
+      isAttemptingFixTracksMiniGame,
+      configuration,
+      miniGameState,
+    );
+  }
+
   Map<String, dynamic> serialize() {
     return {
-      'game_status': status.index,
-      'round': round,
+      'round': roundCount,
+      'game_status': gameStatus.index,
+      'is_round_a_mini_game': isRoundAMiniGame,
       'is_round_success': isRoundSuccess,
-      'round_ends_at': roundEndsAt?.millisecondsSinceEpoch,
-      'cooldowns': cooldowns
-          .map((key, value) => MapEntry(key, value.millisecondsSinceEpoch)),
+      'round_timer': roundTimer.serialize(),
+      'players': players.map((key, value) => MapEntry(key, value.serialize())),
       'letterProblem': letterProblem?.serialize(),
       'pardon_remaining': pardonRemaining,
       'pardonners': pardonners,
@@ -224,13 +254,15 @@ class SerializableGameState {
 
   static SerializableGameState deserialize(Map<String, dynamic> data) {
     return SerializableGameState(
-      status: WordsTrainGameStatus.values[data['game_status'] as int],
-      round: data['round'] as int,
+      roundCount: data['round'] as int,
+      gameStatus: WordsTrainGameStatus.values[data['game_status'] as int],
+      isRoundAMiniGame: data['is_round_a_mini_game'] as bool? ?? false,
       isRoundSuccess: data['is_round_success'] as bool,
-      roundEndsAt:
-          DateTime.fromMillisecondsSinceEpoch(data['round_ends_at'] as int),
-      cooldowns: (data['cooldowns'] as Map<String, dynamic>).map((key, value) =>
-          MapEntry(key, DateTime.fromMillisecondsSinceEpoch(value as int))),
+      roundTimer: SerializableControllableTimer.deserialize(
+          data['round_timer'] as Map<String, dynamic>),
+      players: (data['players'] as Map<String, dynamic>).map((key, value) =>
+          MapEntry(key,
+              SerializablePlayer.deserialize(value as Map<String, dynamic>))),
       letterProblem: data['letterProblem'] == null
           ? null
           : SerializableLetterProblem.deserialize(data['letterProblem']!),

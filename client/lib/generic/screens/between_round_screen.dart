@@ -1,5 +1,4 @@
 import 'package:common/generic/managers/theme_manager.dart';
-import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
@@ -32,6 +31,15 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
       bouncyScale: 1.0,
       maxScale: 1.0,
       maxOpacity: 0.99);
+  final _fixingTracks = BouncyContainerController(
+      bounceCount: 1,
+      easingInDuration: 900,
+      bouncingDuration: 6000,
+      easingOutDuration: 600,
+      minScale: 0.95,
+      bouncyScale: 1.0,
+      maxScale: 1.0,
+      maxOpacity: 0.99);
 
   @override
   void initState() {
@@ -40,7 +48,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     final gm = Managers.instance.train;
     gm.onRoundIsOver.listen(_refresh);
     gm.onAttemptingTheBigHeist.listen(_showAttemptingTheBigHeist);
-    gm.onRailwayMiniGameUpdated.listen(onRailwayMiniGameUpdated);
+    gm.onFixTracksMiniGameUpdated.listen(onFixTracksMiniGameUpdated);
   }
 
   @override
@@ -49,7 +57,8 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     gm.onRoundIsOver.cancel(_refresh);
     gm.onAttemptingTheBigHeist.cancel(_showAttemptingTheBigHeist);
     _attemptingTheBigHeist.dispose();
-    gm.onRailwayMiniGameUpdated.cancel(onRailwayMiniGameUpdated);
+    _fixingTracks.dispose();
+    gm.onFixTracksMiniGameUpdated.cancel(onFixTracksMiniGameUpdated);
 
     super.dispose();
   }
@@ -60,7 +69,13 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
     _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());
   }
 
-  void onRailwayMiniGameUpdated() => setState(() {});
+  void onFixTracksMiniGameUpdated() {
+    final gm = Managers.instance.train;
+    if (gm.isAttemptingFixTracksMiniGame) {
+      _fixingTracks.triggerAnimation(const _FixingTracks());
+    }
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +131,10 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
                       top: MediaQuery.of(context).size.height * 0.13,
                       child:
                           BouncyContainer(controller: _attemptingTheBigHeist),
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.13,
+                      child: BouncyContainer(controller: _fixingTracks),
                     ),
                   ],
                 ),
@@ -202,7 +221,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
         if (!gm.isNextProblemReady) {
           buttonText += 'Aiguillage du train en cours...';
         } else {
-          buttonText += 'Quelqu\'un prépare quelque chose!';
+          buttonText += 'En attente de confirmation...';
         }
       } else if (gm.successLevel == SuccessLevel.failed &&
           gm.hasPlayedAtLeastOnce) {
@@ -212,14 +231,11 @@ class _ContinueSectionState extends State<_ContinueSection> {
       }
     }
 
-    if (gm.nextRoundStartAt != null) {
-      final nextRoundStartIn = gm.nextRoundStartAt!.difference(DateTime.now());
+    if (gm.timeRemainingBeforeAutoStart != null) {
+      final nextRoundStartIn = gm.timeRemainingBeforeAutoStart!;
       if (nextRoundStartIn.inSeconds <= 0) {
-        if (gm.gameStatus == WordsTrainGameStatus.miniGamePreparing) {
-          buttonText += ' (C\'est parti!)';
-        } else {
-          buttonText += ' (Lancement immédiat!)';
-        }
+        buttonText +=
+            gm.isRoundAMiniGame ? ' (C\'est parti!)' : ' (Lancement immédiat!)';
       } else {
         buttonText +=
             ' (${nextRoundStartIn.inSeconds} seconde${nextRoundStartIn.inSeconds > 1 ? 's' : ''})';
@@ -264,7 +280,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
           ),
         ),
         const SizedBox(height: 12),
-        if (gm.nextRoundStartAt != null)
+        if (gm.timeRemainingBeforeAutoStart != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: TextButton(
@@ -291,16 +307,27 @@ class _ContinueSectionState extends State<_ContinueSection> {
               children: [
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
-                    onPressed: _canClick
-                        ? () => gm.requestFireworks(playerName: 'Anonyme')
+                    onPressed: _canClick && gm.canRequestCongratulationFireworks
+                        ? () async {
+                            gm.congratulationFireworksRequester
+                                .initiateRequest(playerName: 'Anonyme');
+                            await Future.delayed(Duration(milliseconds: 1));
+                            gm.congratulationFireworksRequester.confirmRequest(
+                                playerName: 'Anonyme', isConfirmed: true);
+                          }
                         : null,
                     buttonText: 'BOOM!'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
-                    onPressed:
-                        _canClick && gm.canRequestTheBigHeist(playerName: null)
-                            ? () => gm.requestTheBigHeist(playerName: 'Anonyme')
-                            : null,
+                    onPressed: _canClick && gm.canRequestTheBigHeist
+                        ? () async {
+                            gm.attemptTheBigHeistRequester
+                                .initiateRequest(playerName: 'Anonyme');
+                            await Future.delayed(Duration(milliseconds: 1));
+                            gm.attemptTheBigHeistRequester.confirmRequest(
+                                playerName: 'Anonyme', isConfirmed: true);
+                          }
+                        : null,
                     buttonText: 'Le grand coup'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
@@ -310,10 +337,14 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     buttonText: 'Annuler minijeu'),
                 const SizedBox(width: 24),
                 ThemedElevatedButton(
-                    onPressed: _canClick &&
-                            gm.canRequestFixTracksMiniGame(playerName: null)
-                        ? () =>
-                            gm.requestFixTracksMiniGame(playerName: 'Anonyme')
+                    onPressed: _canClick && gm.canRequestFixTracksMiniGame
+                        ? () async {
+                            gm.fixTracksMiniGameRequester
+                                .initiateRequest(playerName: 'Anonyme');
+                            await Future.delayed(Duration(milliseconds: 5000));
+                            gm.fixTracksMiniGameRequester.confirmRequest(
+                                playerName: 'Anonyme', isConfirmed: true);
+                          }
                         : null,
                     buttonText: 'Track fix'),
                 const SizedBox(width: 24),
@@ -1247,6 +1278,41 @@ class _AttemptingTheBigHeist extends StatelessWidget {
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: const Color.fromARGB(255, 255, 210, 133)),
+          ),
+          const SizedBox(width: 10),
+        ],
+      ),
+    );
+  }
+}
+
+class _FixingTracks extends StatelessWidget {
+  const _FixingTracks();
+
+  @override
+  Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 99, 65, 14),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 700,
+            child: Text(
+              'Le train a déraillé! Mais un des cheminot·e·s a décidé de mettre la main à la pâte pour réparer les voies.\n'
+              'Aidez-le·la à réparer les voies pour sauver le Petit Train du Nord!',
+              style: tm.clientMainTextStyle.copyWith(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 255, 210, 133)),
+            ),
           ),
           const SizedBox(width: 10),
         ],

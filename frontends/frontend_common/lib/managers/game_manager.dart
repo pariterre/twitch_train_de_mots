@@ -4,6 +4,7 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/global_ticker_manager.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -42,12 +43,12 @@ class GameManager {
 
   ///
   /// Callback to know when a round has started or ended
-  int get currentRound => _gameState.round;
+  int get currentRound => _gameState.roundCount;
   bool get isRoundRunning =>
-      _gameState.status == WordsTrainGameStatus.roundStarted;
+      _gameState.gameStatus == WordsTrainGameStatus.roundStarted;
   bool get isRoundSuccess => _gameState.isRoundSuccess;
 
-  DateTime get roundEndsAt => _gameState.roundEndsAt ?? DateTime.now();
+  DateTime get roundEndsAt => _gameState.roundTimer.endsAt ?? DateTime.now();
   Duration get timeRemaining => roundEndsAt.difference(DateTime.now());
 
   bool _hasPlayedAtLeastOneRound = false;
@@ -58,12 +59,14 @@ class GameManager {
   ///
   /// Flag to indicate if the game has started
   final _gameState = SerializableGameState(
-    status: WordsTrainGameStatus.uninitialized,
-    round: 0,
+    roundCount: 0,
+    gameStatus: WordsTrainGameStatus.uninitialized,
+    isRoundAMiniGame: false,
     isRoundSuccess: false,
-    roundEndsAt: null,
-    cooldowns: {},
+    roundTimer: SerializableControllableTimer(
+        isInitialized: false, endsAt: null, pausedAt: null),
     letterProblem: null,
+    players: {},
     pardonRemaining: 0,
     pardonners: [],
     boostRemaining: 0,
@@ -84,36 +87,36 @@ class GameManager {
       SerializableGameState.deserialize(_gameState.serialize());
 
   void updateGameState(SerializableGameState newGameState) {
-    if (_gameState.status != newGameState.status) {
-      _gameState.status = newGameState.status;
-      if (_gameState.status == WordsTrainGameStatus.roundStarted ||
-          _gameState.round > 0) {
+    if (_gameState.gameStatus != newGameState.gameStatus) {
+      _gameState.gameStatus = newGameState.gameStatus;
+      if (_gameState.gameStatus == WordsTrainGameStatus.roundStarted ||
+          _gameState.roundCount > 0) {
         _hasPlayedAtLeastOneRound = true;
-        _gameState.cooldowns.clear();
+        _gameState.players.clear();
         _gameState.pardonners.clear();
         onPardonnersChanged.notifyListeners((callback) => callback());
         _gameState.boosters.clear();
         onBoostAvailabilityChanged.notifyListeners((callback) => callback());
       }
       onGameStatusUpdated.notifyListeners((callback) => callback());
-      _logger.info('Game status changed to ${_gameState.status}');
+      _logger.info('Game status changed to ${_gameState.gameStatus}');
     }
 
-    if (_gameState.round != newGameState.round ||
+    if (_gameState.roundCount != newGameState.roundCount ||
         _gameState.isRoundSuccess != newGameState.isRoundSuccess) {
-      _gameState.round = newGameState.round;
+      _gameState.roundCount = newGameState.roundCount;
       _gameState.isRoundSuccess = newGameState.isRoundSuccess;
       onRoundUpdated.notifyListeners((callback) => callback());
-      _logger.info('Round changed to ${newGameState.round}');
+      _logger.info('Round changed to ${newGameState.roundCount}');
     }
 
-    if (_gameState.roundEndsAt != newGameState.roundEndsAt) {
-      _gameState.roundEndsAt = newGameState.roundEndsAt;
-      _logger.info('Round ends at changed to ${newGameState.roundEndsAt}');
+    if (_gameState.roundTimer != newGameState.roundTimer) {
+      _gameState.roundTimer = newGameState.roundTimer;
+      _logger.info('Round timer changed to ${newGameState.roundTimer}');
     }
 
-    if (newGameState.cooldowns != _gameState.cooldowns) {
-      _gameState.cooldowns = newGameState.cooldowns;
+    if (newGameState.players != _gameState.players) {
+      _gameState.players = newGameState.players;
       _logger.info('New solution founders');
       onCooldownsUpdated.notifyListeners((callback) => callback());
     }
@@ -218,13 +221,14 @@ class GameManager {
 
   ///
   /// Callback to know when the game has started
-  WordsTrainGameStatus get status => _gameState.status;
+  WordsTrainGameStatus get status => _gameState.gameStatus;
+  bool get isRoundAMiniGame => _gameState.isRoundAMiniGame;
   final onGameStatusUpdated = GenericListener<Function()>();
   final onRoundUpdated = GenericListener<Function()>();
   void startGame() {
     _logger.info('Starting a new game');
     updateGameState(
-        _gameState.copyWith(status: WordsTrainGameStatus.initializing));
+        _gameState.copyWith(gameStatus: WordsTrainGameStatus.initializing));
   }
 
   ///
@@ -232,13 +236,13 @@ class GameManager {
   void stopGame() {
     _logger.info('Stopping the current game');
     updateGameState(
-        _gameState.copyWith(status: WordsTrainGameStatus.uninitialized));
+        _gameState.copyWith(gameStatus: WordsTrainGameStatus.uninitialized));
   }
 
   ///
   /// Callback to know when a solution was found
   final onCooldownsUpdated = GenericListener<Function()>();
-  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.cooldowns);
+  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.players);
 
   ///
   /// Callback to know when the letters were changed

@@ -309,8 +309,8 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     switch (status) {
       case ControllableTimerStatus.notInitialized:
       case ControllableTimerStatus.initialized:
-        break;
       case ControllableTimerStatus.paused:
+        break;
       case ControllableTimerStatus.inProgress:
       case ControllableTimerStatus.ended:
         await _processRound(deltaTime);

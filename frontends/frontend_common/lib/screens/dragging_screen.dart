@@ -27,11 +27,6 @@ class DraggingScreen extends StatelessWidget {
                     WordsTrainGameStatus.roundPreparing => 'Le Train de mots!',
                     WordsTrainGameStatus.roundReady => 'Le Train de mots!',
                     WordsTrainGameStatus.roundEnding => 'Le Train de mots!',
-                    WordsTrainGameStatus.miniGamePreparing =>
-                      'Le Train de mots!',
-                    WordsTrainGameStatus.miniGameReady => 'Le Train de mots!',
-                    WordsTrainGameStatus.miniGameStarted => '',
-                    WordsTrainGameStatus.miniGameEnding => 'Le Train de mots!',
                   }
                 : 'Le Train de mots!',
           )),
