@@ -133,6 +133,8 @@ class WordsTrainGameManager {
   int _remainingBoosts = 0;
   bool _boostWasGrantedThisRound = false;
   bool get boostWasGrantedThisRound => _boostWasGrantedThisRound;
+  bool _boostWasCollectedThisRound = false;
+  bool get boostWasCollectedThisRound => _boostWasCollectedThisRound;
   double _currentNewBoostThreshold = -1.0;
   int get remainingBoosts => _remainingBoosts;
   bool get isTrainBoosted => _boostStartedAt != null;
@@ -380,7 +382,9 @@ class WordsTrainGameManager {
   final onNewPardonGranted = GenericListener<Function()>();
   final onMiniGameGranted = GenericListener<Function(MiniGames)>();
   final onFixTracksMiniGameUpdated = GenericListener<Function()>();
-  final onNewBoostGranted = GenericListener<Function()>();
+  late final onTrainMovedOnTrack = GenericListener<Function(int step)>()
+    ..listen(_manageTrainMovedOnTrack);
+  late final onTrainCollectedBoost = GenericListener<Function()>();
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onTrainBoostEnded = GenericListener<Function()>();
   final onBigHeistIsBeingPrepared = GenericListener<
@@ -607,7 +611,10 @@ class WordsTrainGameManager {
     }
 
     _roundHasGoldenSolution = false;
+    // In case the boost was granted but did not have time to be collected
+    _checkForCollectingBoost();
     _boostWasGrantedThisRound = false;
+    _boostWasCollectedThisRound = false;
     _currentNewBoostThreshold = _currentDifficulty.newBoostThreshold +
         _random.nextDouble() * (1.0 - _currentDifficulty.newBoostThreshold);
     _hasPlayedAtLeastOnce = true;
@@ -1098,11 +1105,10 @@ class WordsTrainGameManager {
     if (!_boostWasGrantedThisRound && _trainHasReachedNewBoost()) {
       _logger.info('Train got a new boost');
       _boostWasGrantedThisRound = true;
-      _remainingBoosts += 1;
-
-      // Notify that a new boost was granted. This triggers the message overlay
-      // but was decided is a good idea since the boost can be used immediately
-      onNewBoostGranted.notifyListeners((callback) => callback());
+      // Do not collect now since visually the train is still behind. The
+      // visual layer calls the "[onTrainCollectedBoost]" callback when the
+      // train reaches the boost on track, and that is when we collect the boost.
+      _boostWasCollectedThisRound = false;
     }
 
     // Manage if the train is boosted
@@ -1290,6 +1296,21 @@ class WordsTrainGameManager {
   int pointsToObtainBoost() =>
       ((problem?.solutions.totalScore ?? 0) * _currentNewBoostThreshold)
           .toInt();
+
+  void _manageTrainMovedOnTrack(int step) {
+    _logger.fine('Train moved on track by $step steps');
+
+    if (step > pointsToObtainBoost()) _checkForCollectingBoost();
+  }
+
+  void _checkForCollectingBoost() {
+    // Just make sure we don't collect the boost twice
+    if (!boostWasGrantedThisRound || _boostWasCollectedThisRound) return;
+
+    _remainingBoosts += 1;
+    _boostWasCollectedThisRound = true;
+    onTrainCollectedBoost.notifyListeners((callback) => callback());
+  }
 
   bool _trainHasReachedNewBoost() =>
       (problem?.teamScore ?? -1) >= pointsToObtainBoost();

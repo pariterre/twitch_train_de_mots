@@ -107,6 +107,8 @@ class TrainPathController {
     _isStationary = false;
 
     _currentStep++;
+    Managers.instance.train.onTrainMovedOnTrack
+        .notifyListeners((listener) => listener(_currentStep));
     if (_currentStep > _nbSteps) {
       _currentStep = _nbSteps;
       _isStationary = true;
@@ -120,8 +122,8 @@ class TrainPathController {
     }
 
     final gm = Managers.instance.train;
-    if (!gm.boostWasGrantedThisRound && _boostHallMarks == _currentStep) {
-      _boostFireworksController.trigger();
+    if (!gm.boostWasCollectedThisRound && _currentStep >= _boostHallMarks) {
+      _collectBoost();
     }
 
     if (_refreshCallback != null) _refreshCallback!();
@@ -131,6 +133,8 @@ class TrainPathController {
     _isStationary = false;
 
     _currentStep--;
+    Managers.instance.train.onTrainMovedOnTrack
+        .notifyListeners((listener) => listener(_currentStep));
     if (_currentStep < 0) {
       _currentStep = 0;
       _isStationary = true;
@@ -168,6 +172,10 @@ class TrainPathController {
 
     _refreshCallback = refreshCallback;
   }
+
+  void _collectBoost() {
+    _boostFireworksController.trigger();
+  }
 }
 
 class TrainPath extends StatefulWidget {
@@ -203,7 +211,6 @@ class _TrainPathState extends State<TrainPath>
 
   @override
   Widget build(BuildContext context) {
-    final gm = Managers.instance.train;
     final hallmarkSize = widget.height * 0.6;
     final boostSize = hallmarkSize * 3 / 4;
 
@@ -238,7 +245,7 @@ class _TrainPathState extends State<TrainPath>
             hallmarkPosition: starPosition,
           );
         }),
-        if (!gm.boostWasGrantedThisRound)
+        if (!Managers.instance.train.boostWasCollectedThisRound)
           _Hallmark(
             icon: Icon(Icons.bolt_sharp,
                 size: boostSize,

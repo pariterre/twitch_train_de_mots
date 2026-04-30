@@ -100,7 +100,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onGoldenSolutionAppeared.listen(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.listen(_showStealerWasPardoned);
     gm.onMiniGameGranted.listen(_showGoToMinigame);
-    gm.onNewBoostGranted.listen(_showNewBoostGranted);
+    gm.onTrainCollectedBoost.listen(_showNewBoostGranted);
     gm.onTrainGotBoosted.listen(_showTrainGotBoosted);
     gm.onBigHeistSuccess.listen(_showBigHeistSuccess);
     gm.onBigHeistFailed.listen(_showBigHeistFailed);
@@ -124,7 +124,7 @@ class _WordsTrainAnimatedTextOverlayState
     gm.onGoldenSolutionAppeared.cancel(_showNewGoldenSolutionAppeared);
     gm.onStealerPardoned.cancel(_showStealerWasPardoned);
     gm.onMiniGameGranted.cancel(_showGoToMinigame);
-    gm.onNewBoostGranted.cancel(_showNewBoostGranted);
+    gm.onTrainCollectedBoost.cancel(_showNewBoostGranted);
     gm.onTrainGotBoosted.cancel(_showTrainGotBoosted);
     gm.onBigHeistSuccess.cancel(_showBigHeistSuccess);
     gm.onBigHeistFailed.cancel(_showBigHeistFailed);

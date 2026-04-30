@@ -53,7 +53,7 @@ class _PardonState extends State<_Pardon> {
 
     final gm = Managers.instance.train;
     gm.onNewPardonGranted.listen(_refresh);
-    gm.onNewBoostGranted.listen(_refresh);
+    gm.onTrainCollectedBoost.listen(_refresh);
     gm.onStealerPardoned.listen(_onStealerPardoned);
     gm.onSolutionWasStolen.listen(_onSolutionWasStolen);
     gm.onRoundIsOver.listen(_resetCard);
@@ -64,7 +64,7 @@ class _PardonState extends State<_Pardon> {
   void dispose() {
     final gm = Managers.instance.train;
     gm.onNewPardonGranted.cancel(_refresh);
-    gm.onNewBoostGranted.cancel(_refresh);
+    gm.onTrainCollectedBoost.cancel(_refresh);
     gm.onStealerPardoned.cancel(_onStealerPardoned);
     gm.onSolutionWasStolen.cancel(_onSolutionWasStolen);
     gm.onRoundIsOver.cancel(_resetCard);
