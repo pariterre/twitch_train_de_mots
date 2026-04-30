@@ -1,5 +1,6 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
@@ -68,12 +69,8 @@ class _WaitingScreenState extends State<WaitingScreen> {
       case WordsTrainGameStatus.roundPreparing:
       case WordsTrainGameStatus.roundReady:
       case WordsTrainGameStatus.roundEnding:
-        mainText = gm.isRoundSuccess
-            ? 'Bravo, cheminot·e·s,\n'
-                'vous avancez bien!\n'
-                '\n'
-                'Prochaine station ${gm.currentRound + 1}'
-            : (gm.isAttemptingFixTracksMiniGame
+        mainText = gm.successLevel == SuccessLevel.failed
+            ? (gm.isAttemptingFixTracksMiniGame
                 ? 'Un·e des cheminot·e·s\n'
                     'propose de réparer le rail\n'
                     'pour sauver le Train!\n'
@@ -83,7 +80,11 @@ class _WaitingScreenState extends State<WaitingScreen> {
                     'Votre aventure vers le\n'
                     'Nord se termine ici...!\n'
                     '\n'
-                    'Dernière station ${gm.currentRound}');
+                    'Dernière station ${gm.currentRound}')
+            : 'Bravo, cheminot·e·s,\n'
+                'vous avancez bien!\n'
+                '\n'
+                'Prochaine station ${gm.currentRound + 1}';
         showStar = true;
         break;
       case WordsTrainGameStatus.roundStarted:
@@ -114,16 +115,18 @@ class _WaitingScreenState extends State<WaitingScreen> {
                       if (showStar)
                         Padding(
                           padding: const EdgeInsets.only(right: 10.0),
-                          child: _starWidget(gm.isRoundSuccess ||
-                              gm.isAttemptingFixTracksMiniGame),
+                          child: _starWidget(
+                              gm.successLevel != SuccessLevel.failed ||
+                                  gm.isAttemptingFixTracksMiniGame),
                         ),
                       Text(mainText,
                           textAlign: TextAlign.left, style: tm.textFrontendSc),
                       if (showStar)
                         Padding(
                           padding: const EdgeInsets.only(left: 10.0),
-                          child: _starWidget(gm.isRoundSuccess ||
-                              gm.isAttemptingFixTracksMiniGame),
+                          child: _starWidget(
+                              gm.successLevel != SuccessLevel.failed ||
+                                  gm.isAttemptingFixTracksMiniGame),
                         ),
                     ],
                   ),

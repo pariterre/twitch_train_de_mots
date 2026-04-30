@@ -7,7 +7,9 @@ import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/random_extension.dart';
+import 'package:common/generic/models/round_success.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/controllable_timer.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -15,8 +17,6 @@ import 'package:train_de_mots/words_train/managers/two_step_requester.dart';
 import 'package:train_de_mots/words_train/models/difficulty.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
-import 'package:train_de_mots/words_train/models/round_success.dart';
-import 'package:train_de_mots/words_train/models/success_level.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('GameManager');
@@ -103,8 +103,8 @@ class WordsTrainGameManager {
                   : LetterStatus.hidden
               : LetterStatus.normal);
 
-  SerializableLetterProblem? get serializableProblem => problem == null
-      ? null
+  SerializableLetterProblem get serializableProblem => problem == null
+      ? SerializableLetterProblem.empty()
       : SerializableLetterProblem(
           letters: problem!.letters,
           scrambleIndices: problem!.scrambleIndices,
@@ -127,16 +127,16 @@ class WordsTrainGameManager {
 
   WordSolution? _lastStolenSolution;
   WordSolution? get lastStolenSolution => _lastStolenSolution;
-  int _remainingPardons = 0;
-  int get remainingPardon => _remainingPardons;
+  int _pardonsRemaining = 0;
+  int get pardonRemaining => _pardonsRemaining;
 
-  int _remainingBoosts = 0;
+  int _boostRemaining = 0;
   bool _boostWasGrantedThisRound = false;
   bool get boostWasGrantedThisRound => _boostWasGrantedThisRound;
   bool _boostWasCollectedThisRound = false;
   bool get boostWasCollectedThisRound => _boostWasCollectedThisRound;
   double _currentNewBoostThreshold = -1.0;
-  int get remainingBoosts => _remainingBoosts;
+  int get remainingBoosts => _boostRemaining;
   bool get isTrainBoosted => _boostStartedAt != null;
   Duration? get trainBoostRemainingTime => _boostStartedAt
       ?.add(Managers.instance.configuration.boostTime)
@@ -256,20 +256,24 @@ class WordsTrainGameManager {
 
   SerializableGameState serialize() {
     return SerializableGameState(
+      hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
       roundCount: roundCount,
       gameStatus: gameStatus,
       isRoundAMiniGame: isRoundAMiniGame,
-      isRoundSuccess: successLevel.toInt() > 0,
+      successLevel: successLevel,
+      roundSuccesses: [],
       roundTimer: _roundTimer.toSerializable(),
       players: players
           .asMap()
           .map((_, player) => MapEntry(player.name, player.serialize())),
       letterProblem: serializableProblem,
-      pardonRemaining: remainingPardon,
+      pardonRemaining: pardonRemaining,
       pardonners: [lastStolenSolution?.stolenFrom.name ?? ''],
       boostRemaining: remainingBoosts,
       boostStillNeeded: numberOfBoostStillNeeded,
       boosters: requestedBoost.map((e) => e.name).toList(),
+      canChangeLane: canChangeLane,
+      canRequestFireworks: canRequestCongratulationFireworks,
       canRequestTheBigHeist: canRequestTheBigHeist,
       isAttemptingTheBigHeist: isAttemptingTheBigHeist,
       canRequestFixTracksMiniGame: canRequestFixTracksMiniGame,
@@ -757,7 +761,7 @@ class WordsTrainGameManager {
   bool pardonLastStealer({required Player pardonner}) {
     _logger.info('Pardoning the last stealer...');
 
-    if (_remainingPardons < 1) {
+    if (_pardonsRemaining < 1) {
       // Player cannot pardon anymore
       _logger.warning('No more pardons available');
       return false;
@@ -779,7 +783,7 @@ class WordsTrainGameManager {
     }
 
     // If we get here, the solution is pardoned (so not stolen anymore)
-    _remainingPardons -= 1;
+    _pardonsRemaining -= 1;
     _lastStolenSolution = null;
     solution.pardonStealer();
     solution.foundBy.removeFromStealCount();
@@ -801,7 +805,7 @@ class WordsTrainGameManager {
       return false;
     }
 
-    if (_remainingBoosts < 1) {
+    if (_boostRemaining < 1) {
       _logger.warning('No more boosts available');
       return false;
     }
@@ -815,7 +819,7 @@ class WordsTrainGameManager {
 
     // If we fulfill the number of boost requests needed, we can start the boost
     if (numberOfBoostStillNeeded == 0) {
-      _remainingBoosts -= 1;
+      _boostRemaining -= 1;
       _boostStartedAt = DateTime.now();
     }
 
@@ -927,8 +931,8 @@ class WordsTrainGameManager {
     _roundCount = 0;
     _isAllowedToSendResults = !cm.useCustomAdvancedOptions;
 
-    _remainingPardons = cm.numberOfPardons;
-    _remainingBoosts = cm.numberOfBoosts;
+    _pardonsRemaining = cm.numberOfPardons;
+    _boostRemaining = cm.numberOfBoosts;
 
     // We can never attempt the big heist at the start
     _canAttemptTheBigHeist = false;
@@ -1191,7 +1195,7 @@ class WordsTrainGameManager {
 
     // Distribute perks
     if (roundSuccesses.contains(RoundSuccess.noSteal)) {
-      _remainingPardons += 1;
+      _pardonsRemaining += 1;
       onNewPardonGranted.notifyListeners((callback) => callback());
     }
     if (cm.useMinigames &&
@@ -1229,7 +1233,8 @@ class WordsTrainGameManager {
     _previousRoundTimeRemaining = timeRemaining!;
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = false;
-    _roundCount += _successLevel.toInt();
+    _roundCount +=
+        _successLevel.toInt(oneStationMaxPerRound: cm.oneStationMaxPerRound);
 
     _logger.info('Round ended');
   }
@@ -1307,7 +1312,7 @@ class WordsTrainGameManager {
     // Just make sure we don't collect the boost twice
     if (!boostWasGrantedThisRound || _boostWasCollectedThisRound) return;
 
-    _remainingBoosts += 1;
+    _boostRemaining += 1;
     _boostWasCollectedThisRound = true;
     onTrainCollectedBoost.notifyListeners((callback) => callback());
   }
@@ -1438,7 +1443,9 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
       _gameStatus = WordsTrainGameStatus.roundPreparing;
     }
     if (successLevel != null) {
-      _roundCount += successLevel.toInt();
+      _roundCount += successLevel.toInt(
+          oneStationMaxPerRound:
+              Managers.instance.configuration.oneStationMaxPerRound);
       _successLevel = successLevel;
     }
 

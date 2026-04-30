@@ -10,6 +10,7 @@ import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
@@ -632,10 +633,12 @@ class TwitchManagerMock extends TwitchManager {
             data: jsonDecode(jsonEncode({
               'type': ToFrontendMessages.gameState.name,
               'game_state': SerializableGameState(
+                hasPlayedAtLeastOnce: true,
                 roundCount: 11,
                 gameStatus: WordsTrainGameStatus.roundStarted,
                 isRoundAMiniGame: true,
-                isRoundSuccess: true,
+                successLevel: SuccessLevel.oneStar,
+                roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
                     startedAt: DateTime.now(),
@@ -661,6 +664,8 @@ class TwitchManagerMock extends TwitchManager {
                 boostRemaining: 1,
                 boostStillNeeded: 0,
                 boosters: [],
+                canChangeLane: true,
+                canRequestFireworks: false,
                 canRequestTheBigHeist: false,
                 isAttemptingTheBigHeist: true,
                 canRequestFixTracksMiniGame: true,
@@ -707,10 +712,12 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true,
             data: jsonDecode(jsonEncode({
               'game_state': SerializableGameState(
+                hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundPreparing,
                 isRoundAMiniGame: true,
-                isRoundSuccess: false,
+                successLevel: SuccessLevel.failed,
+                roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
                     startedAt: DateTime.now(),
@@ -736,8 +743,10 @@ class TwitchManagerMock extends TwitchManager {
                 boostRemaining: 0,
                 boostStillNeeded: 0,
                 boosters: [],
+                canChangeLane: true,
                 canRequestTheBigHeist: false,
                 isAttemptingTheBigHeist: false,
+                canRequestFireworks: false,
                 canRequestFixTracksMiniGame: true,
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),

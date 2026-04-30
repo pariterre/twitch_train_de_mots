@@ -107,7 +107,7 @@ class _PardonState extends State<_Pardon> {
                 .copyWith(fontSize: tm.titleSize * 0.8, color: tm.textColor),
           ),
         ),
-        Text('x ${gm.remainingPardon}',
+        Text('x ${gm.pardonRemaining}',
             style: tm.clientMainTextStyle.copyWith(
                 fontStyle: FontStyle.italic,
                 fontSize: tm.titleSize * 0.8,

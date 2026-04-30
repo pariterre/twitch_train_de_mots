@@ -1,10 +1,10 @@
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:train_de_mots/generic/managers/database_manager.dart';
 import 'package:train_de_mots/words_train/managers/words_train_game_manager.dart';
 import 'package:train_de_mots/words_train/models/letter_problem.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
-import 'package:train_de_mots/words_train/models/success_level.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_app.dart';
 

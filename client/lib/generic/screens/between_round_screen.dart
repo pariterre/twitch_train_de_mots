@@ -1,5 +1,7 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/round_success.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:common/generic/widgets/bouncy_container.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
 import 'package:common/generic/widgets/horizontal_scroller.dart';
@@ -11,8 +13,6 @@ import 'package:train_de_mots/generic/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/database_result.dart';
 import 'package:train_de_mots/words_train/models/player.dart';
-import 'package:train_de_mots/words_train/models/round_success.dart';
-import 'package:train_de_mots/words_train/models/success_level.dart';
 
 class BetweenRoundsOverlay extends StatefulWidget {
   const BetweenRoundsOverlay({super.key});
@@ -931,6 +931,10 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
   Widget build(BuildContext context) {
     final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
+    final cm = Managers.instance.configuration;
+
+    final successLevel =
+        gm.successLevel.toInt(oneStationMaxPerRound: cm.oneStationMaxPerRound);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -979,7 +983,7 @@ class _VictoryHeaderState extends State<_VictoryHeader> {
                 const SizedBox(height: 16.0),
                 Text(
                   'Félicitation! Nous avons traversé '
-                  '${gm.successLevel.toInt()} station${gm.successLevel.toInt() > 1 ? 's' : ''}!',
+                  '$successLevel station${successLevel > 1 ? 's' : ''}!',
                   style: tm.clientMainTextStyle.copyWith(
                       fontSize: 26,
                       fontWeight: FontWeight.normal,

@@ -6,6 +6,7 @@ import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/success_level.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
@@ -23,19 +24,23 @@ class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
   SerializableGameState _gameState = SerializableGameState(
+    hasPlayedAtLeastOnce: false,
     roundCount: 0,
     gameStatus: WordsTrainGameStatus.initializing,
     isRoundAMiniGame: false,
-    isRoundSuccess: false,
+    successLevel: SuccessLevel.failed,
+    roundSuccesses: [],
     roundTimer: SerializableControllableTimer(
         isInitialized: false, startedAt: null, endsAt: null, pausedAt: null),
     players: {},
-    letterProblem: null,
+    letterProblem: SerializableLetterProblem.empty(),
     pardonRemaining: 0,
     pardonners: [],
     boostRemaining: 0,
     boostStillNeeded: 0,
     boosters: [],
+    canChangeLane: false,
+    canRequestFireworks: false,
     canRequestTheBigHeist: false,
     isAttemptingTheBigHeist: false,
     canRequestFixTracksMiniGame: false,
@@ -190,17 +195,12 @@ class EbsManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.pardonRequest.name,
           'player_name': playerName
         }));
-    if (response.isSuccess ?? false) {
-      _gameState.pardonRemaining--;
-      _gameState.pardonners
-          .remove(registeredFrontendUsers.from(userId: userId)?.opaqueId);
-    }
     return response.isSuccess ?? false;
   }
 
   ///
   /// Handle a message from the frontend to boost the train
-  /// [userId] the id of the user that wants to pardon
+  /// [userId] the id of the user that wants to boost
   Future<bool> _frontendRequestedBoosted(String userId) async {
     _logger.info('Resquesting to boost the train');
 
@@ -218,14 +218,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
           'type': ToAppMessages.boostRequest.name,
           'player_name': playerName
         }));
-    final isSuccess = response.isSuccess ?? false;
-    if (isSuccess) {
-      _gameState.boostStillNeeded--;
-      _gameState.boosters
-          .add(registeredFrontendUsers.from(userId: userId)?.opaqueId ?? '');
-    }
-
-    return isSuccess;
+    return response.isSuccess ?? false;
   }
 
   Future<bool> _frontendRequestedRevealTileAt(String userId, int index) async {
