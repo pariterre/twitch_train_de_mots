@@ -1,11 +1,12 @@
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
+
 class SerializablePlayer {
   final String name;
   final int score;
   final int starsCollected;
   final int roundStealCount;
   final int gameStealCount;
-  final DateTime cooldownStartedAt;
-  final DateTime cooldownEndAt;
+  final SerializableControllableTimer cooldownTimer;
 
   SerializablePlayer({
     required this.name,
@@ -13,8 +14,7 @@ class SerializablePlayer {
     required this.starsCollected,
     required this.roundStealCount,
     required this.gameStealCount,
-    required this.cooldownStartedAt,
-    required this.cooldownEndAt,
+    required this.cooldownTimer,
   });
 
   Map<String, dynamic> serialize() {
@@ -24,8 +24,7 @@ class SerializablePlayer {
       'stars_collected': starsCollected,
       'round_steal_count': roundStealCount,
       'game_steal_count': gameStealCount,
-      'cooldown_started_at': cooldownStartedAt.microsecondsSinceEpoch,
-      'cooldown_end_at': cooldownEndAt.microsecondsSinceEpoch,
+      'cooldown_timer': cooldownTimer.serialize(),
     };
   }
 
@@ -36,10 +35,8 @@ class SerializablePlayer {
       starsCollected: data['stars_collected'],
       roundStealCount: data['round_steal_count'],
       gameStealCount: data['game_steal_count'],
-      cooldownStartedAt:
-          DateTime.fromMicrosecondsSinceEpoch(data['cooldown_started_at']),
-      cooldownEndAt:
-          DateTime.fromMicrosecondsSinceEpoch(data['cooldown_end_at']),
+      cooldownTimer:
+          SerializableControllableTimer.deserialize(data['cooldown_timer']),
     );
   }
 }

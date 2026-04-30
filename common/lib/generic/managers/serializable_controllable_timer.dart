@@ -8,11 +8,13 @@ enum ControllableTimerStatus {
 
 class SerializableControllableTimer {
   final bool isInitialized;
+  final DateTime? startedAt;
   final DateTime? endsAt;
   final DateTime? pausedAt;
 
   SerializableControllableTimer({
     required this.isInitialized,
+    required this.startedAt,
     required this.endsAt,
     required this.pausedAt,
   });
@@ -20,18 +22,21 @@ class SerializableControllableTimer {
   Map<String, dynamic> serialize() {
     return {
       'is_initialized': isInitialized,
-      'ends_at': endsAt?.toIso8601String(),
+      'started_at': startedAt?.millisecondsSinceEpoch,
+      'ends_at': endsAt?.millisecondsSinceEpoch,
       'is_paused': pausedAt != null,
     };
   }
 
   SerializableControllableTimer copyWith({
     bool? isInitialized,
+    DateTime? startedAt,
     DateTime? endsAt,
     DateTime? pausedAt,
   }) {
     return SerializableControllableTimer(
       isInitialized: isInitialized ?? this.isInitialized,
+      startedAt: startedAt ?? this.startedAt,
       endsAt: endsAt ?? this.endsAt,
       pausedAt: pausedAt ?? this.pausedAt,
     );
@@ -40,8 +45,11 @@ class SerializableControllableTimer {
   static SerializableControllableTimer deserialize(Map<String, dynamic> data) {
     return SerializableControllableTimer(
       isInitialized: data['is_initialized'] as bool,
+      startedAt: data['started_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(data['started_at'] as int)
+          : null,
       endsAt: data['ends_at'] != null
-          ? DateTime.parse(data['ends_at'] as String)
+          ? DateTime.fromMillisecondsSinceEpoch(data['ends_at'] as int)
           : null,
       pausedAt: data['is_paused'] == true ? DateTime.now() : null,
     );

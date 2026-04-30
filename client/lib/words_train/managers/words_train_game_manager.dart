@@ -56,7 +56,6 @@ class WordsTrainGameManager {
     onClockTicked: (deltaTime, status) {},
   )..initialize();
   ControllableTimer get roundTimer => _roundTimer;
-  DateTime? get roundEndsAt => _roundTimer.endsAt;
   Duration? get timeRemaining => _roundTimer.timeRemaining;
   Duration _previousRoundTimeRemaining = Duration.zero;
   Duration get previousRoundTimeRemaining =>
@@ -291,6 +290,9 @@ class WordsTrainGameManager {
   void pauseGame() {
     _logger.info('Pausing the game...');
     _roundTimer.pause();
+    for (var player in players) {
+      if (player.isInCooldownPeriod) player.cooldownTimer.pause();
+    }
     if (_autoStart.isInitialized) _autoStart.pause();
     Managers.instance.miniGames.manager?.pauseRound();
   }
@@ -301,6 +303,9 @@ class WordsTrainGameManager {
   void resumeGame() {
     _logger.info('Resuming the game...');
     _roundTimer.resume();
+    for (var player in players) {
+      if (player.isInCooldownPeriod) player.cooldownTimer.resume();
+    }
     if (_autoStart.isInitialized) _autoStart.resume();
     Managers.instance.miniGames.manager?.resumeRound();
   }
@@ -972,8 +977,6 @@ class WordsTrainGameManager {
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
   Future<void> _tickingClock(Duration deltaTime) async {
-    // TODO Find why cooldown sometimes is not working anymore
-    // TODO Find why minigames won't start if we find all words
     _logger.fine('Tic...');
 
     if (_isRoundAMiniGame || _gameStatus != WordsTrainGameStatus.roundStarted) {
@@ -1166,9 +1169,6 @@ class WordsTrainGameManager {
         onBigHeistFailed.notifyListeners((callback) => callback());
       }
     }
-    _gameStatus = WordsTrainGameStatus.roundEnding;
-    onRoundIsOver.notifyListeners((callback) => callback());
-    _showCaseAnswers();
 
     // Distribute round successes
     if (_successLevel != SuccessLevel.failed) {
@@ -1197,16 +1197,6 @@ class WordsTrainGameManager {
       _currentMiniGame = null;
     }
 
-    // Prepare next round
-    _previousRoundTimeRemaining = timeRemaining!;
-    _forceEndTheRound = false;
-    _boostStartedAt = null;
-    _canRequestCongratulationFireworks = true;
-    _canChangeLane = false;
-    _canAttemptTheBigHeist = false;
-    _isAttemptingTheBigHeist = false;
-    _roundCount += _successLevel.toInt();
-
     _generateNextProblem(force: false);
     if (_successLevel == SuccessLevel.failed) {
       if (_fixTracksMiniGamesAttempted == 0) {
@@ -1218,14 +1208,6 @@ class WordsTrainGameManager {
       }
     }
 
-    // Launch the automatic start of the round timer if needed
-    if (cm.autoplay) {
-      _autoStart.initialize();
-      _autoStart.start(
-          duration: _successLevel == SuccessLevel.failed
-              ? cm.autoplayFailedDuration
-              : cm.autoplayDuration);
-    }
     // If it is permitted to send the results to the leaderboard, do it
     if (_isAllowedToSendResults) {
       Managers.instance.database.sendResults(
@@ -1235,6 +1217,13 @@ class WordsTrainGameManager {
         mvpSteals: players.biggestStealers,
       );
     }
+
+    // Prepare next round
+    _finalizeEndOfRoundFlags();
+    _previousRoundTimeRemaining = timeRemaining!;
+    _canAttemptTheBigHeist = false;
+    _isAttemptingTheBigHeist = false;
+    _roundCount += _successLevel.toInt();
 
     _logger.info('Round ended');
   }
@@ -1360,23 +1349,37 @@ class WordsTrainGameManager {
     }
 
     // Reset some flags
-    _forceEndTheRound = false;
-    _boostStartedAt = null;
-
-    _gameStatus = WordsTrainGameStatus.roundEnding;
-    _showCaseAnswers();
-
-    // Launch the automatic start of the round timer if needed
-    final cm = Managers.instance.configuration;
-    if (cm.autoplay) {
-      _autoStart.initialize();
-      _autoStart.start(duration: cm.autoplayDuration);
-    }
+    _finalizeEndOfRoundFlags();
 
     _isAttemptingFixTracksMiniGame = false;
     _isNextRoundAMiniGame = false;
     _currentMiniGame = null;
-    _startNewRound();
+  }
+
+  void _finalizeEndOfRoundFlags() {
+    final cm = Managers.instance.configuration;
+
+    // Inform the rest of the system that the round is over and show case the answers
+    _gameStatus = WordsTrainGameStatus.roundEnding;
+    onRoundIsOver.notifyListeners((callback) => callback());
+    _showCaseAnswers();
+
+    // Prepare next round
+    _forceEndTheRound = false;
+    _boostStartedAt = null;
+    _canRequestCongratulationFireworks = true;
+    _canChangeLane = false;
+
+    // Launch the automatic start of the round timer if needed
+    if (cm.autoplay) {
+      _autoStart.initialize();
+      _autoStart.start(
+          duration: _successLevel == SuccessLevel.failed
+              ? cm.autoplayFailedDuration
+              : cm.autoplayDuration);
+    }
+
+    _logger.info('Round ended');
   }
 }
 

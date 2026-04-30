@@ -13,15 +13,19 @@ class ControllableTimer {
 
   ///
   /// How much time is left
+  DateTime? _startedAt;
   DateTime? _endsAt;
   DateTime? get endsAt => _endsAt;
   Duration? get timeRemaining => !_isInitialized || _endsAt == null
       ? null
-      : (_endsAt?.difference(DateTime.now()) ?? Duration.zero) +
-          (pauseTime ?? Duration.zero);
-  bool get isPaused => pauseTime != null;
-  Duration? get pauseTime =>
-      _pausedAt != null ? DateTime.now().difference(_pausedAt!) : null;
+      : _endsAt!.difference(DateTime.now()) + pauseTime;
+  bool get isPaused => _pausedAt != null;
+  Duration get pauseTime =>
+      _pausedAt != null ? DateTime.now().difference(_pausedAt!) : Duration.zero;
+
+  Duration? get totalDuration => !_isInitialized || _endsAt == null
+      ? null
+      : _endsAt!.difference(_startedAt!) + pauseTime;
 
   ///
   /// Manage ending flag
@@ -85,9 +89,10 @@ class ControllableTimer {
     if (!isInitialized) throw Exception('Timer is not initialized.');
 
     reset();
-    _endsAt = DateTime.now().add(duration);
+    _startedAt = DateTime.now();
+    _endsAt = _startedAt!.add(duration);
 
-    _logger.info('Timer started, will end in ${duration.inSeconds} seconds');
+    _logger.fine('Timer started, will end in ${duration.inSeconds} seconds');
   }
 
   ///
@@ -96,7 +101,7 @@ class ControllableTimer {
     if (!isInitialized) throw Exception('Timer is not initialized.');
 
     _pausedAt = DateTime.now();
-    _logger.info('Timer paused');
+    _logger.fine('Timer paused');
   }
 
   ///
@@ -107,7 +112,7 @@ class ControllableTimer {
     final pauseDuration = DateTime.now().difference(_pausedAt!);
     _endsAt = _endsAt?.add(pauseDuration);
     _pausedAt = null;
-    _logger.info('Timer resumed');
+    _logger.fine('Timer resumed');
   }
 
   ///
@@ -120,7 +125,7 @@ class ControllableTimer {
     }
 
     _endsAt = _endsAt?.add(duration);
-    _logger.finer('Added ${duration.inMilliseconds} milliseconds to the round');
+    _logger.fine('Added ${duration.inMilliseconds} milliseconds to the round');
   }
 
   ///
@@ -133,7 +138,7 @@ class ControllableTimer {
     }
 
     _endsAt = _endsAt?.subtract(duration);
-    _logger.finer(
+    _logger.fine(
         'Subtracted ${duration.inMilliseconds} milliseconds from the round');
   }
 
@@ -147,12 +152,13 @@ class ControllableTimer {
     }
 
     _shouldEndImmediately = true;
-    _logger.info('Set the timer to go off immediately');
+    _logger.fine('Set the timer to go off immediately');
   }
 
   SerializableControllableTimer toSerializable() {
     return SerializableControllableTimer(
       isInitialized: isInitialized,
+      startedAt: _startedAt,
       endsAt: _endsAt,
       pausedAt: _pausedAt,
     );
@@ -166,10 +172,6 @@ class ControllableTimer {
 
     reset();
     _isInitialized = false;
-    _endsAt = null;
-    _pausedAt = null;
-    _shouldEndImmediately = false;
-    _previousStatus = ControllableTimerStatus.notInitialized;
     Managers.instance.tickerManager.onFixedClockTicked.cancel(_loop);
   }
 

@@ -8,6 +8,7 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
@@ -30,7 +31,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
   /// If the broadcaster have activated the extension
   bool? _isExtensionActive;
-  bool get isExtensionActive => _isExtensionActive ?? false;
+  bool get isExtensionActive =>
+      (_isExtensionActive ?? false) || MocksConfiguration.showDebugOptions;
   set isExtensionActive(bool value) {
     if (_isExtensionActive == value) return;
 

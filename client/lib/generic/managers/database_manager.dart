@@ -401,7 +401,7 @@ class DatabaseManager {
     required int? stationReached,
   }) async {
     if (isLoggedOut) return null;
-    _logger.info('Fetching the best train stations reached...');
+    _logger.fine('Fetching the best train stations reached...');
 
     while (_isSendingData) {
       await Future.delayed(const Duration(milliseconds: 50));
@@ -436,7 +436,6 @@ class DatabaseManager {
       _limitNumberOfResults(top, currentResult, out);
     }
 
-    _logger.info('Fetched the best train stations reached');
     return out;
   }
 

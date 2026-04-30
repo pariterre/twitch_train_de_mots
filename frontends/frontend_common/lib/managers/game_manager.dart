@@ -48,8 +48,9 @@ class GameManager {
       _gameState.gameStatus == WordsTrainGameStatus.roundStarted;
   bool get isRoundSuccess => _gameState.isRoundSuccess;
 
-  DateTime get roundEndsAt => _gameState.roundTimer.endsAt ?? DateTime.now();
-  Duration get timeRemaining => roundEndsAt.difference(DateTime.now());
+  Duration get timeRemaining =>
+      _gameState.roundTimer.endsAt?.difference(DateTime.now()) ??
+      Duration(seconds: -1);
 
   bool _hasPlayedAtLeastOneRound = false;
   bool get hasPlayedAtLeastOneRound => _hasPlayedAtLeastOneRound;
@@ -64,7 +65,7 @@ class GameManager {
     isRoundAMiniGame: false,
     isRoundSuccess: false,
     roundTimer: SerializableControllableTimer(
-        isInitialized: false, endsAt: null, pausedAt: null),
+        isInitialized: false, startedAt: null, endsAt: null, pausedAt: null),
     letterProblem: null,
     players: {},
     pardonRemaining: 0,

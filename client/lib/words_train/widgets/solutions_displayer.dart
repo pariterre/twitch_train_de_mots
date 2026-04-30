@@ -343,6 +343,8 @@ class _SolutionTileState extends State<_SolutionTile> {
     final showCooldown = widget.solution.isFound &&
         (widget.solution.foundBy.lastSolutionFound == widget.solution &&
             widget.solution.foundBy.isInCooldownPeriod);
+    final cooldownTimer =
+        showCooldown ? widget.solution.foundBy.cooldownTimer : null;
 
     final tile = Container(
         decoration: _boxDecoration,
@@ -386,8 +388,9 @@ class _SolutionTileState extends State<_SolutionTile> {
                         height: 15,
                         child: Clock(
                           timeRemaining:
-                              widget.solution.foundBy.cooldownRemaining,
-                          maxDuration: widget.solution.foundBy.cooldownDuration,
+                              cooldownTimer?.timeRemaining ?? Duration.zero,
+                          maxDuration:
+                              cooldownTimer?.totalDuration ?? Duration.zero,
                         ),
                       ),
                     ),

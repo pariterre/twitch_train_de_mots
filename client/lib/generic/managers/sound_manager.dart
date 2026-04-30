@@ -149,7 +149,7 @@ class SoundManager {
           'SoundManager is not initialized yet. Cannot play sound effect: $soundEffect');
       return;
     }
-    _logger.info('Playing sound effect: $soundEffect...');
+    _logger.fine('Playing sound effect: $soundEffect...');
     final cm = Managers.instance.configuration;
 
     if (cm.soundVolume == 0) return;

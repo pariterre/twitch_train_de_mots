@@ -28,7 +28,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     isRoundAMiniGame: false,
     isRoundSuccess: false,
     roundTimer: SerializableControllableTimer(
-        isInitialized: false, endsAt: null, pausedAt: null),
+        isInitialized: false, startedAt: null, endsAt: null, pausedAt: null),
     players: {},
     letterProblem: null,
     pardonRemaining: 0,

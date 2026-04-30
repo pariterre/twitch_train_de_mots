@@ -179,7 +179,7 @@ class _HeaderState extends State<_Header> {
             WordsTrainGameStatus.roundPreparing ||
             WordsTrainGameStatus.roundEnding =>
               gm.hasPlayedAtLeastOnce
-                  ? 'Le Train du Nord prend enfin une pause'
+                  ? 'Après un long voyage, Le Train du Nord se repose'
                   : 'Le Train de mots!',
           };
 

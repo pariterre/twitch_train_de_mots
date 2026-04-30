@@ -638,6 +638,7 @@ class TwitchManagerMock extends TwitchManager {
                 isRoundSuccess: true,
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
+                    startedAt: DateTime.now(),
                     endsAt: DateTime.now().add(const Duration(seconds: 83)),
                     pausedAt: null),
                 players: {},
@@ -712,6 +713,7 @@ class TwitchManagerMock extends TwitchManager {
                 isRoundSuccess: false,
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
+                    startedAt: DateTime.now(),
                     endsAt: DateTime.now().add(const Duration(seconds: 83)),
                     pausedAt: null),
                 players: {},
@@ -742,6 +744,7 @@ class TwitchManagerMock extends TwitchManager {
                 miniGameState: SerializableFixTracksGameState(
                     roundTimer: SerializableControllableTimer(
                         isInitialized: true,
+                        startedAt: DateTime.now(),
                         endsAt: DateTime.now().add(const Duration(seconds: 30)),
                         pausedAt: null),
                     grid: FixTracksGrid.random(

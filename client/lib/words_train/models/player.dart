@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/serializable_player.dart';
+import 'package:train_de_mots/generic/managers/controllable_timer.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class Player {
@@ -29,23 +31,23 @@ class Player {
   WordSolution? lastSolutionFound;
 
   void startCooldown({required Duration duration}) {
-    _cooldownStartedAt = DateTime.now();
-    _cooldownEndAt = _cooldownEndAt.add(duration);
+    cooldownTimer.initialize();
+    cooldownTimer.start(duration: duration);
   }
 
-  DateTime _cooldownStartedAt = DateTime.now();
-  DateTime _cooldownEndAt = DateTime.now();
-  DateTime get cooldownEndAt => _cooldownEndAt;
-  Duration get cooldownRemaining => _cooldownEndAt.difference(DateTime.now());
-  Duration get cooldownDuration =>
-      _cooldownEndAt.difference(_cooldownStartedAt);
+  late final cooldownTimer =
+      ControllableTimer(onStatusChanged: _manageEndOfCooldown);
+  void _manageEndOfCooldown(ControllableTimerStatus newStatus) {
+    if (newStatus == ControllableTimerStatus.ended) {
+      cooldownTimer.dispose();
+    }
+  }
 
-  bool get isInCooldownPeriod => _cooldownEndAt.isAfter(DateTime.now());
+  bool get isInCooldownPeriod => cooldownTimer.isInitialized;
 
   void resetForNextRound() {
     _roundStealCount = 0;
-    _cooldownEndAt = DateTime.now();
-    _cooldownStartedAt = DateTime.now();
+    if (cooldownTimer.isInitialized) cooldownTimer.dispose();
   }
 
   Player({required this.name});
@@ -57,8 +59,7 @@ class Player {
       starsCollected: starsCollected,
       roundStealCount: roundStealCount,
       gameStealCount: gameStealCount,
-      cooldownStartedAt: _cooldownStartedAt,
-      cooldownEndAt: cooldownEndAt,
+      cooldownTimer: cooldownTimer.toSerializable(),
     );
   }
 }

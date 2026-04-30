@@ -46,6 +46,7 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
     final gm = Managers.instance.train;
     final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
+    final cm = Managers.instance.configuration;
 
     return Drawer(
       child: Column(
@@ -73,25 +74,31 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                       title: const Text('Configuration du jeu'),
                       onTap: () => _showGameConfiguration(context),
                     ),
-                    const Divider(),
-                    ListTile(
-                      leading: gm.hasPlayedAtLeastOnce
-                          ? const Icon(Icons.cancel,
-                              color: Color.fromARGB(255, 138, 9, 0))
-                          : const Icon(Icons.star,
-                              color: Color.fromARGB(255, 143, 107, 1)),
-                      title: Text(gm.hasPlayedAtLeastOnce
-                          ? 'Terminer la ronde actuelle'
-                          : 'Afficher le tableau des cheminot·e·s'),
-                      enabled: true,
-                      onTap: !gm.hasPlayedAtLeastOnce ||
-                              gm.gameStatus == WordsTrainGameStatus.roundStarted
-                          ? () async {
-                              await gm.requestTerminateRound();
-                              if (context.mounted) Navigator.pop(context);
-                            }
-                          : null,
-                    ),
+                    if (!gm.hasPlayedAtLeastOnce || cm.useDebugOptions)
+                      Column(
+                        children: [
+                          const Divider(),
+                          ListTile(
+                            leading: gm.hasPlayedAtLeastOnce
+                                ? const Icon(Icons.cancel,
+                                    color: Color.fromARGB(255, 138, 9, 0))
+                                : const Icon(Icons.star,
+                                    color: Color.fromARGB(255, 143, 107, 1)),
+                            title: Text(gm.hasPlayedAtLeastOnce
+                                ? 'Terminer la ronde actuelle'
+                                : 'Afficher le tableau des cheminot·e·s'),
+                            enabled: true,
+                            onTap: !gm.hasPlayedAtLeastOnce ||
+                                    gm.gameStatus ==
+                                        WordsTrainGameStatus.roundStarted
+                                ? () async {
+                                    await gm.requestTerminateRound();
+                                    if (context.mounted) Navigator.pop(context);
+                                  }
+                                : null,
+                          ),
+                        ],
+                      ),
                     const Divider(),
                     ListTile(
                       leading: const Icon(Icons.extension,
@@ -190,8 +197,8 @@ void _buyMeACoffee() async {
   await launchUrl(Uri.parse('https://www.buymeacoffee.com/pariterre?l=fr'));
 }
 
-void _showGameConfiguration(BuildContext context) {
-  showDialog(
+void _showGameConfiguration(BuildContext context) async {
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       return const _GameConfiguration();
