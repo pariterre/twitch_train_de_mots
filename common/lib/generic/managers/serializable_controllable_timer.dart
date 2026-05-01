@@ -19,9 +19,14 @@ class SerializableControllableTimer {
     required this.pausedAt,
   });
 
+  SerializableControllableTimer.empty()
+      : isInitialized = false,
+        startedAt = null,
+        endsAt = null,
+        pausedAt = null;
+
   Map<String, dynamic> serialize() {
     return {
-      'is_initialized': isInitialized,
       'started_at': startedAt?.millisecondsSinceEpoch,
       'ends_at': endsAt?.millisecondsSinceEpoch,
       'is_paused': pausedAt != null,

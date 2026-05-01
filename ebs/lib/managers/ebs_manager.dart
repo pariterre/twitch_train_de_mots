@@ -2,11 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
-import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
-import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
-import 'package:common/generic/models/success_level.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
@@ -23,31 +20,7 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  SerializableGameState _gameState = SerializableGameState(
-    hasPlayedAtLeastOnce: false,
-    roundCount: 0,
-    gameStatus: WordsTrainGameStatus.initializing,
-    isRoundAMiniGame: false,
-    successLevel: SuccessLevel.failed,
-    roundSuccesses: [],
-    roundTimer: SerializableControllableTimer(
-        isInitialized: false, startedAt: null, endsAt: null, pausedAt: null),
-    players: {},
-    letterProblem: SerializableLetterProblem.empty(),
-    pardonRemaining: 0,
-    pardonners: [],
-    boostRemaining: 0,
-    boostStillNeeded: 0,
-    boosters: [],
-    canChangeLane: false,
-    canRequestFireworks: false,
-    canRequestTheBigHeist: false,
-    isAttemptingTheBigHeist: false,
-    canRequestFixTracksMiniGame: false,
-    isAttemptingFixTracksMiniGame: false,
-    configuration: SerializableConfiguration(showExtension: true),
-    miniGameState: null,
-  );
+  SerializableGameState _gameState = SerializableGameState.empty();
   SerializableGameState get gameState => _gameState;
   set gameState(SerializableGameState value) {
     _gameState = value;
@@ -61,9 +34,9 @@ class EbsManager extends TwitchEbsManagerAbstract {
     }
 
     // Convert the pardonners from login to opaque id
-    for (int i = 0; i < _gameState.pardonners.length; i++) {
-      _gameState.pardonners[i] = registeredFrontendUsers
-              .from(login: _gameState.pardonners[i])
+    for (int i = 0; i < _gameState.playersWhoCanPardon.length; i++) {
+      _gameState.playersWhoCanPardon[i] = registeredFrontendUsers
+              .from(login: _gameState.playersWhoCanPardon[i])
               ?.opaqueId ??
           '';
     }
@@ -111,7 +84,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.isExtensionActive.name,
+          'type': MessagesToApp.isExtensionActive.name,
           'active_version':
               await TwitchEbsApi.instance.activeExtensionVersion(),
           'accepted_versions': acceptedExtensionVersions,
@@ -121,12 +94,14 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<void> _sendGameStateToFrontend() async {
     _logger.info('Sending game state to frontend');
 
+    // TODO: Check between partial and full game state request to only send the necessary data
+
     communicator.sendMessage(MessageProtocol(
         to: MessageTo.frontend,
         from: MessageFrom.ebs,
         type: MessageTypes.put,
         data: {
-          'type': ToFrontendMessages.gameState.name,
+          'type': MessagesToFrontend.gameStateResponse.name,
           'game_state': _gameState.serialize()
         }));
   }
@@ -138,17 +113,6 @@ class EbsManager extends TwitchEbsManagerAbstract {
       Map<String, dynamic> request) async {
     _logger.info('Generating a new letter problem');
     return LetterProblem.generateProblemFromRequest(request);
-  }
-
-  ///
-  /// Handle a message from the frontend to get the game state
-  Future<MessageProtocol> _frontendRequestedGameState() async {
-    _logger.info('Resquesting game state');
-    return await communicator.sendQuestion(MessageProtocol(
-        to: MessageTo.app,
-        from: MessageFrom.ebs,
-        type: MessageTypes.get,
-        data: {'type': ToAppMessages.gameStateRequest.name}));
   }
 
   ///
@@ -168,7 +132,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.tryWord.name,
+          'type': MessagesToApp.tryWord.name,
           'player_name': playerName,
           'word': word
         }));
@@ -192,7 +156,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.pardonRequest.name,
+          'type': MessagesToApp.pardonRequest.name,
           'player_name': playerName
         }));
     return response.isSuccess ?? false;
@@ -215,7 +179,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.boostRequest.name,
+          'type': MessagesToApp.boostRequest.name,
           'player_name': playerName
         }));
     return response.isSuccess ?? false;
@@ -235,7 +199,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.revealTileAt.name,
+          'type': MessagesToApp.revealTileAt.name,
           'player_name': playerName,
           'index': index
         }));
@@ -257,7 +221,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.get,
         data: {
-          'type': ToAppMessages.slingShootBlueberry.name,
+          'type': MessagesToApp.slingShootBlueberry.name,
           'player_name': playerName,
           'id': id,
           'velocity': velocity.serialize()
@@ -299,8 +263,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
     try {
       switch (message.to) {
         case MessageTo.ebs:
-          switch (ToBackendMessages.values.byName(message.data!['type'])) {
-            case ToBackendMessages.newLetterProblemRequest:
+          switch (MessagesToEbs.values.byName(message.data!['type'])) {
+            case MessagesToEbs.newLetterProblemRequest:
               final letterProblem = await _appRequestedANewLetterProblem(
                   message.data!['configuration'] as Map<String, dynamic>);
               communicator.sendMessage(message.copyWith(
@@ -310,22 +274,19 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   isSuccess: true,
                   data: {'letter_problem': letterProblem.serialize()}));
               break;
+            case MessagesToEbs.partialGameStateResponse:
+            // TODO Merge with current game state
+            case MessagesToEbs.gameStateRequest:
+              throw 'This request should not come from the app';
           }
           break;
         case MessageTo.frontend:
-          switch (ToFrontendMessages.values.byName(message.data!['type'])) {
-            case ToFrontendMessages.gameState:
-              // TODO: Implement delta updates to avoid sending the whole game state every time
-              // This implies to send an additiona checksum of the game state to the frontend,
-              // this way, they know if they need to request the whole game state or if they can just apply the delta update
-              gameState = SerializableGameState.deserialize(
-                  message.data!['game_state'] as Map<String, dynamic>);
-              _sendGameStateToFrontend();
+          switch (MessagesToFrontend.values.byName(message.data!['type'])) {
+            case MessagesToFrontend.pardonResponse:
+            case MessagesToFrontend.boostResponse:
               break;
-            case ToFrontendMessages.pardonResponse:
-              break;
-            case ToFrontendMessages.boostResponse:
-              break;
+            case MessagesToFrontend.gameStateResponse:
+              throw 'This response should not come from the app';
           }
           break;
         case MessageTo.pubsub:
@@ -355,126 +316,137 @@ class EbsManager extends TwitchEbsManagerAbstract {
     }
 
     try {
-      if (message.to != MessageTo.app) throw 'Request not supported';
+      switch (message.to) {
+        case MessageTo.ebs:
+          switch (MessagesToEbs.values.byName(message.data!['type'])) {
+            case MessagesToEbs.gameStateRequest:
+              _sendGameStateToFrontend();
+              break;
+            case MessagesToEbs.newLetterProblemRequest:
+            case MessagesToEbs.partialGameStateResponse:
+              throw 'This request should not come from the frontend';
+          }
 
-      switch (ToAppMessages.values.byName(message.data!['type'])) {
-        case ToAppMessages.gameStateRequest:
-          final response = await _frontendRequestedGameState();
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              data: response.data,
-              isSuccess: true));
+        case MessageTo.frontend:
+        case MessageTo.app:
+          switch (MessagesToApp.values.byName(message.data!['type'])) {
+            case MessagesToApp.tryWord:
+              communicator.sendResponse(message.copyWith(
+                  from: MessageFrom.ebs,
+                  to: MessageTo.frontend,
+                  type: MessageTypes.response,
+                  isSuccess: await _frontendTryAWord(
+                      userId, message.data!['word'] as String)));
+              break;
+
+            case MessagesToApp.pardonRequest:
+              communicator.sendResponse(message.copyWith(
+                  from: MessageFrom.ebs,
+                  to: MessageTo.frontend,
+                  type: MessageTypes.response,
+                  isSuccess: await _frontendRequestedToPardon(userId)));
+              break;
+
+            case MessagesToApp.boostRequest:
+              final isSuccess = await _frontendRequestedBoosted(userId);
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: isSuccess));
+              break;
+
+            case MessagesToApp.revealTileAt:
+              final isSuccess = await _frontendRequestedRevealTileAt(
+                  userId, message.data!['index'] as int);
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: isSuccess));
+              break;
+
+            case MessagesToApp.slingShootBlueberry:
+              final isSuccess = await _frontendRequestedSlingShoot(
+                userId,
+                id: message.data!['id'] as int,
+                velocity:
+                    Vector2Extension.deserialize(message.data!['velocity']),
+              );
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: isSuccess));
+              break;
+
+            case MessagesToApp.fireworksRequest:
+            case MessagesToApp.attemptTheBigHeist:
+            case MessagesToApp.changeLaneRequest:
+            case MessagesToApp.fixTracksMiniGameRequest:
+              final playerName =
+                  registeredFrontendUsers.from(userId: userId)?.login;
+
+              final response = await communicator.sendQuestion(MessageProtocol(
+                  to: MessageTo.app,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.get,
+                  data: {
+                    'type': message.data!['type'],
+                    'player_name': playerName,
+                    'is_redeemed': false
+                  }));
+
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: response.isSuccess ?? false));
+              break;
+
+            case MessagesToApp.bitsRedeemed:
+              // This is expected to be from bits transaction
+              if (transactionReceipt == null) {
+                throw 'Bits transaction not found';
+              }
+
+              // Get the sku of the product
+              final playerName = message.transaction!.displayName;
+              final sku = Sku.fromString(transactionReceipt.product.sku);
+
+              MessagesToApp type = switch (sku) {
+                Sku.celebrate => MessagesToApp.fireworksRequest,
+                Sku.bigHeist => MessagesToApp.attemptTheBigHeist,
+                Sku.changeLane => MessagesToApp.changeLaneRequest,
+                Sku.fixTracks => MessagesToApp.fixTracksMiniGameRequest,
+              };
+
+              final response = await communicator.sendQuestion(MessageProtocol(
+                  to: MessageTo.app,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.get,
+                  data: {
+                    'type': type.name,
+                    'player_name': playerName,
+                    'is_redeemed': true
+                  }));
+
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: response.isSuccess ?? false));
+              break;
+
+            case MessagesToApp.isExtensionActive:
+              throw 'Request should not come from frontend';
+          }
+
           break;
-
-        case ToAppMessages.tryWord:
-          communicator.sendResponse(message.copyWith(
-              from: MessageFrom.ebs,
-              to: MessageTo.frontend,
-              type: MessageTypes.response,
-              isSuccess: await _frontendTryAWord(
-                  userId, message.data!['word'] as String)));
-          break;
-
-        case ToAppMessages.pardonRequest:
-          communicator.sendResponse(message.copyWith(
-              from: MessageFrom.ebs,
-              to: MessageTo.frontend,
-              type: MessageTypes.response,
-              isSuccess: await _frontendRequestedToPardon(userId)));
-          break;
-
-        case ToAppMessages.boostRequest:
-          final isSuccess = await _frontendRequestedBoosted(userId);
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-          break;
-
-        case ToAppMessages.revealTileAt:
-          final isSuccess = await _frontendRequestedRevealTileAt(
-              userId, message.data!['index'] as int);
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-          break;
-
-        case ToAppMessages.slingShootBlueberry:
-          final isSuccess = await _frontendRequestedSlingShoot(
-            userId,
-            id: message.data!['id'] as int,
-            velocity: Vector2Extension.deserialize(message.data!['velocity']),
-          );
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              isSuccess: isSuccess));
-          break;
-
-        case ToAppMessages.fireworksRequest:
-        case ToAppMessages.attemptTheBigHeist:
-        case ToAppMessages.changeLaneRequest:
-        case ToAppMessages.fixTracksMiniGameRequest:
-          final playerName =
-              registeredFrontendUsers.from(userId: userId)?.login;
-
-          final response = await communicator.sendQuestion(MessageProtocol(
-              to: MessageTo.app,
-              from: MessageFrom.ebs,
-              type: MessageTypes.get,
-              data: {
-                'type': message.data!['type'],
-                'player_name': playerName,
-                'is_redeemed': false
-              }));
-
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              isSuccess: response.isSuccess ?? false));
-          break;
-
-        case ToAppMessages.bitsRedeemed:
-          // This is expected to be from bits transaction
-          if (transactionReceipt == null) throw 'Bits transaction not found';
-
-          // Get the sku of the product
-          final playerName = message.transaction!.displayName;
-          final sku = Sku.fromString(transactionReceipt.product.sku);
-
-          ToAppMessages type = switch (sku) {
-            Sku.celebrate => ToAppMessages.fireworksRequest,
-            Sku.bigHeist => ToAppMessages.attemptTheBigHeist,
-            Sku.changeLane => ToAppMessages.changeLaneRequest,
-            Sku.fixTracks => ToAppMessages.fixTracksMiniGameRequest,
-          };
-
-          final response = await communicator.sendQuestion(MessageProtocol(
-              to: MessageTo.app,
-              from: MessageFrom.ebs,
-              type: MessageTypes.get,
-              data: {
-                'type': type.name,
-                'player_name': playerName,
-                'is_redeemed': true
-              }));
-
-          communicator.sendResponse(message.copyWith(
-              to: MessageTo.frontend,
-              from: MessageFrom.ebs,
-              type: MessageTypes.response,
-              isSuccess: response.isSuccess ?? false));
-          break;
-
-        case ToAppMessages.isExtensionActive:
-          throw 'Request should not come from frontend';
+        case MessageTo.pubsub:
+        case MessageTo.generic:
+        case MessageTo.ebsMain:
+          throw 'Request not supported';
       }
     } catch (e) {
       return communicator.sendErrorReponse(message, e.toString());

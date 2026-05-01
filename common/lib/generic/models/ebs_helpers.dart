@@ -3,13 +3,14 @@
 /// to be used while debugging in local. It should not be used in production.
 const mockedSharedSecret = 'qwertyuiopasdfghjklzxcvbnm1234567890';
 
-enum ToBackendMessages {
-  newLetterProblemRequest,
+enum MessagesToFrontend {
+  gameStateResponse,
+  pardonResponse,
+  boostResponse,
 }
 
-enum ToAppMessages {
+enum MessagesToApp {
   isExtensionActive,
-  gameStateRequest,
   tryWord,
   pardonRequest,
   boostRequest,
@@ -22,10 +23,10 @@ enum ToAppMessages {
   slingShootBlueberry,
 }
 
-enum ToFrontendMessages {
-  gameState,
-  pardonResponse,
-  boostResponse,
+enum MessagesToEbs {
+  gameStateRequest,
+  partialGameStateResponse,
+  newLetterProblemRequest,
 }
 
 enum Sku {

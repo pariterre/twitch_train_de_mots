@@ -64,13 +64,6 @@ class WordsTrainGameManager {
   Difficulty get _currentDifficulty =>
       Managers.instance.configuration.difficulty(_roundCount);
 
-  Duration _computeCooldownDuration({required Player player}) {
-    final cm = Managers.instance.configuration;
-    return Duration(
-        seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
-            cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
-  }
-
   Duration _scramblingLetterTimer = Duration.zero;
 
   LetterProblem? _currentProblem;
@@ -103,14 +96,6 @@ class WordsTrainGameManager {
                   : LetterStatus.hidden
               : LetterStatus.normal);
 
-  SerializableLetterProblem get serializableProblem => problem == null
-      ? SerializableLetterProblem.empty()
-      : SerializableLetterProblem(
-          letters: problem!.letters,
-          scrambleIndices: problem!.scrambleIndices,
-          uselessLetterStatuses: uselessLetterStatuses,
-          hiddenLetterStatuses: hiddenLetterStatuses,
-        );
   SuccessLevel _successLevel = SuccessLevel.failed;
   final List<RoundSuccess> _roundSuccesses = [];
   List<RoundSuccess> get roundSuccesses => _roundSuccesses;
@@ -254,37 +239,46 @@ class WordsTrainGameManager {
     Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
   }
 
-  SerializableGameState serialize() {
-    return SerializableGameState(
-      hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
-      roundCount: roundCount,
-      gameStatus: gameStatus,
-      isRoundAMiniGame: isRoundAMiniGame,
-      successLevel: successLevel,
-      roundSuccesses: [],
-      roundTimer: _roundTimer.toSerializable(),
-      players: players
-          .asMap()
-          .map((_, player) => MapEntry(player.name, player.serialize())),
-      letterProblem: serializableProblem,
-      pardonRemaining: pardonRemaining,
-      pardonners: [lastStolenSolution?.stolenFrom.name ?? ''],
-      boostRemaining: remainingBoosts,
-      boostStillNeeded: numberOfBoostStillNeeded,
-      boosters: requestedBoost.map((e) => e.name).toList(),
-      canChangeLane: canChangeLane,
-      canRequestFireworks: canRequestCongratulationFireworks,
-      canRequestTheBigHeist: canRequestTheBigHeist,
-      isAttemptingTheBigHeist: isAttemptingTheBigHeist,
-      canRequestFixTracksMiniGame: canRequestFixTracksMiniGame,
-      isAttemptingFixTracksMiniGame: isAttemptingFixTracksMiniGame,
-      configuration: SerializableConfiguration(
-          showExtension: Managers.instance.configuration.showExtension),
-      miniGameState: isRoundAMiniGame || isNextRoundAMiniGame
-          ? Managers.instance.miniGames.manager?.serializeMiniGame()
-          : null,
-    );
-  }
+  SerializableLetterProblem get serializableProblem => problem == null
+      ? SerializableLetterProblem.empty()
+      : SerializableLetterProblem(
+          letters: problem!.letters,
+          scrambleIndices: problem!.scrambleIndices,
+          uselessLetterStatuses: uselessLetterStatuses,
+          hiddenLetterStatuses: hiddenLetterStatuses,
+        );
+
+  SerializableGameState get toSerializable => SerializableGameState(
+        hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
+        roundCount: roundCount,
+        gameStatus: gameStatus,
+        isRoundAMiniGame: isRoundAMiniGame,
+        successLevel: successLevel,
+        roundSuccesses: [],
+        roundTimer: _roundTimer.toSerializable(),
+        players: players
+            .asMap()
+            .map((_, player) => MapEntry(player.name, player.serialize())),
+        letterProblem: serializableProblem,
+        pardonRemaining: pardonRemaining,
+        playersWhoCanPardon: lastStolenSolution == null
+            ? []
+            : [lastStolenSolution!.stolenFrom.name],
+        boostRemaining: remainingBoosts,
+        boostStillNeeded: numberOfBoostStillNeeded,
+        boosters: requestedBoost.map((e) => e.name).toList(),
+        canChangeLane: canChangeLane,
+        canRequestFireworks: canRequestCongratulationFireworks,
+        canRequestTheBigHeist: canRequestTheBigHeist,
+        isAttemptingTheBigHeist: isAttemptingTheBigHeist,
+        canRequestFixTracksMiniGame: canRequestFixTracksMiniGame,
+        isAttemptingFixTracksMiniGame: isAttemptingFixTracksMiniGame,
+        configuration: SerializableConfiguration(
+            showExtension: Managers.instance.configuration.showExtension),
+        miniGameState: isRoundAMiniGame || isNextRoundAMiniGame
+            ? Managers.instance.miniGames.manager?.serializeMiniGame()
+            : null,
+      );
 
   /// ----------- ///
   /// INTERACTION ///
@@ -1124,6 +1118,13 @@ class WordsTrainGameManager {
     }
 
     _logger.fine('Toc');
+  }
+
+  Duration _computeCooldownDuration({required Player player}) {
+    final cm = Managers.instance.configuration;
+    return Duration(
+        seconds: players.length.clamp(4, cm.cooldownPeriod.inSeconds) +
+            cm.cooldownPenaltyAfterSteal.inSeconds * player.roundStealCount);
   }
 
   bool _checkForEndOfRound() {

@@ -19,6 +19,8 @@ class SerializableConfiguration {
     required this.showExtension,
   });
 
+  SerializableConfiguration.empty() : showExtension = false;
+
   SerializableConfiguration copyWith({
     bool? showExtension,
   }) {
@@ -122,15 +124,15 @@ class SerializableLetterProblem {
 class SerializableGameState {
   final Map<String, SerializablePlayer> players;
 
-  final bool hasPlayedAtLeastOnce;
   final WordsTrainGameStatus gameStatus;
   final bool isRoundAMiniGame;
 
+  final bool hasPlayedAtLeastOnce;
   final int roundCount;
   final SerializableControllableTimer roundTimer;
   final SerializableLetterProblem letterProblem;
-  final List<String> pardonners;
   final int pardonRemaining;
+  final List<String> playersWhoCanPardon;
   final int boostRemaining;
   final int boostStillNeeded;
   final List<String> boosters;
@@ -145,7 +147,6 @@ class SerializableGameState {
   final bool isAttemptingFixTracksMiniGame;
 
   SerializableConfiguration configuration;
-
   SerializableMiniGameState? miniGameState;
 
   SerializableGameState({
@@ -159,7 +160,7 @@ class SerializableGameState {
     required this.players,
     required this.letterProblem,
     required this.pardonRemaining,
-    required this.pardonners,
+    required this.playersWhoCanPardon,
     required this.boostRemaining,
     required this.boostStillNeeded,
     required this.boosters,
@@ -173,6 +174,30 @@ class SerializableGameState {
     required this.miniGameState,
   });
 
+  SerializableGameState.empty()
+      : hasPlayedAtLeastOnce = false,
+        roundCount = 0,
+        gameStatus = WordsTrainGameStatus.initializing,
+        isRoundAMiniGame = false,
+        successLevel = SuccessLevel.failed,
+        roundSuccesses = [],
+        roundTimer = SerializableControllableTimer.empty(),
+        players = {},
+        letterProblem = SerializableLetterProblem.empty(),
+        pardonRemaining = 0,
+        playersWhoCanPardon = [],
+        boostRemaining = 0,
+        boostStillNeeded = 0,
+        boosters = [],
+        canChangeLane = false,
+        canRequestFireworks = false,
+        canRequestTheBigHeist = false,
+        isAttemptingTheBigHeist = false,
+        canRequestFixTracksMiniGame = false,
+        isAttemptingFixTracksMiniGame = false,
+        configuration = SerializableConfiguration.empty(),
+        miniGameState = null;
+
   SerializableGameState copyWith({
     bool? hasPlayedAtLeastOnce,
     int? roundCount,
@@ -184,7 +209,7 @@ class SerializableGameState {
     Map<String, SerializablePlayer>? players,
     SerializableLetterProblem? letterProblem,
     int? pardonRemaining,
-    List<String>? pardonners,
+    List<String>? playersWhoCanPardon,
     int? boostRemaining,
     int? boostStillNeeded,
     List<String>? boosters,
@@ -208,7 +233,7 @@ class SerializableGameState {
         players: players ?? this.players,
         letterProblem: letterProblem ?? this.letterProblem,
         pardonRemaining: pardonRemaining ?? this.pardonRemaining,
-        pardonners: pardonners ?? this.pardonners,
+        playersWhoCanPardon: playersWhoCanPardon ?? this.playersWhoCanPardon,
         boostRemaining: boostRemaining ?? this.boostRemaining,
         boostStillNeeded: boostStillNeeded ?? this.boostStillNeeded,
         boosters: boosters ?? this.boosters,
@@ -226,31 +251,6 @@ class SerializableGameState {
         miniGameState: miniGameState ?? this.miniGameState,
       );
 
-  int checksum() {
-    return Object.hash(
-      hasPlayedAtLeastOnce,
-      roundCount,
-      gameStatus,
-      isRoundAMiniGame,
-      successLevel,
-      roundSuccesses,
-      roundTimer,
-      players.entries.map((e) => Object.hash(e.key, e.value)).toList(),
-      letterProblem,
-      pardonRemaining,
-      pardonners,
-      boostRemaining,
-      boostStillNeeded,
-      boosters,
-      canChangeLane,
-      canRequestFireworks,
-      canRequestTheBigHeist,
-      isAttemptingTheBigHeist,
-      canRequestFixTracksMiniGame,
-      isAttemptingFixTracksMiniGame,
-    );
-  }
-
   Map<String, dynamic> serialize() {
     return {
       'has_played_at_least_once': hasPlayedAtLeastOnce,
@@ -264,7 +264,7 @@ class SerializableGameState {
       'round_timer': roundTimer.serialize(),
       'letter_problem': letterProblem.serialize(),
       'pardon_remaining': pardonRemaining,
-      'pardonners': pardonners,
+      'players_who_can_pardon': playersWhoCanPardon,
       'boost_remaining': boostRemaining,
       'boost_still_needed': boostStillNeeded,
       'boosters': boosters,
@@ -298,7 +298,8 @@ class SerializableGameState {
       letterProblem: SerializableLetterProblem.deserialize(
           data['letter_problem'] as Map<String, dynamic>),
       pardonRemaining: data['pardon_remaining'] as int,
-      pardonners: (data['pardonners'] as List).cast<String>(),
+      playersWhoCanPardon:
+          (data['players_who_can_pardon'] as List).cast<String>(),
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
       boosters: (data['boosters'] as List).cast<String>(),

@@ -1,6 +1,7 @@
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
+import 'package:common/warehouse_cleaning/models/agent.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 
 class SerializableWarehouseCleaningGameState
@@ -9,6 +10,7 @@ class SerializableWarehouseCleaningGameState
     required this.roundTimer,
     required this.grid,
     required this.triesRemaining,
+    required this.allAgents,
   });
 
   @override
@@ -17,6 +19,7 @@ class SerializableWarehouseCleaningGameState
   final SerializableControllableTimer roundTimer;
   final WarehouseCleaningGrid grid;
   final int triesRemaining;
+  final List<Agent> allAgents;
 
   @override
   Map<String, dynamic> serialize() {
@@ -25,6 +28,9 @@ class SerializableWarehouseCleaningGameState
       'round_timer': roundTimer.serialize(),
       'grid': grid.serialize(),
       'tries_remaining': triesRemaining,
+      'all_agents': allAgents
+          .asMap()
+          .map((index, agent) => MapEntry(agent.id, agent.serialize())),
     };
   }
 
@@ -36,6 +42,11 @@ class SerializableWarehouseCleaningGameState
       grid: WarehouseCleaningGrid.deserialize(
           data['grid'] as Map<String, dynamic>),
       triesRemaining: data['tries_remaining'] as int,
+      allAgents: (data['all_agents'] as Map<int, dynamic>)
+          .values
+          .map((agentData) =>
+              Agent.deserialize(agentData as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -44,11 +55,13 @@ class SerializableWarehouseCleaningGameState
     SerializableControllableTimer? roundTimer,
     WarehouseCleaningGrid? grid,
     int? triesRemaining,
+    List<Agent>? allAgents,
   }) {
     return SerializableWarehouseCleaningGameState(
       roundTimer: roundTimer ?? this.roundTimer,
       grid: grid ?? this.grid,
       triesRemaining: triesRemaining ?? this.triesRemaining,
+      allAgents: allAgents ?? this.allAgents,
     );
   }
 

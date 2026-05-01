@@ -22,13 +22,14 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       allAgents.whereType<BlueberryAgent>().toList();
   List<LetterAgent> get letters => allAgents.whereType<LetterAgent>().toList();
   final SerializableLetterProblem problem;
-
   @override
   Map<String, dynamic> serialize() {
     return {
       'type': MiniGames.blueberryWar.index,
       'round_timer': roundTimer.serialize(),
-      'agents': allAgents.map((agent) => agent.serialize()).toList(),
+      'agents': allAgents
+          .asMap()
+          .map((index, agent) => MapEntry(agent.id, agent.serialize())),
       'problem': problem.serialize(),
     };
   }
@@ -38,7 +39,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     return SerializableBlueberryWarGameState(
       roundTimer: SerializableControllableTimer.deserialize(
           data['round_timer'] as Map<String, dynamic>),
-      allAgents: (data['agents'] as List)
+      allAgents: (data['agents'] as Map<int, dynamic>)
+          .values
           .map((agentData) => Agent.deserialize(agentData))
           .toList(),
       problem: SerializableLetterProblem.deserialize(data['problem']),

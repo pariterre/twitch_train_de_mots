@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -15,6 +16,8 @@ import 'package:twitch_manager/twitch_app.dart';
 final _logger = Logger('EbsServerManager');
 
 class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
+  SerializableGameState _lastSentGameState = SerializableGameState.empty();
+
   ///
   /// Initialize the EbsServerManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
@@ -158,7 +161,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         from: MessageFrom.app,
         type: MessageTypes.get,
         data: {
-          'type': ToBackendMessages.newLetterProblemRequest.name,
+          'type': MessagesToEbs.newLetterProblemRequest.name,
           'configuration': {
             'algorithm': 'fromRandomWord',
             'lengthShortestSolutionMin': nbLetterInSmallestWord,
@@ -176,23 +179,29 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     return message.data!['letter_problem'];
   }
 
-  Future<void> _sendCooldownToEbs(WordSolution solution) async {
-    _sendGameStateToEbs();
+  Future<void> _sendCooldownToEbs(WordSolution solution) async =>
+      _sendGameStateToEbs();
+
+  Future<void> _sendGameStateToEbs() async {
+    final patch = deepDiffAsPatch(_lastSentGameState.serialize(),
+        Managers.instance.train.toSerializable.serialize());
+    if (patch == null) {
+      _logger.fine('No changes in the game state, not sending anything to EBS');
+      return;
+    }
+    _lastSentGameState = Managers.instance.train.toSerializable;
+
+    sendMessageToEbs(MessageProtocol(
+        to: MessageTo.ebs,
+        from: MessageFrom.app,
+        type: MessageTypes.put,
+        data: {
+          'type': MessagesToEbs.partialGameStateResponse.name,
+          // TODO: Send an hash of the game state to confirm the EBS in still in sync
+          'hash': null,
+          'game_state': patch,
+        }));
   }
-
-  ///
-  /// Get a serializable version of the GameState
-  SerializableGameState serializableGameState() =>
-      Managers.instance.train.serialize();
-
-  Future<void> _sendGameStateToEbs() async => sendMessageToEbs(MessageProtocol(
-          to: MessageTo.frontend,
-          from: MessageFrom.app,
-          type: MessageTypes.put,
-          data: {
-            'type': ToFrontendMessages.gameState.name,
-            'game_state': serializableGameState().serialize(),
-          }));
 
   ///
   /// Send a message to the EBS server to notify that a round has ended
@@ -208,31 +217,29 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   @override
   Future<void> handleGetRequest(MessageProtocol message) async {
     try {
-      final requestType = ToAppMessages.values.byName(message.data!['type']);
+      final requestType = MessagesToApp.values.byName(message.data!['type']);
       switch (requestType) {
         // General requests
-        case ToAppMessages.isExtensionActive:
-        case ToAppMessages.gameStateRequest:
+        case MessagesToApp.isExtensionActive:
           return await _handleGeneralRequests(message);
 
         // Main game requests
-        case ToAppMessages.tryWord:
-        case ToAppMessages.pardonRequest:
-        case ToAppMessages.boostRequest:
-        case ToAppMessages.fireworksRequest:
-        case ToAppMessages.attemptTheBigHeist:
-        case ToAppMessages.changeLaneRequest:
-        case ToAppMessages.fixTracksMiniGameRequest:
+        case MessagesToApp.tryWord:
+        case MessagesToApp.pardonRequest:
+        case MessagesToApp.boostRequest:
+        case MessagesToApp.fireworksRequest:
+        case MessagesToApp.attemptTheBigHeist:
+        case MessagesToApp.changeLaneRequest:
+        case MessagesToApp.fixTracksMiniGameRequest:
           return await _handleMainGameRequest(message);
 
         // Mini-game requests
-        case ToAppMessages.revealTileAt:
-        case ToAppMessages.slingShootBlueberry:
+        case MessagesToApp.revealTileAt:
+        case MessagesToApp.slingShootBlueberry:
           return await _handleMiniGameRequest(message);
 
-        case ToAppMessages.bitsRedeemed:
-          throw UnimplementedError(
-              'Bits redeemed should be handled by the EBS and rerouted properly');
+        case MessagesToApp.bitsRedeemed:
+          throw UnimplementedError('That request should be handled by the EBS');
       }
     } catch (e) {
       _logger.severe('Error while handling message from EBS: $e');
@@ -245,10 +252,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   }
 
   Future<void> _handleGeneralRequests(MessageProtocol message) async {
-    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    final requestType = MessagesToApp.values.byName(message.data!['type']);
     switch (requestType) {
       // General requests
-      case ToAppMessages.isExtensionActive:
+      case MessagesToApp.isExtensionActive:
         final activeVersion = message.data!['active_version'] as String?;
         final acceptedExtensionVersions =
             (message.data!['accepted_versions'] as List).cast<String>();
@@ -258,29 +265,17 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
             'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
         break;
 
-      case ToAppMessages.gameStateRequest:
-        sendResponseToEbs(message.copyWith(
-            to: MessageTo.frontend,
-            from: MessageFrom.app,
-            type: MessageTypes.response,
-            isSuccess: true,
-            data: {
-              'type': ToFrontendMessages.gameState.name,
-              'game_state': serializableGameState().serialize(),
-            }));
-        break;
-
       // Non-general requests
-      case ToAppMessages.tryWord:
-      case ToAppMessages.pardonRequest:
-      case ToAppMessages.boostRequest:
-      case ToAppMessages.fireworksRequest:
-      case ToAppMessages.attemptTheBigHeist:
-      case ToAppMessages.changeLaneRequest:
-      case ToAppMessages.fixTracksMiniGameRequest:
-      case ToAppMessages.revealTileAt:
-      case ToAppMessages.slingShootBlueberry:
-      case ToAppMessages.bitsRedeemed:
+      case MessagesToApp.tryWord:
+      case MessagesToApp.pardonRequest:
+      case MessagesToApp.boostRequest:
+      case MessagesToApp.fireworksRequest:
+      case MessagesToApp.attemptTheBigHeist:
+      case MessagesToApp.changeLaneRequest:
+      case MessagesToApp.fixTracksMiniGameRequest:
+      case MessagesToApp.revealTileAt:
+      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.bitsRedeemed:
         throw UnimplementedError(
             'This is not a main game request and should be handled in the main handler');
     }
@@ -289,21 +284,21 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   Future<void> _handleMainGameRequest(MessageProtocol message) async {
     final gm = Managers.instance.train;
 
-    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    final requestType = MessagesToApp.values.byName(message.data!['type']);
     final playerName = message.data!['player_name'] as String;
     final player = gm.players.firstWhereOrAdd(playerName);
 
     switch (requestType) {
       // Single-pass requests
-      case ToAppMessages.tryWord:
-      case ToAppMessages.pardonRequest:
-      case ToAppMessages.boostRequest:
+      case MessagesToApp.tryWord:
+      case MessagesToApp.pardonRequest:
+      case MessagesToApp.boostRequest:
         final isSuccess = switch (requestType) {
-          ToAppMessages.tryWord => await gm.trySolution(
+          MessagesToApp.tryWord => await gm.trySolution(
               playerName: playerName, word: message.data!['word'] as String),
-          ToAppMessages.pardonRequest =>
+          MessagesToApp.pardonRequest =>
             gm.pardonLastStealer(pardonner: player),
-          ToAppMessages.boostRequest => gm.boostTrain(player: player),
+          MessagesToApp.boostRequest => gm.boostTrain(player: player),
           _ => throw UnimplementedError(
               'Handler for $requestType is not implemented'),
         };
@@ -316,15 +311,15 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         break;
 
       // Two-pass requests
-      case ToAppMessages.fireworksRequest:
-      case ToAppMessages.attemptTheBigHeist:
-      case ToAppMessages.changeLaneRequest:
-      case ToAppMessages.fixTracksMiniGameRequest:
+      case MessagesToApp.fireworksRequest:
+      case MessagesToApp.attemptTheBigHeist:
+      case MessagesToApp.changeLaneRequest:
+      case MessagesToApp.fixTracksMiniGameRequest:
         final requester = switch (requestType) {
-          ToAppMessages.fireworksRequest => gm.congratulationFireworksRequester,
-          ToAppMessages.attemptTheBigHeist => gm.attemptTheBigHeistRequester,
-          ToAppMessages.changeLaneRequest => gm.changeLaneRequester,
-          ToAppMessages.fixTracksMiniGameRequest =>
+          MessagesToApp.fireworksRequest => gm.congratulationFireworksRequester,
+          MessagesToApp.attemptTheBigHeist => gm.attemptTheBigHeistRequester,
+          MessagesToApp.changeLaneRequest => gm.changeLaneRequester,
+          MessagesToApp.fixTracksMiniGameRequest =>
             gm.fixTracksMiniGameRequester,
           _ => throw UnimplementedError(
               'Requester for $requestType is not implemented'),
@@ -350,11 +345,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         break;
 
       // Non-game requests
-      case ToAppMessages.isExtensionActive:
-      case ToAppMessages.gameStateRequest:
-      case ToAppMessages.revealTileAt:
-      case ToAppMessages.slingShootBlueberry:
-      case ToAppMessages.bitsRedeemed:
+      case MessagesToApp.isExtensionActive:
+      case MessagesToApp.revealTileAt:
+      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.bitsRedeemed:
         // These requests are not handled in this method
         throw UnimplementedError(
             'This is not a main game request and should be handled in the main handler');
@@ -364,10 +358,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   Future<void> _handleMiniGameRequest(MessageProtocol message) async {
     final gm = Managers.instance.train;
 
-    final requestType = ToAppMessages.values.byName(message.data!['type']);
+    final requestType = MessagesToApp.values.byName(message.data!['type']);
     late bool isSuccess;
     switch (requestType) {
-      case ToAppMessages.revealTileAt:
+      case MessagesToApp.revealTileAt:
         final playerName = message.data!['player_name'] as String;
         isSuccess = gm.players.hasPlayer(playerName)
             ? Managers.instance.miniGames.treasureHunt
@@ -375,7 +369,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
             : false;
         break;
 
-      case ToAppMessages.slingShootBlueberry:
+      case MessagesToApp.slingShootBlueberry:
         final bwm = Managers.instance.miniGames.blueberryWar;
         final blueberryId = message.data!['id'] as int;
         final blueberry = bwm.allAgents
@@ -388,16 +382,15 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         break;
 
       // Non-mini-game requests
-      case ToAppMessages.isExtensionActive:
-      case ToAppMessages.gameStateRequest:
-      case ToAppMessages.tryWord:
-      case ToAppMessages.pardonRequest:
-      case ToAppMessages.boostRequest:
-      case ToAppMessages.fireworksRequest:
-      case ToAppMessages.attemptTheBigHeist:
-      case ToAppMessages.changeLaneRequest:
-      case ToAppMessages.fixTracksMiniGameRequest:
-      case ToAppMessages.bitsRedeemed:
+      case MessagesToApp.isExtensionActive:
+      case MessagesToApp.tryWord:
+      case MessagesToApp.pardonRequest:
+      case MessagesToApp.boostRequest:
+      case MessagesToApp.fireworksRequest:
+      case MessagesToApp.attemptTheBigHeist:
+      case MessagesToApp.changeLaneRequest:
+      case MessagesToApp.fixTracksMiniGameRequest:
+      case MessagesToApp.bitsRedeemed:
         throw UnimplementedError(
             'Bits redeemed should be handled by the EBS and rerouted properly');
     }
@@ -425,7 +418,7 @@ class TwitchAppEbsManagerMocked extends TwitchAppEbsManager {
           from: MessageFrom.ebs,
           type: MessageTypes.get,
           data: {
-            'type': ToAppMessages.isExtensionActive.name,
+            'type': MessagesToApp.isExtensionActive.name,
             'active_version': null,
             'accepted_versions': [],
           }));

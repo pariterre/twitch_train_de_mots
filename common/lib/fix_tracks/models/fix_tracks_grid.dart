@@ -25,18 +25,22 @@ class FixTracksGrid {
         'rows': rowCount,
         'cols': columnCount,
         'tiles': _tiles
-            .map((tile) => tile?.serialize())
-            .whereNot((tile) => tile == null)
+            .asMap()
+            .map((index, tile) => MapEntry(tile?.index, tile?.serialize()))
+          ..removeWhere((key, value) => value == null),
+        'path_segments': _pathSegments
+            .asMap()
+            .map((index, segment) =>
+                MapEntry(segment.startingTileIndex, segment.serialize()))
+            .values
             .toList(),
-        'path_segments':
-            _pathSegments.map((segment) => segment.serialize()).toList(),
       };
 
   static FixTracksGrid deserialize(Map<String, dynamic> json) {
     final rowCount = json['rows'] as int;
     final colCount = json['cols'] as int;
     final tiles = List<Tile?>.filled(rowCount * colCount, null);
-    for (var tileData in (json['tiles'] as List)) {
+    for (var tileData in (json['tiles'] as Map<int, dynamic>).values) {
       final tile = Tile.deserialize(tileData);
       tiles[tile.index] = tile;
     }
@@ -45,7 +49,8 @@ class FixTracksGrid {
       rowCount: rowCount,
       columnCount: colCount,
       tiles: tiles,
-      pathSegments: (json['path_segments'] as List)
+      pathSegments: (json['path_segments'] as Map<int, dynamic>)
+          .values
           .map((segment) => PathSegment.fromSerialized(segment))
           .toList(),
     );

@@ -20,14 +20,17 @@ class WarehouseCleaningGrid {
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
-        'tiles': _tiles.map((tile) => tile.serialize()).toList(),
+        'tiles': _tiles
+            .asMap()
+            .map((index, tile) => MapEntry(tile.index, tile.serialize())),
       };
 
   static WarehouseCleaningGrid deserialize(Map<String, dynamic> json) {
     return WarehouseCleaningGrid(
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
-      tiles: (json['tiles'] as List)
+      tiles: (json['tiles'] as Map<int, dynamic>)
+          .values
           .map((tile) => Tile.deserialize(tile))
           .toList(growable: false),
     );

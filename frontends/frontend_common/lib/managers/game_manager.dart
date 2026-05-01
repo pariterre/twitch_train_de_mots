@@ -4,7 +4,6 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/global_ticker_manager.dart';
-import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
@@ -57,31 +56,7 @@ class GameManager {
 
   ///
   /// Flag to indicate if the game has started
-  SerializableGameState _gameState = SerializableGameState(
-    hasPlayedAtLeastOnce: false,
-    roundCount: 0,
-    gameStatus: WordsTrainGameStatus.uninitialized,
-    isRoundAMiniGame: false,
-    successLevel: SuccessLevel.failed,
-    roundSuccesses: [],
-    roundTimer: SerializableControllableTimer(
-        isInitialized: false, startedAt: null, endsAt: null, pausedAt: null),
-    letterProblem: SerializableLetterProblem.empty(),
-    players: {},
-    pardonRemaining: 0,
-    pardonners: [],
-    boostRemaining: 0,
-    boostStillNeeded: 0,
-    boosters: [],
-    canChangeLane: false,
-    canRequestFireworks: false,
-    canRequestTheBigHeist: false,
-    isAttemptingTheBigHeist: false,
-    canRequestFixTracksMiniGame: false,
-    isAttemptingFixTracksMiniGame: false,
-    configuration: SerializableConfiguration(showExtension: true),
-    miniGameState: null,
-  );
+  SerializableGameState _gameState = SerializableGameState.empty();
 
   ///
   /// A copy of the current game state. This is slow and should not be used apart
@@ -256,7 +231,8 @@ class GameManager {
   ///
   /// Stealer and pardonner management
   final onPardonnersChanged = GenericListener<Function()>();
-  List<String> get pardonners => List.unmodifiable(_gameState.pardonners);
+  List<String> get pardonners =>
+      List.unmodifiable(_gameState.playersWhoCanPardon);
 
   final onPardonGranted = GenericListener<Function(bool)>();
   Future<bool> pardonStealer() async {

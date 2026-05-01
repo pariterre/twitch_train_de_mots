@@ -81,7 +81,7 @@ class TwitchManager {
 
   Future<bool> tryWord(String word) async {
     final response =
-        await _sendMessageToApp(ToAppMessages.tryWord, data: {'word': word})
+        await _sendMessageToApp(MessagesToApp.tryWord, data: {'word': word})
             .timeout(const Duration(seconds: 5),
                 onTimeout: () => tm.MessageProtocol(
                     to: tm.MessageTo.frontend,
@@ -96,7 +96,7 @@ class TwitchManager {
   /// the EBS. If the request is successful, the stealer is pardoned and a message
   /// is sent to PubSub.
   Future<bool> pardonStealer() async {
-    final response = await _sendMessageToApp(ToAppMessages.pardonRequest)
+    final response = await _sendMessageToApp(MessagesToApp.pardonRequest)
         .timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
                 to: tm.MessageTo.frontend,
@@ -112,7 +112,7 @@ class TwitchManager {
   /// is sent to PubSub.
   Future<bool> boostTrain() async {
     final response =
-        await _sendMessageToApp(ToAppMessages.boostRequest).timeout(
+        await _sendMessageToApp(MessagesToApp.boostRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -128,7 +128,7 @@ class TwitchManager {
   Future<bool> changeLane() async {
     // Annonce to App that a change of lane request is being redeemed
     final response =
-        await _sendMessageToApp(ToAppMessages.changeLaneRequest).timeout(
+        await _sendMessageToApp(MessagesToApp.changeLaneRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -146,7 +146,7 @@ class TwitchManager {
   Future<bool> attemptTheBigHeist() async {
     // Annonce to App that a big heist request is being redeemed
     final response =
-        await _sendMessageToApp(ToAppMessages.attemptTheBigHeist).timeout(
+        await _sendMessageToApp(MessagesToApp.attemptTheBigHeist).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -164,7 +164,7 @@ class TwitchManager {
   Future<bool> attemptFixTracksMiniGame() async {
     // Annonce to App that an end of railway mini game request is being redeemed
     final response =
-        await _sendMessageToApp(ToAppMessages.fixTracksMiniGameRequest).timeout(
+        await _sendMessageToApp(MessagesToApp.fixTracksMiniGameRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -182,7 +182,7 @@ class TwitchManager {
   Future<bool> celebrate() async {
     // Annonce to App that a celebrate request is being redeemed
     final response =
-        await _sendMessageToApp(ToAppMessages.fireworksRequest).timeout(
+        await _sendMessageToApp(MessagesToApp.fireworksRequest).timeout(
       const Duration(seconds: 5),
       onTimeout: () => tm.MessageProtocol(
           to: tm.MessageTo.frontend,
@@ -198,7 +198,7 @@ class TwitchManager {
   ///
   /// Request to reveal a tile in the Treasure Hunt minigame.
   Future<bool> revealTileAt({required int index}) async {
-    final response = await _sendMessageToApp(ToAppMessages.revealTileAt,
+    final response = await _sendMessageToApp(MessagesToApp.revealTileAt,
             data: {'index': index})
         .timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
@@ -215,7 +215,7 @@ class TwitchManager {
       {required BlueberryAgent blueberry,
       required Vector2 requestedVelocity}) async {
     final response =
-        await _sendMessageToApp(ToAppMessages.slingShootBlueberry, data: {
+        await _sendMessageToApp(MessagesToApp.slingShootBlueberry, data: {
       'id': blueberry.id,
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
@@ -229,7 +229,7 @@ class TwitchManager {
 
   Future<bool> _redeemBitsTransaction(
       tm.BitsTransactionObject transaction) async {
-    final response = await _sendMessageToApp(ToAppMessages.bitsRedeemed,
+    final response = await _sendMessageToApp(MessagesToApp.bitsRedeemed,
             transaction: transaction)
         .timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
@@ -304,8 +304,8 @@ class TwitchManager {
 
   Future<void> _onPubSubMessageReceived(tm.MessageProtocol message) async {
     try {
-      switch (ToFrontendMessages.values.byName(message.data!['type'])) {
-        case ToFrontendMessages.gameState:
+      switch (MessagesToFrontend.values.byName(message.data!['type'])) {
+        case MessagesToFrontend.gameStateResponse:
           _logger.info('Update from game state received');
 
           GameManager.instance.updateGameState(
@@ -313,8 +313,8 @@ class TwitchManager {
 
           break;
 
-        case ToFrontendMessages.pardonResponse:
-        case ToFrontendMessages.boostResponse:
+        case MessagesToFrontend.pardonResponse:
+        case MessagesToFrontend.boostResponse:
           _logger.severe('This message should not be received by Pubsub');
           break;
       }
@@ -361,7 +361,7 @@ class TwitchManager {
   }
 
   Future<void> _requestGameStatus() async {
-    final response = await _sendMessageToApp(ToAppMessages.gameStateRequest)
+    final response = await _sendMessageToEbs(MessagesToEbs.gameStateRequest)
         .timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
                 to: tm.MessageTo.frontend,
@@ -382,7 +382,7 @@ class TwitchManager {
   ///
   /// Send a message to the App based on the [type] of message.
   Future<tm.MessageProtocol> _sendMessageToApp(
-    ToAppMessages request, {
+    MessagesToApp request, {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
   }) async {
@@ -394,6 +394,27 @@ class TwitchManager {
     return await _frontendManager!.sendMessageToApp(
         tm.MessageProtocol(
             to: tm.MessageTo.app,
+            from: tm.MessageFrom.frontend,
+            type: tm.MessageTypes.get,
+            data: {'type': request.name}..addAll(data ?? {})),
+        transaction: transaction);
+  }
+
+  ///
+  /// Send a message to the App based on the [type] of message.
+  Future<tm.MessageProtocol> _sendMessageToEbs(
+    MessagesToEbs request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
+    if (!isInitialized) {
+      _logger.severe('TwitchManager is not initialized');
+      throw Exception('TwitchManager is not initialized');
+    }
+
+    return await _frontendManager!.sendMessageToApp(
+        tm.MessageProtocol(
+            to: tm.MessageTo.ebs,
             from: tm.MessageFrom.frontend,
             type: tm.MessageTypes.get,
             data: {'type': request.name}..addAll(data ?? {})),
@@ -631,7 +652,7 @@ class TwitchManagerMock extends TwitchManager {
             type: tm.MessageTypes.response,
             isSuccess: true,
             data: jsonDecode(jsonEncode({
-              'type': ToFrontendMessages.gameState.name,
+              'type': MessagesToFrontend.gameStateResponse.name,
               'game_state': SerializableGameState(
                 hasPlayedAtLeastOnce: true,
                 roundCount: 11,
@@ -660,7 +681,7 @@ class TwitchManagerMock extends TwitchManager {
                           : LetterStatus.normal),
                 ),
                 pardonRemaining: 1,
-                pardonners: [userId],
+                playersWhoCanPardon: [userId],
                 boostRemaining: 1,
                 boostStillNeeded: 0,
                 boosters: [],
@@ -680,31 +701,74 @@ class TwitchManagerMock extends TwitchManager {
 
   @override
   Future<tm.MessageProtocol> _sendMessageToApp(
-    ToAppMessages request, {
+    MessagesToApp request, {
     Map<String, dynamic>? data,
     tm.BitsTransactionObject? transaction,
   }) async {
     switch (request) {
-      case ToAppMessages.pardonRequest:
+      case MessagesToApp.pardonRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,
             isSuccess: _acceptPardon);
-      case ToAppMessages.tryWord:
+      case MessagesToApp.tryWord:
         final word = data?['word'] as String?;
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,
             isSuccess: word != null && word.length % 2 == 0);
-      case ToAppMessages.boostRequest:
+      case MessagesToApp.boostRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,
             isSuccess: _acceptBoost);
-      case ToAppMessages.gameStateRequest:
+      case MessagesToApp.fireworksRequest:
+      case MessagesToApp.attemptTheBigHeist:
+      case MessagesToApp.changeLaneRequest:
+      case MessagesToApp.fixTracksMiniGameRequest:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+
+      case MessagesToApp.bitsRedeemed:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+
+      case MessagesToApp.revealTileAt:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+
+      case MessagesToApp.slingShootBlueberry:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+
+      case MessagesToApp.isExtensionActive:
+        throw 'Request should not come from frontend';
+    }
+  }
+
+  @override
+  Future<tm.MessageProtocol> _sendMessageToEbs(
+    MessagesToEbs request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
+    switch (request) {
+      case MessagesToEbs.gameStateRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,
@@ -739,7 +803,7 @@ class TwitchManagerMock extends TwitchManager {
                           : LetterStatus.normal),
                 ),
                 pardonRemaining: 1,
-                pardonners: [],
+                playersWhoCanPardon: [],
                 boostRemaining: 0,
                 boostStillNeeded: 0,
                 boosters: [],
@@ -766,38 +830,8 @@ class TwitchManagerMock extends TwitchManager {
                     )),
               ).serialize(),
             })));
-      case ToAppMessages.fireworksRequest:
-      case ToAppMessages.attemptTheBigHeist:
-      case ToAppMessages.changeLaneRequest:
-      case ToAppMessages.fixTracksMiniGameRequest:
-        return tm.MessageProtocol(
-            to: tm.MessageTo.frontend,
-            from: tm.MessageFrom.app,
-            type: tm.MessageTypes.response,
-            isSuccess: true);
-
-      case ToAppMessages.bitsRedeemed:
-        return tm.MessageProtocol(
-            to: tm.MessageTo.frontend,
-            from: tm.MessageFrom.app,
-            type: tm.MessageTypes.response,
-            isSuccess: true);
-
-      case ToAppMessages.revealTileAt:
-        return tm.MessageProtocol(
-            to: tm.MessageTo.frontend,
-            from: tm.MessageFrom.app,
-            type: tm.MessageTypes.response,
-            isSuccess: true);
-
-      case ToAppMessages.slingShootBlueberry:
-        return tm.MessageProtocol(
-            to: tm.MessageTo.frontend,
-            from: tm.MessageFrom.app,
-            type: tm.MessageTypes.response,
-            isSuccess: true);
-
-      case ToAppMessages.isExtensionActive:
+      case MessagesToEbs.newLetterProblemRequest:
+      case MessagesToEbs.partialGameStateResponse:
         throw 'Request should not come from frontend';
     }
   }

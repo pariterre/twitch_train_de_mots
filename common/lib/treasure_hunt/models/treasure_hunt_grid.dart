@@ -80,7 +80,9 @@ class TreasureHuntGrid {
         'rows': rowCount,
         'cols': columnCount,
         'rewards_count': rewardCount,
-        'tiles': _tiles.map((tile) => tile.serialize()).toList(),
+        'tiles': _tiles
+            .asMap()
+            .map((index, tile) => MapEntry(tile.index, tile.serialize())),
       };
 
   static TreasureHuntGrid deserialize(Map<String, dynamic> json) {
@@ -88,9 +90,10 @@ class TreasureHuntGrid {
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
       rewardCount: json['rewards_count'] as int,
-      tiles: (json['tiles'] as List)
-          .map((tile) => Tile.deserialize(tile))
-          .toList(growable: false),
+      tiles: (json['tiles'] as Map<int, dynamic>)
+          .values
+          .map((e) => Tile.deserialize(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 

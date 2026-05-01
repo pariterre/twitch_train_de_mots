@@ -204,6 +204,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       roundTimer: roundTimer,
       grid: _grid!,
       triesRemaining: _triesRemaining,
+      allAgents: allAgents,
     );
   }
 
