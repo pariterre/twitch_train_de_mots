@@ -831,7 +831,7 @@ class TwitchManagerMock extends TwitchManager {
               ).serialize(),
             })));
       case MessagesToEbs.newLetterProblemRequest:
-      case MessagesToEbs.partialGameStateResponse:
+      case MessagesToEbs.patchGameStateResponse:
         throw 'Request should not come from frontend';
     }
   }

@@ -196,7 +196,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         from: MessageFrom.app,
         type: MessageTypes.put,
         data: {
-          'type': MessagesToEbs.partialGameStateResponse.name,
+          'type': MessagesToEbs.patchGameStateResponse.name,
           // TODO: Send an hash of the game state to confirm the EBS in still in sync
           'hash': null,
           'game_state': patch,

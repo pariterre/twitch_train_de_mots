@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/agent.dart';
+import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:http/http.dart' as http;
@@ -20,35 +21,8 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  SerializableGameState _gameState = SerializableGameState.empty();
-  SerializableGameState get gameState => _gameState;
-  set gameState(SerializableGameState value) {
-    _gameState = value;
-
-    // Convert the cooldowns from login to opaque id
-    for (final login in _gameState.players.keys.toList()) {
-      final opaqueId =
-          registeredFrontendUsers.from(login: login)?.opaqueId ?? '';
-      _gameState.players[opaqueId] = _gameState.players[login]!;
-      _gameState.players.remove(login);
-    }
-
-    // Convert the pardonners from login to opaque id
-    for (int i = 0; i < _gameState.playersWhoCanPardon.length; i++) {
-      _gameState.playersWhoCanPardon[i] = registeredFrontendUsers
-              .from(login: _gameState.playersWhoCanPardon[i])
-              ?.opaqueId ??
-          '';
-    }
-
-    // Convert the boosters from login to opaque id
-    for (int i = 0; i < _gameState.boosters.length; i++) {
-      _gameState.boosters[i] = registeredFrontendUsers
-              .from(login: _gameState.boosters[i])
-              ?.opaqueId ??
-          '';
-    }
-  }
+  Map<String, dynamic> _gameState = SerializableGameState.empty().serialize();
+  Map<String, dynamic> _lastSentGameState = {};
 
   ///
   /// Create a new GameManager. This method automatically starts a keep alive
@@ -91,10 +65,22 @@ class EbsManager extends TwitchEbsManagerAbstract {
         }));
   }
 
+  Future<void> _handlePatchGameStateResponse(MessageProtocol message) async {
+    _logger.info('Received patch game state response from app');
+    final gameStateTp = applyPatch(_gameState, message.data!['game_state']);
+
+    // Sanitize the game state
+    _gameState =
+        SerializableGameState.deserialize(gameStateTp as Map<String, dynamic>)
+            .serialize();
+
+    await _sendGameStateToFrontend();
+  }
+
   Future<void> _sendGameStateToFrontend() async {
     _logger.info('Sending game state to frontend');
 
-    // TODO: Check between partial and full game state request to only send the necessary data
+    _lastSentGameState = deepDiffAsPatch(_lastSentGameState, _gameState);
 
     communicator.sendMessage(MessageProtocol(
         to: MessageTo.frontend,
@@ -102,7 +88,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.put,
         data: {
           'type': MessagesToFrontend.gameStateResponse.name,
-          'game_state': _gameState.serialize()
+          'game_state': _lastSentGameState
         }));
   }
 
@@ -274,8 +260,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   isSuccess: true,
                   data: {'letter_problem': letterProblem.serialize()}));
               break;
-            case MessagesToEbs.partialGameStateResponse:
-            // TODO Merge with current game state
+            case MessagesToEbs.patchGameStateResponse:
+              // TODO Change this to a put request with response to confirm the client can ditch the "previous" game state
+              await _handlePatchGameStateResponse(message);
+              break;
             case MessagesToEbs.gameStateRequest:
               throw 'This request should not come from the app';
           }
@@ -323,7 +311,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
               _sendGameStateToFrontend();
               break;
             case MessagesToEbs.newLetterProblemRequest:
-            case MessagesToEbs.partialGameStateResponse:
+            case MessagesToEbs.patchGameStateResponse:
               throw 'This request should not come from the frontend';
           }
 

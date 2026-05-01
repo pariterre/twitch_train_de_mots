@@ -25,7 +25,7 @@ enum MessagesToApp {
 
 enum MessagesToEbs {
   gameStateRequest,
-  partialGameStateResponse,
+  patchGameStateResponse,
   newLetterProblemRequest,
 }
 
