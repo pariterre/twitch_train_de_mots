@@ -21,7 +21,7 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  Map<String, dynamic> _gameState = SerializableGameState.empty().serialize();
+  SerializableGameState _gameState = SerializableGameState.empty();
   Map<String, dynamic> _lastSentGameState = {};
 
   ///
@@ -67,13 +67,37 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
   Future<void> _handlePatchGameStateResponse(MessageProtocol message) async {
     _logger.info('Received patch game state response from app');
-    final gameStateTp = applyPatch(_gameState, message.data!['game_state']);
 
-    // Sanitize the game state
-    _gameState =
-        SerializableGameState.deserialize(gameStateTp as Map<String, dynamic>)
-            .serialize();
+    final gameStatePatch = message.data?['game_state'] == null
+        ? {}
+        : Map<String, dynamic>.from(message.data!['game_state']);
 
+    // Change player names to opaque ids in the patch if any.
+    // TODO: Do the same for [playersWhoCanPardon], [boosters]
+    if (gameStatePatch['players'] != null) {
+      final players = gameStatePatch['players'] as Map<String, dynamic>;
+
+      final playersToRemove = <String>[];
+      for (var playerName in players.keys) {
+        final player = players[playerName] as Map<String, dynamic>;
+        player['name'] =
+            registeredFrontendUsers.from(login: playerName)?.opaqueId;
+        if (player['name'] == null) playersToRemove.add(playerName);
+      }
+      for (var player in playersToRemove) {
+        players.remove(player);
+      }
+    }
+
+    // Apply the patch to the current game state to get the new game state
+    final newGameState = SerializableGameState.deserialize(
+        applyPatch(_gameState.serialize(), gameStatePatch));
+
+    if (newGameState.computeHash() != message.data?['game_state_hash']) {
+      throw 'Game state hash does not match the expected hash';
+    }
+
+    _gameState = newGameState;
     await _sendGameStateToFrontend();
   }
 

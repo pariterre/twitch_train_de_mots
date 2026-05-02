@@ -283,21 +283,21 @@ class GameManager {
 
   ///
   /// Mini game is active
-  bool get isMiniGameActive => _gameState.miniGameState != null;
-  SerializableMiniGameState? get miniGameState => _gameState.miniGameState;
+  bool get isMiniGameActive =>
+      _gameState.miniGameState is! SerializableMiniGameStateNone;
+  SerializableMiniGameState get miniGameState => _gameState.miniGameState;
   final onMiniGameStateUpdated = GenericListener<Function()>();
   void updateMiniGameState(SerializableMiniGameState newMiniGameState) {
     _gameState.miniGameState = newMiniGameState;
     onMiniGameStateUpdated.notifyListeners((callback) => callback());
   }
 
-  MiniGames? get currentMiniGameType => _gameState.miniGameState?.type;
+  MiniGames? get currentMiniGameType => _gameState.miniGameState.type;
   void _tickMiniGame(Duration deltaTime) {
-    if (_gameState.miniGameState == null) return;
-
-    final dt = deltaTime;
-
     switch (currentMiniGameType!) {
+      case MiniGames.none:
+        break;
+
       case MiniGames.treasureHunt:
         break;
 
@@ -307,7 +307,7 @@ class GameManager {
               _gameState.miniGameState as SerializableBlueberryWarGameState;
 
           BlueberryWarGameManagerHelpers.updateAllAgents(
-              allAgents: bwm.allAgents, dt: dt, problem: bwm.problem);
+              allAgents: bwm.allAgents, dt: deltaTime, problem: bwm.problem);
           // Check for teleportations
           for (final agent in bwm.allAgents) {
             if (agent is! BlueberryAgent) continue;

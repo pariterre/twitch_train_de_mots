@@ -147,7 +147,7 @@ class SerializableGameState {
   final bool isAttemptingFixTracksMiniGame;
 
   SerializableConfiguration configuration;
-  SerializableMiniGameState? miniGameState;
+  SerializableMiniGameState miniGameState;
 
   SerializableGameState({
     required this.hasPlayedAtLeastOnce,
@@ -196,7 +196,7 @@ class SerializableGameState {
         canRequestFixTracksMiniGame = false,
         isAttemptingFixTracksMiniGame = false,
         configuration = SerializableConfiguration.empty(),
-        miniGameState = null;
+        miniGameState = SerializableMiniGameStateNone();
 
   SerializableGameState copyWith({
     bool? hasPlayedAtLeastOnce,
@@ -275,7 +275,7 @@ class SerializableGameState {
       'can_request_end_mini_game': canRequestFixTracksMiniGame,
       'is_attempting_end_mini_game': isAttemptingFixTracksMiniGame,
       'configuration': configuration.serialize(),
-      'mini_game_state': miniGameState?.serialize(),
+      'mini_game_state': miniGameState.serialize(),
     };
   }
 
@@ -287,7 +287,7 @@ class SerializableGameState {
               SerializablePlayer.deserialize(value as Map<String, dynamic>))),
       roundCount: data['round'] as int,
       gameStatus: WordsTrainGameStatus.values[data['game_status'] as int],
-      isRoundAMiniGame: data['is_round_a_mini_game'] as bool? ?? false,
+      isRoundAMiniGame: data['is_round_a_mini_game'] as bool,
       successLevel: SuccessLevel.values[data['success_level'] as int],
       roundSuccesses: (data['round_successes'] as List)
           .cast<int>()
@@ -303,20 +303,17 @@ class SerializableGameState {
       boostRemaining: data['boost_remaining'] as int,
       boostStillNeeded: data['boost_still_needed'] as int,
       boosters: (data['boosters'] as List).cast<String>(),
-      canChangeLane: data['can_change_lane'] as bool? ?? false,
-      canRequestFireworks: data['can_request_fireworks'] as bool? ?? false,
-      canRequestTheBigHeist:
-          data['can_request_the_big_heist'] as bool? ?? false,
+      canChangeLane: data['can_change_lane'] as bool,
+      canRequestFireworks: data['can_request_fireworks'] as bool,
+      canRequestTheBigHeist: data['can_request_the_big_heist'] as bool,
       isAttemptingTheBigHeist: data['is_attempting_the_big_heist'] as bool,
       canRequestFixTracksMiniGame: data['can_request_end_mini_game'] as bool,
       isAttemptingFixTracksMiniGame:
           data['is_attempting_end_mini_game'] as bool,
       configuration:
           SerializableConfiguration.deserialize(data['configuration']),
-      miniGameState: data['mini_game_state'] == null
-          ? null
-          : SerializableMiniGameState.deserialize(
-              data['mini_game_state'] as Map<String, dynamic>),
+      miniGameState: SerializableMiniGameState.deserialize(
+          data['mini_game_state'] as Map<String, dynamic>),
     );
   }
 }

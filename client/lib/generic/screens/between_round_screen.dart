@@ -211,6 +211,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     String buttonText = '';
     if (gm.isNextRoundAMiniGame) {
       buttonText += switch (gm.nextRoundMiniGame!) {
+        MiniGames.none => throw Exception('Invalid mini game: none'),
         MiniGames.treasureHunt => 'Aller aux bleuets!',
         MiniGames.blueberryWar => 'À l\'attaque des bleuets!',
         MiniGames.warehouseCleaning => 'Nettoyons cet entrepôt!',

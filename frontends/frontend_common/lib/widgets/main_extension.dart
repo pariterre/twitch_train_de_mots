@@ -246,6 +246,7 @@ class _MainScreenState extends State<_MainScreen> {
 
     return gm.isRoundAMiniGame
         ? switch (GameManager.instance.currentMiniGameType!) {
+            MiniGames.none => throw Exception('Invalid mini game: none'),
             MiniGames.treasureHunt => const TreasureHuntPlayScreen(),
             MiniGames.blueberryWar => const BlueberryWarPlayScreen(),
             MiniGames.warehouseCleaning => const WarehouseCleaningPlayScreen(),

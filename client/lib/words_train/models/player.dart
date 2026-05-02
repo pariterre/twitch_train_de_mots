@@ -4,10 +4,12 @@ import 'package:collection/collection.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/serializable_player.dart';
 import 'package:train_de_mots/generic/managers/controllable_timer.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 class Player {
   final String name;
+  final String login;
 
   int score = 0;
   int starsCollected = 0;
@@ -50,11 +52,11 @@ class Player {
     if (cooldownTimer.isInitialized) cooldownTimer.dispose();
   }
 
-  Player({required this.name});
+  Player({required this.name, required this.login});
 
   SerializablePlayer serialize() {
     return SerializablePlayer(
-      name: name,
+      name: login,
       score: score,
       starsCollected: starsCollected,
       roundStealCount: roundStealCount,
@@ -84,12 +86,18 @@ class Players extends DelegatingList<Player> {
   ///
   /// This method behaves like [firstWhere] but if the player is not found, it
   /// will add it to the list and return it.
-  Player firstWhereOrAdd(String name) {
-    return super.firstWhere((element) => element.name == name, orElse: () {
-      final newPlayer = Player(name: name);
+  Future<Player> firstWhereOrAdd(String name) async {
+    Player? player = firstWhereOrNull((element) => element.name == name);
+    if (player == null) {
+      final twitchManager = Managers.instance.twitch;
+      final newPlayer = Player(
+          name: name,
+          login: await twitchManager.loginFromDisplayName(name) ?? name);
       _players.add(newPlayer);
-      return newPlayer;
-    });
+      player = newPlayer;
+    }
+
+    return player;
   }
 
   ///

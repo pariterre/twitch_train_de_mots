@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -36,6 +37,22 @@ class TwitchManager {
   void addChatListener(Function(String sender, String message) callback) {
     _logger.info('Adding chat listener');
     _chatListeners.listen(callback);
+  }
+
+  Future<String?> loginFromDisplayName(String displayName) async {
+    if (isNotConnected) {
+      _logger.warning(
+          'Cannot login from display name because TwitchManager is not connected');
+      return null;
+    }
+    final chatters = await _manager!.api.fetchChatters();
+    final chatter = chatters
+        ?.firstWhereOrNull((chatter) => chatter.displayName == displayName);
+    if (chatter == null) {
+      _logger.warning('No chatter found with display name $displayName');
+      return null;
+    }
+    return chatter.login;
   }
 
   ///

@@ -27,8 +27,8 @@ class SerializableControllableTimer {
 
   Map<String, dynamic> serialize() {
     return {
-      'started_at': startedAt?.millisecondsSinceEpoch,
-      'ends_at': endsAt?.millisecondsSinceEpoch,
+      'started_at': startedAt?.millisecondsSinceEpoch ?? -1,
+      'ends_at': endsAt?.millisecondsSinceEpoch ?? -1,
       'is_paused': pausedAt != null,
     };
   }
@@ -47,18 +47,17 @@ class SerializableControllableTimer {
     );
   }
 
-  static SerializableControllableTimer deserialize(Map<String, dynamic> data) {
-    return SerializableControllableTimer(
-      isInitialized: data['is_initialized'] as bool,
-      startedAt: data['started_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(data['started_at'] as int)
-          : null,
-      endsAt: data['ends_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(data['ends_at'] as int)
-          : null,
-      pausedAt: data['is_paused'] == true ? DateTime.now() : null,
-    );
-  }
+  static SerializableControllableTimer deserialize(Map<String, dynamic> data) =>
+      SerializableControllableTimer(
+        isInitialized: false,
+        startedAt: data['started_at'] as int >= 0
+            ? DateTime.fromMillisecondsSinceEpoch(data['started_at'] as int)
+            : null,
+        endsAt: data['ends_at'] as int >= 0
+            ? DateTime.fromMillisecondsSinceEpoch(data['ends_at'] as int)
+            : null,
+        pausedAt: data['is_paused'] == true ? DateTime.now() : null,
+      );
 
   Duration? get timeRemaining => endsAt?.difference(DateTime.now());
 

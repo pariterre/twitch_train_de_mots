@@ -9,6 +9,7 @@ import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/random_extension.dart';
 import 'package:common/generic/models/round_success.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/controllable_timer.dart';
@@ -276,8 +277,8 @@ class WordsTrainGameManager {
         configuration: SerializableConfiguration(
             showExtension: Managers.instance.configuration.showExtension),
         miniGameState: isRoundAMiniGame || isNextRoundAMiniGame
-            ? Managers.instance.miniGames.manager?.serializeMiniGame()
-            : null,
+            ? Managers.instance.miniGames.manager!.serializeMiniGame()
+            : SerializableMiniGameStateNone(),
       );
 
   /// ----------- ///
@@ -665,7 +666,7 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
 
     // Get the player from the players list
-    final player = players.firstWhereOrAdd(playerName);
+    final player = await players.firstWhereOrAdd(playerName);
 
     // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
@@ -1340,7 +1341,7 @@ class WordsTrainGameManager {
         _random.nextInt(MiniGames.betweenRoundsGames.length)];
   }
 
-  void _miniGameEnded() {
+  Future<void> _miniGameEnded() async {
     _logger.info('Mini game ended');
     final mgm = Managers.instance.miniGames.manager;
     if (mgm == null) {
@@ -1369,7 +1370,7 @@ class WordsTrainGameManager {
         _roundSuccesses.add(RoundSuccess.miniGameWon);
 
         for (final playerName in playerPoints.keys) {
-          final player = players.firstWhereOrAdd(playerName);
+          final player = await players.firstWhereOrAdd(playerName);
           player.score += playerPoints[playerName]!;
         }
       }

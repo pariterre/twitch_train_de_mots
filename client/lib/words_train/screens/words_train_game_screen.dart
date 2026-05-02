@@ -164,6 +164,7 @@ class _HeaderState extends State<_Header> {
 
     String title = gm.isRoundAMiniGame
         ? switch (gm.nextRoundMiniGame!) {
+            MiniGames.none => throw Exception('Invalid mini game: none'),
             MiniGames.blueberryWar => 'La Guerre des Bleuets!',
             MiniGames.treasureHunt => 'La Chasse au Trésor!',
             MiniGames.warehouseCleaning => 'Nettoyons ce Hangar!',

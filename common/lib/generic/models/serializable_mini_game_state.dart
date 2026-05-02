@@ -11,6 +11,8 @@ abstract class SerializableMiniGameState {
 
   static SerializableMiniGameState deserialize(Map<String, dynamic> data) {
     switch (MiniGames.values[data['type']]) {
+      case MiniGames.none:
+        return SerializableMiniGameStateNone.deserialize(data);
       case MiniGames.treasureHunt:
         return SerializableTreasureHuntGameState.deserialize(data);
       case MiniGames.blueberryWar:
@@ -23,4 +25,18 @@ abstract class SerializableMiniGameState {
   }
 
   SerializableMiniGameState copyWith();
+}
+
+class SerializableMiniGameStateNone implements SerializableMiniGameState {
+  @override
+  SerializableMiniGameState copyWith() => this;
+
+  @override
+  Map<String, dynamic> serialize() => {};
+
+  static SerializableMiniGameStateNone deserialize(Map<String, dynamic> data) =>
+      SerializableMiniGameStateNone();
+
+  @override
+  MiniGames get type => MiniGames.none;
 }

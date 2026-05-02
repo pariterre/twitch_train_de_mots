@@ -55,12 +55,12 @@ class BlueberryAgent extends Agent {
       id: map['id'] as int,
       position: Vector2Extension.deserialize(map['position']),
       velocity: Vector2Extension.deserialize(map['velocity']),
-      isInField: map['is_in_field'] as bool? ?? false,
+      isInField: map['is_in_field'] as bool,
       maxVelocity: (map['max_velocity'] as num).toDouble(),
       radius: Vector2Extension.deserialize(map['radius']),
       mass: (map['mass'] as num).toDouble(),
       coefficientOfFriction: (map['coefficient_of_friction'] as num).toDouble(),
-      isDestroyed: map['is_destroyed'] as bool? ?? false,
+      isDestroyed: map['is_destroyed'] as bool,
     );
   }
 

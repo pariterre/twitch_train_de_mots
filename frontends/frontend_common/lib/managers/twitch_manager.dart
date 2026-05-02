@@ -10,6 +10,7 @@ import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
@@ -692,7 +693,7 @@ class TwitchManagerMock extends TwitchManager {
                 canRequestFixTracksMiniGame: true,
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: null,
+                miniGameState: SerializableMiniGameStateNone(),
               ).serialize(),
             }))));
         return true;

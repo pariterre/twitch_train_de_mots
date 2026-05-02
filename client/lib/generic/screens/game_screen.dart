@@ -23,6 +23,8 @@ class GameScreen extends StatelessWidget {
         : twitchManager.debugOverlay(
             child: tm.isRoundAMiniGame
                 ? switch (Managers.instance.miniGames.currentOrPrevious) {
+                    MiniGames.none =>
+                      throw Exception('Invalid mini game: none'),
                     MiniGames.blueberryWar => const BlueberryWarGameScreen(),
                     MiniGames.treasureHunt => const TreasureHuntGameScreen(),
                     MiniGames.warehouseCleaning =>

@@ -359,6 +359,7 @@ class _MiniGameGranted extends StatelessWidget {
           Text(
             'Bravo cheminot·e·s! Votre efficacité vous laisse le temps de relaxer un peu!\n'
             '${switch (miniGame) {
+              MiniGames.none => throw Exception('Invalid mini game: none'),
               MiniGames.blueberryWar =>
                 'Affûtez vos armes, la guerre des bleuets est lancée!',
               MiniGames.treasureHunt =>

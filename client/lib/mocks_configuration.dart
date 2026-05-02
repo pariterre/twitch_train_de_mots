@@ -81,26 +81,30 @@ class MocksConfiguration {
             ? MocksConfiguration.letterProblemMock
             : null,
         players: [
-          Player(name: 'Player 1')
+          Player(name: 'Player 1', login: 'player1')
             ..score = 100
             ..starsCollected = 1,
-          Player(name: 'Player 2')
+          Player(name: 'Player 2', login: 'player2')
             ..score = 200
             ..starsCollected = 2
             ..addToStealCount(),
-          Player(name: 'Player 3')..score = 300,
-          Player(name: 'Player 4')..score = 150,
-          Player(name: 'Player 5')
+          Player(name: 'Player 3', login: 'player3')..score = 300,
+          Player(name: 'Player 4', login: 'player4')..score = 150,
+          Player(name: 'Player 5', login: 'player5')
             ..score = 250
             ..addToStealCount()
             ..addToStealCount()
             ..addToStealCount(),
-          Player(name: 'Player 6')..score = 350,
-          Player(name: 'PlayerWithAVeryVeryVeryLongName')
+          Player(name: 'Player 6', login: 'player6')..score = 350,
+          Player(
+              name: 'PlayerWithAVeryVeryVeryLongName',
+              login: 'playerWithAVeryVeryVeryLongName')
             ..score = 400
             ..addToStealCount()
             ..addToStealCount(),
-          Player(name: 'AnotherPlayerWithAVeryVeryVeryLongName')
+          Player(
+              name: 'AnotherPlayerWithAVeryVeryVeryLongName',
+              login: 'anotherPlayerWithAVeryVeryVeryLongName')
             ..addToStealCount()
             ..addToStealCount()
             ..addToStealCount()

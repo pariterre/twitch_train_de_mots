@@ -286,7 +286,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
     final requestType = MessagesToApp.values.byName(message.data!['type']);
     final playerName = message.data!['player_name'] as String;
-    final player = gm.players.firstWhereOrAdd(playerName);
+    final player = await gm.players.firstWhereOrAdd(playerName);
 
     switch (requestType) {
       // Single-pass requests

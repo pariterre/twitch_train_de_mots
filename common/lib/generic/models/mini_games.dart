@@ -1,4 +1,5 @@
 enum MiniGames {
+  none,
   treasureHunt,
   blueberryWar,
   warehouseCleaning,
