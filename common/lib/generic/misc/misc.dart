@@ -1,5 +1,4 @@
 dynamic deepDiffAsPatch(dynamic oldValue, dynamic newValue) {
-  // TODO Validate this
   if (oldValue is Map && newValue is Map) {
     final diff = <String, dynamic>{};
 

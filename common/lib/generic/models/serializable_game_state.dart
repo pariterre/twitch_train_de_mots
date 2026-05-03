@@ -349,7 +349,7 @@ dynamic _canonicalize(dynamic value) {
   if (value is List) {
     final normalized = value.map(_canonicalize).toList();
 
-    // IMPORTANT: enforce deterministic ordering
+    // TODO: This is not true for scrambled letters
     normalized.sort(_deepComparable);
 
     return normalized;

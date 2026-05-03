@@ -78,12 +78,17 @@ class EbsManager extends TwitchEbsManagerAbstract {
     if (gameStatePatch['players'] != null) {
       final players = gameStatePatch['players'] as Map<String, dynamic>;
 
-      for (var playerName in players.keys) {
-        final player = players[playerName] as Map<String, dynamic>?;
+      final displayNames = players.keys.toList();
+      for (int i = 0; i < displayNames.length; i++) {
+        final displayName = displayNames[i];
+
+        final player = players[displayName] as Map<String, dynamic>?;
+        // If the player is removed, do nothing. This is taken care by the patch
         if (player == null) continue;
+        
         player['name'] =
-            registeredFrontendUsers.from(login: playerName)?.opaqueId ?? '';
-        // TODO Check what happens if a player is not "in the chat" yet
+            registeredFrontendUsers.from(displayName: displayName)?.opaqueId ??
+                'Anonymous_$i';
       }
     }
 
