@@ -758,6 +758,7 @@ class TwitchManagerMock extends TwitchManager {
             isSuccess: true);
 
       case MessagesToApp.isExtensionActive:
+      case MessagesToApp.fullGameStateRequest:
         throw 'Request should not come from frontend';
     }
   }
@@ -832,7 +833,7 @@ class TwitchManagerMock extends TwitchManager {
               ).serialize(),
             })));
       case MessagesToEbs.newLetterProblemRequest:
-      case MessagesToEbs.patchGameStateResponse:
+      case MessagesToEbs.patchGameState:
         throw 'Request should not come from frontend';
     }
   }

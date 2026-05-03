@@ -45,10 +45,6 @@ dynamic applyPatch(dynamic oldValue, dynamic patch) {
   if (oldValue == null) throw 'Cannot apply patch to null old value';
   if (patch == null) return oldValue; // no changes
 
-  if (oldValue.runtimeType != patch.runtimeType) {
-    throw 'Type mismatch between old value and patch: ${oldValue.runtimeType} vs ${patch.runtimeType}';
-  }
-
   if (oldValue is Map && patch is Map) {
     final result = Map<String, dynamic>.from(oldValue);
 

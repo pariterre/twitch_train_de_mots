@@ -65,8 +65,9 @@ class EbsManager extends TwitchEbsManagerAbstract {
         }));
   }
 
-  Future<void> _handlePatchGameStateResponse(MessageProtocol message) async {
-    _logger.info('Received patch game state response from app');
+  Future<void> _handlePatchGameState(MessageProtocol message,
+      {bool retryOnFail = true}) async {
+    _logger.info('Received patch game state from app');
 
     final gameStatePatch = message.data?['game_state'] == null
         ? {}
@@ -77,34 +78,54 @@ class EbsManager extends TwitchEbsManagerAbstract {
     if (gameStatePatch['players'] != null) {
       final players = gameStatePatch['players'] as Map<String, dynamic>;
 
-      final playersToRemove = <String>[];
       for (var playerName in players.keys) {
-        final player = players[playerName] as Map<String, dynamic>;
+        final player = players[playerName] as Map<String, dynamic>?;
+        if (player == null) continue;
         player['name'] =
-            registeredFrontendUsers.from(login: playerName)?.opaqueId;
-        if (player['name'] == null) playersToRemove.add(playerName);
-      }
-      for (var player in playersToRemove) {
-        players.remove(player);
+            registeredFrontendUsers.from(login: playerName)?.opaqueId ?? '';
+        // TODO Check what happens if a player is not "in the chat" yet
       }
     }
 
     // Apply the patch to the current game state to get the new game state
-    final newGameState = SerializableGameState.deserialize(
-        applyPatch(_gameState.serialize(), gameStatePatch));
+    final newGameStateSerialized =
+        applyPatch(_gameState.serialize(), gameStatePatch);
+    final newGameState =
+        SerializableGameState.deserialize(newGameStateSerialized);
 
-    if (newGameState.computeHash() != message.data?['game_state_hash']) {
-      throw 'Game state hash does not match the expected hash';
+    if (newGameState.checksum() != message.data?['checksum']) {
+      if (retryOnFail) {
+        await _requestForFullGameState();
+      } else {
+        _gameState = SerializableGameState.empty();
+      }
+      return;
     }
 
     _gameState = newGameState;
-    await _sendGameStateToFrontend();
+    await communicator.sendResponse(message.copyWith(
+      to: MessageTo.app,
+      from: MessageFrom.ebs,
+      type: MessageTypes.response,
+      isSuccess: true,
+    ));
+    _sendGameStateToFrontend(newGameStateSerialized);
   }
 
-  Future<void> _sendGameStateToFrontend() async {
+  Future<void> _requestForFullGameState() async {
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {'type': MessagesToApp.fullGameStateRequest.name}));
+    await _handlePatchGameState(response, retryOnFail: false);
+  }
+
+  void _sendGameStateToFrontend(Map<String, dynamic> newGameStateSerialized) {
     _logger.info('Sending game state to frontend');
 
-    _lastSentGameState = deepDiffAsPatch(_lastSentGameState, _gameState);
+    _lastSentGameState =
+        deepDiffAsPatch(_lastSentGameState, newGameStateSerialized);
 
     communicator.sendMessage(MessageProtocol(
         to: MessageTo.frontend,
@@ -283,9 +304,9 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   isSuccess: true,
                   data: {'letter_problem': letterProblem.serialize()}));
               break;
-            case MessagesToEbs.patchGameStateResponse:
+            case MessagesToEbs.patchGameState:
               // TODO Change this to a put request with response to confirm the client can ditch the "previous" game state
-              await _handlePatchGameStateResponse(message);
+              await _handlePatchGameState(message);
               break;
             case MessagesToEbs.gameStateRequest:
               throw 'This request should not come from the app';
@@ -332,10 +353,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.ebs:
           switch (MessagesToEbs.values.byName(message.data!['type'])) {
             case MessagesToEbs.gameStateRequest:
-              _sendGameStateToFrontend();
+              _sendGameStateToFrontend(_lastSentGameState);
               break;
             case MessagesToEbs.newLetterProblemRequest:
-            case MessagesToEbs.patchGameStateResponse:
+            case MessagesToEbs.patchGameState:
               throw 'This request should not come from the frontend';
           }
 
@@ -451,6 +472,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
               break;
 
             case MessagesToApp.isExtensionActive:
+            case MessagesToApp.fullGameStateRequest:
               throw 'Request should not come from frontend';
           }
 

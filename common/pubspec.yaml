@@ -13,6 +13,7 @@ dependencies:
   collection: ^1.18.0
   diacritic: ^0.1.4
   vector_math: ^2.1.4
+  crypto: ^3.0.7
 
 dev_dependencies:
   lints: ^6.0.0

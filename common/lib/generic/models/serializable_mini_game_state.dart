@@ -32,7 +32,7 @@ class SerializableMiniGameStateNone implements SerializableMiniGameState {
   SerializableMiniGameState copyWith() => this;
 
   @override
-  Map<String, dynamic> serialize() => {};
+  Map<String, dynamic> serialize() => {'type': MiniGames.none.index};
 
   static SerializableMiniGameStateNone deserialize(Map<String, dynamic> data) =>
       SerializableMiniGameStateNone();

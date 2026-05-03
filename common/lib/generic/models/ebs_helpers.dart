@@ -10,6 +10,7 @@ enum MessagesToFrontend {
 }
 
 enum MessagesToApp {
+  fullGameStateRequest,
   isExtensionActive,
   tryWord,
   pardonRequest,
@@ -25,7 +26,7 @@ enum MessagesToApp {
 
 enum MessagesToEbs {
   gameStateRequest,
-  patchGameStateResponse,
+  patchGameState,
   newLetterProblemRequest,
 }
 

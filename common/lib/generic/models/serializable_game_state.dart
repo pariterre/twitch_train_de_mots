@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/helpers.dart';
@@ -5,6 +7,7 @@ import 'package:common/generic/models/round_success.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/serializable_player.dart';
 import 'package:common/generic/models/success_level.dart';
+import 'package:crypto/crypto.dart';
 
 enum LetterStatus {
   normal,
@@ -146,8 +149,8 @@ class SerializableGameState {
   final bool canRequestFixTracksMiniGame;
   final bool isAttemptingFixTracksMiniGame;
 
-  SerializableConfiguration configuration;
-  SerializableMiniGameState miniGameState;
+  final SerializableConfiguration configuration;
+  final SerializableMiniGameState miniGameState;
 
   SerializableGameState({
     required this.hasPlayedAtLeastOnce,
@@ -316,4 +319,47 @@ class SerializableGameState {
           data['mini_game_state'] as Map<String, dynamic>),
     );
   }
+
+  ///
+  /// Value-based checksum of the game state. This must strickly be the same
+  /// for the same game state.
+  String checksum() {
+    final serialized = serialize();
+
+    // Exclude players' names as they are purposefully different between the contexts
+    for (final player in serialized['players'].values) {
+      player['name'] = null;
+    }
+
+    final canonical = _canonicalize(serialized);
+    final jsonStr = jsonEncode(canonical);
+    return sha256.convert(utf8.encode(jsonStr)).toString();
+  }
+}
+
+dynamic _canonicalize(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    final sortedKeys = value.keys.toList()..sort();
+
+    return {
+      for (final key in sortedKeys) key: _canonicalize(value[key]),
+    };
+  }
+
+  if (value is List) {
+    final normalized = value.map(_canonicalize).toList();
+
+    // IMPORTANT: enforce deterministic ordering
+    normalized.sort(_deepComparable);
+
+    return normalized;
+  }
+
+  return value;
+}
+
+int _deepComparable(dynamic a, dynamic b) {
+  final aStr = jsonEncode(a);
+  final bStr = jsonEncode(b);
+  return aStr.compareTo(bStr);
 }

@@ -16,7 +16,10 @@ import 'package:twitch_manager/twitch_app.dart';
 final _logger = Logger('EbsServerManager');
 
 class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
-  SerializableGameState _lastSentGameState = SerializableGameState.empty();
+  (Map<String, dynamic>, String) _lastSentGameState = (
+    SerializableGameState.empty().serialize(),
+    SerializableGameState.empty().checksum()
+  );
 
   ///
   /// Initialize the EbsServerManager establishing a connection with the
@@ -92,14 +95,11 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     final cm = Managers.instance.configuration;
     cm.onShowExtensionChanged.listen(_sendGameStateToEbs);
 
-    // Check if we need to send something to the EBS server at each tick
-    //gm.onClockTicked.listen(_sendGameStateToEbs);
-
     final mgm = Managers.instance.miniGames;
     mgm.onMinigameStarted.listen(_connectMiniGame);
     mgm.onMinigameEnded.listen(_disconnectMiniGame);
 
-    _sendGameStateToEbs();
+    _sendGameStateToEbs(fullState: true);
   }
 
   ///
@@ -116,7 +116,6 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     gm.onScrablingLetters.cancel(_sendGameStateToEbs);
     gm.onRevealUselessLetter.cancel(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.cancel(_sendGameStateToEbs);
-    //gm.onClockTicked.cancel(_sendGameStateToEbs);
 
     final mgm = Managers.instance.miniGames;
     mgm.onMinigameStarted.cancel(_connectMiniGame);
@@ -182,25 +181,50 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   Future<void> _sendCooldownToEbs(WordSolution solution) async =>
       _sendGameStateToEbs();
 
-  Future<void> _sendGameStateToEbs() async {
-    final patch = deepDiffAsPatch(_lastSentGameState.serialize(),
-        Managers.instance.train.toSerializable.serialize());
+  Future<void> _sendGameStateToEbs({bool fullState = false}) async {
+    final serializable = Managers.instance.train.toSerializable;
+    final serialized = serializable.serialize();
+
+    final patch = fullState
+        ? serialized
+        : deepDiffAsPatch(_lastSentGameState.$1, serialized);
     if (patch == null) {
       _logger.fine('No changes in the game state, not sending anything to EBS');
       return;
     }
-    _lastSentGameState = Managers.instance.train.toSerializable;
 
-    sendMessageToEbs(MessageProtocol(
+    final checksum = serializable.checksum();
+
+    _lastSentGameState = (serialized, checksum);
+    final response = await sendQuestionToEbs(MessageProtocol(
         to: MessageTo.ebs,
         from: MessageFrom.app,
         type: MessageTypes.put,
         data: {
-          'type': MessagesToEbs.patchGameStateResponse.name,
-          // TODO: Send an hash of the game state to confirm the EBS in still in sync
-          'hash': null,
-          'game_state': patch,
+          'type': MessagesToEbs.patchGameState.name,
+          'checksum': checksum,
+          'game_state': patch
         }));
+
+    if (!(response.isSuccess ?? false)) {
+      _logger
+          .warning('Failed to send game state patch to EBS: ${response.data}');
+    }
+  }
+
+  Future<void> _sendFullGameStateResponse(MessageProtocol message) {
+    final serializable = Managers.instance.train.toSerializable;
+
+    final patch = serializable.serialize();
+    _lastSentGameState = (patch, serializable.checksum());
+
+    sendResponseToEbs(message.copyWith(
+        to: MessageTo.frontend,
+        from: MessageFrom.app,
+        type: MessageTypes.response,
+        isSuccess: true,
+        data: {'game_state': patch, 'checksum': _lastSentGameState.$2}));
+    return Future.value();
   }
 
   ///
@@ -221,6 +245,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       switch (requestType) {
         // General requests
         case MessagesToApp.isExtensionActive:
+        case MessagesToApp.fullGameStateRequest:
           return await _handleGeneralRequests(message);
 
         // Main game requests
@@ -264,6 +289,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         _logger.info(
             'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
         break;
+      case MessagesToApp.fullGameStateRequest:
+        await _sendFullGameStateResponse(message);
+        break;
 
       // Non-general requests
       case MessagesToApp.tryWord:
@@ -286,7 +314,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
     final requestType = MessagesToApp.values.byName(message.data!['type']);
     final playerName = message.data!['player_name'] as String;
-    final player = await gm.players.firstWhereOrAdd(playerName);
+    final player = gm.players.firstWhereOrAdd(playerName);
 
     switch (requestType) {
       // Single-pass requests
@@ -294,7 +322,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
         final isSuccess = switch (requestType) {
-          MessagesToApp.tryWord => await gm.trySolution(
+          MessagesToApp.tryWord => gm.trySolution(
               playerName: playerName, word: message.data!['word'] as String),
           MessagesToApp.pardonRequest =>
             gm.pardonLastStealer(pardonner: player),
@@ -346,6 +374,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
       // Non-game requests
       case MessagesToApp.isExtensionActive:
+      case MessagesToApp.fullGameStateRequest:
       case MessagesToApp.revealTileAt:
       case MessagesToApp.slingShootBlueberry:
       case MessagesToApp.bitsRedeemed:
@@ -383,6 +412,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
       // Non-mini-game requests
       case MessagesToApp.isExtensionActive:
+      case MessagesToApp.fullGameStateRequest:
       case MessagesToApp.tryWord:
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
@@ -412,7 +442,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 class TwitchAppEbsManagerMocked extends TwitchAppEbsManager {
   TwitchAppEbsManagerMocked({required super.appInfo}) {
     // Simulate receiving extension is active after 2 seconds
-    Future.delayed(const Duration(seconds: 1), () async {
+    Future.delayed(const Duration(seconds: 1), () {
       handleGetRequest(MessageProtocol(
           to: MessageTo.app,
           from: MessageFrom.ebs,
