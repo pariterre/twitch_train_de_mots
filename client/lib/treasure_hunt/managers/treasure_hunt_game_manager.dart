@@ -102,7 +102,7 @@ class TreasureHuntGameManager extends MiniGameManager {
       'Mais attention, chaque tentative de mot ou de case vous coûtera un essai!\n\n';
 
   @override
-  Future<void> initialize() async {
+  void initialize() {
     _generateProblem();
     _grid = TreasureHuntGrid.random(
         rowCount: _rowCount,
@@ -112,7 +112,7 @@ class TreasureHuntGameManager extends MiniGameManager {
     _triesRemaining = 10;
     _playersPoints.clear();
 
-    await super.initialize();
+    super.initialize();
   }
 
   @override
@@ -243,11 +243,11 @@ class TreasureHuntGameManager extends MiniGameManager {
   }
 
   @override
-  Future<bool> shouldEndRoundImmediately() async {
-    return triesRemaining <= 0 || hasWon;
+  Future<bool> shouldEndRoundImmediately() {
+    return Future.value(triesRemaining <= 0 || hasWon);
   }
 
-  Future<void> _processRoundIsEnding() async {
+  void _processRoundIsEnding() {
     _revealSolution();
   }
 }

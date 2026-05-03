@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
-void main() async {
+void main() {
   runApp(const GlobalTicker());
 }
 

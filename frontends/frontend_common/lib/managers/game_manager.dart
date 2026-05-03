@@ -33,7 +33,7 @@ class GameManager {
     return _tickerManager;
   }
 
-  Future<void> initialize({required GlobalTickerManager tickerManager}) async {
+  void initialize({required GlobalTickerManager tickerManager}) {
     _tickerManager = tickerManager;
     _isInitialized = true;
 
@@ -194,7 +194,7 @@ class GameManager {
 
   ///
   /// Callback for each tick
-  Future<void> _tickGame(Duration deltaTime) async {
+  void _tickGame(Duration deltaTime) {
     _tickMiniGame(deltaTime);
   }
 
@@ -263,7 +263,7 @@ class GameManager {
     return isSuccess;
   }
 
-  Future<void> changeLaneGranted() async {
+  void changeLaneGranted() {
     onChangeLaneGranted.notifyListeners((callback) => callback());
   }
 
@@ -288,7 +288,7 @@ class GameManager {
   SerializableMiniGameState get miniGameState => _gameState.miniGameState;
   final onMiniGameStateUpdated = GenericListener<Function()>();
   void updateMiniGameState(SerializableMiniGameState newMiniGameState) {
-    _gameState.miniGameState = newMiniGameState;
+    _gameState = _gameState.copyWith(miniGameState: newMiniGameState);
     onMiniGameStateUpdated.notifyListeners((callback) => callback());
   }
 

@@ -247,7 +247,7 @@ class TwitchManager {
   bool get isInitialized => _onHasInitialized.isCompleted;
   Future<bool> get onHasInitialized => _onHasInitialized.future;
   final _onHasInitialized = Completer<bool>();
-  Future<void> _onFinishedInitializing() async {
+  void _onFinishedInitializing() {
     _logger.info('Connected to Twitch service');
     _onHasInitialized.complete(true);
   }
@@ -287,7 +287,7 @@ class TwitchManager {
           : null,
     );
 
-    await _onFinishedInitializing();
+    _onFinishedInitializing();
 
     _frontendManager!.onMessageReceived.listen(_onPubSubMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
@@ -303,7 +303,7 @@ class TwitchManager {
     _logger.info('TwitchFrontendManager is ready');
   }
 
-  Future<void> _onPubSubMessageReceived(tm.MessageProtocol message) async {
+  void _onPubSubMessageReceived(tm.MessageProtocol message) {
     try {
       switch (MessagesToFrontend.values.byName(message.data!['type'])) {
         case MessagesToFrontend.gameStateResponse:
@@ -352,7 +352,7 @@ class TwitchManager {
     switch (
         Sku.fromString(transaction.extractedUnverifiedReceipt.product.sku)) {
       case Sku.changeLane:
-        await GameManager.instance.changeLaneGranted();
+        GameManager.instance.changeLaneGranted();
         break;
       case Sku.bigHeist:
       case Sku.fixTracks:

@@ -146,9 +146,10 @@ class WordsTrainGameManager {
   bool get canChangeLane => _canChangeLane && !_isChangingLane;
   late final changeLaneRequester = TwoStepRequester(
     canRequest: () async => canChangeLane,
-    onRequestInitialized: (playerName) async {},
-    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+    onRequestInitialized: (playerName) => Future.value(),
+    onRequestFinalized: ({required isConfirmed, required playerName}) {
       if (isConfirmed) _performChangeOfLane();
+      return Future.value();
     },
   );
 
@@ -160,9 +161,10 @@ class WordsTrainGameManager {
   late final attemptTheBigHeistRequester = TwoStepRequester(
     canRequest: () async => canRequestTheBigHeist,
     onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+    onRequestFinalized: ({required isConfirmed, required playerName}) {
       resumeGame();
       if (isConfirmed) _attemptTheBigHeist(playerName: playerName);
+      return Future.value();
     },
   );
 
@@ -175,9 +177,10 @@ class WordsTrainGameManager {
   late final fixTracksMiniGameRequester = TwoStepRequester(
     canRequest: () async => canRequestFixTracksMiniGame,
     onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+    onRequestFinalized: ({required isConfirmed, required playerName}) {
       resumeGame();
       if (isConfirmed) _prepareFixTracksMiniGame();
+      return Future.value();
     },
   );
 
@@ -197,9 +200,10 @@ class WordsTrainGameManager {
   late final congratulationFireworksRequester = TwoStepRequester(
     canRequest: () async => canRequestCongratulationFireworks,
     onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) async {
+    onRequestFinalized: ({required isConfirmed, required playerName}) {
       resumeGame();
       if (isConfirmed) _performCongratulationFireworks(playerName: playerName);
+      return Future.value();
     },
   );
 
@@ -314,7 +318,7 @@ class WordsTrainGameManager {
   ///
   /// Provide a way to request the start of a new round, if the game is not
   /// already started or if the game is not already over.
-  Future<void> requestStartNewRound() async {
+  void requestStartNewRound() {
     if (!canProceedToNextRound) return;
 
     _logger.info('Requesting to start a new round');
@@ -324,7 +328,7 @@ class WordsTrainGameManager {
   ///
   /// Provide a way to request the search for the next problem, if the game is
   /// not already searching for a problem.
-  Future<void> requestSearchForNextProblem() async {
+  void requestSearchForNextProblem() {
     _logger.info('Requesting to search for the next problem');
 
     _generateNextProblem(force: false);
@@ -332,7 +336,7 @@ class WordsTrainGameManager {
 
   ///
   /// Provide a way to request the premature end of the round
-  Future<void> requestTerminateRound() async {
+  void requestTerminateRound() {
     _logger.info('Requesting to terminate the round');
 
     if (gameStatus == WordsTrainGameStatus.initializing) {
@@ -655,8 +659,7 @@ class WordsTrainGameManager {
   ///
   /// Try a solution proposed by a player. If the solution is valid, it updates
   /// the player score and notifies the listeners.
-  Future<bool> trySolution(
-      {required String playerName, required String word}) async {
+  bool trySolution({required String playerName, required String word}) {
     if (gameStatus != WordsTrainGameStatus.roundStarted) {
       _logger.fine('Cannot try solution while not playing a round');
       return false;
@@ -666,7 +669,7 @@ class WordsTrainGameManager {
     final cm = Managers.instance.configuration;
 
     // Get the player from the players list
-    final player = await players.firstWhereOrAdd(playerName);
+    final player = players.firstWhereOrAdd(playerName);
 
     // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
@@ -903,12 +906,12 @@ class WordsTrainGameManager {
     resumeGame();
 
     // This should be stopped before that, but just in case we call stop anyway
-    await requestStopFireworks(playerName: playerName);
+    requestStopFireworks(playerName: playerName);
   }
 
   ///
   /// Request the stop of the fireworks
-  Future<void> requestStopFireworks({required String playerName}) async {
+  void requestStopFireworks({required String playerName}) {
     if (!_areCongratulationFireworksFiring) return;
 
     _areCongratulationFireworksFiring = false;
@@ -948,7 +951,7 @@ class WordsTrainGameManager {
 
   ///
   /// Tick the game timer. If the timer is over, [_endingRound] is called.
-  void _gameLoop(Duration deltaTime) async {
+  void _gameLoop(Duration deltaTime) {
     _tickingClock(deltaTime);
     if (_checkForEndOfRound()) _endingRound();
   }
@@ -982,7 +985,7 @@ class WordsTrainGameManager {
   ///
   /// Tick the game timer and the cooldown timer of players. Call the
   /// listeners if needed.
-  Future<void> _tickingClock(Duration deltaTime) async {
+  void _tickingClock(Duration deltaTime) {
     _logger.fine('Tic...');
 
     if (_isRoundAMiniGame || _gameStatus != WordsTrainGameStatus.roundStarted) {
@@ -1168,7 +1171,7 @@ class WordsTrainGameManager {
 
   ///
   /// Clear the current round
-  Future<void> _endingRound() async {
+  void _endingRound() {
     _logger.info('Round is over, ending the round...');
     final cm = Managers.instance.configuration;
 
@@ -1341,7 +1344,7 @@ class WordsTrainGameManager {
         _random.nextInt(MiniGames.betweenRoundsGames.length)];
   }
 
-  Future<void> _miniGameEnded() async {
+  void _miniGameEnded() {
     _logger.info('Mini game ended');
     final mgm = Managers.instance.miniGames.manager;
     if (mgm == null) {
@@ -1370,7 +1373,7 @@ class WordsTrainGameManager {
         _roundSuccesses.add(RoundSuccess.miniGameWon);
 
         for (final playerName in playerPoints.keys) {
-          final player = await players.firstWhereOrAdd(playerName);
+          final player = players.firstWhereOrAdd(playerName);
           player.score += playerPoints[playerName]!;
         }
       }

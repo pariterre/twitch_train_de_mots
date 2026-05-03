@@ -6,7 +6,7 @@ import 'package:train_de_mots/mocks_configuration.dart';
 import 'package:twitch_manager/twitch_app.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() async {
+void main() {
   Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((record) {
     // Print to a file

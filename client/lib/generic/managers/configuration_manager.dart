@@ -545,11 +545,11 @@ class ConfigurationManager {
   /// Get the difficulty for a given level
   final int lastLevelWithRules = 30;
   Difficulty difficulty(int level) {
-    _logger.info('Getting difficulty for level $level...');
+    _logger.fine('Getting difficulty for level $level...');
 
     if (level < 3) {
       // Levels 1, 2 and 3
-      _logger.info('Got difficulty for level $level (level < 3)');
+      _logger.finer('Got difficulty for level $level (level < 3)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -564,7 +564,7 @@ class ConfigurationManager {
       );
     } else if (level < 6) {
       // Levels 4, 5 and 6
-      _logger.info('Got difficulty for level $level (level < 6)');
+      _logger.finer('Got difficulty for level $level (level < 6)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -583,7 +583,7 @@ class ConfigurationManager {
       );
     } else if (level < 9) {
       // Levels 7, 8 and 9
-      _logger.info('Got difficulty for level $level (level < 9)');
+      _logger.finer('Got difficulty for level $level (level < 9)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -603,7 +603,7 @@ class ConfigurationManager {
       );
     } else if (level < 12) {
       // Levels 10, 11 and 12
-      _logger.info('Got difficulty for level $level (level < 12)');
+      _logger.finer('Got difficulty for level $level (level < 12)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
@@ -624,7 +624,7 @@ class ConfigurationManager {
       );
     } else if (level < 15) {
       // Levels 13, 14 and 15
-      _logger.info('Got difficulty for level $level (level < 15)');
+      _logger.finer('Got difficulty for level $level (level < 15)');
       return const Difficulty(
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 7,
@@ -645,7 +645,7 @@ class ConfigurationManager {
       );
     } else if (level < 18) {
       // Levels 16, 17 and 18
-      _logger.info('Got difficulty for level $level (level < 18)');
+      _logger.finer('Got difficulty for level $level (level < 18)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -667,7 +667,7 @@ class ConfigurationManager {
       );
     } else if (level < 21) {
       // Levels 19, 20 and 21
-      _logger.info('Got difficulty for level $level (level < 21)');
+      _logger.finer('Got difficulty for level $level (level < 21)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -687,7 +687,7 @@ class ConfigurationManager {
       );
     } else if (level < 24) {
       // Levels 22, 23 and 24
-      _logger.info('Got difficulty for level $level (level < 24)');
+      _logger.finer('Got difficulty for level $level (level < 24)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -707,7 +707,7 @@ class ConfigurationManager {
       );
     } else if (level < 27) {
       // Levels 25, 26 and 27
-      _logger.info('Got difficulty for level $level (level < 27)');
+      _logger.finer('Got difficulty for level $level (level < 27)');
       return const Difficulty(
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
@@ -724,7 +724,7 @@ class ConfigurationManager {
       );
     } else {
       // Levels 28 and above
-      _logger.info('Got difficulty for level $level (level >= 27)');
+      _logger.finer('Got difficulty for level $level (level >= 27)');
       return const Difficulty(
         nbLettersOfShortestWord: 6,
         nbLettersMinToDraw: 7,

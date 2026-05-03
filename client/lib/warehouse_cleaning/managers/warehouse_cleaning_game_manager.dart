@@ -121,7 +121,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       allAgents.whereType<LetterAgent>().toList(growable: false);
 
   @override
-  Future<void> initialize() async {
+  void initialize() {
     _generateProblem();
 
     _grid = WarehouseCleaningGrid.random(
@@ -195,7 +195,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     _triesRemaining = 45;
     _playersPoints.clear();
 
-    await super.initialize();
+    super.initialize();
   }
 
   @override
@@ -306,7 +306,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   /// The game loop
   @override
   Future<void> onRoundClockTicked(
-      Duration deltaTime, ControllableTimerStatus status) async {
+      Duration deltaTime, ControllableTimerStatus status) {
     switch (status) {
       case ControllableTimerStatus.notInitialized:
       case ControllableTimerStatus.initialized:
@@ -314,9 +314,10 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         break;
       case ControllableTimerStatus.inProgress:
       case ControllableTimerStatus.ended:
-        await _processRound(deltaTime);
+        _processRound(deltaTime);
         break;
     }
+    return Future.value();
   }
 
   @override
@@ -326,7 +327,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     super.onRoundStatusChanged(newStatus);
   }
 
-  Future<void> _processRound(Duration deltaTime) async {
+  void _processRound(Duration deltaTime) {
     // Update the position of the avatar
     _updateAllAvatarAgents(
         dt: deltaTime,
@@ -369,11 +370,11 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   }
 
   @override
-  Future<bool> shouldEndRoundImmediately() async {
-    return triesRemaining <= 0 || hasWon;
+  Future<bool> shouldEndRoundImmediately() {
+    return Future.value(triesRemaining <= 0 || hasWon);
   }
 
-  Future<void> _processRoundIsEnding() async {
+  void _processRoundIsEnding() {
     _revealSolution();
   }
 

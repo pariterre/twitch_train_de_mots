@@ -10,7 +10,7 @@ final _logger = Logger('TrainDeMotsEbs');
 const _useTwitchMocker = false;
 const _acceptedExtensionVersions = ['0.5.0'];
 
-void main(List<String> arguments) async {
+void main(List<String> arguments) {
   // If the arguments request help, print the help message and exit
   if (arguments.contains('--help') || arguments.contains('-h')) {
     print('Usage: train_de_mots_ebs [options]\n'

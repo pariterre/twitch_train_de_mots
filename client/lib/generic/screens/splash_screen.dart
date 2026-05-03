@@ -78,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
     setState(() {});
   }
 
-  Future<void> _startSearchingForNextProblem() async {
+  void _startSearchingForNextProblem() {
     if (Managers.instance.twitch.isNotConnected) return;
     if (Managers.instance.database.isLoggedOut) return;
 

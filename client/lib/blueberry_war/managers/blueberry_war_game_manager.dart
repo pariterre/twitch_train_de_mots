@@ -100,7 +100,7 @@ class BlueberryWarGameManager extends MiniGameManager {
   ///
   /// Initialize the game manager
   @override
-  Future<void> initialize() async {
+  void initialize() {
     _logger.fine('BlueberryWarGameManager initializing');
 
     _hasWon = false;
@@ -155,7 +155,7 @@ class BlueberryWarGameManager extends MiniGameManager {
       );
     }
 
-    await super.initialize();
+    super.initialize();
   }
 
   @override
@@ -255,7 +255,7 @@ class BlueberryWarGameManager extends MiniGameManager {
   /// The game loop
   @override
   Future<void> onRoundClockTicked(
-      Duration deltaTime, ControllableTimerStatus status) async {
+      Duration deltaTime, ControllableTimerStatus status) {
     switch (status) {
       case ControllableTimerStatus.notInitialized:
       case ControllableTimerStatus.initialized:
@@ -263,9 +263,10 @@ class BlueberryWarGameManager extends MiniGameManager {
         break;
       case ControllableTimerStatus.inProgress:
       case ControllableTimerStatus.ended:
-        await _processRound(deltaTime);
+        _processRound(deltaTime);
         break;
     }
+    return Future.value();
   }
 
   @override
@@ -275,7 +276,7 @@ class BlueberryWarGameManager extends MiniGameManager {
     super.onRoundStatusChanged(newStatus);
   }
 
-  Future<void> _processRound(Duration deltaTime) async {
+  void _processRound(Duration deltaTime) {
     // Check if the game is over
     bool shouldCallUpdate = false;
     BlueberryWarGameManagerHelpers.updateAllAgents(
@@ -312,11 +313,11 @@ class BlueberryWarGameManager extends MiniGameManager {
   }
 
   @override
-  Future<bool> shouldEndRoundImmediately() async {
-    return hasWon;
+  Future<bool> shouldEndRoundImmediately() {
+    return Future.value(hasWon);
   }
 
-  Future<void> _processRoundIsEnding() async {
+  void _processRoundIsEnding() {
     // Make all the agents quickly slowing down
     for (final agent in allAgents) {
       agent.coefficientOfFriction = 0.9;

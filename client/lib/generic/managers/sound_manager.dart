@@ -292,19 +292,19 @@ class SoundManager {
     _logger.info('Game music managed');
   }
 
-  Future<void> _onRoundStarted() async {
+  void _onRoundStarted() {
     _playSoundEffect(_SoundEffect.gameStarted);
   }
 
-  Future<void> _onLettersScrambled() async {
+  void _onLettersScrambled() {
     _playSoundEffect(_SoundEffect.lettersScrambling);
   }
 
-  Future<void> _onRoundIsOver() async {
+  void _onRoundIsOver() {
     _playSoundEffect(_SoundEffect.roundIsOver);
   }
 
-  Future<void> _onSolutionFound(WordSolution? solution) async {
+  void _onSolutionFound(WordSolution? solution) {
     if (solution == null || solution.isStolen) return;
 
     final gm = Managers.instance.train;
@@ -319,37 +319,37 @@ class SoundManager {
     }
   }
 
-  Future<void> _onGoldenSolutionAppeared(WordSolution solution) async {
+  void _onGoldenSolutionAppeared(WordSolution solution) {
     _playSoundEffect(_SoundEffect.goldenSolutionAppeared);
   }
 
-  Future<void> _onSolutionStolen(WordSolution solution) async {
+  void _onSolutionStolen(WordSolution solution) {
     _playSoundEffect(_SoundEffect.solutionStolen);
   }
 
-  Future<void> _onNewBoostGranted() async {
+  void _onNewBoostGranted() {
     _playSoundEffect(_SoundEffect.newBoostGranted);
   }
 
-  Future<void> _onTrainGotBoosted(int boostNeeded) async {
+  void _onTrainGotBoosted(int boostNeeded) {
     if (boostNeeded > 0) return;
 
     _playSoundEffect(_SoundEffect.gameStarted);
   }
 
-  Future<void> playTelegramReceived() async {
+  void playTelegramReceived() {
     _playSoundEffect(_SoundEffect.telegramReceived);
   }
 
-  Future<void> playTrainReachedStation() async {
+  void playTrainReachedStation() {
     _playSoundEffect(_SoundEffect.trainReachedStation);
   }
 
-  Future<void> playTrainLostStation() async {
+  void playTrainLostStation() {
     _playSoundEffect(_SoundEffect.trainLostStation);
   }
 
-  Future<void> playFireworks() async {
+  void playFireworks() {
     final fileNumber = Random().nextInt(6) + 1;
     switch (fileNumber) {
       case 1:
@@ -375,23 +375,23 @@ class SoundManager {
     }
   }
 
-  Future<void> _onAttemptingTheBigHeist({required String playerName}) async {
+  void _onAttemptingTheBigHeist({required String playerName}) {
     _playSoundEffect(_SoundEffect.theBigHeist);
   }
 
-  Future<void> _onTheBigHeistSuccess() async {
+  void _onTheBigHeistSuccess() {
     _playSoundEffect(_SoundEffect.theBigHeistSuccess);
   }
 
-  Future<void> _onTheBigHeistFailed() async {
+  void _onTheBigHeistFailed() {
     _playSoundEffect(_SoundEffect.theBigHeistFailed);
   }
 
-  Future<void> _onChangingLane() async {
+  void _onChangingLane() {
     _playSoundEffect(_SoundEffect.changingLane);
   }
 
-  Future<void> _onTreasureHuntPluckingGrass(Tile tile) async {
+  void _onTreasureHuntPluckingGrass(Tile tile) {
     // Choose one of the 4 sounds at random
     final fileNumber = Random().nextInt(4) + 1;
     switch (fileNumber) {
@@ -412,7 +412,7 @@ class SoundManager {
     }
   }
 
-  Future<void> _onTreasureHuntLetterFound(Tile tile) async {
+  void _onTreasureHuntLetterFound(Tile tile) {
     final tm = Managers.instance.miniGames.treasureHunt;
     if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
@@ -421,12 +421,12 @@ class SoundManager {
         : _SoundEffect.treasureHuntPickingTreasure);
   }
 
-  Future<void> _onTreasureHuntSolutionTried({
+  void _onTreasureHuntSolutionTried({
     required String playerName,
     required String word,
     required bool isSolutionRight,
     required int pointsAwarded,
-  }) async {
+  }) {
     if (isSolutionRight) {
       // Do nothing as the sound is already played in the game over
     } else {
@@ -434,12 +434,12 @@ class SoundManager {
     }
   }
 
-  Future<void> _onBlueberrySolutionTried({
+  void _onBlueberrySolutionTried({
     required String playerName,
     required String word,
     required bool isSolutionRight,
     required int pointsAwarded,
-  }) async {
+  }) {
     if (isSolutionRight) {
       // Do nothing as the sound is already played in the game over
     } else {
@@ -447,7 +447,7 @@ class SoundManager {
     }
   }
 
-  Future<void> _onTreasureHuntGameIsOver() async {
+  void _onTreasureHuntGameIsOver() {
     final thgm = Managers.instance.miniGames.treasureHunt;
     if (thgm.hasWon) {
       _playSoundEffect(_SoundEffect.solutionFound);
@@ -458,8 +458,8 @@ class SoundManager {
   }
 
   DateTime _lastLetterHitByLetterPlayed = DateTime.now();
-  Future<void> _onBlueberryWarLetterHitByLetter(
-      int first, int second, bool firstIsBoss, bool secondIsBoss) async {
+  void _onBlueberryWarLetterHitByLetter(
+      int first, int second, bool firstIsBoss, bool secondIsBoss) {
     final tm = Managers.instance.miniGames.blueberryWar;
     if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
@@ -477,8 +477,7 @@ class SoundManager {
     _playSoundEffect(_SoundEffect.blueberryWarLetterKnock);
   }
 
-  Future<void> _onBlueberryWarLetterHitByBlueberry(
-      int letterIndex, bool isDestroyed) async {
+  void _onBlueberryWarLetterHitByBlueberry(int letterIndex, bool isDestroyed) {
     final tm = Managers.instance.miniGames.blueberryWar;
     if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
@@ -488,11 +487,11 @@ class SoundManager {
     }
   }
 
-  Future<void> _onBlueberryWarBlueberryDestroyed(int blueberryIndex) async {
+  void _onBlueberryWarBlueberryDestroyed(int blueberryIndex) {
     _playSoundEffect(_SoundEffect.trainLostStation);
   }
 
-  Future<void> _onBlueberryWarGameIsOver() async {
+  void _onBlueberryWarGameIsOver() {
     final bwm = Managers.instance.miniGames.blueberryWar;
     if (bwm.hasWon) {
       _playSoundEffect(_SoundEffect.solutionFound);
@@ -502,17 +501,17 @@ class SoundManager {
     }
   }
 
-  Future<void> _onFixTracksSolutionTried(
+  void _onFixTracksSolutionTried(
       {required String playerName,
       required String word,
       required FixTracksSolutionStatus solutionStatus,
-      required int pointsAwarded}) async {
+      required int pointsAwarded}) {
     if (solutionStatus == FixTracksSolutionStatus.isValid) {
       _playSoundEffect(_SoundEffect.solutionFound);
     }
   }
 
-  Future<void> _onFixTracksGameIsOver() async {
+  void _onFixTracksGameIsOver() {
     final ftgm = Managers.instance.miniGames.fixTracks;
     if (ftgm.endGameStatus == EndGameStatus.won) {
       _playSoundEffect(_SoundEffect.bestSolutionFound);

@@ -119,8 +119,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Handle a message from the App to generate a new letter problem
   /// [request] the configuration for the new problem
-  Future<LetterProblem> _appRequestedANewLetterProblem(
-      Map<String, dynamic> request) async {
+  LetterProblem _appRequestedANewLetterProblem(Map<String, dynamic> request) {
     _logger.info('Generating a new letter problem');
     return LetterProblem.generateProblemFromRequest(request);
   }
@@ -275,7 +274,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.ebs:
           switch (MessagesToEbs.values.byName(message.data!['type'])) {
             case MessagesToEbs.newLetterProblemRequest:
-              final letterProblem = await _appRequestedANewLetterProblem(
+              final letterProblem = _appRequestedANewLetterProblem(
                   message.data!['configuration'] as Map<String, dynamic>);
               communicator.sendMessage(message.copyWith(
                   to: MessageTo.app,
@@ -307,13 +306,14 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.ebsMain:
           throw 'Request not supported';
       }
-    } catch (e) {
+    } catch (e, st) {
+      _logger.severe('Error while handling message from App', e, st);
       communicator.sendErrorReponse(
           message.copyWith(
               to: MessageTo.app,
               from: MessageFrom.ebs,
               type: MessageTypes.response),
-          e.toString());
+          'Error while handling message from App');
     }
   }
 
@@ -483,13 +483,13 @@ class TwitchEbsApiMocked extends TwitchEbsApiMockerTemplate {
   final _users = <TwitchUser>[];
 
   @override
-  Future<TwitchUser?> user({String? userId, String? login}) async {
+  Future<TwitchUser?> user({String? userId, String? login}) {
     _logger.fine('Getting user for ${userId ?? login}');
-    return _users.firstWhere(
+    return Future.value(_users.firstWhere(
         (player) =>
             (userId != null && player.userId == userId) ||
             (login != null && player.login == login),
-        orElse: () => _addRandomUser(userId: userId, login: login));
+        orElse: () => _addRandomUser(userId: userId, login: login)));
   }
 
   TwitchUser _addRandomUser(

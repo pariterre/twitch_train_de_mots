@@ -103,7 +103,7 @@ class FixTracksGameManager extends MiniGameManager {
       'n\'arrivons pas à atteindre la fin du rail dans le temps imparti, le train restera bloqué!\n';
 
   @override
-  Future<void> initialize() async {
+  void initialize() {
     while (true) {
       _grid = FixTracksGrid.random(
         rowCount: _rowCount,
@@ -123,7 +123,7 @@ class FixTracksGameManager extends MiniGameManager {
     }
     _playersPoints.clear();
 
-    await super.initialize();
+    super.initialize();
   }
 
   @override
@@ -168,9 +168,9 @@ class FixTracksGameManager extends MiniGameManager {
   }
 
   @override
-  Future<bool> shouldEndRoundImmediately() async {
+  Future<bool> shouldEndRoundImmediately() {
     // We got to a dead end, end the game
-    return !segmentHasValidWords(grid.nextEmptySegment);
+    return Future.value(!segmentHasValidWords(grid.nextEmptySegment));
   }
 
   @override
@@ -189,7 +189,7 @@ class FixTracksGameManager extends MiniGameManager {
     super.onRoundStatusChanged(newStatus);
   }
 
-  Future<void> _processRoundIsEnding() async {
+  void _processRoundIsEnding() {
     if (_grid?.allSegmentsAreFixed ?? false) {
       _endGameStatus = EndGameStatus.won;
     } else if (timeRemaining?.isNegative ?? true) {

@@ -91,8 +91,8 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                             onTap: !gm.hasPlayedAtLeastOnce ||
                                     gm.gameStatus ==
                                         WordsTrainGameStatus.roundStarted
-                                ? () async {
-                                    await gm.requestTerminateRound();
+                                ? () {
+                                    gm.requestTerminateRound();
                                     if (context.mounted) Navigator.pop(context);
                                   }
                                 : null,

@@ -18,11 +18,12 @@ class TwitchManager {
     _asyncInitializations();
   }
 
-  Future<void> _asyncInitializations() async {
+  Future<void> _asyncInitializations() {
     _logger.config('Initializing...');
     _isInitialized = true;
     _tryAutomaticConnect();
     _logger.config('Ready');
+    return Future.value();
   }
 
   ///

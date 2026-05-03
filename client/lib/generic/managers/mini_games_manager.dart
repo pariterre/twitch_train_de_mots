@@ -16,7 +16,7 @@ abstract class MiniGameManager {
   /// Initialize the mini game manager. It should prepare everything to be able to
   /// start the mini game, but it should not start the round yet. It is called when
   /// the mini game is selected, and it is followed by a call to [startRound] when the round actually starts.
-  Future<void> initialize() async {
+  void initialize() {
     _roundTimer.initialize();
   }
 
@@ -156,7 +156,7 @@ class MiniGamesManager {
     _asyncInitializations();
   }
 
-  Future<void> _asyncInitializations() async {
+  Future<void> _asyncInitializations() {
     _logger.config('Initializing...');
     _miniGames[MiniGames.treasureHunt] = TreasureHuntGameManager();
     _miniGames[MiniGames.blueberryWar] = BlueberryWarGameManager();
@@ -164,6 +164,7 @@ class MiniGamesManager {
     _miniGames[MiniGames.fixTracks] = FixTracksGameManager();
     _isInitialized = true;
     _logger.config('Ready');
+    return Future.value();
   }
 
   final Map<MiniGames, MiniGameManager> _miniGames = {};
@@ -178,13 +179,13 @@ class MiniGamesManager {
 
   ///
   /// Run a mini game, returns
-  Future<void> initialize(MiniGames game) async {
+  void initialize(MiniGames game) {
     if (_isActive) {
       throw Exception('Mini game already running: $_currentOrPreviousGame');
     }
     _isActive = true;
     _currentOrPreviousGame = game;
-    await manager!.initialize();
+    manager!.initialize();
 
     // Register to the mini game events to relay them anything that needs to
     // listen to them too

@@ -2,7 +2,7 @@ import 'package:configuration/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-void main() async {
+void main() {
   Logger.root.onRecord.listen((record) {
     final message = 'TRAIN DE MOTS - ${record.time}: ${record.message}';
     debugPrint(message);
