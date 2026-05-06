@@ -45,11 +45,11 @@ class BlueberryWarGameManager extends MiniGameManager {
 
   ///
   /// List of agents in the game (blueberries and letters)
-  final allAgents = <Agent>[];
+  final allAgents = <String, Agent>{};
   List<LetterAgent> get letters =>
-      allAgents.whereType<LetterAgent>().toList(growable: false);
+      allAgents.values.whereType<LetterAgent>().toList(growable: false);
   List<BlueberryAgent> get blueberries =>
-      allAgents.whereType<BlueberryAgent>().toList(growable: false);
+      allAgents.values.whereType<BlueberryAgent>().toList(growable: false);
 
   // Listeners
   final onLetterHitByBlueberry =
@@ -110,48 +110,49 @@ class BlueberryWarGameManager extends MiniGameManager {
     // Populate letters with random agents
     allAgents.clear();
     for (int i = 0; i < _problem!.letters.length; i++) {
+      final id = i;
       final isBoss =
           _problem!.uselessLetterStatuses[i] == LetterStatus.revealed;
-      allAgents.add(
-        LetterAgent(
-          id: i,
-          isBoss: isBoss,
-          problemIndex: i,
-          letter: _problem!.letters[i],
-          position: Vector2(
-            BlueberryWarConfig.fieldSize.x * 2 / 3,
-            BlueberryWarConfig.fieldSize.y * 2 / 5,
-          ),
-          velocity: isBoss
-              ? Vector2.zero()
-              : Vector2(
-                  _random.nextDouble() * 1500 - 750,
-                  _random.nextDouble() * 1500 - 750,
-                ),
-          maxVelocity: BlueberryWarConfig.letterMaxVelocity,
-          radius: Vector2(40.0, 50.0),
-          mass: 1.0,
-          coefficientOfFriction: (isBoss ? -0.1 : 0.3),
+
+      allAgents[id.toString()] = LetterAgent(
+        id: id,
+        isBoss: isBoss,
+        problemIndex: i,
+        letter: _problem!.letters[i],
+        position: Vector2(
+          BlueberryWarConfig.fieldSize.x * 2 / 3,
+          BlueberryWarConfig.fieldSize.y * 2 / 5,
         ),
+        velocity: isBoss
+            ? Vector2.zero()
+            : Vector2(
+                _random.nextDouble() * 1500 - 750,
+                _random.nextDouble() * 1500 - 750,
+              ),
+        maxVelocity: BlueberryWarConfig.letterMaxVelocity,
+        radius: Vector2(40.0, 50.0),
+        mass: 1.0,
+        coefficientOfFriction: (isBoss ? -0.1 : 0.3),
+        numberOfHits: 0,
       );
     }
 
     // Populate blueberries with random agents
     for (int i = 0; i < BlueberryWarConfig.initialBlueberryCount; i++) {
-      allAgents.add(
-        BlueberryAgent(
-          id: i + 1000,
-          position: BlueberryAgent.generateRandomStartingPosition(
-            blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,
-            blueberryRadius: BlueberryWarConfig.blueberryRadius,
-          ),
-          velocity: Vector2.zero(),
-          isInField: false,
-          maxVelocity: BlueberryWarConfig.blueberryMaxVelocity,
-          radius: BlueberryWarConfig.blueberryRadius,
-          mass: 3.0,
-          coefficientOfFriction: 0.8,
+      final id = i + 1000;
+
+      allAgents[id.toString()] = BlueberryAgent(
+        id: id,
+        position: BlueberryAgent.generateRandomStartingPosition(
+          blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,
+          blueberryRadius: BlueberryWarConfig.blueberryRadius,
         ),
+        velocity: Vector2.zero(),
+        isInField: false,
+        maxVelocity: BlueberryWarConfig.blueberryMaxVelocity,
+        radius: BlueberryWarConfig.blueberryRadius,
+        mass: 3.0,
+        coefficientOfFriction: 0.8,
       );
     }
 
@@ -319,7 +320,7 @@ class BlueberryWarGameManager extends MiniGameManager {
 
   void _processRoundIsEnding() {
     // Make all the agents quickly slowing down
-    for (final agent in allAgents) {
+    for (final agent in allAgents.values) {
       agent.coefficientOfFriction = 0.9;
     }
 

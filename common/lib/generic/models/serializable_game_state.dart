@@ -79,8 +79,8 @@ class SerializableLetterProblem {
 
   Map<String, dynamic> serialize() {
     return {
-      'letters': letters,
-      'scramble_indices': scrambleIndices,
+      'letters': letters.toList(growable: false),
+      'scramble_indices': scrambleIndices.toList(growable: false),
       'useless_letter_statuses':
           uselessLetterStatuses.map((e) => e.index).toList(growable: false),
       'hidden_letter_statuses':
@@ -331,35 +331,7 @@ class SerializableGameState {
       player['name'] = null;
     }
 
-    final canonical = _canonicalize(serialized);
-    final jsonStr = jsonEncode(canonical);
+    final jsonStr = jsonEncode(serialized);
     return sha256.convert(utf8.encode(jsonStr)).toString();
   }
-}
-
-dynamic _canonicalize(dynamic value) {
-  if (value is Map<String, dynamic>) {
-    final sortedKeys = value.keys.toList()..sort();
-
-    return {
-      for (final key in sortedKeys) key: _canonicalize(value[key]),
-    };
-  }
-
-  if (value is List) {
-    final normalized = value.map(_canonicalize).toList();
-
-    // TODO: This is not true for scrambled letters
-    normalized.sort(_deepComparable);
-
-    return normalized;
-  }
-
-  return value;
-}
-
-int _deepComparable(dynamic a, dynamic b) {
-  final aStr = jsonEncode(a);
-  final bStr = jsonEncode(b);
-  return aStr.compareTo(bStr);
 }

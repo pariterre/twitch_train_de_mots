@@ -85,7 +85,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         final player = players[displayName] as Map<String, dynamic>?;
         // If the player is removed, do nothing. This is taken care by the patch
         if (player == null) continue;
-        
+
         player['name'] =
             registeredFrontendUsers.from(displayName: displayName)?.opaqueId ??
                 'Anonymous_$i';
@@ -310,7 +310,6 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   data: {'letter_problem': letterProblem.serialize()}));
               break;
             case MessagesToEbs.patchGameState:
-              // TODO Change this to a put request with response to confirm the client can ditch the "previous" game state
               await _handlePatchGameState(message);
               break;
             case MessagesToEbs.gameStateRequest:

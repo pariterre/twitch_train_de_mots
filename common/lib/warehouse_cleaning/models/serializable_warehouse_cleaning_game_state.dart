@@ -19,7 +19,7 @@ class SerializableWarehouseCleaningGameState
   final SerializableControllableTimer roundTimer;
   final WarehouseCleaningGrid grid;
   final int triesRemaining;
-  final List<Agent> allAgents;
+  final Map<String, Agent> allAgents;
 
   @override
   Map<String, dynamic> serialize() {
@@ -28,9 +28,8 @@ class SerializableWarehouseCleaningGameState
       'round_timer': roundTimer.serialize(),
       'grid': grid.serialize(),
       'tries_remaining': triesRemaining,
-      'all_agents': allAgents
-          .asMap()
-          .map((index, agent) => MapEntry(agent.id, agent.serialize())),
+      'all_agents':
+          allAgents.map((key, agent) => MapEntry(key, agent.serialize())),
     };
   }
 
@@ -42,11 +41,8 @@ class SerializableWarehouseCleaningGameState
       grid: WarehouseCleaningGrid.deserialize(
           data['grid'] as Map<String, dynamic>),
       triesRemaining: data['tries_remaining'] as int,
-      allAgents: (data['all_agents'] as Map<int, dynamic>)
-          .values
-          .map((agentData) =>
-              Agent.deserialize(agentData as Map<String, dynamic>))
-          .toList(),
+      allAgents: (data['all_agents'] as Map<String, dynamic>)
+          .map((key, agentData) => MapEntry(key, Agent.deserialize(agentData))),
     );
   }
 
@@ -55,7 +51,7 @@ class SerializableWarehouseCleaningGameState
     SerializableControllableTimer? roundTimer,
     WarehouseCleaningGrid? grid,
     int? triesRemaining,
-    List<Agent>? allAgents,
+    Map<String, Agent>? allAgents,
   }) {
     return SerializableWarehouseCleaningGameState(
       roundTimer: roundTimer ?? this.roundTimer,
@@ -72,10 +68,14 @@ class SerializableWarehouseCleaningGameState
     return other is SerializableWarehouseCleaningGameState &&
         other.roundTimer == roundTimer &&
         other.grid == grid &&
-        other.triesRemaining == triesRemaining;
+        other.triesRemaining == triesRemaining &&
+        other.allAgents == allAgents;
   }
 
   @override
   int get hashCode =>
-      roundTimer.hashCode ^ grid.hashCode ^ triesRemaining.hashCode;
+      roundTimer.hashCode ^
+      grid.hashCode ^
+      triesRemaining.hashCode ^
+      allAgents.hashCode;
 }

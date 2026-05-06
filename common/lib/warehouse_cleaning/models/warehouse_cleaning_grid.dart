@@ -15,32 +15,28 @@ class WarehouseCleaningGrid {
   final int columnCount;
   int get cellCount => rowCount * columnCount;
 
-  final List<Tile> _tiles;
+  final Map<String, Tile> _tiles;
 
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
-        'tiles': _tiles
-            .asMap()
-            .map((index, tile) => MapEntry(tile.index, tile.serialize())),
+        'tiles': _tiles.map((key, tile) => MapEntry(key, tile.serialize())),
       };
 
   static WarehouseCleaningGrid deserialize(Map<String, dynamic> json) {
     return WarehouseCleaningGrid(
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
-      tiles: (json['tiles'] as Map<int, dynamic>)
-          .values
-          .map((tile) => Tile.deserialize(tile))
-          .toList(growable: false),
+      tiles: (json['tiles'] as Map<String, dynamic>)
+          .map((key, tile) => MapEntry(key, Tile.deserialize(tile))),
     );
   }
 
   WarehouseCleaningGrid({
     required this.rowCount,
     required this.columnCount,
-    List<Tile>? tiles,
-  }) : _tiles = tiles ?? [] {
+    Map<String, Tile>? tiles,
+  }) : _tiles = tiles ?? {} {
     if (tiles != null && tiles.length != cellCount) {
       throw ArgumentError(
           'The number of tiles must be equal to rowCount * columnCount');
@@ -66,7 +62,7 @@ class WarehouseCleaningGrid {
     if (index! < 0 || index >= cellCount) {
       return null;
     }
-    return _tiles[index];
+    return _tiles[index.toString()];
   }
 
   ///
@@ -129,7 +125,7 @@ class WarehouseCleaningGrid {
 
   ///
   /// Get the number of letters that were found
-  int get revealedLetterCount => _tiles.fold(
+  int get revealedLetterCount => _tiles.values.fold(
       0, (prev, tile) => prev + (tile.isRevealed && tile.hasLetter ? 1 : 0));
 }
 
@@ -219,7 +215,7 @@ class _MazeGenerator {
   /// This function carves a perfect maze of TileContent.empty inside a grid of TileContent.box.
   /// This means the surronding of the maze will always be walls, and there will be a single path between any two points of the maze.
   ///
-  static List<Tile> generate({
+  static Map<String, Tile> generate({
     required int rowCount,
     required int columnCount,
     required int startingRow,
@@ -242,7 +238,7 @@ class _MazeGenerator {
         startingRow: logicalStartingRow,
         startingCol: logicalStartingCol);
 
-    final tiles = <Tile>[];
+    final tiles = <String, Tile>{};
 
     // initialize all as walls
     final grid = List.generate(
@@ -299,7 +295,9 @@ class _MazeGenerator {
 
     // flatten
     for (final row in grid) {
-      tiles.addAll(row);
+      for (final tile in row) {
+        tiles[tile.index.toString()] = tile;
+      }
     }
 
     return tiles;

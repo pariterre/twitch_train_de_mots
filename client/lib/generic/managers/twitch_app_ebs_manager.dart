@@ -400,9 +400,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
       case MessagesToApp.slingShootBlueberry:
         final bwm = Managers.instance.miniGames.blueberryWar;
-        final blueberryId = message.data!['id'] as int;
-        final blueberry = bwm.allAgents
-            .firstWhere((agent) => agent.id == blueberryId) as BlueberryAgent;
+        final blueberryId = message.data!['id'] as String;
+        final blueberry = bwm.allAgents[blueberryId] as BlueberryAgent;
 
         final velocity =
             Vector2Extension.deserialize(message.data!['velocity']);

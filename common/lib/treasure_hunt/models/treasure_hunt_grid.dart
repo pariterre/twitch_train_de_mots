@@ -74,15 +74,13 @@ class TreasureHuntGrid {
   int get cellCount => rowCount * columnCount;
   final int rewardCount;
 
-  final List<Tile> _tiles;
+  final Map<String, Tile> _tiles;
 
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
         'rewards_count': rewardCount,
-        'tiles': _tiles
-            .asMap()
-            .map((index, tile) => MapEntry(tile.index, tile.serialize())),
+        'tiles': _tiles.map((index, tile) => MapEntry(index, tile.serialize())),
       };
 
   static TreasureHuntGrid deserialize(Map<String, dynamic> json) {
@@ -90,10 +88,8 @@ class TreasureHuntGrid {
       rowCount: json['rows'] as int,
       columnCount: json['cols'] as int,
       rewardCount: json['rewards_count'] as int,
-      tiles: (json['tiles'] as Map<int, dynamic>)
-          .values
-          .map((e) => Tile.deserialize(e as Map<String, dynamic>))
-          .toList(),
+      tiles: (json['tiles'] as Map<String, dynamic>).map((key, value) =>
+          MapEntry(key, Tile.deserialize(value as Map<String, dynamic>))),
     );
   }
 
@@ -101,8 +97,8 @@ class TreasureHuntGrid {
     required this.rowCount,
     required this.columnCount,
     required this.rewardCount,
-    List<Tile>? tiles,
-  }) : _tiles = tiles ?? [] {
+    Map<String, Tile>? tiles,
+  }) : _tiles = tiles ?? {} {
     if (tiles != null && tiles.length != cellCount) {
       throw ArgumentError(
           'The number of tiles must be equal to rowCount * columnCount');
@@ -128,7 +124,7 @@ class TreasureHuntGrid {
     if (index! < 0 || index >= cellCount) {
       return null;
     }
-    return _tiles[index];
+    return _tiles[index.toString()];
   }
 
   ///
@@ -138,41 +134,41 @@ class TreasureHuntGrid {
     required this.columnCount,
     required this.rewardCount,
     SerializableLetterProblem? problem,
-  }) : _tiles = [] {
+  }) : _tiles = {} {
     // Create an empty grid
     for (var i = 0; i < cellCount; i++) {
-      _tiles.add(Tile(
+      _tiles[i.toString()] = Tile(
         index: i,
         row: i ~/ columnCount,
         col: i % columnCount,
         value: TileValue.zero,
         isConcealed: true,
         isMysteryLetter: false,
-      ));
+      );
     }
 
     // Populate it with rewards
     for (var i = 0; i < rewardCount; i++) {
-      var rewardIndex = -1;
+      var rewardIndex = '';
       do {
-        rewardIndex = _random.nextInt(cellCount);
+        rewardIndex = _random.nextInt(cellCount).toString();
         // Make sure it this tile does not already have a reward
-      } while (_tiles[rewardIndex].hasReward);
+      } while (_tiles[rewardIndex]?.hasReward ?? false);
 
       if (i < (problem?.letters.length ?? -1)) {
-        _tiles[rewardIndex].addLetter(
+        _tiles[rewardIndex]!.addLetter(
             letter: problem!.letters[i],
             letterIndex: i,
             isMystery:
                 problem.uselessLetterStatuses[i] == LetterStatus.revealed);
       } else {
-        _tiles[rewardIndex].addTreasure();
+        _tiles[rewardIndex]!.addTreasure();
       }
     }
 
     // Recalculate the value of each tile based on number of rewards around it
     for (var i = 0; i < cellCount; i++) {
-      final currentTile = _tiles[i];
+      final currentTile = _tiles[i.toString()]!;
       // Do not recompute tile with a reward in it
       if (currentTile.hasReward) continue;
 
@@ -196,7 +192,7 @@ class TreasureHuntGrid {
       }
 
       // Store the number in the tile
-      _tiles[i]._value = TileValue.values[rewardCountAroundTile];
+      _tiles[i.toString()]!._value = TileValue.values[rewardCountAroundTile];
     }
   }
 
@@ -273,7 +269,7 @@ class TreasureHuntGrid {
 
   ///
   /// Get the number of rewards that were found
-  int get revealedRewardCount => _tiles.fold(
+  int get revealedRewardCount => _tiles.values.fold(
       0, (prev, tile) => prev + (tile.isRevealed && tile.hasReward ? 1 : 0));
 }
 

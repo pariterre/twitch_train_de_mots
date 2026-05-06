@@ -112,13 +112,13 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
   ///
   /// List of agents in the game (avatars and boxes)
-  final allAgents = <Agent>[];
+  final allAgents = <String, Agent>{};
   List<AvatarAgent> get avatars =>
-      allAgents.whereType<AvatarAgent>().toList(growable: false);
+      allAgents.values.whereType<AvatarAgent>().toList(growable: false);
   List<BoxAgent> get boxes =>
-      allAgents.whereType<BoxAgent>().toList(growable: false);
+      allAgents.values.whereType<BoxAgent>().toList(growable: false);
   List<LetterAgent> get letters =>
-      allAgents.whereType<LetterAgent>().toList(growable: false);
+      allAgents.values.whereType<LetterAgent>().toList(growable: false);
 
   @override
   void initialize() {
@@ -145,7 +145,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
     allAgents.clear();
     for (int i = 0; i < WarehouseCleaningConfig.initialAvatarCount; i++) {
-      allAgents.add(AvatarAgent(
+      allAgents[i.toString()] = AvatarAgent(
         id: i,
         tileIndex: startingTile.index,
         position: startingPosition,
@@ -154,7 +154,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         velocity: vector_math.Vector2.zero(),
         coefficientOfFriction:
             WarehouseCleaningConfig.avatarFrictionCoefficient,
-      ));
+      );
     }
 
     // Populate the agents list with the boxes and letters
@@ -164,7 +164,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       if (tile == null) {
         continue;
       } else if (tile.isLetter) {
-        allAgents.add(LetterAgent(
+        allAgents[currentIndex.toString()] = LetterAgent(
           id: currentIndex,
           tileIndex: tile.index,
           value: tile.letter!,
@@ -173,9 +173,9 @@ class WarehouseCleaningGameManager extends MiniGameManager {
             tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
           ),
           radius: WarehouseCleaningConfig.boxRadius,
-        ));
+        );
       } else if (tile.isBox) {
-        allAgents.add(BoxAgent(
+        allAgents[currentIndex.toString()] = BoxAgent(
           id: currentIndex,
           tileIndex: tile.index,
           position: vector_math.Vector2(
@@ -183,7 +183,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
             tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
           ),
           radius: WarehouseCleaningConfig.boxRadius,
-        ));
+        );
       }
       currentIndex++;
     }
@@ -266,6 +266,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       _triesRemaining--;
 
       onAvatarMoved.notifyListeners((callback) => callback());
+      onGameUpdated.notifyListeners((callback) => callback());
     } else {
       _logger
           .warning('Avatar ${avatar.id} cannot be slingshot, ignoring request');

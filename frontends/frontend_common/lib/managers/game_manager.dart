@@ -309,7 +309,7 @@ class GameManager {
           BlueberryWarGameManagerHelpers.updateAllAgents(
               allAgents: bwm.allAgents, dt: deltaTime, problem: bwm.problem);
           // Check for teleportations
-          for (final agent in bwm.allAgents) {
+          for (final agent in bwm.allAgents.values) {
             if (agent is! BlueberryAgent) continue;
             // If we detect a velocity of zero and when the blueberry is in starting block
             if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&

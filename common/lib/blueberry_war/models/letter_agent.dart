@@ -9,7 +9,7 @@ class LetterAgent extends Agent {
 
   final onHit = GenericListener<Function>();
 
-  int _numberOfHits = 0;
+  int _numberOfHits;
   void hit() {
     // Prevent hitting too frequently
     if (DateTime.now().difference(_lastHitTime).inMilliseconds < 500) {
@@ -42,7 +42,8 @@ class LetterAgent extends Agent {
     required super.radius,
     required super.mass,
     required super.coefficientOfFriction,
-  });
+    required int numberOfHits,
+  }) : _numberOfHits = numberOfHits;
 
   @override
   AgentType get agentType => AgentType.letter;
@@ -76,6 +77,7 @@ class LetterAgent extends Agent {
       radius: Vector2Extension.deserialize(map['radius']),
       mass: (map['mass'] as num).toDouble(),
       coefficientOfFriction: (map['coefficient_of_friction'] as num).toDouble(),
+      numberOfHits: map['number_of_hits'] as int,
     );
   }
 }

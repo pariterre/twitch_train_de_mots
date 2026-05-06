@@ -17,19 +17,18 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   MiniGames get type => MiniGames.blueberryWar;
 
   final SerializableControllableTimer roundTimer;
-  final List<Agent> allAgents;
+  final Map<String, Agent> allAgents;
   List<BlueberryAgent> get blueberries =>
-      allAgents.whereType<BlueberryAgent>().toList();
-  List<LetterAgent> get letters => allAgents.whereType<LetterAgent>().toList();
+      allAgents.values.whereType<BlueberryAgent>().toList();
+  List<LetterAgent> get letters =>
+      allAgents.values.whereType<LetterAgent>().toList();
   final SerializableLetterProblem problem;
   @override
   Map<String, dynamic> serialize() {
     return {
       'type': MiniGames.blueberryWar.index,
       'round_timer': roundTimer.serialize(),
-      'agents': allAgents
-          .asMap()
-          .map((index, agent) => MapEntry(agent.id, agent.serialize())),
+      'agents': allAgents.map((key, agent) => MapEntry(key, agent.serialize())),
       'problem': problem.serialize(),
     };
   }
@@ -39,10 +38,8 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
     return SerializableBlueberryWarGameState(
       roundTimer: SerializableControllableTimer.deserialize(
           data['round_timer'] as Map<String, dynamic>),
-      allAgents: (data['agents'] as Map<int, dynamic>)
-          .values
-          .map((agentData) => Agent.deserialize(agentData))
-          .toList(),
+      allAgents: (data['agents'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, Agent.deserialize(value))),
       problem: SerializableLetterProblem.deserialize(data['problem']),
     );
   }
@@ -51,7 +48,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   SerializableBlueberryWarGameState copyWith({
     SerializableControllableTimer? roundTimer,
     bool? isWon,
-    List<Agent>? allAgents,
+    Map<String, Agent>? allAgents,
     SerializableLetterProblem? problem,
   }) {
     return SerializableBlueberryWarGameState(

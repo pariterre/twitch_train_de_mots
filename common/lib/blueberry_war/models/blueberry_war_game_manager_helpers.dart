@@ -53,20 +53,21 @@ class BlueberryWarGameManagerHelpers {
   /// game loop.
   static void updateAllAgents({
     required Duration dt,
-    required List<Agent> allAgents,
+    required Map<String, Agent> allAgents,
     required SerializableLetterProblem problem,
     Function(BlueberryAgent)? onBlueberryDestroyed,
     Function(LetterAgent)? onLetterHitByBlueberry,
     Function(LetterAgent first, LetterAgent second)? onLetterHitByLetter,
   }) {
-    for (int i = 0; i < allAgents.length; i++) {
+    final agentsList = allAgents.values.toList();
+    for (int i = 0; i < agentsList.length; i++) {
       // Move all agents
-      final agent = allAgents[i];
+      final agent = agentsList[i];
       agent.update(dt: dt);
 
       // Check for collisions with other agents.
       // Do not redo collisions with agents that have already been checked.
-      for (final other in allAgents.sublist(i + 1)) {
+      for (final other in agentsList.sublist(i + 1)) {
         // Do not collide Blueberry with Blueberry
         if (agent is BlueberryAgent && other is BlueberryAgent) continue;
 
@@ -103,10 +104,10 @@ class BlueberryWarGameManagerHelpers {
   ///
   /// Check for teleportations
   static void checkForBlueberriesTeleportation({
-    required List<Agent> allAgents,
+    required Map<String, Agent> allAgents,
     Function(BlueberryAgent)? onBlueberryTeleported,
   }) {
-    for (final agent in allAgents) {
+    for (final agent in allAgents.values) {
       final isBlueberry = agent is BlueberryAgent;
       if (!isBlueberry) continue;
 

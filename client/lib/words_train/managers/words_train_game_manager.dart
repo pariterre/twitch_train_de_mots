@@ -660,7 +660,7 @@ class WordsTrainGameManager {
   /// Try a solution proposed by a player. If the solution is valid, it updates
   /// the player score and notifies the listeners.
   bool trySolution({required String playerName, required String word}) {
-    if (gameStatus != WordsTrainGameStatus.roundStarted) {
+    if (gameStatus != WordsTrainGameStatus.roundStarted || isRoundAMiniGame) {
       _logger.fine('Cannot try solution while not playing a round');
       return false;
     }

@@ -13,56 +13,45 @@ class FixTracksGrid {
 
   int get cellCount => rowCount * columnCount;
 
-  final List<Tile?> _tiles;
+  final Map<String, Tile> _tiles;
 
-  final List<PathSegment> _pathSegments;
-  List<PathSegment> get segments => List.unmodifiable(_pathSegments);
-  bool get allSegmentsAreFixed => _pathSegments.every((s) => s.isComplete);
+  final Map<String, PathSegment> _pathSegments;
+  List<PathSegment> get segments => List.unmodifiable(_pathSegments.values);
+  bool get allSegmentsAreFixed =>
+      _pathSegments.values.every((s) => s.isComplete);
   PathSegment? get nextEmptySegment =>
-      _pathSegments.firstWhereOrNull((s) => s.isNotComplete);
+      _pathSegments.values.firstWhereOrNull((s) => s.isNotComplete);
 
   Map<String, dynamic> serialize() => {
         'rows': rowCount,
         'cols': columnCount,
-        'tiles': _tiles
-            .asMap()
-            .map((index, tile) => MapEntry(tile?.index, tile?.serialize()))
-          ..removeWhere((key, value) => value == null),
+        'tiles': _tiles.map((key, tile) => MapEntry(key, tile.serialize())),
         'path_segments': _pathSegments
-            .asMap()
-            .map((index, segment) =>
-                MapEntry(segment.startingTileIndex, segment.serialize()))
-            .values
-            .toList(),
+            .map((key, segment) => MapEntry(key, segment.serialize())),
       };
 
-  static FixTracksGrid deserialize(Map<String, dynamic> json) {
-    final rowCount = json['rows'] as int;
-    final colCount = json['cols'] as int;
-    final tiles = List<Tile?>.filled(rowCount * colCount, null);
-    for (var tileData in (json['tiles'] as Map<int, dynamic>).values) {
-      final tile = Tile.deserialize(tileData);
-      tiles[tile.index] = tile;
-    }
-
-    return FixTracksGrid._(
-      rowCount: rowCount,
-      columnCount: colCount,
-      tiles: tiles,
-      pathSegments: (json['path_segments'] as Map<int, dynamic>)
-          .values
-          .map((segment) => PathSegment.fromSerialized(segment))
-          .toList(),
-    );
-  }
+  static FixTracksGrid deserialize(Map<String, dynamic> json) =>
+      FixTracksGrid._(
+        rowCount: json['rows'] as int,
+        columnCount: json['cols'] as int,
+        tiles: {
+          for (var entry in (json['tiles'] as Map<String, dynamic>).entries)
+            entry.key: Tile.deserialize(entry.value),
+        },
+        pathSegments: {
+          for (var entry
+              in (json['path_segments'] as Map<String, dynamic>).entries)
+            entry.key: PathSegment.fromSerialized(entry.value),
+        },
+      );
 
   FixTracksGrid._({
     required this.rowCount,
     required this.columnCount,
-    List<Tile?>? tiles,
-    List<PathSegment>? pathSegments,
-  })  : _tiles = tiles ?? [],
-        _pathSegments = pathSegments ?? [];
+    Map<String, Tile>? tiles,
+    Map<String, PathSegment>? pathSegments,
+  })  : _tiles = tiles ?? {},
+        _pathSegments = pathSegments ?? {};
 
   Tile? tileAt({int? row, int? col, int? index}) {
     if ((row == null && col == null && index == null) ||
@@ -83,7 +72,7 @@ class FixTracksGrid {
     if (index! < 0 || index >= cellCount) {
       return null;
     }
-    return _tiles[index];
+    return _tiles[index.toString()];
   }
 
   ///
@@ -100,8 +89,8 @@ class FixTracksGrid {
     required int maximumSegmentLength,
     required int segmentCount,
     required int segmentsWithLetterCount,
-  })  : _tiles = [],
-        _pathSegments = [] {
+  })  : _tiles = {},
+        _pathSegments = {} {
     int countAttempts = 0;
     while (true) {
       countAttempts++;
@@ -111,11 +100,11 @@ class FixTracksGrid {
       // Create an empty grid
       _tiles.clear();
       for (var i = 0; i < cellCount; i++) {
-        _tiles.add(Tile(
+        _tiles[i.toString()] = Tile(
             index: i,
             row: i ~/ columnCount,
             col: i % columnCount,
-            letter: null));
+            letter: null);
       }
 
       try {
@@ -182,7 +171,7 @@ class FixTracksGrid {
         maximumSegmentLength: maximumSegmentLength,
       );
       if (currentPathSegment == null) return false;
-      _pathSegments.add(currentPathSegment);
+      _pathSegments[_pathSegments.length.toString()] = currentPathSegment;
 
       // Mark the path tiles as path and add random letters
       for (var i = 0; i < currentPathSegment.length; i++) {
@@ -207,7 +196,7 @@ class FixTracksGrid {
     }
     for (int i = 0; i < _pathSegments.length; i++) {
       if (segmentsToNotAddLetters.contains(i)) continue;
-      final segment = _pathSegments[i];
+      final segment = _pathSegments[i.toString()]!;
 
       // Choose a random index in the segment to add a letter which is not the first or last letter,
       // except for the first segment which must have a letter at the start
@@ -218,8 +207,9 @@ class FixTracksGrid {
     }
 
     // Now, simply remove all the non-path tiles in the grid as they are not useful
-    for (int i = 0; i < _tiles.length; i++) {
-      if (!isTileAPath[i]) _tiles[i] = null;
+    final tileCount = _tiles.length;
+    for (int i = 0; i < tileCount; i++) {
+      if (!isTileAPath[i]) _tiles.remove(i.toString());
     }
     return true;
   }
