@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
-import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/generic/models/map_extension.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
@@ -21,7 +21,7 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  SerializableGameState _gameState = SerializableGameState.empty();
+  Map<String, dynamic> _gameState = {};
   Map<String, dynamic> _lastSentGameState = {};
 
   ///
@@ -69,40 +69,18 @@ class EbsManager extends TwitchEbsManagerAbstract {
       {bool retryOnFail = true}) async {
     _logger.info('Received patch game state from app');
 
-    final gameStatePatch = message.data?['game_state'] == null
-        ? {}
+    final patch = message.data?['game_state'] == null
+        ? <String, dynamic>{}
         : Map<String, dynamic>.from(message.data!['game_state']);
 
-    // Change player names to opaque ids in the patch if any.
-    // TODO: Do the same for [playersWhoCanPardon], [boosters]
-    if (gameStatePatch['players'] != null) {
-      final players = gameStatePatch['players'] as Map<String, dynamic>;
-
-      final displayNames = players.keys.toList();
-      for (int i = 0; i < displayNames.length; i++) {
-        final displayName = displayNames[i];
-
-        final player = players[displayName] as Map<String, dynamic>?;
-        // If the player is removed, do nothing. This is taken care by the patch
-        if (player == null) continue;
-
-        player['name'] =
-            registeredFrontendUsers.from(displayName: displayName)?.opaqueId ??
-                'Anonymous_$i';
-      }
-    }
-
     // Apply the patch to the current game state to get the new game state
-    final newGameStateSerialized =
-        applyPatch(_gameState.serialize(), gameStatePatch);
-    final newGameState =
-        SerializableGameState.deserialize(newGameStateSerialized);
+    final newGameState = applyPatch(_gameState, patch);
 
     if (newGameState.checksum() != message.data?['checksum']) {
       if (retryOnFail) {
         await _requestForFullGameState();
       } else {
-        _gameState = SerializableGameState.empty();
+        _gameState = {};
       }
       return;
     }
@@ -114,7 +92,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
       type: MessageTypes.response,
       isSuccess: true,
     ));
-    _sendGameStateToFrontend(newGameStateSerialized);
+    _sendGameStateToFrontend(newGameState);
   }
 
   Future<void> _requestForFullGameState() async {
@@ -365,6 +343,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
           }
 
         case MessageTo.frontend:
+        // TODO add a frontend handshake which sends the correspondance between opaque_id and display name
         case MessageTo.app:
           switch (MessagesToApp.values.byName(message.data!['type'])) {
             case MessagesToApp.tryWord:

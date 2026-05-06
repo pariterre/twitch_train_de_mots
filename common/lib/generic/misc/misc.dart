@@ -40,7 +40,7 @@ dynamic deepDiffAsPatch(dynamic oldValue, dynamic newValue) {
   return null;
 }
 
-dynamic applyPatch(dynamic oldValue, dynamic patch) {
+T applyPatch<T>(T oldValue, T patch) {
   if (oldValue == null) throw 'Cannot apply patch to null old value';
   if (patch == null) return oldValue; // no changes
 
@@ -57,12 +57,12 @@ dynamic applyPatch(dynamic oldValue, dynamic patch) {
       }
     }
 
-    return result;
+    return result as T;
   }
 
   if (patch is List) {
-    return patch; // treat list as atomic
+    return patch as T; // treat list as atomic
   }
 
-  return patch; // primitive value changed
+  return patch as T; // primitive value changed
 }

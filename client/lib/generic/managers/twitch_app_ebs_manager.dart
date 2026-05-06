@@ -6,6 +6,7 @@ import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/map_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -16,10 +17,9 @@ import 'package:twitch_manager/twitch_app.dart';
 final _logger = Logger('EbsServerManager');
 
 class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
-  (Map<String, dynamic>, String) _lastSentGameState = (
-    SerializableGameState.empty().serialize(),
-    SerializableGameState.empty().checksum()
-  );
+  Map<String, dynamic> _lastGameStateSent =
+      SerializableGameState.empty().serialize();
+  bool _gameStateIsBeingSent = false;
 
   ///
   /// Initialize the EbsServerManager establishing a connection with the
@@ -99,7 +99,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     mgm.onMinigameStarted.listen(_connectMiniGame);
     mgm.onMinigameEnded.listen(_disconnectMiniGame);
 
-    _sendGameStateToEbs(fullState: true);
+    _sendGameStateToEbs(sendFullState: true);
   }
 
   ///
@@ -181,49 +181,67 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   Future<void> _sendCooldownToEbs(WordSolution solution) async =>
       _sendGameStateToEbs();
 
-  Future<void> _sendGameStateToEbs({bool fullState = false}) async {
-    final serializable = Managers.instance.train.toSerializable;
-    final serialized = serializable.serialize();
+  Future<void> _sendGameStateToEbs({bool sendFullState = false}) async {
+    while (_gameStateIsBeingSent) {
+      _logger.finer(
+          'Game state is already being sent to EBS, waiting for the previous send to finish before sending the new game state');
+      await Future.delayed(Managers.instance.tickerManager.fixedDeltaTime);
+    }
+    _gameStateIsBeingSent = true;
 
-    final patch = fullState
-        ? serialized
-        : deepDiffAsPatch(_lastSentGameState.$1, serialized);
+    final currentGameState = Managers.instance.train.toSerializable.serialize();
+    final patch = sendFullState
+        ? currentGameState
+        : deepDiffAsPatch(_lastGameStateSent, currentGameState);
     if (patch == null) {
       _logger.fine('No changes in the game state, not sending anything to EBS');
+      _gameStateIsBeingSent = false;
       return;
     }
 
-    final checksum = serializable.checksum();
-
-    _lastSentGameState = (serialized, checksum);
     final response = await sendQuestionToEbs(MessageProtocol(
         to: MessageTo.ebs,
         from: MessageFrom.app,
         type: MessageTypes.put,
         data: {
           'type': MessagesToEbs.patchGameState.name,
-          'checksum': checksum,
+          'checksum': currentGameState.checksum(),
           'game_state': patch
         }));
 
     if (!(response.isSuccess ?? false)) {
       _logger
           .warning('Failed to send game state patch to EBS: ${response.data}');
+    } else {
+      _lastGameStateSent = currentGameState;
     }
+
+    _gameStateIsBeingSent = false;
   }
 
-  Future<void> _sendFullGameStateResponse(MessageProtocol message) {
-    final serializable = Managers.instance.train.toSerializable;
+  Future<void> _sendFullGameStateResponse(MessageProtocol message) async {
+    while (_gameStateIsBeingSent) {
+      _logger.finer(
+          'Game state is already being sent to EBS, waiting for the previous send to finish before sending the new game state');
+      await Future.delayed(Managers.instance.tickerManager.fixedDeltaTime);
+    }
+    _gameStateIsBeingSent = true;
 
-    final patch = serializable.serialize();
-    _lastSentGameState = (patch, serializable.checksum());
+    final currentGameState = Managers.instance.train.toSerializable.serialize();
 
     sendResponseToEbs(message.copyWith(
         to: MessageTo.frontend,
         from: MessageFrom.app,
         type: MessageTypes.response,
         isSuccess: true,
-        data: {'game_state': patch, 'checksum': _lastSentGameState.$2}));
+        data: {
+          'game_state': currentGameState,
+          'checksum': currentGameState.checksum()
+        }));
+
+    _lastGameStateSent = currentGameState;
+
+    _gameStateIsBeingSent = false;
     return Future.value();
   }
 

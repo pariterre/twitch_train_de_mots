@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/helpers.dart';
@@ -7,7 +5,6 @@ import 'package:common/generic/models/round_success.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/serializable_player.dart';
 import 'package:common/generic/models/success_level.dart';
-import 'package:crypto/crypto.dart';
 
 enum LetterStatus {
   normal,
@@ -318,20 +315,5 @@ class SerializableGameState {
       miniGameState: SerializableMiniGameState.deserialize(
           data['mini_game_state'] as Map<String, dynamic>),
     );
-  }
-
-  ///
-  /// Value-based checksum of the game state. This must strickly be the same
-  /// for the same game state.
-  String checksum() {
-    final serialized = serialize();
-
-    // Exclude players' names as they are purposefully different between the contexts
-    for (final player in serialized['players'].values) {
-      player['name'] = null;
-    }
-
-    final jsonStr = jsonEncode(serialized);
-    return sha256.convert(utf8.encode(jsonStr)).toString();
   }
 }
