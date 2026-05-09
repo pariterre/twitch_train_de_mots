@@ -300,6 +300,7 @@ class WordsTrainGameManager {
     }
     if (_autoStart.isInitialized) _autoStart.pause();
     Managers.instance.miniGames.manager?.pauseRound();
+    onPaused.notifyListeners((callback) => callback());
   }
 
   ///
@@ -313,6 +314,7 @@ class WordsTrainGameManager {
     }
     if (_autoStart.isInitialized) _autoStart.resume();
     Managers.instance.miniGames.manager?.resumeRound();
+    onResumed.notifyListeners((callback) => callback());
   }
 
   ///
@@ -371,6 +373,8 @@ class WordsTrainGameManager {
 
   /// Callbacks for that tells listeners that the round is preparing
   final onGameIsInitializing = GenericListener<Function()>();
+  final onPaused = GenericListener<Function()>();
+  final onResumed = GenericListener<Function()>();
   final onRoundIsPreparing = GenericListener<Function()>();
   final onNextProblemReady = GenericListener<Function()>();
   final onRoundStarted = GenericListener<Function()>();

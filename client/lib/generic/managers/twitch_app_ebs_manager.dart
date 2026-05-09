@@ -82,6 +82,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   void _listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
     final gm = Managers.instance.train;
+    gm.onPaused.listen(_sendGameStateToEbs);
+    gm.onResumed.listen(_sendGameStateToEbs);
     gm.onRoundStarted.listen(_sendGameStateToEbs);
     gm.onRoundIsOver.listen(_sendGameStateToEbs);
     gm.onStealerPardoned.listen(_sendGameStateToEbsWithParameter);
@@ -107,6 +109,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   /// EBS server.
   void _disposeListeners() {
     final gm = Managers.instance.train;
+    gm.onPaused.cancel(_sendGameStateToEbs);
+    gm.onResumed.cancel(_sendGameStateToEbs);
     gm.onRoundStarted.cancel(_sendGameStateToEbs);
     gm.onRoundIsOver.cancel(_sendGameStateToEbs);
     gm.onStealerPardoned.cancel(_sendGameStateToEbsWithParameter);
@@ -418,17 +422,12 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   }
 
   Future<void> _handleMiniGameRequest(MessageProtocol message) async {
-    final gm = Managers.instance.train;
-
     final requestType = MessagesToApp.values.byName(message.data!['type']);
     late bool isSuccess;
     switch (requestType) {
       case MessagesToApp.revealTileAt:
-        final playerName = message.data!['player_name'] as String;
-        isSuccess = gm.players.hasPlayer(playerName)
-            ? Managers.instance.miniGames.treasureHunt
-                .revealTile(tileIndex: message.data!['index'] as int)
-            : false;
+        isSuccess = Managers.instance.miniGames.treasureHunt
+            .revealTile(tileIndex: message.data!['index'] as int);
         break;
 
       case MessagesToApp.slingShootBlueberry:

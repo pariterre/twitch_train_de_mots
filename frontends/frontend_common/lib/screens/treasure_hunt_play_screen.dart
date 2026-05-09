@@ -14,6 +14,24 @@ class TreasureHuntPlayScreen extends StatefulWidget {
 
 class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.listen(_refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.cancel(_refresh);
+
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
     final thm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
@@ -78,23 +96,41 @@ class _Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<_Header> {
+  Duration _previousTimeRemaining = Duration.zero;
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.listen(refresh);
+    gm.onMiniGameStateUpdated.listen(_refresh);
+
+    GameManager.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.cancel(refresh);
+    gm.onMiniGameStateUpdated.cancel(_refresh);
+
+    GameManager.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
 
     super.dispose();
   }
 
-  void refresh() => setState(() {});
+  void _refresh() => setState(() {});
+
+  void _onClockTicked(Duration deltaTime) {
+    final thm =
+        GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
+
+    final timeRemaining = thm.roundTimer.timeRemaining ?? Duration.zero;
+
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,23 +143,20 @@ class _HeaderState extends State<_Header> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      return (thm.roundTimer.timeRemaining?.inSeconds ?? 0) > 0
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                    'Temps restant ${thm.roundTimer.timeRemaining?.inSeconds ?? 0}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-                const SizedBox(width: 20),
-                Text('Essais restants ${thm.triesRemaining}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-              ],
-            )
-          : Text('Retournons à la gare!',
+      final time = (thm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1;
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Temps restant $time',
               style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05));
+                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
+          const SizedBox(width: 20),
+          Text('Essais restants ${thm.triesRemaining}',
+              style: tm.textFrontendSc
+                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
+        ],
+      );
     });
   }
 }

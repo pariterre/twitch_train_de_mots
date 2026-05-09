@@ -315,7 +315,6 @@ class TwitchManager {
           _onGameStateReceived(message);
           break;
 
-        // TODO Remove those?
         case MessagesToFrontend.pardonResponse:
         case MessagesToFrontend.boostResponse:
           _logger.severe('This message should not be received by Pubsub');

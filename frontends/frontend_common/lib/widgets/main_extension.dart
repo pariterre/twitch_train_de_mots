@@ -244,23 +244,24 @@ class _MainScreenState extends State<_MainScreen> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
 
-    return gm.isRoundAMiniGame
-        ? switch (GameManager.instance.currentMiniGameType!) {
-            MiniGames.none => throw Exception('Invalid mini game: none'),
-            MiniGames.treasureHunt => const TreasureHuntPlayScreen(),
-            MiniGames.blueberryWar => const BlueberryWarPlayScreen(),
-            MiniGames.warehouseCleaning => const WarehouseCleaningPlayScreen(),
-            MiniGames.fixTracks => const FixTracksPlayScreen(),
-          }
-        : switch (GameManager.instance.status) {
-            WordsTrainGameStatus.uninitialized ||
-            WordsTrainGameStatus.initializing ||
-            WordsTrainGameStatus.roundPreparing ||
-            WordsTrainGameStatus.roundReady ||
-            WordsTrainGameStatus.roundEnding =>
-              const WaitingScreen(),
-            WordsTrainGameStatus.roundStarted => PlayScreen(
-                isMobile: widget.isMobile, showTextInput: widget.showTextInput),
-          };
+    return switch (GameManager.instance.status) {
+      WordsTrainGameStatus.uninitialized ||
+      WordsTrainGameStatus.initializing ||
+      WordsTrainGameStatus.roundPreparing ||
+      WordsTrainGameStatus.roundReady ||
+      WordsTrainGameStatus.roundEnding =>
+        const WaitingScreen(),
+      WordsTrainGameStatus.roundStarted => gm.isRoundAMiniGame
+          ? switch (GameManager.instance.currentMiniGameType!) {
+              MiniGames.none => throw Exception('Invalid mini game: none'),
+              MiniGames.treasureHunt => const TreasureHuntPlayScreen(),
+              MiniGames.blueberryWar => const BlueberryWarPlayScreen(),
+              MiniGames.warehouseCleaning =>
+                const WarehouseCleaningPlayScreen(),
+              MiniGames.fixTracks => const FixTracksPlayScreen(),
+            }
+          : PlayScreen(
+              isMobile: widget.isMobile, showTextInput: widget.showTextInput),
+    };
   }
 }
