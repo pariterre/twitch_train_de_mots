@@ -1,3 +1,7 @@
+import 'package:logging/logging.dart';
+
+final _logger = Logger('GenericListener');
+
 ///
 /// To specify a specific type of listener, you can instantiate this class
 /// as such:
@@ -37,7 +41,14 @@ class GenericListener<T extends Function> {
   Future<void> notifyListeners(void Function(T) callback) async {
     await _waitForNotifying();
     _isNotifying = true;
-    _listeners.forEach(callback);
+
+    for (final listener in _listeners) {
+      try {
+        callback(listener);
+      } catch (e, stackTrace) {
+        _logger.severe('Error while notifying a listener:', e, stackTrace);
+      }
+    }
     _isNotifying = false;
   }
 

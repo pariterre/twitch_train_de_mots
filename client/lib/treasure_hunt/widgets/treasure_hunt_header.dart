@@ -47,6 +47,8 @@ class _TreasureHuntHeaderState extends State<TreasureHuntHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
     final timeRemaining =
         Managers.instance.miniGames.treasureHunt.timeRemaining ?? Duration.zero;
 
