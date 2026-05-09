@@ -5,6 +5,7 @@ import 'package:common/blueberry_war/models/agent.dart';
 import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/map_extension.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots_ebs/models/letter_problem.dart';
@@ -21,8 +22,8 @@ final _logger = Logger('GameManager');
 class EbsManager extends TwitchEbsManagerAbstract {
   ///
   /// Holds the current state of the game
-  Map<String, dynamic> _gameState = {};
-  Map<String, dynamic> _lastSentGameState = {};
+  Map<String, dynamic> _gameState = SerializableGameState.empty().serialize();
+  late Map<String, dynamic> _lastSentGameState = _gameState;
 
   ///
   /// Create a new GameManager. This method automatically starts a keep alive
@@ -80,7 +81,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
       if (retryOnFail) {
         await _requestForFullGameState();
       } else {
-        _gameState = {};
+        _gameState = SerializableGameState.empty().serialize();
       }
       return;
     }
@@ -92,7 +93,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
       type: MessageTypes.response,
       isSuccess: true,
     ));
-    _sendGameStateToFrontend(newGameState);
+    _sendGameStateToFrontend(newGameState,
+        communicatorMethod: communicator.sendMessage);
   }
 
   Future<void> _requestForFullGameState() async {
@@ -104,20 +106,34 @@ class EbsManager extends TwitchEbsManagerAbstract {
     await _handlePatchGameState(response, retryOnFail: false);
   }
 
-  void _sendGameStateToFrontend(Map<String, dynamic> newGameStateSerialized) {
+  void _sendGameStateToFrontend(Map<String, dynamic> newGameStateSerialized,
+      {bool forceFullState = false,
+      MessageProtocol? originalMessage,
+      required void Function(MessageProtocol) communicatorMethod}) {
     _logger.info('Sending game state to frontend');
 
-    _lastSentGameState =
-        deepDiffAsPatch(_lastSentGameState, newGameStateSerialized);
+    final patch = forceFullState
+        ? newGameStateSerialized
+        : deepDiffAsPatch(_lastSentGameState, newGameStateSerialized);
 
-    communicator.sendMessage(MessageProtocol(
-        to: MessageTo.frontend,
-        from: MessageFrom.ebs,
-        type: MessageTypes.put,
-        data: {
+    final messageToSend = (originalMessage ??
+            MessageProtocol(
+                to: MessageTo.frontend,
+                from: MessageFrom.ebs,
+                type: MessageTypes.put))
+        .copyWith(
+            to: MessageTo.frontend,
+            from: MessageFrom.ebs,
+            type: MessageTypes.put,
+            isSuccess: true,
+            data: {
           'type': MessagesToFrontend.gameStateResponse.name,
-          'game_state': _lastSentGameState
-        }));
+          'game_state': patch,
+          'checksum': newGameStateSerialized.checksum()
+        });
+    communicatorMethod(messageToSend);
+
+    _lastSentGameState = newGameStateSerialized;
   }
 
   ///
@@ -335,7 +351,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.ebs:
           switch (MessagesToEbs.values.byName(message.data!['type'])) {
             case MessagesToEbs.gameStateRequest:
-              _sendGameStateToFrontend(_lastSentGameState);
+              _sendGameStateToFrontend(_gameState,
+                  forceFullState: true,
+                  originalMessage: message,
+                  communicatorMethod: communicator.sendResponse);
               break;
             case MessagesToEbs.newLetterProblemRequest:
             case MessagesToEbs.patchGameState:

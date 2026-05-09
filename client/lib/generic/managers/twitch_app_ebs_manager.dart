@@ -143,7 +143,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   /// Request a new letter problem, it will return a completer that will complete
   /// when the EBS server sends the new letter problem. Note requesting twice will
   /// result in undefined behavior.
-  Future<Map<String, dynamic>> generateLetterProblem({
+  Future<Map<String, dynamic>?> generateLetterProblem({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -173,9 +173,17 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           }
         },
       ),
-    );
+    ).timeout(const Duration(seconds: 30), onTimeout: () {
+      _logger
+          .warning('Requesting a new letter problem to EBS server timed out');
+      return MessageProtocol(
+          from: MessageFrom.ebs,
+          to: MessageTo.app,
+          type: MessageTypes.response,
+          isSuccess: false);
+    });
 
-    return message.data!['letter_problem'];
+    return message.data?['letter_problem'];
   }
 
   Future<void> _sendCooldownToEbs(WordSolution solution) async =>
@@ -207,7 +215,14 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           'type': MessagesToEbs.patchGameState.name,
           'checksum': currentGameState.checksum(),
           'game_state': patch
-        }));
+        })).timeout(const Duration(seconds: 10), onTimeout: () {
+      _logger.warning('Sending game state patch to EBS timed out');
+      return MessageProtocol(
+          from: MessageFrom.ebs,
+          to: MessageTo.app,
+          type: MessageTypes.response,
+          isSuccess: false);
+    });
 
     if (!(response.isSuccess ?? false)) {
       _logger

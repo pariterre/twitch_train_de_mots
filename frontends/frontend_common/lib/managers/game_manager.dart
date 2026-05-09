@@ -4,9 +4,11 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/generic/managers/global_ticker_manager.dart';
+import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
@@ -65,131 +67,100 @@ class GameManager {
       SerializableGameState.deserialize(_gameState.serialize());
 
   void updateGameState(SerializableGameState newGameState) {
+    if (_gameState.gameStatus != newGameState.gameStatus) {
+      _logger.info('Game status changed to ${newGameState.gameStatus}');
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+    }
+
+    if (_gameState.roundCount != newGameState.roundCount ||
+        _gameState.successLevel != newGameState.successLevel) {
+      _logger.info('Round changed to ${newGameState.roundCount}');
+      onRoundUpdated.notifyListeners((callback) => callback());
+    }
+
+    if (!mapEquality(_gameState.players, newGameState.players)) {
+      _logger.info('New players informations');
+      onCooldownsUpdated.notifyListeners((callback) => callback());
+    }
+
+    if (_gameState.letterProblem != newGameState.letterProblem) {
+      _logger.info('Letter problem changed');
+      onLetterProblemChanged.notifyListeners((callback) => callback());
+    }
+
+    if (!listEquality(
+        _gameState.playersWhoCanPardon, newGameState.playersWhoCanPardon)) {
+      _logger.info('Pardonners changed to ${newGameState.playersWhoCanPardon}');
+      onPardonnersChanged.notifyListeners((callback) => callback());
+    }
+
+    if (_gameState.boostRemaining != newGameState.boostRemaining ||
+        !listEquality(_gameState.boosters, newGameState.boosters) ||
+        _gameState.boostStillNeeded != newGameState.boostStillNeeded) {
+      _logger.info('Boost count changed to ${newGameState.boostRemaining}');
+      onBoostAvailabilityChanged.notifyListeners((callback) => callback());
+    }
+
+    if (_gameState.canRequestTheBigHeist !=
+        newGameState.canRequestTheBigHeist) {
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+      _logger.info(
+          'Can request the big heist changed to ${newGameState.canRequestTheBigHeist}');
+    }
+
+    if (_gameState.isAttemptingTheBigHeist !=
+        newGameState.isAttemptingTheBigHeist) {
+      onAttemptingTheBigHeist.notifyListeners((callback) => callback());
+      _logger.info(
+          'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
+    }
+
+    if (_gameState.canRequestFixTracksMiniGame !=
+        newGameState.canRequestFixTracksMiniGame) {
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+      _logger.info(
+          'Can request the end of railway mini game changed to ${newGameState.canRequestFixTracksMiniGame}');
+    }
+
+    if (_gameState.isAttemptingFixTracksMiniGame !=
+        newGameState.isAttemptingFixTracksMiniGame) {
+      onFixingTheTrack.notifyListeners((callback) => callback());
+      _logger.info(
+          'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingFixTracksMiniGame}');
+    }
+
+    if (_gameState.configuration.showExtension !=
+        newGameState.configuration.showExtension) {
+      _gameState.configuration.showExtension =
+          newGameState.configuration.showExtension;
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+    }
+
+    if (_gameState.miniGameState != newGameState.miniGameState) {
+      if (_gameState.miniGameState is SerializableBlueberryWarGameState &&
+          newGameState.miniGameState is SerializableBlueberryWarGameState) {
+        // Keep the listeners of the blueberry agents
+        for (final key
+            in (newGameState.miniGameState as SerializableBlueberryWarGameState)
+                .allAgents
+                .keys) {
+          final newAgent =
+              (newGameState.miniGameState as SerializableBlueberryWarGameState)
+                  .allAgents[key];
+          final oldAgent =
+              (_gameState.miniGameState as SerializableBlueberryWarGameState)
+                  .allAgents[key];
+          if (newAgent == null || oldAgent == null) continue;
+
+          newAgent.onTeleport.copyListenersFrom(oldAgent.onTeleport);
+          newAgent.onDestroyed.copyListenersFrom(oldAgent.onDestroyed);
+        }
+      }
+      _logger.info('Mini game state changed');
+      onMiniGameStateUpdated.notifyListeners((callback) => callback());
+    }
+
     _gameState = newGameState;
-    // if (_gameState.gameStatus != newGameState.gameStatus) {
-    //   _gameState.gameStatus = newGameState.gameStatus;
-    //   if (_gameState.gameStatus == WordsTrainGameStatus.roundStarted ||
-    //       _gameState.roundCount > 0) {
-    //     _hasPlayedAtLeastOneRound = true;
-    //     _gameState.players.clear();
-    //     _gameState.pardonners.clear();
-    //     onPardonnersChanged.notifyListeners((callback) => callback());
-    //     _gameState.boosters.clear();
-    //     onBoostAvailabilityChanged.notifyListeners((callback) => callback());
-    //   }
-    //   onGameStatusUpdated.notifyListeners((callback) => callback());
-    //   _logger.info('Game status changed to ${_gameState.gameStatus}');
-    // }
-
-    // if (_gameState.roundCount != newGameState.roundCount ||
-    //     _gameState.successLevel != newGameState.successLevel) {
-    //   _gameState.roundCount = newGameState.roundCount;
-    //   _gameState.successLevel = newGameState.successLevel;
-    //   onRoundUpdated.notifyListeners((callback) => callback());
-    //   _logger.info('Round changed to ${newGameState.roundCount}');
-    // }
-
-    // if (_gameState.roundTimer != newGameState.roundTimer) {
-    //   _gameState.roundTimer = newGameState.roundTimer;
-    //   _logger.info('Round timer changed to ${newGameState.roundTimer}');
-    // }
-
-    // if (newGameState.players != _gameState.players) {
-    //   _gameState.players = newGameState.players;
-    //   _logger.info('New solution founders');
-    //   onCooldownsUpdated.notifyListeners((callback) => callback());
-    // }
-
-    // if (_gameState.letterProblem != newGameState.letterProblem) {
-    //   _gameState.letterProblem = newGameState.letterProblem;
-    //   _logger.info('Letter problem changed');
-    //   onLetterProblemChanged.notifyListeners((callback) => callback());
-    // }
-
-    // if (!listEquality(_gameState.pardonners, newGameState.pardonners)) {
-    //   _gameState.pardonners = newGameState.pardonners;
-    //   _logger.info('Pardonners changed to ${newGameState.pardonners}');
-    //   onPardonnersChanged.notifyListeners((callback) => callback());
-    // }
-
-    // if (_gameState.boostRemaining != newGameState.boostRemaining) {
-    //   _gameState.boostRemaining = newGameState.boostRemaining;
-    //   _logger.info('Boost count changed to ${newGameState.boostRemaining}');
-    //   onBoostAvailabilityChanged.notifyListeners((callback) => callback());
-    // }
-
-    // if (_gameState.boostStillNeeded != newGameState.boostStillNeeded) {
-    //   _gameState.boostStillNeeded = newGameState.boostStillNeeded;
-    //   _logger.info(
-    //       'Boost still needed changed to ${newGameState.boostStillNeeded}');
-    // }
-
-    // if (!listEquality(_gameState.boosters, newGameState.boosters)) {
-    //   _gameState.boosters = newGameState.boosters;
-    //   _logger.info('Boosters changed to ${newGameState.boosters}');
-    // }
-
-    // if (_gameState.canRequestTheBigHeist !=
-    //     newGameState.canRequestTheBigHeist) {
-    //   _gameState.canRequestTheBigHeist = newGameState.canRequestTheBigHeist;
-    //   onGameStatusUpdated.notifyListeners((callback) => callback());
-    //   _logger.info(
-    //       'Can request the big heist changed to ${newGameState.canRequestTheBigHeist}');
-    // }
-
-    // if (_gameState.isAttemptingTheBigHeist !=
-    //     newGameState.isAttemptingTheBigHeist) {
-    //   _gameState.isAttemptingTheBigHeist = newGameState.isAttemptingTheBigHeist;
-    //   onAttemptingTheBigHeist.notifyListeners((callback) => callback());
-    //   _logger.info(
-    //       'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
-    // }
-
-    // if (_gameState.canRequestFixTracksMiniGame !=
-    //     newGameState.canRequestFixTracksMiniGame) {
-    //   _gameState.canRequestFixTracksMiniGame =
-    //       newGameState.canRequestFixTracksMiniGame;
-    //   onGameStatusUpdated.notifyListeners((callback) => callback());
-    //   _logger.info(
-    //       'Can request the end of railway mini game changed to ${newGameState.canRequestFixTracksMiniGame}');
-    // }
-
-    // if (_gameState.isAttemptingFixTracksMiniGame !=
-    //     newGameState.isAttemptingFixTracksMiniGame) {
-    //   _gameState.isAttemptingFixTracksMiniGame =
-    //       newGameState.isAttemptingFixTracksMiniGame;
-    //   onFixingTheTrack.notifyListeners((callback) => callback());
-    //   _logger.info(
-    //       'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingFixTracksMiniGame}');
-    // }
-
-    // if (_gameState.configuration.showExtension !=
-    //     newGameState.configuration.showExtension) {
-    //   _gameState.configuration.showExtension =
-    //       newGameState.configuration.showExtension;
-    //   onGameStatusUpdated.notifyListeners((callback) => callback());
-    // }
-
-    // if (_gameState.miniGameState != newGameState.miniGameState) {
-    //   if (_gameState.miniGameState is SerializableBlueberryWarGameState &&
-    //       newGameState.miniGameState is SerializableBlueberryWarGameState) {
-    //     // Keep the listeners of the blueberry agents
-    //     for (final agent
-    //         in (newGameState.miniGameState as SerializableBlueberryWarGameState)
-    //             .allAgents) {
-    //       if (agent is! BlueberryAgent) continue;
-    //       final currentAgent =
-    //           (_gameState.miniGameState as SerializableBlueberryWarGameState)
-    //               .allAgents
-    //               .firstWhere((a) => a.id == agent.id);
-    //       agent.onTeleport.copyListenersFrom(currentAgent.onTeleport);
-    //       agent.onDestroyed.copyListenersFrom(currentAgent.onDestroyed);
-    //     }
-    //   }
-    //   _gameState.miniGameState = newGameState.miniGameState;
-    //   _logger.info('Mini game state changed');
-    //   onMiniGameStateUpdated.notifyListeners((callback) => callback());
-    // }
   }
 
   ///
@@ -221,7 +192,9 @@ class GameManager {
   ///
   /// Callback to know when a solution was found
   final onCooldownsUpdated = GenericListener<Function()>();
-  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.players);
+  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.players
+      .map((key, value) => MapEntry(key, value.cooldownTimer.endsAt))
+    ..removeWhere((key, value) => value == null));
 
   ///
   /// Callback to know when the letters were changed

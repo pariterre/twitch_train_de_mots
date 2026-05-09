@@ -7,14 +7,17 @@ import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
+import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
 import 'package:common/generic/models/game_status.dart';
+import 'package:common/generic/models/map_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:twitch_manager/common/communication_protocols.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
 import 'package:vector_math/vector_math.dart';
 
@@ -37,6 +40,8 @@ class TwitchManager {
 
   final bool useLocalEbs;
   final bool useTwitchAuthenticatorMock;
+
+  Map<String, dynamic> _previousGameState = {};
 
   ///
   /// Initialize the TwitchManager
@@ -289,7 +294,7 @@ class TwitchManager {
 
     _onFinishedInitializing();
 
-    _frontendManager!.onMessageReceived.listen(_onPubSubMessageReceived);
+    _frontendManager!.onMessageReceived.listen(_onMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
       GameManager.instance.startGame();
       _requestGameStatus();
@@ -303,17 +308,14 @@ class TwitchManager {
     _logger.info('TwitchFrontendManager is ready');
   }
 
-  void _onPubSubMessageReceived(tm.MessageProtocol message) {
+  void _onMessageReceived(tm.MessageProtocol message) {
     try {
       switch (MessagesToFrontend.values.byName(message.data!['type'])) {
         case MessagesToFrontend.gameStateResponse:
-          _logger.info('Update from game state received');
-
-          GameManager.instance.updateGameState(
-              SerializableGameState.deserialize(message.data!['game_state']));
-
+          _onGameStateReceived(message);
           break;
 
+        // TODO Remove those?
         case MessagesToFrontend.pardonResponse:
         case MessagesToFrontend.boostResponse:
           _logger.severe('This message should not be received by Pubsub');
@@ -375,9 +377,31 @@ class TwitchManager {
       return;
     }
 
-    _logger.info('Game status received');
-    GameManager.instance.updateGameState(
-        SerializableGameState.deserialize(response.data!['game_state']));
+    _onGameStateReceived(response, retryOnFail: false);
+  }
+
+  Future<void> _onGameStateReceived(MessageProtocol message,
+      {bool retryOnFail = true}) async {
+    _logger.info('Game state received');
+    final patch = message.data?['game_state'] == null
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(message.data!['game_state']);
+
+    final newGameState =
+        applyPatch<Map<String, dynamic>>(_previousGameState, patch);
+
+    if (newGameState.checksum() != message.data!['checksum']) {
+      if (retryOnFail) {
+        _requestGameStatus();
+      } else {
+        _previousGameState = {};
+      }
+      return;
+    }
+
+    GameManager.instance
+        .updateGameState(SerializableGameState.deserialize(newGameState));
+    _previousGameState = newGameState;
   }
 
   ///
@@ -413,7 +437,7 @@ class TwitchManager {
       throw Exception('TwitchManager is not initialized');
     }
 
-    return await _frontendManager!.sendMessageToApp(
+    return await _frontendManager!.sendMessageToEbs(
         tm.MessageProtocol(
             to: tm.MessageTo.ebs,
             from: tm.MessageFrom.frontend,
@@ -647,7 +671,7 @@ class TwitchManagerMock extends TwitchManager {
         });
         return true;
       case Sku.bigHeist:
-        _onPubSubMessageReceived(tm.MessageProtocol(
+        _onMessageReceived(tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,
             type: tm.MessageTypes.response,

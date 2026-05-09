@@ -166,7 +166,7 @@ class _TimeDisplayerState extends State<_TimeDisplayer> {
 
     return Text(
         gm.timeRemaining.inSeconds > 0
-            ? 'Temps restant ${gm.timeRemaining.inSeconds}'
+            ? 'Temps restant ${gm.timeRemaining.inSeconds + 1}'
             : 'Arrivée en gare',
         style: tm.textFrontendSc);
   }
@@ -499,7 +499,7 @@ class _CooldownClockState extends State<_CooldownClock> {
 
   void _advanceCooldownIfNeeded(Duration deltaTime) {
     // Only refresh while the clock is ticking
-    if (_isOnCooldown) return;
+    if (_isOnCooldown || !mounted) return;
     setState(() {});
   }
 

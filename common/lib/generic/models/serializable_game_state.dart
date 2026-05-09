@@ -177,7 +177,7 @@ class SerializableGameState {
   SerializableGameState.empty()
       : hasPlayedAtLeastOnce = false,
         roundCount = 0,
-        gameStatus = WordsTrainGameStatus.initializing,
+        gameStatus = WordsTrainGameStatus.uninitialized,
         isRoundAMiniGame = false,
         successLevel = SuccessLevel.failed,
         roundSuccesses = [],

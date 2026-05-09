@@ -39,4 +39,10 @@ class SerializableMiniGameStateNone implements SerializableMiniGameState {
 
   @override
   MiniGames get type => MiniGames.none;
+
+  @override
+  int get hashCode => type.hashCode;
+
+  @override
+  bool operator ==(Object other) => true;
 }

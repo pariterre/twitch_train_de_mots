@@ -39,4 +39,23 @@ class SerializablePlayer {
           SerializableControllableTimer.deserialize(data['cooldown_timer']),
     );
   }
+
+  @override
+  int get hashCode {
+    return Object.hash(name, score, starsCollected, roundStealCount,
+        gameStealCount, cooldownTimer);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SerializablePlayer &&
+        other.name == name &&
+        other.score == score &&
+        other.starsCollected == starsCollected &&
+        other.roundStealCount == roundStealCount &&
+        other.gameStealCount == gameStealCount &&
+        other.cooldownTimer == cooldownTimer;
+  }
 }

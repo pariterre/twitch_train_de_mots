@@ -78,4 +78,15 @@ class SerializableControllableTimer {
       return ControllableTimerStatus.initialized;
     }
   }
+
+  @override
+  int get hashCode => Object.hash(isInitialized, startedAt, endsAt, pausedAt);
+
+  @override
+  bool operator ==(Object other) =>
+      other is SerializableControllableTimer &&
+      other.isInitialized == isInitialized &&
+      other.startedAt == startedAt &&
+      other.endsAt == endsAt &&
+      other.pausedAt == pausedAt;
 }

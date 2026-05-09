@@ -145,7 +145,7 @@ class LetterProblem {
 
   ///
   /// Calls the WordsTrain EBS server using the generateFromRandomWord method.
-  static Future<LetterProblem> fetchFromEbs({
+  static Future<LetterProblem?> fetchFromEbs({
     required int nbLetterInSmallestWord,
     required int minLetters,
     required int maxLetters,
@@ -170,7 +170,7 @@ class LetterProblem {
           'The maximum number of letters should be greater than the minimum number of letters');
     }
 
-    Map<String, dynamic> data =
+    Map<String, dynamic>? data =
         await Managers.instance.ebs.generateLetterProblem(
       nbLetterInSmallestWord: nbLetterInSmallestWord,
       minLetters: minLetters,
@@ -179,6 +179,10 @@ class LetterProblem {
       maximumNbOfWords: maximumNbOfWords,
       addUselessLetter: addUselessLetter,
     );
+    if (data == null) {
+      _logger.warning('Failed to generate problem from EBS: no data received');
+      return null;
+    }
 
     _logger.info('Problem generated');
     return LetterProblem._(
