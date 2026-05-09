@@ -76,23 +76,41 @@ class _Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<_Header> {
+  Duration _previousTimeRemaining = Duration.zero;
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.listen(refresh);
+    gm.onMiniGameStateUpdated.listen(_refresh);
+    gm.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.cancel(refresh);
+    gm.onMiniGameStateUpdated.cancel(_refresh);
+    gm.tickerManager.onClockTicked.cancel(_onClockTicked);
 
     super.dispose();
   }
 
-  void refresh() => setState(() {});
+  void _refresh() => setState(() {});
+
+  void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
+    final thm =
+        GameManager.instance.miniGameState as SerializableFixTracksGameState;
+
+    final timeRemaining = thm.roundTimer.timeRemaining ?? Duration.zero;
+
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,13 +120,12 @@ class _HeaderState extends State<_Header> {
     final nextSegment = thm.grid.nextEmptySegment;
 
     return LayoutBuilder(builder: (context, constraints) {
+      final time = (thm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1;
+
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-              (thm.roundTimer.timeRemaining?.inSeconds ?? 0) > 0
-                  ? 'Temps restant ${thm.roundTimer.timeRemaining?.inSeconds ?? 0}'
-                  : 'Retournons à la gare!',
+          Text('Temps restant $time',
               style: tm.textFrontendSc
                   .copyWith(fontSize: constraints.maxWidth * 0.05)),
           Text(

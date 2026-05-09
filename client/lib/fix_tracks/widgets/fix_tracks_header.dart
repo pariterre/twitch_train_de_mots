@@ -44,6 +44,8 @@ class _FixTracksHeaderState extends State<FixTracksHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
     final timeRemaining =
         Managers.instance.miniGames.fixTracks.timeRemaining ?? Duration.zero;
 
