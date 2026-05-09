@@ -37,6 +37,8 @@ class _BlueberryWarHeaderState extends State<BlueberryWarHeader> {
   }
 
   void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
     final timeRemaining =
         Managers.instance.miniGames.blueberryWar.timeRemaining ?? Duration.zero;
 

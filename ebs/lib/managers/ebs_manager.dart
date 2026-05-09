@@ -236,7 +236,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
   }
 
   Future<bool> _frontendRequestedSlingShoot(String userId,
-      {required int id, required Vector2 velocity}) async {
+      {required String id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshoot at $id');
 
     final playerName = registeredFrontendUsers.from(userId: userId)?.login;
@@ -404,7 +404,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToApp.slingShootBlueberry:
               final isSuccess = await _frontendRequestedSlingShoot(
                 userId,
-                id: message.data!['id'] as int,
+                id: message.data!['id'] as String,
                 velocity:
                     Vector2Extension.deserialize(message.data!['velocity']),
               );

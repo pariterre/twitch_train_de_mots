@@ -27,6 +27,7 @@ class SerializableControllableTimer {
 
   Map<String, dynamic> serialize() {
     return {
+      'is_initialized': isInitialized,
       'started_at': startedAt?.millisecondsSinceEpoch ?? -1,
       'ends_at': endsAt?.millisecondsSinceEpoch ?? -1,
       'is_paused': pausedAt != null,
@@ -49,7 +50,7 @@ class SerializableControllableTimer {
 
   static SerializableControllableTimer deserialize(Map<String, dynamic> data) =>
       SerializableControllableTimer(
-        isInitialized: false,
+        isInitialized: data['is_initialized'] as bool,
         startedAt: data['started_at'] as int >= 0
             ? DateTime.fromMillisecondsSinceEpoch(data['started_at'] as int)
             : null,

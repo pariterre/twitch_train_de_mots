@@ -121,6 +121,8 @@ class _HeaderState extends State<_Header> {
   void _refresh() => setState(() {});
 
   void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
     final thm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
 

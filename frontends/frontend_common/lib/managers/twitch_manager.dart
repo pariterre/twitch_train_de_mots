@@ -222,7 +222,7 @@ class TwitchManager {
       required Vector2 requestedVelocity}) async {
     final response =
         await _sendMessageToApp(MessagesToApp.slingShootBlueberry, data: {
-      'id': blueberry.id,
+      'id': blueberry.id.toString(),
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
