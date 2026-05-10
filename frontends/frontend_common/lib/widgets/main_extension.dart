@@ -16,6 +16,7 @@ import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
 import 'package:frontend_common/screens/warehouse_cleaning_play_screen.dart';
 import 'package:frontend_common/screens/waiting_screen.dart';
 import 'package:frontend_common/widgets/opaque_on_hover.dart';
+import 'package:frontend_common/widgets/pause_overlay.dart';
 import 'package:frontend_common/widgets/resized_box.dart';
 
 class MainExtension extends StatefulWidget {
@@ -244,7 +245,7 @@ class _MainScreenState extends State<_MainScreen> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
 
-    return switch (GameManager.instance.status) {
+    final playScreen = switch (GameManager.instance.status) {
       WordsTrainGameStatus.uninitialized ||
       WordsTrainGameStatus.initializing ||
       WordsTrainGameStatus.roundPreparing ||
@@ -263,5 +264,8 @@ class _MainScreenState extends State<_MainScreen> {
           : PlayScreen(
               isMobile: widget.isMobile, showTextInput: widget.showTextInput),
     };
+
+    return Stack(
+        children: [playScreen, gm.isPaused ? PauseOverlay() : Container()]);
   }
 }

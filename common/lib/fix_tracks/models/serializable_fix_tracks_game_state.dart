@@ -12,6 +12,7 @@ class SerializableFixTracksGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.fixTracks;
 
+  @override
   final SerializableControllableTimer roundTimer;
   final FixTracksGrid grid;
 

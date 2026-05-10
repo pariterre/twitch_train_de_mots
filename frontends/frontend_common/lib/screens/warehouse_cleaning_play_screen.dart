@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
@@ -17,7 +19,7 @@ class _WarehouseCleaningPlayScreenState
     extends State<WarehouseCleaningPlayScreen> {
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
 
     return Center(
@@ -32,9 +34,9 @@ class _WarehouseCleaningPlayScreenState
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: TreasureHuntGameGrid(
-                  rowCount: thm.grid.rowCount,
-                  columnCount: thm.grid.columnCount,
-                  getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col)!,
+                  rowCount: mgm.grid.rowCount,
+                  columnCount: mgm.grid.columnCount,
+                  getTileAt: (row, col) => mgm.grid.tileAt(row: row, col: col)!,
                   onTileTapped: _onTileTapped,
                 ),
               ),
@@ -46,25 +48,25 @@ class _WarehouseCleaningPlayScreenState
   }
 
   void _onTileTapped(int row, int col) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
-    if (thm.triesRemaining <= 0 ||
-        (thm.roundTimer.timeRemaining?.inSeconds ?? 0) < 0) {
+    if (mgm.triesRemaining <= 0 ||
+        (mgm.roundTimer.timeRemaining?.inSeconds ?? 0) < 0) {
       return;
     }
 
-    final tile = thm.grid.tileAt(row: row, col: col);
+    final tile = mgm.grid.tileAt(row: row, col: col);
     if (tile == null) return;
 
     // Preopen the tile so it feels more responsive
-    thm.grid.revealAt(index: tile.index);
+    mgm.grid.revealAt(index: tile.index);
     final triesRemaining =
-        tile.hasReward ? thm.triesRemaining + 1 : thm.triesRemaining - 1;
+        tile.hasReward ? mgm.triesRemaining + 1 : mgm.triesRemaining - 1;
     final bonusTime =
         tile.isLetter ? const Duration(seconds: 5) : Duration.zero;
-    GameManager.instance.updateMiniGameState(thm.copyWith(
-        roundTimer: thm.roundTimer
-            .copyWith(endsAt: thm.roundTimer.endsAt?.add(bonusTime)),
+    GameManager.instance.updateMiniGameState(mgm.copyWith(
+        roundTimer: mgm.roundTimer
+            .copyWith(endsAt: mgm.roundTimer.endsAt?.add(bonusTime)),
         triesRemaining: triesRemaining));
 
     TwitchManager.instance.revealTileAt(index: tile.index);
@@ -80,52 +82,65 @@ class _Header extends StatefulWidget {
 }
 
 class _HeaderState extends State<_Header> {
+  Duration _previousTimeRemaining = Duration.zero;
+
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.listen(refresh);
+    gm.onMiniGameStateUpdated.listen(_refresh);
+    GameManager.instance.tickerManager.onClockTicked.listen(_onClockTicked);
   }
 
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.cancel(refresh);
+    gm.onMiniGameStateUpdated.cancel(_refresh);
+    GameManager.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
 
     super.dispose();
   }
 
-  void refresh() => setState(() {});
+  void _refresh() => setState(() {});
+
+  void _onClockTicked(Duration deltaTime) {
+    if (!mounted) return;
+
+    final mgm = GameManager.instance.miniGameState;
+    final timeRemaining = mgm.roundTimer.timeRemaining ?? Duration.zero;
+
+    if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
+      _previousTimeRemaining = timeRemaining;
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
     final tm = ThemeManager.instance;
 
-    if (thm.triesRemaining <= 0) {
+    if (mgm.triesRemaining <= 0) {
       return Text('Vous avez épuisé vos essais!', style: tm.textFrontendSc);
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      return (thm.roundTimer.timeRemaining?.inSeconds ?? 0) > 0
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                    'Temps restant ${thm.roundTimer.timeRemaining?.inSeconds ?? 0}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-                const SizedBox(width: 20),
-                Text('Essais restants ${thm.triesRemaining}',
-                    style: tm.textFrontendSc
-                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
-              ],
-            )
-          : Text('Retournons à la gare!',
+      final time = max((mgm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1, 0);
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Temps restant $time',
               style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05));
+                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
+          const SizedBox(width: 20),
+          Text('Essais restants ${mgm.triesRemaining}',
+              style: tm.textFrontendSc
+                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
+        ],
+      );
     });
   }
 }

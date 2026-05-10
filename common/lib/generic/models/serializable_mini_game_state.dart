@@ -1,11 +1,14 @@
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
+import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
 
 abstract class SerializableMiniGameState {
   MiniGames get type;
+
+  SerializableControllableTimer get roundTimer;
 
   Map<String, dynamic> serialize();
 
@@ -28,6 +31,10 @@ abstract class SerializableMiniGameState {
 }
 
 class SerializableMiniGameStateNone implements SerializableMiniGameState {
+  @override
+  final SerializableControllableTimer roundTimer =
+      SerializableControllableTimer.empty();
+
   @override
   SerializableMiniGameState copyWith() => this;
 

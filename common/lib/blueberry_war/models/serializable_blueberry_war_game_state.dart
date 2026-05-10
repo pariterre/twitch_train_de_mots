@@ -16,6 +16,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.blueberryWar;
 
+  @override
   final SerializableControllableTimer roundTimer;
   final Map<String, Agent> allAgents;
   List<BlueberryAgent> get blueberries =>

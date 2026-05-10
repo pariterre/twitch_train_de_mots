@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
@@ -33,7 +35,7 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
 
     return Center(
@@ -48,9 +50,9 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: TreasureHuntGameGrid(
-                  rowCount: thm.grid.rowCount,
-                  columnCount: thm.grid.columnCount,
-                  getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col)!,
+                  rowCount: mgm.grid.rowCount,
+                  columnCount: mgm.grid.columnCount,
+                  getTileAt: (row, col) => mgm.grid.tileAt(row: row, col: col)!,
                   onTileTapped: _onTileTapped,
                 ),
               ),
@@ -62,25 +64,25 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
   }
 
   void _onTileTapped(int row, int col) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
-    if (thm.triesRemaining <= 0 ||
-        (thm.roundTimer.timeRemaining ?? Duration.zero) < Duration.zero) {
+    if (mgm.triesRemaining <= 0 ||
+        (mgm.roundTimer.timeRemaining ?? Duration.zero) < Duration.zero) {
       return;
     }
 
-    final tile = thm.grid.tileAt(row: row, col: col);
+    final tile = mgm.grid.tileAt(row: row, col: col);
     if (tile == null) return;
 
     // Preopen the tile so it feels more responsive
-    thm.grid.revealAt(index: tile.index);
+    mgm.grid.revealAt(index: tile.index);
     final triesRemaining =
-        tile.hasReward ? thm.triesRemaining + 1 : thm.triesRemaining - 1;
+        tile.hasReward ? mgm.triesRemaining + 1 : mgm.triesRemaining - 1;
     final bonusTime =
         tile.isLetter ? const Duration(seconds: 5) : Duration.zero;
-    GameManager.instance.updateMiniGameState(thm.copyWith(
-        roundTimer: thm.roundTimer
-            .copyWith(endsAt: thm.roundTimer.endsAt?.add(bonusTime)),
+    GameManager.instance.updateMiniGameState(mgm.copyWith(
+        roundTimer: mgm.roundTimer
+            .copyWith(endsAt: mgm.roundTimer.endsAt?.add(bonusTime)),
         triesRemaining: triesRemaining));
 
     TwitchManager.instance.revealTileAt(index: tile.index);
@@ -123,10 +125,8 @@ class _HeaderState extends State<_Header> {
   void _onClockTicked(Duration deltaTime) {
     if (!mounted) return;
 
-    final thm =
-        GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
-
-    final timeRemaining = thm.roundTimer.timeRemaining ?? Duration.zero;
+    final mgm = GameManager.instance.miniGameState;
+    final timeRemaining = mgm.roundTimer.timeRemaining ?? Duration.zero;
 
     if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
       _previousTimeRemaining = timeRemaining;
@@ -136,16 +136,16 @@ class _HeaderState extends State<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
     final tm = ThemeManager.instance;
 
-    if (thm.triesRemaining <= 0) {
+    if (mgm.triesRemaining <= 0) {
       return Text('Vous avez épuisé vos essais!', style: tm.textFrontendSc);
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      final time = (thm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1;
+      final time = max((mgm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1, 0);
 
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -154,7 +154,7 @@ class _HeaderState extends State<_Header> {
               style: tm.textFrontendSc
                   .copyWith(fontSize: constraints.maxWidth * 0.05)),
           const SizedBox(width: 20),
-          Text('Essais restants ${thm.triesRemaining}',
+          Text('Essais restants ${mgm.triesRemaining}',
               style: tm.textFrontendSc
                   .copyWith(fontSize: constraints.maxWidth * 0.05)),
         ],

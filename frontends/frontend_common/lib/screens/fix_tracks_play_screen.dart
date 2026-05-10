@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/fix_tracks/widgets/fix_tracks_game_grid.dart';
 import 'package:common/generic/managers/theme_manager.dart';
@@ -55,14 +57,14 @@ class _TrackGridState extends State<_TrackGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableFixTracksGameState;
 
     return Center(
       child: FixTracksGameGrid(
-        rowCount: thm.grid.rowCount,
-        columnCount: thm.grid.columnCount,
-        getTileAt: (row, col) => thm.grid.tileAt(row: row, col: col),
+        rowCount: mgm.grid.rowCount,
+        columnCount: mgm.grid.columnCount,
+        getTileAt: (row, col) => mgm.grid.tileAt(row: row, col: col),
       ),
     );
   }
@@ -101,10 +103,8 @@ class _HeaderState extends State<_Header> {
   void _onClockTicked(Duration deltaTime) {
     if (!mounted) return;
 
-    final thm =
-        GameManager.instance.miniGameState as SerializableFixTracksGameState;
-
-    final timeRemaining = thm.roundTimer.timeRemaining ?? Duration.zero;
+    final mgm = GameManager.instance.miniGameState;
+    final timeRemaining = mgm.roundTimer.timeRemaining ?? Duration.zero;
 
     if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
       _previousTimeRemaining = timeRemaining;
@@ -114,13 +114,13 @@ class _HeaderState extends State<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableFixTracksGameState;
     final tm = ThemeManager.instance;
-    final nextSegment = thm.grid.nextEmptySegment;
+    final nextSegment = mgm.grid.nextEmptySegment;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final time = (thm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1;
+      final time = max((mgm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1, 0);
 
       return Column(
         mainAxisSize: MainAxisSize.min,

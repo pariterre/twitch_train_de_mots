@@ -13,6 +13,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
   @override
   MiniGames get type => MiniGames.treasureHunt;
 
+  @override
   final SerializableControllableTimer roundTimer;
   final TreasureHuntGrid grid;
   final int triesRemaining;

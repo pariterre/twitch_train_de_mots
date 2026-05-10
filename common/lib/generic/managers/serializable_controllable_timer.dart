@@ -64,6 +64,7 @@ class SerializableControllableTimer {
       endsAt == null ? null : endsAt!.difference(DateTime.now()) + pauseTime;
   Duration get pauseTime =>
       pausedAt != null ? DateTime.now().difference(pausedAt!) : Duration.zero;
+  bool get isPaused => pausedAt != null;
 
   ControllableTimerStatus get status {
     final isStarted = endsAt != null;

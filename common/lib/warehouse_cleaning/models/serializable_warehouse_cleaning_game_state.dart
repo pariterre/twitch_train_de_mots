@@ -16,6 +16,7 @@ class SerializableWarehouseCleaningGameState
   @override
   MiniGames get type => MiniGames.warehouseCleaning;
 
+  @override
   final SerializableControllableTimer roundTimer;
   final WarehouseCleaningGrid grid;
   final int triesRemaining;

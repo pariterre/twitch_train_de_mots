@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/widgets/clock.dart';
 import 'package:common/generic/widgets/letter_displayer_common.dart';
@@ -164,11 +166,9 @@ class _TimeDisplayerState extends State<_TimeDisplayer> {
     final gm = GameManager.instance;
     final tm = ThemeManager.instance;
 
-    return Text(
-        gm.timeRemaining.inSeconds > 0
-            ? 'Temps restant ${gm.timeRemaining.inSeconds + 1}'
-            : 'Arrivée en gare',
-        style: tm.textFrontendSc);
+    final time = max(gm.timeRemaining.inSeconds + 1, 0);
+
+    return Text('Temps restant $time', style: tm.textFrontendSc);
   }
 }
 

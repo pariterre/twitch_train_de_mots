@@ -3,9 +3,10 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
+import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
+import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
-import 'package:common/generic/managers/dictionary_manager.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/misc/misc.dart';
 import 'package:common/generic/models/ebs_helpers.dart';
@@ -14,6 +15,8 @@ import 'package:common/generic/models/map_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/success_level.dart';
+import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
@@ -612,30 +615,30 @@ class TwitchManagerMock extends TwitchManager {
     //   GameManager.instance.updateGameState(newGameState);
     // });
 
-    // Uncomment the next line to simulate the new grid in track fix
-    Future.delayed(const Duration(seconds: 3)).then((_) {
-      final oldGameState = GameManager.instance.gameStateCopy;
-      final oldMiniGameState =
-          oldGameState.miniGameState as SerializableFixTracksGameState?;
+    // // Uncomment the next line to simulate the new grid in track fix
+    // Future.delayed(const Duration(seconds: 3)).then((_) {
+    //   final oldGameState = GameManager.instance.gameStateCopy;
+    //   final oldMiniGameState =
+    //       oldGameState.miniGameState as SerializableFixTracksGameState?;
 
-      final segment = oldMiniGameState?.grid.segments[0];
-      final wordLength = segment?.length ?? 0;
-      final firstLetter = oldMiniGameState?.grid
-          .tileOfSegmentAt(segment: segment!, index: 0)
-          ?.letter;
-      segment?.word = DictionaryManager.wordsWithAtLeast(4).firstWhere(
-          (word) => word.length == wordLength && word[0] == firstLetter);
-      for (int i = 0; i < wordLength; i++) {
-        oldMiniGameState!.grid
-            .tileOfSegmentAt(segment: segment!, index: i)
-            ?.letter = segment.word![i];
-      }
+    //   final segment = oldMiniGameState?.grid.segments[0];
+    //   final wordLength = segment?.length ?? 0;
+    //   final firstLetter = oldMiniGameState?.grid
+    //       .tileOfSegmentAt(segment: segment!, index: 0)
+    //       ?.letter;
+    //   segment?.word = DictionaryManager.wordsWithAtLeast(4).firstWhere(
+    //       (word) => word.length == wordLength && word[0] == firstLetter);
+    //   for (int i = 0; i < wordLength; i++) {
+    //     oldMiniGameState!.grid
+    //         .tileOfSegmentAt(segment: segment!, index: i)
+    //         ?.letter = segment.word![i];
+    //   }
 
-      final newGameState = oldGameState.copyWith(
-          miniGameState:
-              oldMiniGameState?.copyWith(grid: oldMiniGameState.grid));
-      GameManager.instance.updateGameState(newGameState);
-    });
+    //   final newGameState = oldGameState.copyWith(
+    //       miniGameState:
+    //           oldMiniGameState?.copyWith(grid: oldMiniGameState.grid));
+    //   GameManager.instance.updateGameState(newGameState);
+    // });
 
     // Uncomment the next line to simulate that the App refused the pardon
     _acceptPardon = false;
@@ -794,24 +797,20 @@ class TwitchManagerMock extends TwitchManager {
   }) async {
     switch (request) {
       case MessagesToEbs.gameStateRequest:
-        return tm.MessageProtocol(
-            to: tm.MessageTo.frontend,
-            from: tm.MessageFrom.app,
-            type: tm.MessageTypes.response,
-            isSuccess: true,
-            data: jsonDecode(jsonEncode({
-              'game_state': SerializableGameState(
+        {
+          final gameState = SerializableGameState.empty()
+              .copyWith(
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
-                gameStatus: WordsTrainGameStatus.roundPreparing,
-                isRoundAMiniGame: true,
+                gameStatus: WordsTrainGameStatus.roundStarted,
+                isRoundAMiniGame: false,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
                     startedAt: DateTime.now(),
                     endsAt: DateTime.now().add(const Duration(seconds: 83)),
-                    pausedAt: null),
+                    pausedAt: DateTime.now()),
                 players: {},
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
@@ -839,27 +838,96 @@ class TwitchManagerMock extends TwitchManager {
                 canRequestFixTracksMiniGame: true,
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: SerializableFixTracksGameState(
-                    roundTimer: SerializableControllableTimer(
-                        isInitialized: true,
-                        startedAt: DateTime.now(),
-                        endsAt: DateTime.now().add(const Duration(seconds: 30)),
-                        pausedAt: null),
-                    grid: FixTracksGrid.random(
-                      rowCount: 20,
-                      columnCount: 10,
-                      minimumSegmentLength: 4,
-                      maximumSegmentLength: 8,
-                      segmentCount: 9,
-                      segmentsWithLetterCount: 5,
-                    )),
-              ).serialize(),
-            })));
+                miniGameState: blueberryWarDummyMiniGame(isPaused: false),
+              )
+              .serialize();
+
+          return tm.MessageProtocol(
+              to: tm.MessageTo.frontend,
+              from: tm.MessageFrom.app,
+              type: tm.MessageTypes.response,
+              isSuccess: true,
+              data: jsonDecode(jsonEncode({
+                'game_state': gameState,
+                'checksum': gameState.checksum(),
+              })));
+        }
       case MessagesToEbs.newLetterProblemRequest:
       case MessagesToEbs.patchGameState:
         throw 'Request should not come from frontend';
     }
   }
+
+  SerializableMiniGameState treasureHuntDummyMiniGame(
+          {required bool isPaused}) =>
+      SerializableTreasureHuntGameState(
+          roundTimer: SerializableControllableTimer(
+              isInitialized: true,
+              startedAt: DateTime.now(),
+              endsAt: DateTime.now().add(const Duration(seconds: 30)),
+              pausedAt: isPaused ? DateTime.now() : null),
+          triesRemaining: 10,
+          grid: TreasureHuntGrid.random(
+              rowCount: 20,
+              columnCount: 10,
+              rewardCount: 40,
+              problem: SerializableLetterProblem(
+                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+                uselessLetterStatuses: List.generate(
+                    10,
+                    (i) =>
+                        i == 5 ? LetterStatus.revealed : LetterStatus.normal),
+                hiddenLetterStatuses:
+                    List.generate(10, (_) => LetterStatus.hidden),
+              )));
+  SerializableMiniGameState blueberryWarDummyMiniGame(
+          {required bool isPaused}) =>
+      SerializableBlueberryWarGameState(
+          roundTimer: SerializableControllableTimer(
+              isInitialized: true,
+              startedAt: DateTime.now(),
+              endsAt: DateTime.now().add(const Duration(seconds: 30)),
+              pausedAt: isPaused ? DateTime.now() : null),
+          allAgents: {
+            for (var id in List.generate(10, (id) => id + 1000))
+              id.toString(): BlueberryAgent(
+                id: id,
+                position: BlueberryAgent.generateRandomStartingPosition(
+                  blueberryFieldSize: BlueberryWarConfig.blueberryFieldSize,
+                  blueberryRadius: BlueberryWarConfig.blueberryRadius,
+                ),
+                velocity: Vector2.zero(),
+                isInField: false,
+                maxVelocity: BlueberryWarConfig.blueberryMaxVelocity,
+                radius: BlueberryWarConfig.blueberryRadius,
+                mass: 3.0,
+                coefficientOfFriction: 0.8,
+              )
+          },
+          problem: SerializableLetterProblem(
+            letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+            scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+            uselessLetterStatuses: List.generate(10,
+                (i) => i == 5 ? LetterStatus.revealed : LetterStatus.normal),
+            hiddenLetterStatuses: List.generate(10, (_) => LetterStatus.hidden),
+          ));
+
+  SerializableMiniGameState fixTrackDummyMiniGame({required bool isPaused}) =>
+      SerializableFixTracksGameState(
+          roundTimer: SerializableControllableTimer(
+              isInitialized: true,
+              startedAt: DateTime.now(),
+              endsAt: DateTime.now().add(const Duration(seconds: 30)),
+              pausedAt: isPaused ? DateTime.now() : null),
+          grid: FixTracksGrid.random(
+            rowCount: 20,
+            columnCount: 10,
+            minimumSegmentLength: 4,
+            maximumSegmentLength: 8,
+            segmentCount: 9,
+            segmentsWithLetterCount: 5,
+          ));
 }
 
 ///

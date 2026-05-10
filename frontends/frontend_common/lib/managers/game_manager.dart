@@ -49,8 +49,10 @@ class GameManager {
   SuccessLevel get successLevel => _gameState.successLevel;
 
   Duration get timeRemaining =>
-      _gameState.roundTimer.endsAt?.difference(DateTime.now()) ??
-      Duration(seconds: -1);
+      _gameState.roundTimer.timeRemaining ?? Duration.zero;
+  bool get isPaused => isRoundAMiniGame
+      ? miniGameState.roundTimer.isPaused
+      : _gameState.roundTimer.isPaused;
 
   bool get hasPlayedAtLeastOneRound => _gameState.hasPlayedAtLeastOnce;
   bool get shouldShowExtension => _gameState.configuration.showExtension;
@@ -138,17 +140,15 @@ class GameManager {
     if (_gameState.miniGameState != newGameState.miniGameState) {
       if (_gameState.miniGameState is SerializableBlueberryWarGameState &&
           newGameState.miniGameState is SerializableBlueberryWarGameState) {
+        final newMgm =
+            newGameState.miniGameState as SerializableBlueberryWarGameState;
+        final oldMgm =
+            _gameState.miniGameState as SerializableBlueberryWarGameState;
+
         // Keep the listeners of the blueberry agents
-        for (final key
-            in (newGameState.miniGameState as SerializableBlueberryWarGameState)
-                .allAgents
-                .keys) {
-          final newAgent =
-              (newGameState.miniGameState as SerializableBlueberryWarGameState)
-                  .allAgents[key];
-          final oldAgent =
-              (_gameState.miniGameState as SerializableBlueberryWarGameState)
-                  .allAgents[key];
+        for (final key in newMgm.allAgents.keys) {
+          final newAgent = newMgm.allAgents[key];
+          final oldAgent = oldMgm.allAgents[key];
           if (newAgent == null || oldAgent == null) continue;
 
           newAgent.onTeleport.copyListenersFrom(oldAgent.onTeleport);
@@ -275,13 +275,13 @@ class GameManager {
 
       case MiniGames.blueberryWar:
         {
-          final bwm =
+          final mgm =
               _gameState.miniGameState as SerializableBlueberryWarGameState;
 
           BlueberryWarGameManagerHelpers.updateAllAgents(
-              allAgents: bwm.allAgents, dt: deltaTime, problem: bwm.problem);
+              allAgents: mgm.allAgents, dt: deltaTime, problem: mgm.problem);
           // Check for teleportations
-          for (final agent in bwm.allAgents.values) {
+          for (final agent in mgm.allAgents.values) {
             if (agent is! BlueberryAgent) continue;
             // If we detect a velocity of zero and when the blueberry is in starting block
             if (agent.position.x > BlueberryWarConfig.blueberryFieldSize.x &&

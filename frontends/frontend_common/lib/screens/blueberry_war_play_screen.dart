@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
 import 'package:common/blueberry_war/widgets/blueberry_war_playing_field.dart';
@@ -38,7 +40,7 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
   @override
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
-    final thm = gm.miniGameState as SerializableBlueberryWarGameState;
+    final mgm = gm.miniGameState as SerializableBlueberryWarGameState;
     final twitchManager = TwitchManager.instance;
     const headerHeight = 70.0;
 
@@ -84,9 +86,9 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   child: BlueberryWarPlayingField(
-                    blueberries: thm.blueberries,
-                    letters: thm.letters,
-                    isRoundInProgress: thm.roundTimer.status ==
+                    blueberries: mgm.blueberries,
+                    letters: mgm.letters,
+                    isRoundInProgress: mgm.roundTimer.status ==
                         ControllableTimerStatus.inProgress,
                     clockTicker: gm.tickerManager.onClockTicked,
                     onBlueberrySlingShoot: (blueberry, newVelocity) {
@@ -139,10 +141,10 @@ class _HeaderState extends State<_Header> {
   void _onClockTicked(Duration deltaTime) {
     if (!mounted) return;
 
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableBlueberryWarGameState;
 
-    final timeRemaining = thm.roundTimer.timeRemaining ?? Duration.zero;
+    final timeRemaining = mgm.roundTimer.timeRemaining ?? Duration.zero;
 
     if (_previousTimeRemaining.inSeconds != timeRemaining.inSeconds) {
       _previousTimeRemaining = timeRemaining;
@@ -152,12 +154,12 @@ class _HeaderState extends State<_Header> {
 
   @override
   Widget build(BuildContext context) {
-    final thm =
+    final mgm =
         GameManager.instance.miniGameState as SerializableBlueberryWarGameState;
     final tm = ThemeManager.instance;
 
     return LayoutBuilder(builder: (context, constraints) {
-      final time = (thm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1;
+      final time = max((mgm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1, 0);
 
       return Row(
         mainAxisSize: MainAxisSize.min,
