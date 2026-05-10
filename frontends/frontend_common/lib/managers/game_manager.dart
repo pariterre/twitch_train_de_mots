@@ -73,6 +73,12 @@ class GameManager {
       onGameStatusUpdated.notifyListeners((callback) => callback());
     }
 
+    if (_gameState.roundTimer != newGameState.roundTimer) {
+      _logger.info(
+          'Round timer changed to ${newGameState.roundTimer.timeRemaining}');
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+    }
+
     if (_gameState.roundCount != newGameState.roundCount ||
         _gameState.successLevel != newGameState.successLevel) {
       _logger.info('Round changed to ${newGameState.roundCount}');

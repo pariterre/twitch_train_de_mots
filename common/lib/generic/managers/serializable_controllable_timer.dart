@@ -93,5 +93,5 @@ class SerializableControllableTimer {
       other.isInitialized == isInitialized &&
       other.startedAt == startedAt &&
       other.endsAt == endsAt &&
-      other.pausedAt == pausedAt;
+      other.isPaused == isPaused;
 }
