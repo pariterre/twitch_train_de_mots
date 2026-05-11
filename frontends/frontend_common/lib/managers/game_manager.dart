@@ -11,6 +11,7 @@ import 'package:common/generic/models/helpers.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
+import 'package:common/generic/models/serializable_player.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
@@ -87,7 +88,7 @@ class GameManager {
 
     if (!mapEquality(_gameState.players, newGameState.players)) {
       _logger.info('New players informations');
-      onCooldownsUpdated.notifyListeners((callback) => callback());
+      onPlayersUpdated.notifyListeners((callback) => callback());
     }
 
     if (_gameState.letterProblem != newGameState.letterProblem) {
@@ -196,10 +197,8 @@ class GameManager {
 
   ///
   /// Callback to know when a solution was found
-  final onCooldownsUpdated = GenericListener<Function()>();
-  Map<String, DateTime> get cooldowns => Map.unmodifiable(_gameState.players
-      .map((key, value) => MapEntry(key, value.cooldownTimer.endsAt))
-    ..removeWhere((key, value) => value == null));
+  final onPlayersUpdated = GenericListener<Function()>();
+  Map<String, SerializablePlayer> get players => _gameState.players;
 
   ///
   /// Callback to know when the letters were changed
@@ -209,8 +208,8 @@ class GameManager {
   ///
   /// Stealer and pardonner management
   final onPardonnersChanged = GenericListener<Function()>();
-  List<String> get pardonners =>
-      List.unmodifiable(_gameState.playersWhoCanPardon);
+  int get pardonCount => _gameState.pardonRemaining;
+  List<String> get pardonners => _gameState.playersWhoCanPardon;
 
   final onPardonGranted = GenericListener<Function(bool)>();
   Future<bool> pardonStealer() async {

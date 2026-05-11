@@ -67,7 +67,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           width: constraints.maxWidth,
                           child: const _LetterDisplayer()),
                       const SizedBox(height: 20),
-                      if (widget.isMobile)
+                      if (widget.showTextInput)
                         _TextInput(
                           onFocusChanged: (hasFocus) =>
                               setState(() => _textFieldHasFocus = hasFocus),
@@ -325,10 +325,12 @@ class _PardonRequestState extends State<_PardonRequest> {
   }
 
   void _updatePlayersWhoCanPardon() {
-    final pardonners = GameManager.instance.pardonners;
+    final gm = GameManager.instance;
+
+    final pardonners = gm.pardonners;
     _logger.info('Update current pardonners to: $pardonners');
-    final myId = TwitchManager.instance.userId;
-    _canPlayerPardon = pardonners.contains(myId);
+    _canPlayerPardon = gm.pardonCount > 0 &&
+        pardonners.contains(TwitchManager.instance.displayName);
     setState(() {});
   }
 
@@ -391,7 +393,7 @@ class _BoostRequestState extends State<_BoostRequest> {
   void _updateBoostAvailability() {
     final gm = GameManager.instance;
     _canPlayerBoost = gm.boostCount > 0 &&
-        !gm.boosters.contains(TwitchManager.instance.userId);
+        !gm.boosters.contains(TwitchManager.instance.displayName);
     _logger.info(_canPlayerBoost
         ? 'The player can boost the train'
         : 'The player cannot boost the train');
@@ -462,13 +464,14 @@ class _CooldownClockState extends State<_CooldownClock> {
   DateTime _cooldownEndsAt = DateTime.now();
   Duration get _cooldownRemaining => _cooldownEndsAt.difference(DateTime.now());
   bool get _isOnCooldown => !_cooldownRemaining.isNegative;
+  bool _isClockShown = false;
 
   @override
   void initState() {
     super.initState();
 
     final gm = GameManager.instance;
-    gm.onCooldownsUpdated.listen(_updateCooldownTimer);
+    gm.onPlayersUpdated.listen(_updateCooldownTimer);
 
     final ticker = gm.tickerManager;
     ticker.onClockTicked.listen(_advanceCooldownIfNeeded);
@@ -479,33 +482,38 @@ class _CooldownClockState extends State<_CooldownClock> {
   @override
   void dispose() {
     final gm = GameManager.instance;
-    gm.onCooldownsUpdated.cancel(_updateCooldownTimer);
+    gm.onPlayersUpdated.cancel(_updateCooldownTimer);
     super.dispose();
   }
 
   void _updateCooldownTimer() {
-    final cooldowns = GameManager.instance.cooldowns;
-    if (!cooldowns.keys.contains(TwitchManager.instance.userId)) return;
+    final players = GameManager.instance.players;
+    if (!players.keys.contains(TwitchManager.instance.displayName)) return;
 
-    if (cooldowns[TwitchManager.instance.userId]! != _cooldownEndsAt) {
+    final cooldown = players[TwitchManager.instance.displayName]!.cooldownTimer;
+    if (cooldown.endsAt != _cooldownEndsAt) {
       _logger.info('Updating the player cooldown timer');
       final now = DateTime.now();
-      _cooldownEndsAt = cooldowns[TwitchManager.instance.userId]!.isAfter(now)
-          ? cooldowns[TwitchManager.instance.userId]!
-          : now;
-      _maxDuration = cooldowns[TwitchManager.instance.userId]!.difference(now);
+      _cooldownEndsAt =
+          cooldown.endsAt?.isAfter(now) ?? false ? cooldown.endsAt! : now;
+      _maxDuration = cooldown.endsAt?.difference(now) ?? Duration.zero;
+      _isClockShown = true;
+      setState(() {});
     }
   }
 
   void _advanceCooldownIfNeeded(Duration deltaTime) {
+    if (!mounted) return;
+
     // Only refresh while the clock is ticking
-    if (_isOnCooldown || !mounted) return;
-    setState(() {});
+    if (_isClockShown || _isOnCooldown) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
+
+    _isClockShown = _isOnCooldown;
 
     return LayoutBuilder(builder: (context, constraints) {
       return Visibility(

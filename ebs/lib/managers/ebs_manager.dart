@@ -106,6 +106,22 @@ class EbsManager extends TwitchEbsManagerAbstract {
     await _handlePatchGameState(response, retryOnFail: false);
   }
 
+  void _sendDisplayNameFromOpaqueId(MessageProtocol message) async {
+    final opaqueId = message.data?['opaque_id'] as String?;
+    final user = registeredFrontendUsers.from(opaqueId: opaqueId);
+    if (user == null) {
+      return communicator.sendErrorReponse(
+          message, 'User not found for opaque_id $opaqueId');
+    }
+
+    communicator.sendResponse(message.copyWith(
+        to: MessageTo.frontend,
+        from: MessageFrom.ebs,
+        type: MessageTypes.response,
+        isSuccess: true,
+        data: {'display_name': user.displayName}));
+  }
+
   void _sendGameStateToFrontend(Map<String, dynamic> newGameStateSerialized,
       {bool forceFullState = false,
       MessageProtocol? originalMessage,
@@ -306,6 +322,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToEbs.patchGameState:
               await _handlePatchGameState(message);
               break;
+            case MessagesToEbs.opaqueToDisplayName:
             case MessagesToEbs.gameStateRequest:
               throw 'This request should not come from the app';
           }
@@ -350,6 +367,9 @@ class EbsManager extends TwitchEbsManagerAbstract {
       switch (message.to) {
         case MessageTo.ebs:
           switch (MessagesToEbs.values.byName(message.data!['type'])) {
+            case MessagesToEbs.opaqueToDisplayName:
+              _sendDisplayNameFromOpaqueId(message);
+              break;
             case MessagesToEbs.gameStateRequest:
               _sendGameStateToFrontend(_gameState,
                   forceFullState: true,
@@ -362,17 +382,20 @@ class EbsManager extends TwitchEbsManagerAbstract {
           }
 
         case MessageTo.frontend:
-        // TODO add a frontend handshake which sends the correspondance between opaque_id and display name
         case MessageTo.app:
           switch (MessagesToApp.values.byName(message.data!['type'])) {
             case MessagesToApp.tryWord:
-              communicator.sendResponse(message.copyWith(
-                  from: MessageFrom.ebs,
-                  to: MessageTo.frontend,
-                  type: MessageTypes.response,
-                  isSuccess: await _frontendTryAWord(
-                      userId, message.data!['word'] as String)));
-              break;
+              {
+                final isSuccess = await _frontendTryAWord(
+                    userId, message.data!['word'] as String);
+                communicator.sendResponse(message.copyWith(
+                    from: MessageFrom.ebs,
+                    to: MessageTo.frontend,
+                    type: MessageTypes.response,
+                    isSuccess: isSuccess));
+
+                break;
+              }
 
             case MessagesToApp.pardonRequest:
               communicator.sendResponse(message.copyWith(

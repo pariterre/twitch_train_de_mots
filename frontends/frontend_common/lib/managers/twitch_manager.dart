@@ -45,6 +45,8 @@ class TwitchManager {
   final bool useTwitchAuthenticatorMock;
 
   Map<String, dynamic> _previousGameState = {};
+  String? _displayName;
+  String? get displayName => _displayName;
 
   ///
   /// Initialize the TwitchManager
@@ -300,6 +302,7 @@ class TwitchManager {
     _frontendManager!.onMessageReceived.listen(_onMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
       GameManager.instance.startGame();
+      _requestCurrentDisplayName();
       _requestGameStatus();
     });
     _frontendManager!.onStreamerHasDisconnected
@@ -362,6 +365,29 @@ class TwitchManager {
       case Sku.fixTracks:
       case Sku.celebrate:
         break;
+    }
+  }
+
+  Future<void> _requestCurrentDisplayName() async {
+    while (_displayName == null) {
+      final response =
+          await _sendMessageToEbs(MessagesToEbs.opaqueToDisplayName)
+              .timeout(const Duration(seconds: 5),
+                  onTimeout: () => tm.MessageProtocol(
+                      to: tm.MessageTo.frontend,
+                      from: tm.MessageFrom.ebs,
+                      type: tm.MessageTypes.response,
+                      isSuccess: false))
+              .onError((e, st) => tm.MessageProtocol(
+                  to: tm.MessageTo.frontend,
+                  from: tm.MessageFrom.ebs,
+                  type: tm.MessageTypes.response,
+                  isSuccess: false));
+      if (response.isSuccess ?? false) {
+        _displayName = response.data?['display_name'] as String?;
+      }
+
+      await Future.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -796,6 +822,13 @@ class TwitchManagerMock extends TwitchManager {
     tm.BitsTransactionObject? transaction,
   }) async {
     switch (request) {
+      case MessagesToEbs.opaqueToDisplayName:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.ebs,
+            type: tm.MessageTypes.response,
+            isSuccess: true,
+            data: {'display_name': 'Viewer1'});
       case MessagesToEbs.gameStateRequest:
         {
           final gameState = SerializableGameState.empty()

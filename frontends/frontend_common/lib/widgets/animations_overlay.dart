@@ -63,6 +63,7 @@ class _AnimationOverlayState extends State<AnimationOverlay> {
   }
 
   void _showStealerWasPardoned(bool isPardonned) {
+    if (!isPardonned) return;
     _pardonedController.triggerAnimation(const _StealerWasPardoned());
   }
 
