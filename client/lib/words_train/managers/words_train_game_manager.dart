@@ -280,7 +280,8 @@ class WordsTrainGameManager {
         isAttemptingFixTracksMiniGame: isAttemptingFixTracksMiniGame,
         configuration: SerializableConfiguration(
             showExtension: Managers.instance.configuration.showExtension),
-        miniGameState: isRoundAMiniGame || isNextRoundAMiniGame
+        miniGameState: ((isRoundAMiniGame || isNextRoundAMiniGame) &&
+                Managers.instance.miniGames.manager != null)
             ? Managers.instance.miniGames.manager!.serializeMiniGame()
             : SerializableMiniGameStateNone(),
       );

@@ -51,9 +51,11 @@ class GameManager {
 
   Duration get timeRemaining =>
       _gameState.roundTimer.timeRemaining ?? Duration.zero;
-  bool get isPaused => isRoundAMiniGame
-      ? miniGameState.roundTimer.isPaused
-      : _gameState.roundTimer.isPaused;
+  bool get isPaused =>
+      status == WordsTrainGameStatus.roundStarted &&
+      (isRoundAMiniGame
+          ? miniGameState.roundTimer.isPaused
+          : _gameState.roundTimer.isPaused);
 
   bool get hasPlayedAtLeastOneRound => _gameState.hasPlayedAtLeastOnce;
   bool get shouldShowExtension => _gameState.configuration.showExtension;
@@ -243,6 +245,10 @@ class GameManager {
   void changeLaneGranted() {
     onChangeLaneGranted.notifyListeners((callback) => callback());
   }
+
+  ///
+  /// Fireworks management
+  bool get canRequestFireworks => _gameState.canRequestFireworks;
 
   ///
   /// Big heist management

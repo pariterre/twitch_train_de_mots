@@ -161,4 +161,6 @@ class _HeaderState extends State<_Header> {
       );
     });
   }
+
+  // TODO Add the letter displayer?
 }

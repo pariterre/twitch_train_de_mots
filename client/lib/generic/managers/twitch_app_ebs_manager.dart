@@ -93,6 +93,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     gm.onScrablingLetters.listen(_sendGameStateToEbs);
     gm.onRevealUselessLetter.listen(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.listen(_sendGameStateToEbs);
+    gm.onFixTracksMiniGameUpdated.listen(_sendGameStateToEbs);
 
     final cm = Managers.instance.configuration;
     cm.onShowExtensionChanged.listen(_sendGameStateToEbs);
@@ -120,6 +121,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     gm.onScrablingLetters.cancel(_sendGameStateToEbs);
     gm.onRevealUselessLetter.cancel(_sendGameStateToEbs);
     gm.onRevealHiddenLetter.cancel(_sendGameStateToEbs);
+    gm.onFixTracksMiniGameUpdated.cancel(_sendGameStateToEbs);
 
     final mgm = Managers.instance.miniGames;
     mgm.onMinigameStarted.cancel(_connectMiniGame);

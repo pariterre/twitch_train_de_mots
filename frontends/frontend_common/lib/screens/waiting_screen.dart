@@ -204,8 +204,11 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                     growingFactor: 1.02,
                                     duration: const Duration(milliseconds: 750),
                                     child: ElevatedButton(
-                                        onPressed: TwitchManager
-                                            .instance.attemptFixTracksMiniGame,
+                                        onPressed:
+                                            gm.canRequestFixTracksMiniGame
+                                                ? TwitchManager.instance
+                                                    .attemptFixTracksMiniGame
+                                                : null,
                                         child: const Text(
                                           'Sauvons le train!',
                                         )),
@@ -214,23 +217,24 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ),
                           ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: Column(
-                            children: [
-                              Text(
-                                'Félicitez vos collègues\n'
-                                'cheminot·e·s avec un',
-                                style: tm.textFrontendSc,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8.0),
-                              ElevatedButton(
-                                  onPressed: TwitchManager.instance.celebrate,
-                                  child: const Text('Feux d\'artifice!')),
-                            ],
+                        if (gm.canRequestFireworks)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Félicitez vos collègues\n'
+                                  'cheminot·e·s avec un',
+                                  style: tm.textFrontendSc,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8.0),
+                                ElevatedButton(
+                                    onPressed: TwitchManager.instance.celebrate,
+                                    child: const Text('Feux d\'artifice!')),
+                              ],
+                            ),
                           ),
-                        ),
                       ],
                     )
                 ],

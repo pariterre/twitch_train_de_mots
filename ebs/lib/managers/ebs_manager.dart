@@ -166,7 +166,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   /// [word] the word that is being tried
   Future<bool> _frontendTryAWord(String userId, String word) async {
     _logger.info('Resquesting to try the word $word');
-    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -190,7 +191,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedToPardon(String userId) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -213,7 +215,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedBoosted(String userId) async {
     _logger.info('Resquesting to boost the train');
 
-    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -233,7 +236,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedRevealTileAt(String userId, int index) async {
     _logger.info('Resquesting to reveal tile at $index');
 
-    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -255,7 +259,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
       {required String id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshoot at $id');
 
-    final playerName = registeredFrontendUsers.from(userId: userId)?.login;
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
     if (playerName == null) {
       _logger.severe('User $userId is not registered');
       return false;
@@ -443,7 +448,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToApp.changeLaneRequest:
             case MessagesToApp.fixTracksMiniGameRequest:
               final playerName =
-                  registeredFrontendUsers.from(userId: userId)?.login;
+                  registeredFrontendUsers.from(userId: userId)?.displayName;
 
               final response = await communicator.sendQuestion(MessageProtocol(
                   to: MessageTo.app,
