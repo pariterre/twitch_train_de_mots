@@ -221,12 +221,12 @@ class TwitchManager {
   }
 
   ///
-  /// Request to reveal a tile in the Treasure Hunt minigame.
-  Future<bool> slingShootBlueberry(
+  /// Request to slingshot a blueberry in the Blueberry War minigame.
+  Future<bool> slingShotBlueberryWar(
       {required BlueberryAgent blueberry,
       required Vector2 requestedVelocity}) async {
     final response =
-        await _sendMessageToApp(MessagesToApp.slingShootBlueberry, data: {
+        await _sendMessageToApp(MessagesToApp.slingShotBlueberryWar, data: {
       'id': blueberry.id.toString(),
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
@@ -802,7 +802,7 @@ class TwitchManagerMock extends TwitchManager {
             type: tm.MessageTypes.response,
             isSuccess: true);
 
-      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.slingShotBlueberryWar:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.app,

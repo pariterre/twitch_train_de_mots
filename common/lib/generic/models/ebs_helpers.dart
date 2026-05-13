@@ -21,7 +21,7 @@ enum MessagesToApp {
   changeLaneRequest,
   fixTracksMiniGameRequest,
   revealTileAt,
-  slingShootBlueberry,
+  slingShotBlueberryWar,
 }
 
 enum MessagesToEbs {

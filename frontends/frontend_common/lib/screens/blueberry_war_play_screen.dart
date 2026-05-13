@@ -80,8 +80,8 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                           isRoundInProgress: mgm.roundTimer.status ==
                               ControllableTimerStatus.inProgress,
                           clockTicker: gm.tickerManager.onClockTicked,
-                          onBlueberrySlingShoot: (blueberry, newVelocity) {
-                            twitchManager.slingShootBlueberry(
+                          onBlueberrySlingShot: (blueberry, newVelocity) {
+                            twitchManager.slingShotBlueberryWar(
                                 blueberry: blueberry,
                                 requestedVelocity: newVelocity);
                           },

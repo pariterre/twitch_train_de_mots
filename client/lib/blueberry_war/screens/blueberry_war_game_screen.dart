@@ -82,8 +82,8 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
                               ControllableTimerStatus.inProgress,
                           clockTicker:
                               Managers.instance.tickerManager.onClockTicked,
-                          onBlueberrySlingShoot: (blueberry, newVelocity) {
-                            bwm.slingShoot(
+                          onBlueberrySlingShot: (blueberry, newVelocity) {
+                            bwm.slingShot(
                                 blueberry: blueberry, newVelocity: newVelocity);
                           },
                         ),

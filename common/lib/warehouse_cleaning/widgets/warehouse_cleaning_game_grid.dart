@@ -21,7 +21,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
     required this.letters,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onAvatarSlingShoot,
+    required this.onAvatarSlingShot,
   });
 
   final int rowCount;
@@ -33,7 +33,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
-      onAvatarSlingShoot;
+      onAvatarSlingShot;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class WarehouseCleaningGameGrid extends StatelessWidget {
               letters: letters,
               isRoundInProgress: isRoundInProgress,
               clockTicker: clockTicker,
-              onAvatarSlingShoot: onAvatarSlingShoot,
+              onAvatarSlingShot: onAvatarSlingShot,
               tileSize: tileSize,
               getTileAt: getTileAt,
             ),
@@ -120,7 +120,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
     required this.tileSize,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onAvatarSlingShoot,
+    required this.onAvatarSlingShot,
     required this.getTileAt,
   });
 
@@ -131,7 +131,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
-      onAvatarSlingShoot;
+      onAvatarSlingShot;
   final Tile? Function({int? row, int? col, int? index}) getTileAt;
 
   @override
@@ -167,7 +167,7 @@ class _WarehouseCleaningAgentsOverlay extends StatelessWidget {
             tileSize: tileSize,
             isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
-            onAvatarSlingShoot: onAvatarSlingShoot)),
+            onAvatarSlingShot: onAvatarSlingShot)),
       ],
     );
   }

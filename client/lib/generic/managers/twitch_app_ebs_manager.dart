@@ -299,7 +299,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
         // Mini-game requests
         case MessagesToApp.revealTileAt:
-        case MessagesToApp.slingShootBlueberry:
+        case MessagesToApp.slingShotBlueberryWar:
           return await _handleMiniGameRequest(message);
 
         case MessagesToApp.bitsRedeemed:
@@ -341,7 +341,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.changeLaneRequest:
       case MessagesToApp.fixTracksMiniGameRequest:
       case MessagesToApp.revealTileAt:
-      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.slingShotBlueberryWar:
       case MessagesToApp.bitsRedeemed:
         throw UnimplementedError(
             'This is not a main game request and should be handled in the main handler');
@@ -415,7 +415,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.isExtensionActive:
       case MessagesToApp.fullGameStateRequest:
       case MessagesToApp.revealTileAt:
-      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.slingShotBlueberryWar:
       case MessagesToApp.bitsRedeemed:
         // These requests are not handled in this method
         throw UnimplementedError(
@@ -432,14 +432,14 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
             .revealTile(tileIndex: message.data!['index'] as int);
         break;
 
-      case MessagesToApp.slingShootBlueberry:
+      case MessagesToApp.slingShotBlueberryWar:
         final bwm = Managers.instance.miniGames.blueberryWar;
         final blueberryId = message.data!['id'] as String;
         final blueberry = bwm.allAgents[blueberryId] as BlueberryAgent;
 
         final velocity =
             Vector2Extension.deserialize(message.data!['velocity']);
-        bwm.slingShoot(blueberry: blueberry, newVelocity: velocity);
+        bwm.slingShot(blueberry: blueberry, newVelocity: velocity);
         isSuccess = true;
         break;
 

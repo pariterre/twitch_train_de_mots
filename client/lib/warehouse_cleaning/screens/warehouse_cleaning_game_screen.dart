@@ -96,7 +96,8 @@ class _WarehouseCleaningGameScreenState
                     isRoundInProgress:
                         whgm.roundStatus == ControllableTimerStatus.inProgress,
                     clockTicker: Managers.instance.tickerManager.onClockTicked,
-                    onAvatarSlingShoot: whgm.slingShoot,
+                    onAvatarSlingShot: (avatar, newVelocity) => whgm.slingShot(
+                        avatar: avatar, newVelocity: newVelocity),
                   ),
                 ),
               ),

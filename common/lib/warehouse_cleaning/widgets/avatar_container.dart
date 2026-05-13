@@ -10,7 +10,7 @@ class AvatarContainer extends StatefulWidget {
     required this.tileSize,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onAvatarSlingShoot,
+    required this.onAvatarSlingShot,
   });
 
   final AvatarAgent avatar;
@@ -18,7 +18,7 @@ class AvatarContainer extends StatefulWidget {
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(AvatarAgent avatar, vector_math.Vector2 newVelocity)
-      onAvatarSlingShoot;
+      onAvatarSlingShot;
 
   @override
   State<AvatarContainer> createState() => _AvatarContainerState();
@@ -78,7 +78,7 @@ class _AvatarContainerState extends State<AvatarContainer> {
 
     _dragCurrentPosition = details.localPosition;
     final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 2;
-    widget.onAvatarSlingShoot(
+    widget.onAvatarSlingShot(
         widget.avatar, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
 
     setState(() {

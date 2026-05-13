@@ -9,14 +9,14 @@ class BlueberryContainer extends StatefulWidget {
     required this.blueberry,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onBlueberrySlingShoot,
+    required this.onBlueberrySlingShot,
   });
 
   final BlueberryAgent blueberry;
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
-      onBlueberrySlingShoot;
+      onBlueberrySlingShot;
 
   @override
   State<BlueberryContainer> createState() => _BlueberryContainerState();
@@ -125,7 +125,7 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
 
     _dragCurrentPosition = details.localPosition;
     final newVelocity = (_dragStartPosition! - _dragCurrentPosition!) * 10;
-    widget.onBlueberrySlingShoot(
+    widget.onBlueberrySlingShot(
         widget.blueberry, vector_math.Vector2(newVelocity.dx, newVelocity.dy));
 
     setState(() {

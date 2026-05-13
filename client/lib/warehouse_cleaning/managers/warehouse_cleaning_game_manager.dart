@@ -247,7 +247,8 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         pointsAwarded: wordValue));
   }
 
-  void slingShoot(AvatarAgent avatar, vector_math.Vector2 newVelocity) {
+  void slingShot(
+      {required AvatarAgent avatar, required vector_math.Vector2 newVelocity}) {
     if (roundStatus != ControllableTimerStatus.inProgress) return;
 
     if (avatar.canBeSlingShot) {

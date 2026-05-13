@@ -164,7 +164,7 @@ class BlueberryWarGameManager extends MiniGameManager {
       const Duration(seconds: 35) +
       Managers.instance.train.previousRoundTimeRemaining;
 
-  void slingShoot(
+  void slingShot(
       {required BlueberryAgent blueberry, required Vector2 newVelocity}) {
     if (roundStatus != ControllableTimerStatus.inProgress) return;
 

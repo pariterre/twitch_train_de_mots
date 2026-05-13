@@ -14,7 +14,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
     required this.letters,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onBlueberrySlingShoot,
+    required this.onBlueberrySlingShot,
     this.drawBlueberryFieldOnly = false,
   });
 
@@ -23,7 +23,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
-      onBlueberrySlingShoot;
+      onBlueberrySlingShot;
   final bool drawBlueberryFieldOnly;
 
   @override
@@ -52,7 +52,7 @@ class BlueberryWarPlayingField extends StatelessWidget {
             letters: letters,
             isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
-            onBlueberrySlingShoot: onBlueberrySlingShoot,
+            onBlueberrySlingShot: onBlueberrySlingShot,
           ),
         ],
       ),
@@ -67,7 +67,7 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
     required this.letters,
     required this.isRoundInProgress,
     required this.clockTicker,
-    required this.onBlueberrySlingShoot,
+    required this.onBlueberrySlingShot,
   });
 
   final List<BlueberryAgent> blueberries;
@@ -75,7 +75,7 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
   final bool isRoundInProgress;
   final GenericListener<Function(Duration deltaTime)> clockTicker;
   final Function(BlueberryAgent blueberry, vector_math.Vector2 newVelocity)
-      onBlueberrySlingShoot;
+      onBlueberrySlingShot;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +85,7 @@ class BlueberryWarFieldAgentsOverlay extends StatelessWidget {
             blueberry: e,
             isRoundInProgress: isRoundInProgress,
             clockTicker: clockTicker,
-            onBlueberrySlingShoot: onBlueberrySlingShoot)),
+            onBlueberrySlingShot: onBlueberrySlingShot)),
         ...letters
             .map((e) => LetterContainer(letter: e, clockTicker: clockTicker)),
       ],
