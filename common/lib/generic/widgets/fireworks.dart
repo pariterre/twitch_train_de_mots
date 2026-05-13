@@ -115,7 +115,7 @@ class _FireworksState extends State<Fireworks> with TickerProviderStateMixin {
   late BoxConstraints _constraints;
 
   void _explode(bool huge, {bool isReversed = false}) {
-    _logger.info('Fireworks exploding');
+    _logger.fine('Fireworks exploding');
     final rand = Random();
 
     particles.clear();

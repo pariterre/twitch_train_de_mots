@@ -41,7 +41,6 @@ class MainExtension extends StatefulWidget {
 
 class _MainExtensionState extends State<MainExtension>
     with SingleTickerProviderStateMixin {
-  final boxSizeController = ResizedBoxController();
   late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
@@ -75,20 +74,6 @@ class _MainExtensionState extends State<MainExtension>
     // Check if we should hide the extension
     final gm = GameManager.instance;
 
-    double sizeFactor = 1.2;
-    if (gm.isRoundAMiniGame &&
-        gm.status == WordsTrainGameStatus.roundStarted &&
-        boxSizeController.factor != sizeFactor) {
-      setState(() {
-        boxSizeController.factor = sizeFactor;
-      });
-    } else if (boxSizeController.factor == sizeFactor) {
-      // TODO check this
-      setState(() {
-        boxSizeController.factor = 1 / sizeFactor;
-      });
-    }
-
     // If the status hasn't changed, do nothing
     final shouldHide = gm.status == WordsTrainGameStatus.uninitialized ||
         !gm.shouldShowExtension;
@@ -106,7 +91,6 @@ class _MainExtensionState extends State<MainExtension>
           ? null
           : Size(MediaQuery.of(context).size.width * 0.20,
               MediaQuery.of(context).size.width * 0.30),
-      boxSizeController: boxSizeController,
       child: FutureBuilder(
           future: TwitchManager.instance.onHasInitialized,
           builder: (context, snapshot) {
@@ -148,12 +132,10 @@ class _MainExtensionState extends State<MainExtension>
 class _MainWindow extends StatelessWidget {
   const _MainWindow({
     required this.initialSize,
-    required this.boxSizeController,
     required this.child,
   });
 
   final Size? initialSize;
-  final ResizedBoxController? boxSizeController;
   final Widget child;
 
   @override
@@ -164,7 +146,6 @@ class _MainWindow extends StatelessWidget {
     return initialSize == null
         ? mainWidget
         : ResizedBox(
-            sizeController: boxSizeController,
             initialTop: MediaQuery.of(context).size.height * 0.1,
             minTop: 0,
             maxTop: MediaQuery.of(context).size.height - 50,
