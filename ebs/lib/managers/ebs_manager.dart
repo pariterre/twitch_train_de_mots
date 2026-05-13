@@ -279,6 +279,30 @@ class EbsManager extends TwitchEbsManagerAbstract {
     return response.isSuccess ?? false;
   }
 
+  Future<bool> _frontendRequestedSlingShotWareHouse(String userId,
+      {required String id, required Vector2 velocity}) async {
+    _logger.info('Resquesting to slingshot at $id');
+
+    final playerName =
+        registeredFrontendUsers.from(userId: userId)?.displayName;
+    if (playerName == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': MessagesToApp.slingShotAvatarWareHouse.name,
+          'player_name': playerName,
+          'id': id,
+          'velocity': velocity.serialize()
+        }));
+    return response.isSuccess ?? false;
+  }
+
   @override
   Future<void> handlePutRequest(MessageProtocol message) async =>
       await _handleRequest(message);
@@ -431,6 +455,20 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
             case MessagesToApp.slingShotBlueberryWar:
               final isSuccess = await _frontendRequestedSlingShotBlueberryWar(
+                userId,
+                id: message.data!['id'] as String,
+                velocity:
+                    Vector2Extension.deserialize(message.data!['velocity']),
+              );
+              communicator.sendResponse(message.copyWith(
+                  to: MessageTo.frontend,
+                  from: MessageFrom.ebs,
+                  type: MessageTypes.response,
+                  isSuccess: isSuccess));
+              break;
+
+            case MessagesToApp.slingShotAvatarWareHouse:
+              final isSuccess = await _frontendRequestedSlingShotWareHouse(
                 userId,
                 id: message.data!['id'] as String,
                 velocity:

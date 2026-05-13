@@ -168,7 +168,9 @@ class _HeaderState extends State<_Header> {
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: SizedBox(
-                  width: constraints.maxWidth, child: const _LetterDisplayer()),
+                width: constraints.maxWidth,
+                child: const _LetterDisplayer(),
+              ),
             ),
           ],
         );

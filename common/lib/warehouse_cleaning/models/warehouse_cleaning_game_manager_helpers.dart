@@ -1,3 +1,6 @@
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
+import 'package:common/warehouse_cleaning/models/box_agent.dart';
+import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:vector_math/vector_math.dart';
 
 class WarehouseCleaningConfig {
@@ -39,4 +42,26 @@ class WarehouseCleaningConfig {
   /// is moving or not.
   static double get velocityThreshold => 200.0;
   static double get velocityThreshold2 => velocityThreshold * velocityThreshold;
+}
+
+class WareHouseCleaningGameManagerHelpers {
+  ///
+  /// Update all the agents in the list. This method should be called by the
+  /// game loop.
+  static void updateAllAvatarAgents({
+    required Duration dt,
+    required List<AvatarAgent> avatars,
+    required List<BoxAgent> boxes,
+    required List<LetterAgent> letters,
+    required Function(LetterAgent letter) onLetterCollected,
+  }) {
+    for (int i = 0; i < avatars.length; i++) {
+      // Move all agents
+      final agent = avatars[i];
+      agent.update(
+          dt: dt,
+          colliders: [...boxes, ...letters],
+          onLetterCollision: onLetterCollected);
+    }
+  }
 }

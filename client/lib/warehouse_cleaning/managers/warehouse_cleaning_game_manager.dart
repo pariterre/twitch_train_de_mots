@@ -12,7 +12,7 @@ import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/box_agent.dart';
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
 import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
-import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:logging/logging.dart';
@@ -165,15 +165,15 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         continue;
       } else if (tile.isLetter) {
         allAgents[currentIndex.toString()] = LetterAgent(
-          id: currentIndex,
-          tileIndex: tile.index,
-          value: tile.letter!,
-          position: vector_math.Vector2(
-            tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
-            tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
-          ),
-          radius: WarehouseCleaningConfig.boxRadius,
-        );
+            id: currentIndex,
+            tileIndex: tile.index,
+            value: tile.letter!,
+            position: vector_math.Vector2(
+              tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
+              tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
+            ),
+            radius: WarehouseCleaningConfig.boxRadius,
+            isCollected: false);
       } else if (tile.isBox) {
         allAgents[currentIndex.toString()] = BoxAgent(
           id: currentIndex,
@@ -205,6 +205,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       grid: _grid!,
       triesRemaining: _triesRemaining,
       allAgents: allAgents,
+      problem: problem,
     );
   }
 
@@ -331,7 +332,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
   void _processRound(Duration deltaTime) {
     // Update the position of the avatar
-    _updateAllAvatarAgents(
+    WareHouseCleaningGameManagerHelpers.updateAllAvatarAgents(
         dt: deltaTime,
         avatars: avatars,
         boxes: boxes,
@@ -346,6 +347,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         _grid!.revealAt(index: tileIndex);
         avatar.tileIndex = tileIndex;
         onAvatarMoved.notifyListeners((callback) => callback());
+        onGameUpdated.notifyListeners((callback) => callback());
       }
     }
   }
@@ -378,25 +380,5 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
   void _processRoundIsEnding() {
     _revealSolution();
-  }
-
-  ///
-  /// Update all the agents in the list. This method should be called by the
-  /// game loop.
-  void _updateAllAvatarAgents({
-    required Duration dt,
-    required List<AvatarAgent> avatars,
-    required List<BoxAgent> boxes,
-    required List<LetterAgent> letters,
-    required Function(LetterAgent letter) onLetterCollected,
-  }) {
-    for (int i = 0; i < avatars.length; i++) {
-      // Move all agents
-      final agent = avatars[i];
-      agent.update(
-          dt: dt,
-          colliders: [...boxes, ...letters],
-          onLetterCollision: onLetterCollected);
-    }
   }
 }

@@ -49,12 +49,13 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
     SerializableControllableTimer? roundTimer,
     TreasureHuntGrid? grid,
     int? triesRemaining,
+    SerializableLetterProblem? problem,
   }) {
     return SerializableTreasureHuntGameState(
       roundTimer: roundTimer ?? this.roundTimer,
       grid: grid ?? this.grid,
       triesRemaining: triesRemaining ?? this.triesRemaining,
-      problem: problem,
+      problem: problem ?? this.problem,
     );
   }
 

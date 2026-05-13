@@ -5,7 +5,8 @@ import 'dart:math';
 import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/serializable_blueberry_war_game_state.dart';
-import 'package:common/fix_tracks/models/fix_tracks_grid.dart';
+import 'package:common/fix_tracks/models/fix_tracks_grid.dart'
+    as fix_tracks_grid;
 import 'package:common/fix_tracks/models/serializable_fix_tracks_game_state.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/misc/misc.dart';
@@ -16,12 +17,22 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
-import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart'
+    as treasure_hunt_grid;
+import 'package:common/warehouse_cleaning/models/agent.dart';
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
+import 'package:common/warehouse_cleaning/models/box_agent.dart';
+import 'package:common/warehouse_cleaning/models/letter_agent.dart';
+import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart'
+    as warehouse_cleaning_grid;
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:twitch_manager/common/communication_protocols.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
+import 'package:vector_math/vector_math.dart' as vector_math;
 import 'package:vector_math/vector_math.dart';
 
 final _logger = Logger('TwitchManager');
@@ -228,6 +239,23 @@ class TwitchManager {
     final response =
         await _sendMessageToApp(MessagesToApp.slingShotBlueberryWar, data: {
       'id': blueberry.id.toString(),
+      'velocity': [requestedVelocity.x, requestedVelocity.y]
+    }).timeout(const Duration(seconds: 5),
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
+  ///
+  /// Request to slingshot an avatar in the Warehouse Cleaning minigame.
+  Future<bool> slingShotAvatarWareHouse(
+      {required AvatarAgent avatar, required Vector2 requestedVelocity}) async {
+    final response =
+        await _sendMessageToApp(MessagesToApp.slingShotAvatarWareHouse, data: {
+      'id': avatar.id.toString(),
       'velocity': [requestedVelocity.x, requestedVelocity.y]
     }).timeout(const Duration(seconds: 5),
             onTimeout: () => tm.MessageProtocol(
@@ -809,6 +837,13 @@ class TwitchManagerMock extends TwitchManager {
             type: tm.MessageTypes.response,
             isSuccess: true);
 
+      case MessagesToApp.slingShotAvatarWareHouse:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+
       case MessagesToApp.isExtensionActive:
       case MessagesToApp.fullGameStateRequest:
         throw 'Request should not come from frontend';
@@ -871,7 +906,7 @@ class TwitchManagerMock extends TwitchManager {
                 canRequestFixTracksMiniGame: true,
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: blueberryWarDummyMiniGame(isPaused: false),
+                miniGameState: warehouseCleaningDummyMiniGame(isPaused: false),
               )
               .serialize();
 
@@ -909,7 +944,7 @@ class TwitchManagerMock extends TwitchManager {
             pausedAt: isPaused ? DateTime.now() : null),
         triesRemaining: 10,
         problem: problem,
-        grid: TreasureHuntGrid.random(
+        grid: treasure_hunt_grid.TreasureHuntGrid.random(
             rowCount: 20, columnCount: 10, rewardCount: 40, problem: problem));
   }
 
@@ -945,6 +980,107 @@ class TwitchManagerMock extends TwitchManager {
             hiddenLetterStatuses: List.generate(10, (_) => LetterStatus.hidden),
           ));
 
+  SerializableMiniGameState warehouseCleaningDummyMiniGame(
+      {required bool isPaused}) {
+    final problem = SerializableLetterProblem(
+      letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+      scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+      uselessLetterStatuses: List.generate(
+          10, (i) => i == 5 ? LetterStatus.revealed : LetterStatus.normal),
+      hiddenLetterStatuses: List.generate(10, (_) => LetterStatus.hidden),
+    );
+
+    final grid = warehouse_cleaning_grid.WarehouseCleaningGrid.random(
+        rowCount: WarehouseCleaningConfig.rowCount,
+        columnCount: WarehouseCleaningConfig.columnCount,
+        problem: problem,
+        startingRow: WarehouseCleaningConfig.startingRow,
+        startingCol: WarehouseCleaningConfig.startingCol);
+
+    ///
+    /// Avatar position
+    warehouse_cleaning_grid.Tile? tileFromPosition(
+            vector_math.Vector2 position) =>
+        grid.tileAt(
+            row: (position.y / WarehouseCleaningConfig.tileSize).round(),
+            col: (position.x / WarehouseCleaningConfig.tileSize).round());
+
+    // Populate the agents list with the avatar
+    final startingPosition = vector_math.Vector2(
+      WarehouseCleaningConfig.startingCol.toDouble() *
+          WarehouseCleaningConfig.tileSize,
+      WarehouseCleaningConfig.startingRow.toDouble() *
+          WarehouseCleaningConfig.tileSize,
+    );
+    final startingTile = tileFromPosition(startingPosition);
+    if (startingTile == null) {
+      throw "Starting tile should not be null";
+    }
+
+    final allAgents = <String, Agent>{};
+    for (int i = 0; i < WarehouseCleaningConfig.initialAvatarCount; i++) {
+      allAgents[i.toString()] = AvatarAgent(
+        id: i,
+        tileIndex: startingTile.index,
+        position: startingPosition,
+        radius: WarehouseCleaningConfig.avatarRadius,
+        maxVelocity: WarehouseCleaningConfig.avatarMaxVelocity,
+        velocity: vector_math.Vector2.zero(),
+        coefficientOfFriction:
+            WarehouseCleaningConfig.avatarFrictionCoefficient,
+      );
+    }
+
+    // Populate the agents list with the boxes and letters
+    int currentIndex = WarehouseCleaningConfig.initialAvatarCount;
+    for (int index = 0; index < grid.cellCount; index++) {
+      final tile = grid.tileAt(index: index);
+      if (tile == null) {
+        continue;
+      } else if (tile.isLetter) {
+        allAgents[currentIndex.toString()] = LetterAgent(
+          id: currentIndex,
+          tileIndex: tile.index,
+          value: tile.letter!,
+          position: vector_math.Vector2(
+            tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
+            tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
+          ),
+          radius: WarehouseCleaningConfig.boxRadius,
+          isCollected: false,
+        );
+      } else if (tile.isBox) {
+        allAgents[currentIndex.toString()] = BoxAgent(
+          id: currentIndex,
+          tileIndex: tile.index,
+          position: vector_math.Vector2(
+            tile.col.toDouble() * WarehouseCleaningConfig.tileSize,
+            tile.row.toDouble() * WarehouseCleaningConfig.tileSize,
+          ),
+          radius: WarehouseCleaningConfig.boxRadius,
+        );
+      }
+      currentIndex++;
+    }
+
+    // Perform an initial reveal of the fog of war around the avatar starting position
+    final avatars =
+        allAgents.values.whereType<AvatarAgent>().toList(growable: false);
+    final avatarTile = tileFromPosition(avatars.first.position);
+    avatarTile == null ? null : grid.revealAt(index: avatarTile.index);
+
+    return SerializableWarehouseCleaningGameState(
+        roundTimer: SerializableControllableTimer(
+            isInitialized: true,
+            startedAt: DateTime.now(),
+            endsAt: DateTime.now().add(const Duration(seconds: 30)),
+            pausedAt: isPaused ? DateTime.now() : null),
+        triesRemaining: 40,
+        allAgents: allAgents,
+        grid: grid,
+        problem: problem);
+  }
+
   SerializableMiniGameState fixTrackDummyMiniGame({required bool isPaused}) =>
       SerializableFixTracksGameState(
           roundTimer: SerializableControllableTimer(
@@ -952,7 +1088,7 @@ class TwitchManagerMock extends TwitchManager {
               startedAt: DateTime.now(),
               endsAt: DateTime.now().add(const Duration(seconds: 30)),
               pausedAt: isPaused ? DateTime.now() : null),
-          grid: FixTracksGrid.random(
+          grid: fix_tracks_grid.FixTracksGrid.random(
             rowCount: 20,
             columnCount: 10,
             minimumSegmentLength: 4,

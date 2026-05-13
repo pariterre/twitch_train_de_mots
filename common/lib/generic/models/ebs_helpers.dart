@@ -22,6 +22,7 @@ enum MessagesToApp {
   fixTracksMiniGameRequest,
   revealTileAt,
   slingShotBlueberryWar,
+  slingShotAvatarWareHouse,
 }
 
 enum MessagesToEbs {

@@ -10,40 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 
-class BlueberryWarPlayScreen extends StatefulWidget {
+class BlueberryWarPlayScreen extends StatelessWidget {
   const BlueberryWarPlayScreen({super.key});
 
   @override
-  State<BlueberryWarPlayScreen> createState() => _BlueberryWarPlayScreenState();
-}
-
-class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.listen(_onMiniGameStateUpdated);
-  }
-
-  @override
-  void dispose() {
-    final gm = GameManager.instance;
-    gm.onMiniGameStateUpdated.cancel(_onMiniGameStateUpdated);
-
-    super.dispose();
-  }
-
-  void _onMiniGameStateUpdated() {
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-    final mgm = gm.miniGameState as SerializableBlueberryWarGameState;
-    final twitchManager = TwitchManager.instance;
-
     return Column(
       children: [
         const Align(alignment: Alignment.topCenter, child: _Header()),
@@ -68,28 +39,10 @@ class _BlueberryWarPlayScreenState extends State<BlueberryWarPlayScreen> {
                       ),
                     ),
                   )),
-              Center(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: BlueberryWarPlayingField(
-                          blueberries: mgm.blueberries,
-                          letters: mgm.letters,
-                          isRoundInProgress: mgm.roundTimer.status ==
-                              ControllableTimerStatus.inProgress,
-                          clockTicker: gm.tickerManager.onClockTicked,
-                          onBlueberrySlingShot: (blueberry, newVelocity) {
-                            twitchManager.slingShotBlueberryWar(
-                                blueberry: blueberry,
-                                requestedVelocity: newVelocity);
-                          },
-                          drawBlueberryFieldOnly: true,
-                        ),
-                      ),
-                    ),
-                  ],
+              const Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: _BlueberryField(),
                 ),
               ),
             ],
@@ -173,6 +126,55 @@ class _HeaderState extends State<_Header> {
         ],
       );
     });
+  }
+}
+
+class _BlueberryField extends StatefulWidget {
+  const _BlueberryField();
+
+  @override
+  State<_BlueberryField> createState() => _BlueberryFieldState();
+}
+
+class _BlueberryFieldState extends State<_BlueberryField> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.listen(_onMiniGameStateUpdated);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.cancel(_onMiniGameStateUpdated);
+
+    super.dispose();
+  }
+
+  void _onMiniGameStateUpdated() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+    final mgm = gm.miniGameState as SerializableBlueberryWarGameState;
+    final twitchManager = TwitchManager.instance;
+
+    return BlueberryWarPlayingField(
+      blueberries: mgm.blueberries,
+      letters: mgm.letters,
+      isRoundInProgress:
+          mgm.roundTimer.status == ControllableTimerStatus.inProgress,
+      clockTicker: gm.tickerManager.onClockTicked,
+      onBlueberrySlingShot: (blueberry, newVelocity) {
+        twitchManager.slingShotBlueberryWar(
+            blueberry: blueberry, requestedVelocity: newVelocity);
+      },
+      drawBlueberryFieldOnly: true,
+    );
   }
 }
 

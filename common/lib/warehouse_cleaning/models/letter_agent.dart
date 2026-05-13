@@ -4,7 +4,7 @@ import 'package:vector_math/vector_math.dart';
 class LetterAgent extends Agent {
   final int tileIndex;
   final String value;
-  bool isCollected = false;
+  bool isCollected;
 
   @override
   Vector2 get velocity => Vector2.zero();
@@ -15,6 +15,7 @@ class LetterAgent extends Agent {
     required this.value,
     required super.position,
     required super.radius,
+    required this.isCollected,
   }) : super(
           velocity: Vector2.zero(),
           maxVelocity: 0.0,
@@ -32,6 +33,7 @@ class LetterAgent extends Agent {
         'agent_type': agentType.index,
         'position': position.serialize(),
         'radius': radius.serialize(),
+        'is_collected': isCollected,
       };
 
   static LetterAgent deserialize(Map<String, dynamic> map) {
@@ -41,6 +43,7 @@ class LetterAgent extends Agent {
       value: map['value'] as String,
       position: Vector2Extension.deserialize(map['position']),
       radius: Vector2Extension.deserialize(map['radius']),
+      isCollected: map['is_collected'] as bool,
     );
   }
 }

@@ -13,6 +13,8 @@ import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/serializable_player.dart';
 import 'package:common/generic/models/success_level.dart';
+import 'package:common/warehouse_cleaning/models/serializable_warehouse_cleaning_game_state.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -39,7 +41,7 @@ class GameManager {
     _tickerManager = tickerManager;
     _isInitialized = true;
 
-    _tickerManager.onClockTicked.listen(_tickGame);
+    _tickerManager.onFixedClockTicked.listen(_tickGame);
   }
 
   ///
@@ -305,7 +307,18 @@ class GameManager {
           break;
         }
       case MiniGames.warehouseCleaning:
-        break;
+        {
+          final mgm = _gameState.miniGameState
+              as SerializableWarehouseCleaningGameState;
+          WareHouseCleaningGameManagerHelpers.updateAllAvatarAgents(
+              dt: deltaTime,
+              avatars: mgm.avatars,
+              boxes: mgm.boxes,
+              letters: mgm.letters,
+              onLetterCollected: (letter) => {});
+
+          break;
+        }
 
       case MiniGames.fixTracks:
         break;

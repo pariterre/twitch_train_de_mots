@@ -8,6 +8,7 @@ import 'package:common/generic/models/exceptions.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/generic/models/map_extension.dart';
 import 'package:common/generic/models/serializable_game_state.dart';
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
@@ -300,6 +301,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         // Mini-game requests
         case MessagesToApp.revealTileAt:
         case MessagesToApp.slingShotBlueberryWar:
+        case MessagesToApp.slingShotAvatarWareHouse:
           return await _handleMiniGameRequest(message);
 
         case MessagesToApp.bitsRedeemed:
@@ -342,6 +344,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.fixTracksMiniGameRequest:
       case MessagesToApp.revealTileAt:
       case MessagesToApp.slingShotBlueberryWar:
+      case MessagesToApp.slingShotAvatarWareHouse:
       case MessagesToApp.bitsRedeemed:
         throw UnimplementedError(
             'This is not a main game request and should be handled in the main handler');
@@ -416,6 +419,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.fullGameStateRequest:
       case MessagesToApp.revealTileAt:
       case MessagesToApp.slingShotBlueberryWar:
+      case MessagesToApp.slingShotAvatarWareHouse:
       case MessagesToApp.bitsRedeemed:
         // These requests are not handled in this method
         throw UnimplementedError(
@@ -440,6 +444,17 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         final velocity =
             Vector2Extension.deserialize(message.data!['velocity']);
         bwm.slingShot(blueberry: blueberry, newVelocity: velocity);
+        isSuccess = true;
+        break;
+
+      case MessagesToApp.slingShotAvatarWareHouse:
+        final awm = Managers.instance.miniGames.warehouseCleaning;
+        final avatarId = message.data!['id'] as String;
+        final avatar = awm.allAgents[avatarId] as AvatarAgent;
+
+        final velocity =
+            Vector2Extension.deserialize(message.data!['velocity']);
+        awm.slingShot(avatar: avatar, newVelocity: velocity);
         isSuccess = true;
         break;
 

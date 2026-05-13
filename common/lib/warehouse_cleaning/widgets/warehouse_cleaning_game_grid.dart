@@ -2,7 +2,7 @@ import 'package:common/generic/models/generic_listener.dart';
 import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/box_agent.dart';
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
-import 'package:common/warehouse_cleaning/models/warehouse_cleaning_config.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:common/warehouse_cleaning/widgets/avatar_container.dart';
 import 'package:common/warehouse_cleaning/widgets/box_container.dart';
