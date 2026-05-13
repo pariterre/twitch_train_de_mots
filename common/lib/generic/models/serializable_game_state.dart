@@ -74,9 +74,19 @@ class SerializableLetterProblem {
         hiddenLetterStatuses: hiddenLetterStatuses ?? this.hiddenLetterStatuses,
       );
 
-  Map<String, dynamic> serialize() {
+  Map<String, dynamic> serialize({bool obscureHiddenLetter = false}) {
+    final lettersToSerialize = obscureHiddenLetter
+        ? letters
+            .asMap()
+            .keys
+            .map((index) => hiddenLetterStatuses[index] == LetterStatus.hidden
+                ? ''
+                : letters[index])
+            .toList(growable: false)
+        : letters.toList(growable: false);
+
     return {
-      'letters': letters.toList(growable: false),
+      'letters': lettersToSerialize,
       'scramble_indices': scrambleIndices.toList(growable: false),
       'useless_letter_statuses':
           uselessLetterStatuses.map((e) => e.index).toList(growable: false),

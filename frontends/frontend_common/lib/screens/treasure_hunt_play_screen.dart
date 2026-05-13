@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/letter_displayer_common.dart';
 import 'package:common/treasure_hunt/models/serializable_treasure_hunt_game_state.dart';
 import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:flutter/material.dart';
@@ -147,20 +148,64 @@ class _HeaderState extends State<_Header> {
     return LayoutBuilder(builder: (context, constraints) {
       final time = max((mgm.roundTimer.timeRemaining?.inSeconds ?? -1) + 1, 0);
 
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Temps restant $time',
-              style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
-          const SizedBox(width: 20),
-          Text('Essais restants ${mgm.triesRemaining}',
-              style: tm.textFrontendSc
-                  .copyWith(fontSize: constraints.maxWidth * 0.05)),
-        ],
-      );
+      return LayoutBuilder(builder: (context, constraints) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Temps restant $time',
+                    style: tm.textFrontendSc
+                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
+                const SizedBox(width: 20),
+                Text('Essais restants ${mgm.triesRemaining}',
+                    style: tm.textFrontendSc
+                        .copyWith(fontSize: constraints.maxWidth * 0.05)),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: SizedBox(
+                  width: constraints.maxWidth, child: const _LetterDisplayer()),
+            ),
+          ],
+        );
+      });
     });
   }
+}
 
-  // TODO Add the letter displayer?
+class _LetterDisplayer extends StatefulWidget {
+  const _LetterDisplayer();
+
+  @override
+  State<_LetterDisplayer> createState() => _LetterDisplayerState();
+}
+
+class _LetterDisplayerState extends State<_LetterDisplayer> {
+  @override
+  void initState() {
+    super.initState();
+
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.listen(_refresh);
+  }
+
+  @override
+  void dispose() {
+    final gm = GameManager.instance;
+    gm.onMiniGameStateUpdated.cancel(_refresh);
+    super.dispose();
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    final mgm =
+        GameManager.instance.miniGameState as SerializableTreasureHuntGameState;
+    return LetterDisplayerCommon(letterProblem: mgm.problem);
+  }
 }

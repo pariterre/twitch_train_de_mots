@@ -41,6 +41,8 @@ class ValuableLetter {
   /// The value of the letter is the same as the number of points it gives in Scrabble (French)
   static int getValueOfLetter(String letter) {
     switch (letter) {
+      case '':
+        return 0;
       case 'A':
       case 'E':
       case 'I':

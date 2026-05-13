@@ -836,7 +836,7 @@ class TwitchManagerMock extends TwitchManager {
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: false,
+                isRoundAMiniGame: true,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
@@ -892,28 +892,27 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   SerializableMiniGameState treasureHuntDummyMiniGame(
-          {required bool isPaused}) =>
-      SerializableTreasureHuntGameState(
-          roundTimer: SerializableControllableTimer(
-              isInitialized: true,
-              startedAt: DateTime.now(),
-              endsAt: DateTime.now().add(const Duration(seconds: 30)),
-              pausedAt: isPaused ? DateTime.now() : null),
-          triesRemaining: 10,
-          grid: TreasureHuntGrid.random(
-              rowCount: 20,
-              columnCount: 10,
-              rewardCount: 40,
-              problem: SerializableLetterProblem(
-                letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
-                scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
-                uselessLetterStatuses: List.generate(
-                    10,
-                    (i) =>
-                        i == 5 ? LetterStatus.revealed : LetterStatus.normal),
-                hiddenLetterStatuses:
-                    List.generate(10, (_) => LetterStatus.hidden),
-              )));
+      {required bool isPaused}) {
+    final problem = SerializableLetterProblem(
+      letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+      scrambleIndices: [3, 1, 2, 0, 4, 5, 6, 7, 8, 9],
+      uselessLetterStatuses: List.generate(
+          10, (i) => i == 5 ? LetterStatus.revealed : LetterStatus.normal),
+      hiddenLetterStatuses: List.generate(10, (_) => LetterStatus.hidden),
+    );
+
+    return SerializableTreasureHuntGameState(
+        roundTimer: SerializableControllableTimer(
+            isInitialized: true,
+            startedAt: DateTime.now(),
+            endsAt: DateTime.now().add(const Duration(seconds: 30)),
+            pausedAt: isPaused ? DateTime.now() : null),
+        triesRemaining: 10,
+        problem: problem,
+        grid: TreasureHuntGrid.random(
+            rowCount: 20, columnCount: 10, rewardCount: 40, problem: problem));
+  }
+
   SerializableMiniGameState blueberryWarDummyMiniGame(
           {required bool isPaused}) =>
       SerializableBlueberryWarGameState(

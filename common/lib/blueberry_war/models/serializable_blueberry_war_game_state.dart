@@ -30,7 +30,7 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
       'type': MiniGames.blueberryWar.index,
       'round_timer': roundTimer.serialize(),
       'agents': allAgents.map((key, agent) => MapEntry(key, agent.serialize())),
-      'problem': problem.serialize(),
+      'problem': problem.serialize(obscureHiddenLetter: true),
     };
   }
 

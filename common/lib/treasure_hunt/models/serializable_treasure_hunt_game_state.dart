@@ -1,5 +1,6 @@
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/mini_games.dart';
+import 'package:common/generic/models/serializable_game_state.dart';
 import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
 
@@ -8,6 +9,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
     required this.roundTimer,
     required this.grid,
     required this.triesRemaining,
+    required this.problem,
   });
 
   @override
@@ -17,6 +19,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
   final SerializableControllableTimer roundTimer;
   final TreasureHuntGrid grid;
   final int triesRemaining;
+  final SerializableLetterProblem problem;
 
   @override
   Map<String, dynamic> serialize() {
@@ -25,6 +28,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
       'round_timer': roundTimer.serialize(),
       'grid': grid.serialize(),
       'tries_remaining': triesRemaining,
+      'problem': problem.serialize(obscureHiddenLetter: true),
     };
   }
 
@@ -35,6 +39,8 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
       roundTimer: SerializableControllableTimer.deserialize(
           data['round_timer'] as Map<String, dynamic>),
       triesRemaining: data['tries_remaining'] as int,
+      problem: SerializableLetterProblem.deserialize(
+          data['problem'] as Map<String, dynamic>),
     );
   }
 
@@ -48,6 +54,7 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
       roundTimer: roundTimer ?? this.roundTimer,
       grid: grid ?? this.grid,
       triesRemaining: triesRemaining ?? this.triesRemaining,
+      problem: problem,
     );
   }
 
@@ -58,10 +65,14 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
     return other is SerializableTreasureHuntGameState &&
         other.roundTimer == roundTimer &&
         other.grid == grid &&
-        other.triesRemaining == triesRemaining;
+        other.triesRemaining == triesRemaining &&
+        other.problem == problem;
   }
 
   @override
   int get hashCode =>
-      roundTimer.hashCode ^ grid.hashCode ^ triesRemaining.hashCode;
+      roundTimer.hashCode ^
+      grid.hashCode ^
+      triesRemaining.hashCode ^
+      problem.hashCode;
 }

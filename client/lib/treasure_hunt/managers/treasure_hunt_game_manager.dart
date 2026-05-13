@@ -121,6 +121,7 @@ class TreasureHuntGameManager extends MiniGameManager {
       roundTimer: roundTimer,
       grid: _grid!,
       triesRemaining: _triesRemaining,
+      problem: problem,
     );
   }
 
