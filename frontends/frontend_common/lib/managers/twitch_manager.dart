@@ -438,7 +438,7 @@ class TwitchManager {
 
   Future<void> _onGameStateReceived(MessageProtocol message,
       {bool retryOnFail = true}) async {
-    _logger.info('Game state received');
+    _logger.fine('Game state received');
     final patch = message.data?['game_state'] == null
         ? <String, dynamic>{}
         : Map<String, dynamic>.from(message.data!['game_state']);
@@ -448,6 +448,8 @@ class TwitchManager {
 
     if (newGameState.checksum() != message.data!['checksum']) {
       if (retryOnFail) {
+        _logger
+            .info('Game state checksum mismatch, requesting full game status');
         _requestGameStatus();
       } else {
         _previousGameState = {};

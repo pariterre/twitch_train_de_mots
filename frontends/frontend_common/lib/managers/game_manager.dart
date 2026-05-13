@@ -74,70 +74,70 @@ class GameManager {
 
   void updateGameState(SerializableGameState newGameState) {
     if (_gameState.gameStatus != newGameState.gameStatus) {
-      _logger.info('Game status changed to ${newGameState.gameStatus}');
+      _logger.fine('Game status changed to ${newGameState.gameStatus}');
       onGameStatusUpdated.notifyListeners((callback) => callback());
     }
 
     if (_gameState.roundTimer != newGameState.roundTimer) {
-      _logger.info(
+      _logger.fine(
           'Round timer changed to ${newGameState.roundTimer.timeRemaining}');
       onGameStatusUpdated.notifyListeners((callback) => callback());
     }
 
     if (_gameState.roundCount != newGameState.roundCount ||
         _gameState.successLevel != newGameState.successLevel) {
-      _logger.info('Round changed to ${newGameState.roundCount}');
+      _logger.fine('Round changed to ${newGameState.roundCount}');
       onRoundUpdated.notifyListeners((callback) => callback());
     }
 
     if (!mapEquality(_gameState.players, newGameState.players)) {
-      _logger.info('New players informations');
+      _logger.fine('New players informations');
       onPlayersUpdated.notifyListeners((callback) => callback());
     }
 
     if (_gameState.letterProblem != newGameState.letterProblem) {
-      _logger.info('Letter problem changed');
+      _logger.fine('Letter problem changed');
       onLetterProblemChanged.notifyListeners((callback) => callback());
     }
 
     if (!listEquality(
         _gameState.playersWhoCanPardon, newGameState.playersWhoCanPardon)) {
-      _logger.info('Pardonners changed to ${newGameState.playersWhoCanPardon}');
+      _logger.fine('Pardonners changed to ${newGameState.playersWhoCanPardon}');
       onPardonnersChanged.notifyListeners((callback) => callback());
     }
 
     if (_gameState.boostRemaining != newGameState.boostRemaining ||
         !listEquality(_gameState.boosters, newGameState.boosters) ||
         _gameState.boostStillNeeded != newGameState.boostStillNeeded) {
-      _logger.info('Boost count changed to ${newGameState.boostRemaining}');
+      _logger.fine('Boost count changed to ${newGameState.boostRemaining}');
       onBoostAvailabilityChanged.notifyListeners((callback) => callback());
     }
 
     if (_gameState.canRequestTheBigHeist !=
         newGameState.canRequestTheBigHeist) {
       onGameStatusUpdated.notifyListeners((callback) => callback());
-      _logger.info(
+      _logger.fine(
           'Can request the big heist changed to ${newGameState.canRequestTheBigHeist}');
     }
 
     if (_gameState.isAttemptingTheBigHeist !=
         newGameState.isAttemptingTheBigHeist) {
       onAttemptingTheBigHeist.notifyListeners((callback) => callback());
-      _logger.info(
+      _logger.fine(
           'Is attempting the big heist changed to ${newGameState.isAttemptingTheBigHeist}');
     }
 
     if (_gameState.canRequestFixTracksMiniGame !=
         newGameState.canRequestFixTracksMiniGame) {
       onGameStatusUpdated.notifyListeners((callback) => callback());
-      _logger.info(
+      _logger.fine(
           'Can request the end of railway mini game changed to ${newGameState.canRequestFixTracksMiniGame}');
     }
 
     if (_gameState.isAttemptingFixTracksMiniGame !=
         newGameState.isAttemptingFixTracksMiniGame) {
       onFixingTheTrack.notifyListeners((callback) => callback());
-      _logger.info(
+      _logger.fine(
           'Is attempting the end of railway mini game changed to ${newGameState.isAttemptingFixTracksMiniGame}');
     }
 
@@ -165,8 +165,27 @@ class GameManager {
           newAgent.onTeleport.copyListenersFrom(oldAgent.onTeleport);
           newAgent.onDestroyed.copyListenersFrom(oldAgent.onDestroyed);
         }
+      } else if (_gameState.miniGameState
+              is SerializableWarehouseCleaningGameState &&
+          newGameState.miniGameState
+              is SerializableWarehouseCleaningGameState) {
+        final newMgm = newGameState.miniGameState
+            as SerializableWarehouseCleaningGameState;
+        final oldMgm =
+            _gameState.miniGameState as SerializableWarehouseCleaningGameState;
+
+        for (int index = 0; index < newMgm.avatars.length; index++) {
+          if (!oldMgm.avatars[index].canBeSlingShot) {
+            // To smooth the animation, we keep the position and velocity of the
+            // avatar if it cannot be sling shot (i.e the user cannot interact with it)
+            newMgm.allAgents[newMgm.avatars[index].id.toString()] =
+                newMgm.avatars[index].copyWith(
+                    position: oldMgm.avatars[index].position,
+                    velocity: oldMgm.avatars[index].velocity);
+          }
+        }
       }
-      _logger.info('Mini game state changed');
+      _logger.fine('Mini game state changed');
       onMiniGameStateUpdated.notifyListeners((callback) => callback());
     }
 

@@ -172,7 +172,9 @@ class WordsTrainGameManager {
   bool _canAttemptFixTracksMiniGame = false;
   bool _isAttemptingFixTracksMiniGame = false;
   bool get canRequestFixTracksMiniGame =>
-      _canAttemptFixTracksMiniGame && !_isAttemptingFixTracksMiniGame;
+      _hasPlayedAtLeastOnce &&
+      _canAttemptFixTracksMiniGame &&
+      !_isAttemptingFixTracksMiniGame;
   bool get isAttemptingFixTracksMiniGame => _isAttemptingFixTracksMiniGame;
   late final fixTracksMiniGameRequester = TwoStepRequester(
     canRequest: () async => canRequestFixTracksMiniGame,
@@ -568,13 +570,11 @@ class WordsTrainGameManager {
       _roundTimer.start(
           duration: cm.roundDuration - Duration(seconds: roundCount));
     }
+
+    // Start the round after having sent the telegram to the players
+    await _sendTelegramToPlayers();
     _gameStatus = WordsTrainGameStatus.roundStarted;
     onRoundStarted.notifyListeners((callback) => callback());
-
-    // Start the round
-    pauseGame();
-    await _sendTelegramToPlayers();
-    resumeGame();
 
     _logger.info('New round started');
   }
@@ -604,7 +604,9 @@ class WordsTrainGameManager {
 
     _messagesToPlayers.add(message);
     _logger.info('Sending telegram to players...');
+    pauseGame();
     await onShowTelegram!(message);
+    resumeGame();
     _logger.info('Telegram sent to players');
   }
 

@@ -1,5 +1,6 @@
 import 'package:common/warehouse_cleaning/models/agent.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_game_manager_helpers.dart';
+import 'package:vector_math/vector_math.dart';
 
 class AvatarAgent extends Agent {
   int tileIndex;
@@ -13,6 +14,27 @@ class AvatarAgent extends Agent {
     required super.maxVelocity,
     required super.coefficientOfFriction,
   });
+
+  AvatarAgent copyWith({
+    int? id,
+    int? tileIndex,
+    Vector2? position,
+    Vector2? velocity,
+    Vector2? radius,
+    double? maxVelocity,
+    double? coefficientOfFriction,
+  }) {
+    return AvatarAgent(
+      id: id ?? this.id,
+      tileIndex: tileIndex ?? this.tileIndex,
+      position: position ?? this.position,
+      velocity: velocity ?? this.velocity,
+      radius: radius ?? this.radius,
+      maxVelocity: maxVelocity ?? this.maxVelocity,
+      coefficientOfFriction:
+          coefficientOfFriction ?? this.coefficientOfFriction,
+    );
+  }
 
   @override
   AgentType get agentType => AgentType.avatar;
