@@ -44,6 +44,7 @@ class _BouncyContainerCollection {
   late AnimationController currentController = appearingController;
   late Animation<double> currentAnimation = appearingAnimation;
 
+  bool _isDisposed = false;
   late final appearingController = AnimationController(
       vsync: vsync,
       duration: Duration(milliseconds: controller.easingInDuration));
@@ -109,23 +110,23 @@ class _BouncyContainerCollection {
     currentController = appearingController;
     onControllerChanged();
     _logger.fine('Bouncing container appearing...');
-    await appearingController.forward();
+    if (!_isDisposed) await appearingController.forward();
 
     currentAnimation = bouncingAnimation;
     currentController = bouncingController;
     onControllerChanged();
     for (var i = 0; i < controller.bounceCount; i++) {
       _logger.fine('Bouncing container growing...');
-      await bouncingController.forward();
+      if (!_isDisposed) await bouncingController.forward();
       _logger.fine('Bouncing container shrinking...');
-      await bouncingController.reverse();
+      if (!_isDisposed) await bouncingController.reverse();
     }
 
     currentAnimation = disapearingScale;
     currentController = disapearingController;
     onControllerChanged();
     _logger.fine('Bouncing container disapearing...');
-    await disapearingController.forward();
+    if (!_isDisposed) await disapearingController.forward();
 
     _logger.fine('Bouncing container finished');
   }
@@ -133,6 +134,8 @@ class _BouncyContainerCollection {
   ///
   /// Dispose the animation
   void dispose() {
+    if (_isDisposed) return;
+    _isDisposed = true;
     appearingController.dispose();
     bouncingController.dispose();
     disapearingController.dispose();
@@ -174,12 +177,14 @@ class _BouncyContainerState extends State<BouncyContainer>
     setState(() {});
 
     // Run the appearing animation
-    await controllers._performAnimation(
-        onControllerChanged: () => setState(() {}));
+    await controllers._performAnimation(onControllerChanged: () {
+      if (!mounted) return;
+      setState(() {});
+    });
 
     // Delete the controller
     _animationControllers.remove(controllers);
-    setState(() {});
+    if (mounted) setState(() {});
     controllers.dispose();
   }
 
