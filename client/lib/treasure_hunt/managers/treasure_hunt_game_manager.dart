@@ -126,6 +126,9 @@ class TreasureHuntGameManager extends MiniGameManager {
   }
 
   @override
+  void flushDirtyItems() {}
+
+  @override
   Duration get initialRoundDuration =>
       const Duration(seconds: 20) +
       Managers.instance.train.previousRoundTimeRemaining;

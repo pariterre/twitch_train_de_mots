@@ -162,6 +162,17 @@ class GameManager {
           final oldAgent = oldMgm.allAgents[key];
           if (newAgent == null || oldAgent == null) continue;
 
+          // To smooth the animation, we keep the old position and velocity of the
+          // blueberry agent as long as it was not sling shot (i.e the user cannot interact with it)
+          if ((newAgent is BlueberryAgent)) {
+            if (newAgent.wasTeleported) {
+              newAgent.teleport(to: newAgent.position);
+            } else if (!newAgent.wasSlingShot) {
+              newMgm.allAgents[key] = newAgent.copyWith(
+                  position: oldAgent.position, velocity: oldAgent.velocity);
+            }
+          }
+
           newAgent.onTeleport.copyListenersFrom(oldAgent.onTeleport);
           newAgent.onDestroyed.copyListenersFrom(oldAgent.onDestroyed);
         }
@@ -175,9 +186,9 @@ class GameManager {
             _gameState.miniGameState as SerializableWarehouseCleaningGameState;
 
         for (int index = 0; index < newMgm.avatars.length; index++) {
-          if (!oldMgm.avatars[index].canBeSlingShot) {
-            // To smooth the animation, we keep the position and velocity of the
-            // avatar if it cannot be sling shot (i.e the user cannot interact with it)
+          if (!newMgm.avatars[index].wasSlingShot) {
+            // To smooth the animation, we keep the old position and velocity of the
+            // avatar as long as it was not sling shot (i.e the user cannot interact with it)
             newMgm.allAgents[newMgm.avatars[index].id.toString()] =
                 newMgm.avatars[index].copyWith(
                     position: oldMgm.avatars[index].position,

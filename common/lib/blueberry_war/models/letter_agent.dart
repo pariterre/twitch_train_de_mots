@@ -43,7 +43,8 @@ class LetterAgent extends Agent {
     required super.mass,
     required super.coefficientOfFriction,
     required int numberOfHits,
-  }) : _numberOfHits = numberOfHits;
+  })  : _numberOfHits = numberOfHits,
+        super(wasTeleported: false);
 
   @override
   AgentType get agentType => AgentType.letter;
@@ -52,8 +53,8 @@ class LetterAgent extends Agent {
   Map<String, dynamic> serialize() => {
         'id': id,
         'agent_type': agentType.index,
-        'position': position.serialize(),
-        'velocity': velocity.serialize(),
+        'position': networkPosition.serialize(),
+        'velocity': networkVelocity.serialize(),
         'max_velocity': maxVelocity,
         'radius': radius.serialize(),
         'mass': mass,

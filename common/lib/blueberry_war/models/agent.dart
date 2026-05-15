@@ -2,6 +2,7 @@ import 'package:common/blueberry_war/models/blueberry_agent.dart';
 import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.dart';
 import 'package:common/blueberry_war/models/letter_agent.dart';
 import 'package:common/generic/models/generic_listener.dart';
+import 'package:common/generic/models/network_item.dart';
 import 'package:vector_math/vector_math.dart';
 
 enum AgentShape { circle, rectangle }
@@ -15,11 +16,14 @@ extension Vector2Extension on Vector2 {
       Vector2((data[0] as num).toDouble(), (data[1] as num).toDouble());
 }
 
-abstract class Agent {
+abstract class Agent with NetworkSynchronizable {
   final int id;
-  Vector2 position;
-  Vector2 _velocity;
+  final NetworkItem<double> _positionX;
+  final NetworkItem<double> _positionY;
+  final NetworkItem<double> _velocityX;
+  final NetworkItem<double> _velocityY;
   final double maxVelocity;
+  bool wasTeleported;
   final Vector2 radius;
   final double mass;
   double coefficientOfFriction;
@@ -31,17 +35,19 @@ abstract class Agent {
 
   Agent({
     required this.id,
-    required this.position,
+    required Vector2 position,
     required Vector2 velocity,
     required this.maxVelocity,
+    required this.wasTeleported,
     required this.radius,
     required this.mass,
     required this.coefficientOfFriction,
-  }) : _velocity = velocity;
+  })  : _positionX = NetworkItem(position.x),
+        _positionY = NetworkItem(position.y),
+        _velocityX = NetworkItem(velocity.x),
+        _velocityY = NetworkItem(velocity.y);
 
   AgentType get agentType;
-
-  Map<String, dynamic> serialize();
 
   static Agent deserialize(Map<String, dynamic> map) =>
       switch (AgentType.values[map['agent_type']]) {
@@ -49,12 +55,46 @@ abstract class Agent {
         AgentType.blueberry => BlueberryAgent.deserialize(map),
       };
 
-  Vector2 get velocity => _velocity;
+  @override
+  void flushDirtyItems() {
+    wasTeleported = false;
+  }
+
+  Vector2 get position => Vector2(_positionX.item, _positionY.item);
+  Vector2 get networkPosition =>
+      Vector2(_positionX.networkItem, _positionY.networkItem);
+  set _localPosition(Vector2 value) {
+    _positionX.localItem = value.x;
+    _positionY.localItem = value.y;
+  }
+
+  set position(Vector2 value) {
+    _positionX.item = value.x;
+    _positionY.item = value.y;
+  }
+
+  Vector2 get velocity => Vector2(_velocityX.item, _velocityY.item);
+  Vector2 get networkVelocity =>
+      Vector2(_velocityX.networkItem, _velocityY.networkItem);
+  set _localVelocity(Vector2 value) {
+    if (value.length2 > maxVelocity * maxVelocity) {
+      final normalized = value.normalized();
+      _velocityX.localItem = normalized.x * maxVelocity;
+      _velocityY.localItem = normalized.y * maxVelocity;
+    } else {
+      _velocityX.localItem = value.x;
+      _velocityY.localItem = value.y;
+    }
+  }
+
   set velocity(Vector2 value) {
     if (value.length2 > maxVelocity * maxVelocity) {
-      _velocity = value.normalized() * maxVelocity;
+      final normalized = value.normalized();
+      _velocityX.item = normalized.x * maxVelocity;
+      _velocityY.item = normalized.y * maxVelocity;
     } else {
-      _velocity = value;
+      _velocityX.item = value.x;
+      _velocityY.item = value.y;
     }
   }
 
@@ -62,23 +102,24 @@ abstract class Agent {
     if (isDestroyed) return;
 
     // Update position
-    position += _velocity * (dt.inMilliseconds / 1000.0);
+    _localPosition = position + velocity * (dt.inMilliseconds / 1000.0);
 
     // Add some friction to the velocity
-    velocity *= (1 - coefficientOfFriction * dt.inMilliseconds / 1000.0);
+    _localVelocity =
+        velocity * (1 - coefficientOfFriction * dt.inMilliseconds / 1000.0);
 
     // Check bounds and bounce if necessary
     if (isOutOfHorizontalBounds(horizontalBounds)) {
-      position.x = leftBorder < horizontalBounds.x
+      _positionX.localItem = leftBorder < horizontalBounds.x
           ? horizontalBounds.x + radius.x
           : horizontalBounds.y - radius.x;
-      velocity.x = -velocity.x;
+      _velocityX.localItem = -velocity.x;
     }
     if (isOutOfVerticalBounds(verticalBounds)) {
-      position.y = topBorder < verticalBounds.x
+      _positionY.localItem = topBorder < verticalBounds.x
           ? verticalBounds.x + radius.y
           : verticalBounds.y - radius.y;
-      velocity.y = -velocity.y;
+      _velocityY.localItem = -velocity.y;
     }
   }
 
@@ -104,13 +145,14 @@ abstract class Agent {
 
     // Apply impulse
     final impulse = normal * impulseMag;
-    velocity -= impulse * other.mass;
-    other.velocity += impulse * mass;
+    _localVelocity = velocity - impulse * other.mass;
+    other._localVelocity = other.velocity + impulse * mass;
   }
 
   void teleport({required Vector2 to}) {
     position = to;
     velocity = Vector2.zero();
+    wasTeleported = true;
     onTeleport.notifyListeners((callback) => callback(position, to));
   }
 

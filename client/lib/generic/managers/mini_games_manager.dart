@@ -110,6 +110,10 @@ abstract class MiniGameManager {
   SerializableMiniGameState serializeMiniGame();
 
   ///
+  /// Flush any dirty items in the game state.
+  void flushDirtyItems();
+
+  ///
   /// Callback when the round status changes, with the new status as a parameter
   void onRoundStatusChanged(ControllableTimerStatus newStatus) {
     switch (newStatus) {

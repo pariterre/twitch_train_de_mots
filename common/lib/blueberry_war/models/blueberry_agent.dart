@@ -5,6 +5,8 @@ import 'package:common/blueberry_war/models/blueberry_war_game_manager_helpers.d
 import 'package:vector_math/vector_math.dart';
 
 class BlueberryAgent extends Agent {
+  bool wasSlingShot;
+
   @override
   AgentShape get shape => AgentShape.circle;
 
@@ -26,11 +28,42 @@ class BlueberryAgent extends Agent {
     required bool isInField,
     required super.radius,
     required super.maxVelocity,
+    required super.wasTeleported,
     required super.mass,
     required super.coefficientOfFriction,
+    required this.wasSlingShot,
     bool isDestroyed = false,
   })  : _isInField = isInField,
         _isDestroyed = isDestroyed;
+
+  BlueberryAgent copyWith({
+    int? id,
+    Vector2? position,
+    Vector2? velocity,
+    bool? isInField,
+    Vector2? radius,
+    double? maxVelocity,
+    double? mass,
+    double? coefficientOfFriction,
+    bool? wasSlingShot,
+    bool? wasTeleported,
+    bool? isDestroyed,
+  }) {
+    return BlueberryAgent(
+      id: id ?? this.id,
+      position: position ?? this.position,
+      velocity: velocity ?? this.velocity,
+      isInField: isInField ?? this.isInField,
+      radius: radius ?? this.radius,
+      maxVelocity: maxVelocity ?? this.maxVelocity,
+      mass: mass ?? this.mass,
+      coefficientOfFriction:
+          coefficientOfFriction ?? this.coefficientOfFriction,
+      wasSlingShot: wasSlingShot ?? this.wasSlingShot,
+      wasTeleported: wasTeleported ?? this.wasTeleported,
+      isDestroyed: isDestroyed ?? this.isDestroyed,
+    );
+  }
 
   @override
   AgentType get agentType => AgentType.blueberry;
@@ -39,16 +72,24 @@ class BlueberryAgent extends Agent {
   Map<String, dynamic> serialize() => {
         'id': id,
         'agent_type': agentType.index,
-        'position': position.serialize(),
-        'velocity': velocity.serialize(),
+        'position': networkPosition.serialize(),
+        'velocity': networkVelocity.serialize(),
         'is_in_field': isInField,
         'max_velocity': maxVelocity,
         'radius': radius.serialize(),
         'mass': mass,
         'coefficient_of_friction': coefficientOfFriction,
         'shape': shape.index,
+        'was_sling_shot': wasSlingShot,
+        'was_teleported': wasTeleported,
         'is_destroyed': isDestroyed,
       };
+
+  @override
+  void flushDirtyItems() {
+    super.flushDirtyItems();
+    wasSlingShot = false;
+  }
 
   static BlueberryAgent deserialize(Map<String, dynamic> map) {
     return BlueberryAgent(
@@ -61,6 +102,8 @@ class BlueberryAgent extends Agent {
       mass: (map['mass'] as num).toDouble(),
       coefficientOfFriction: (map['coefficient_of_friction'] as num).toDouble(),
       isDestroyed: map['is_destroyed'] as bool,
+      wasSlingShot: map['was_sling_shot'] as bool,
+      wasTeleported: map['was_teleported'] as bool,
     );
   }
 

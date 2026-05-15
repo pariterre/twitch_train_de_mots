@@ -153,6 +153,8 @@ class BlueberryWarGameManager extends MiniGameManager {
         radius: BlueberryWarConfig.blueberryRadius,
         mass: 3.0,
         coefficientOfFriction: 0.8,
+        wasSlingShot: false,
+        wasTeleported: false,
       );
     }
 
@@ -180,6 +182,7 @@ class BlueberryWarGameManager extends MiniGameManager {
       }
 
       blueberry.velocity = newVelocity * scale;
+      blueberry.wasSlingShot = true;
 
       onGameUpdated.notifyListeners((callback) => callback());
     } else {
@@ -251,6 +254,13 @@ class BlueberryWarGameManager extends MiniGameManager {
         allAgents: allAgents,
         problem: _problem!,
       );
+
+  @override
+  void flushDirtyItems() {
+    for (final agent in allAgents.values) {
+      agent.flushDirtyItems();
+    }
+  }
 
   ///
   /// The game loop

@@ -154,6 +154,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
         velocity: vector_math.Vector2.zero(),
         coefficientOfFriction:
             WarehouseCleaningConfig.avatarFrictionCoefficient,
+        wasSlingShot: false,
       );
     }
 
@@ -210,6 +211,13 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   }
 
   @override
+  void flushDirtyItems() {
+    for (final agent in allAgents.values) {
+      agent.flushDirtyItems();
+    }
+  }
+
+  @override
   Duration get initialRoundDuration =>
       const Duration(seconds: 45) +
       Managers.instance.train.previousRoundTimeRemaining;
@@ -263,6 +271,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       }
 
       avatar.velocity = newVelocity * scale;
+      avatar.wasSlingShot = true;
 
       // Remove one try for sling shooting
       _triesRemaining--;

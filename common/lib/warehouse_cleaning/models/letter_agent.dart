@@ -31,10 +31,13 @@ class LetterAgent extends Agent {
         'tile_index': tileIndex,
         'value': value,
         'agent_type': agentType.index,
-        'position': position.serialize(),
+        'position': networkPosition.serialize(),
         'radius': radius.serialize(),
         'is_collected': isCollected,
       };
+
+  @override
+  void flushDirtyItems() {}
 
   static LetterAgent deserialize(Map<String, dynamic> map) {
     return LetterAgent(

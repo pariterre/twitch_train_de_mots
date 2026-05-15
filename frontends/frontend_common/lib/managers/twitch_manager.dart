@@ -972,6 +972,8 @@ class TwitchManagerMock extends TwitchManager {
                 radius: BlueberryWarConfig.blueberryRadius,
                 mass: 3.0,
                 coefficientOfFriction: 0.8,
+                wasSlingShot: false,
+                wasTeleported: false,
               )
           },
           problem: SerializableLetterProblem(
@@ -1030,6 +1032,7 @@ class TwitchManagerMock extends TwitchManager {
         velocity: vector_math.Vector2.zero(),
         coefficientOfFriction:
             WarehouseCleaningConfig.avatarFrictionCoefficient,
+        wasSlingShot: false,
       );
     }
 

@@ -24,10 +24,13 @@ class BoxAgent extends Agent {
   Map<String, dynamic> serialize() => {
         'id': id,
         'agent_type': agentType.index,
-        'position': position.serialize(),
+        'position': networkPosition.serialize(),
         'radius': radius.serialize(),
         'tile_index': tileIndex,
       };
+
+  @override
+  void flushDirtyItems() {}
 
   static BoxAgent deserialize(Map<String, dynamic> map) {
     return BoxAgent(

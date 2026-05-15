@@ -135,6 +135,9 @@ class FixTracksGameManager extends MiniGameManager {
   }
 
   @override
+  void flushDirtyItems() {}
+
+  @override
   Duration get initialRoundDuration => const Duration(minutes: 1);
 
   void trySolution(String playerName, String message) {

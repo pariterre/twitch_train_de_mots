@@ -1,3 +1,4 @@
+import 'package:common/generic/models/network_item.dart';
 import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/box_agent.dart';
 import 'package:common/warehouse_cleaning/models/letter_agent.dart';
@@ -16,26 +17,29 @@ extension Vector2Extension on Vector2 {
       Vector2((data[0] as num).toDouble(), (data[1] as num).toDouble());
 }
 
-abstract class Agent {
+abstract class Agent with NetworkSynchronizable {
   final int id;
-  Vector2 position;
-  Vector2 _velocity;
+  final NetworkItem<double> _positionX;
+  final NetworkItem<double> _positionY;
+  final NetworkItem<double> _velocityX;
+  final NetworkItem<double> _velocityY;
   final double maxVelocity;
   final Vector2 radius;
-  double coefficientOfFriction;
+  final double coefficientOfFriction;
 
   Agent({
     required this.id,
-    required this.position,
+    required Vector2 position,
     required Vector2 velocity,
     required this.maxVelocity,
     required this.radius,
     required this.coefficientOfFriction,
-  }) : _velocity = velocity;
+  })  : _positionX = NetworkItem(position.x),
+        _positionY = NetworkItem(position.y),
+        _velocityX = NetworkItem(velocity.x),
+        _velocityY = NetworkItem(velocity.y);
 
   AgentType get agentType;
-
-  Map<String, dynamic> serialize();
 
   static Agent deserialize(Map<String, dynamic> map) =>
       switch (AgentType.values[map['agent_type']]) {
@@ -44,12 +48,42 @@ abstract class Agent {
         AgentType.letter => LetterAgent.deserialize(map)
       };
 
-  Vector2 get velocity => _velocity;
-  set velocity(Vector2 value) {
+  Vector2 get position => Vector2(_positionX.item, _positionY.item);
+  Vector2 get networkPosition =>
+      Vector2(_positionX.networkItem, _positionY.networkItem);
+  set _localPosition(Vector2 value) {
+    _positionX.localItem = value.x;
+    _positionY.localItem = value.y;
+  }
+
+  set position(Vector2 value) {
+    _positionX.item = value.x;
+    _positionY.item = value.y;
+  }
+
+  Vector2 get velocity => Vector2(_velocityX.item, _velocityY.item);
+  Vector2 get networkVelocity =>
+      Vector2(_velocityX.networkItem, _velocityY.networkItem);
+  set _localVelocity(Vector2 value) {
     if (value.length2 > maxVelocity * maxVelocity) {
-      _velocity = value.normalized() * maxVelocity;
+      final normalized = value.normalized();
+      _velocityX.localItem = normalized.x * maxVelocity;
+      _velocityY.localItem = normalized.y * maxVelocity;
     } else {
-      _velocity = value;
+      _velocityX.localItem = value.x;
+      _velocityY.localItem = value.y;
+    }
+  }
+
+  set velocity(Vector2 value) {
+    position = position;
+    if (value.length2 > maxVelocity * maxVelocity) {
+      final normalized = value.normalized();
+      _velocityX.item = normalized.x * maxVelocity;
+      _velocityY.item = normalized.y * maxVelocity;
+    } else {
+      _velocityX.item = value.x;
+      _velocityY.item = value.y;
     }
   }
 
@@ -59,10 +93,11 @@ abstract class Agent {
     required Function(LetterAgent letter) onLetterCollision,
   }) {
     // Update position
-    position += velocity * (dt.inMilliseconds / 1000.0);
+    _localPosition = position + velocity * (dt.inMilliseconds / 1000.0);
 
     // Add some friction to the velocity
-    velocity *= (1 - coefficientOfFriction * dt.inMilliseconds / 1000.0);
+    _localVelocity =
+        velocity * (1 - coefficientOfFriction * dt.inMilliseconds / 1000.0);
 
     // Check for collisions with other agents
     bool hasCollided = false;
@@ -91,22 +126,22 @@ abstract class Agent {
         (radius.y + other.radius.y) - ((position.y - other.position.y).abs());
 
     if (overlapX <= overlapY) {
-      velocity.x = -velocity.x * 0.1;
+      _velocityX.localItem = -velocity.x * 0.1;
 
       if (position.x < other.position.x) {
-        position.x -= overlapX;
+        _positionX.localItem = position.x - overlapX;
       } else {
-        position.x += overlapX;
+        _positionX.localItem = position.x + overlapX;
       }
     }
 
     if (overlapY <= overlapX) {
-      velocity.y = -velocity.y * 0.1;
+      _velocityY.localItem = -velocity.y * 0.1;
 
       if (position.y < other.position.y) {
-        position.y -= overlapY;
+        _positionY.localItem = position.y - overlapY;
       } else {
-        position.y += overlapY;
+        _positionY.localItem = position.y + overlapY;
       }
     }
   }

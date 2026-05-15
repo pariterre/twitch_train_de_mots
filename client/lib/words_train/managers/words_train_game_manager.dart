@@ -288,6 +288,10 @@ class WordsTrainGameManager {
             : SerializableMiniGameStateNone(),
       );
 
+  void flushDirtyItems() {
+    Managers.instance.miniGames.manager?.flushDirtyItems();
+  }
+
   /// ----------- ///
   /// INTERACTION ///
   /// ----------- ///

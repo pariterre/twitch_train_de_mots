@@ -4,6 +4,7 @@ import 'package:vector_math/vector_math.dart';
 
 class AvatarAgent extends Agent {
   int tileIndex;
+  bool wasSlingShot;
 
   AvatarAgent({
     required super.id,
@@ -13,6 +14,7 @@ class AvatarAgent extends Agent {
     required super.radius,
     required super.maxVelocity,
     required super.coefficientOfFriction,
+    required this.wasSlingShot,
   });
 
   AvatarAgent copyWith({
@@ -23,6 +25,7 @@ class AvatarAgent extends Agent {
     Vector2? radius,
     double? maxVelocity,
     double? coefficientOfFriction,
+    bool? wasSlingShot,
   }) {
     return AvatarAgent(
       id: id ?? this.id,
@@ -33,6 +36,7 @@ class AvatarAgent extends Agent {
       maxVelocity: maxVelocity ?? this.maxVelocity,
       coefficientOfFriction:
           coefficientOfFriction ?? this.coefficientOfFriction,
+      wasSlingShot: wasSlingShot ?? this.wasSlingShot,
     );
   }
 
@@ -44,12 +48,18 @@ class AvatarAgent extends Agent {
         'id': id,
         'agent_type': agentType.index,
         'tile_index': tileIndex,
-        'position': position.serialize(),
-        'velocity': velocity.serialize(),
+        'position': networkPosition.serialize(),
+        'velocity': networkVelocity.serialize(),
         'max_velocity': maxVelocity,
         'radius': radius.serialize(),
         'coefficient_of_friction': coefficientOfFriction,
+        'was_sling_shot': wasSlingShot,
       };
+
+  @override
+  void flushDirtyItems() {
+    wasSlingShot = false;
+  }
 
   static AvatarAgent deserialize(Map<String, dynamic> map) {
     return AvatarAgent(
@@ -60,6 +70,7 @@ class AvatarAgent extends Agent {
       maxVelocity: (map['max_velocity'] as num).toDouble(),
       radius: Vector2Extension.deserialize(map['radius']),
       coefficientOfFriction: (map['coefficient_of_friction'] as num).toDouble(),
+      wasSlingShot: map['was_sling_shot'] as bool,
     );
   }
 

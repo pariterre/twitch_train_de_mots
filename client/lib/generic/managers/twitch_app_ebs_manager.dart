@@ -214,6 +214,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       return;
     }
 
+    Managers.instance.train.flushDirtyItems();
     final response = await sendQuestionToEbs(MessageProtocol(
         to: MessageTo.ebs,
         from: MessageFrom.app,
