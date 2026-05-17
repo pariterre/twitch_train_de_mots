@@ -34,7 +34,7 @@ class _GlobalTickerState extends State<GlobalTicker>
             authenticationServerUri:
                 Uri.https('twitchserver.pariterre.net:3000', 'token'),
             authenticationFlow: TwitchAuthenticationFlow.implicit,
-            ebsUri: Uri.parse('ws://localhost:3010'),
+            ebsUri: Uri.parse('ws://localhost:3011'),
           ),
         ),
         builder: (context, state) {

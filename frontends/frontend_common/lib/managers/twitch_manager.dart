@@ -316,8 +316,8 @@ class TwitchManager {
       appInfo: tm.TwitchFrontendInfo(
         appName: 'Train de mots',
         ebsUri: Uri.parse(useLocalEbs
-            ? 'ws://localhost:3010'
-            : 'wss://twitchserver.pariterre.net:3010'),
+            ? 'ws://localhost:3011'
+            : 'wss://twitchserver.pariterre.net:3011'),
       ),
       isTwitchUserIdRequired: true,
       mockedAuthenticatorInitializer: useTwitchAuthenticatorMock

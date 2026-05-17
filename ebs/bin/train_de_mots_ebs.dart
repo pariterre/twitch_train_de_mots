@@ -28,7 +28,7 @@ void main(List<String> arguments) {
   _setupLoggerFromArguments(arguments);
 
   final networkParameters = _processNetworkArguments(arguments,
-      defaultHost: 'localhost', defaultPort: 3010);
+      defaultHost: 'localhost', defaultPort: 3011);
 
   final databasePrivateKey =
       Platform.environment['TRAIN_DE_MOTS_EBS_DATABASE_PRIVATE_KEY'];
