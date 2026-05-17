@@ -42,7 +42,7 @@ ebs:
 	PROJECT_FOLDER=$(BASE_FOLDER)/ebs; \
 	cd $${PROJECT_FOLDER}; \
 	dart pub get; \
-	dart compile exe bin/server.dart; \
+	dart compile exe bin/train_de_mots_ebs.dart; \
 	cd $(BASE_FOLDER); 
 
 extensions:
