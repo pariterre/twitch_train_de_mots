@@ -56,8 +56,8 @@ class TwitchManager {
   final bool useTwitchAuthenticatorMock;
 
   Map<String, dynamic> _previousGameState = {};
-  String? _displayName;
-  String? get displayName => _displayName;
+  String? _login;
+  String? get login => _login;
 
   ///
   /// Initialize the TwitchManager
@@ -330,7 +330,7 @@ class TwitchManager {
     _frontendManager!.onMessageReceived.listen(_onMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
       GameManager.instance.startGame();
-      _requestCurrentDisplayName();
+      _requestCurrentLogin();
       _requestGameStatus();
     });
     _frontendManager!.onStreamerHasDisconnected
@@ -396,23 +396,22 @@ class TwitchManager {
     }
   }
 
-  Future<void> _requestCurrentDisplayName() async {
-    while (_displayName == null) {
-      final response =
-          await _sendMessageToEbs(MessagesToEbs.opaqueToDisplayName)
-              .timeout(const Duration(seconds: 5),
-                  onTimeout: () => tm.MessageProtocol(
-                      to: tm.MessageTo.frontend,
-                      from: tm.MessageFrom.ebs,
-                      type: tm.MessageTypes.response,
-                      isSuccess: false))
-              .onError((e, st) => tm.MessageProtocol(
+  Future<void> _requestCurrentLogin() async {
+    while (_login == null) {
+      final response = await _sendMessageToEbs(MessagesToEbs.opaqueToLogin)
+          .timeout(const Duration(seconds: 5),
+              onTimeout: () => tm.MessageProtocol(
                   to: tm.MessageTo.frontend,
                   from: tm.MessageFrom.ebs,
                   type: tm.MessageTypes.response,
-                  isSuccess: false));
+                  isSuccess: false))
+          .onError((e, st) => tm.MessageProtocol(
+              to: tm.MessageTo.frontend,
+              from: tm.MessageFrom.ebs,
+              type: tm.MessageTypes.response,
+              isSuccess: false));
       if (response.isSuccess ?? false) {
-        _displayName = response.data?['display_name'] as String?;
+        _login = response.data?['login'] as String?;
       }
 
       await Future.delayed(const Duration(seconds: 5));
@@ -859,13 +858,13 @@ class TwitchManagerMock extends TwitchManager {
     tm.BitsTransactionObject? transaction,
   }) async {
     switch (request) {
-      case MessagesToEbs.opaqueToDisplayName:
+      case MessagesToEbs.opaqueToLogin:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
             from: tm.MessageFrom.ebs,
             type: tm.MessageTypes.response,
             isSuccess: true,
-            data: {'display_name': 'Viewer1'});
+            data: {'login': 'viewer1'});
       case MessagesToEbs.gameStateRequest:
         {
           final gameState = SerializableGameState.empty()

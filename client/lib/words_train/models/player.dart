@@ -3,11 +3,16 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/serializable_player.dart';
+import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/controllable_timer.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 
+final _logger = Logger('Player');
+
 class Player {
-  final String name;
+  final String displayName;
+  final String login;
 
   int score = 0;
   int starsCollected = 0;
@@ -50,11 +55,12 @@ class Player {
     if (cooldownTimer.isInitialized) cooldownTimer.dispose();
   }
 
-  Player({required this.name});
+  Player({required this.login, required this.displayName});
 
   SerializablePlayer serialize() {
     return SerializablePlayer(
-      name: name,
+      login: login,
+      displayName: displayName,
       score: score,
       starsCollected: starsCollected,
       roundStealCount: roundStealCount,
@@ -73,21 +79,19 @@ class Players extends DelegatingList<Player> {
   Players._(super.players) : _players = players;
 
   ///
-  /// Get if the player with the given name is registered
-  bool hasPlayer(String name) =>
-      _players.any((element) => element.name == name);
-
-  ///
-  /// Get if the player with the given name is not registered
-  bool hasNotPlayer(String name) => !hasPlayer(name);
-
-  ///
   /// This method behaves like [firstWhere] but if the player is not found, it
   /// will add it to the list and return it.
-  Player firstWhereOrAdd(String name) {
-    Player? player = firstWhereOrNull((element) => element.name == name);
+  Future<Player> firstWhereOrAdd(String login) async {
+    Player? player = firstWhereOrNull((element) => element.login == login);
     if (player == null) {
-      final newPlayer = Player(name: name);
+      final displayName =
+          await Managers.instance.twitch.displayNameFromLogin(login);
+      if (displayName == null) {
+        _logger.warning(
+            'No display name found for login $login, using login as display name');
+        throw Exception('No display name found for login $login');
+      }
+      final newPlayer = Player(login: login, displayName: displayName);
       _players.add(newPlayer);
       player = newPlayer;
     }

@@ -375,7 +375,7 @@ class SoundManager {
     }
   }
 
-  void _onAttemptingTheBigHeist({required String playerName}) {
+  void _onAttemptingTheBigHeist({required String login}) {
     _playSoundEffect(_SoundEffect.theBigHeist);
   }
 

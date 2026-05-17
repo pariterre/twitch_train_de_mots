@@ -84,7 +84,7 @@ class _PardonState extends State<_Pardon> {
   }
 
   void _onSolutionWasStolen(WordSolution solution) {
-    _lastStealer = solution.stolenFrom.name;
+    _lastStealer = solution.stolenFrom.displayName;
     setState(() {});
   }
 

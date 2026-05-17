@@ -146,8 +146,8 @@ class WordsTrainGameManager {
   bool get canChangeLane => _canChangeLane && !_isChangingLane;
   late final changeLaneRequester = TwoStepRequester(
     canRequest: () async => canChangeLane,
-    onRequestInitialized: (playerName) => Future.value(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) {
+    onRequestInitialized: (login) => Future.value(),
+    onRequestFinalized: ({required isConfirmed, required login}) {
       if (isConfirmed) _performChangeOfLane();
       return Future.value();
     },
@@ -160,10 +160,10 @@ class WordsTrainGameManager {
   bool get isAttemptingTheBigHeist => _isAttemptingTheBigHeist;
   late final attemptTheBigHeistRequester = TwoStepRequester(
     canRequest: () async => canRequestTheBigHeist,
-    onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) {
+    onRequestInitialized: (login) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required login}) {
       resumeGame();
-      if (isConfirmed) _attemptTheBigHeist(playerName: playerName);
+      if (isConfirmed) _attemptTheBigHeist(login: login);
       return Future.value();
     },
   );
@@ -178,8 +178,8 @@ class WordsTrainGameManager {
   bool get isAttemptingFixTracksMiniGame => _isAttemptingFixTracksMiniGame;
   late final fixTracksMiniGameRequester = TwoStepRequester(
     canRequest: () async => canRequestFixTracksMiniGame,
-    onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) {
+    onRequestInitialized: (login) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required login}) {
       resumeGame();
       if (isConfirmed) _prepareFixTracksMiniGame();
       return Future.value();
@@ -201,10 +201,10 @@ class WordsTrainGameManager {
       _canRequestCongratulationFireworks && !_areCongratulationFireworksFiring;
   late final congratulationFireworksRequester = TwoStepRequester(
     canRequest: () async => canRequestCongratulationFireworks,
-    onRequestInitialized: (playerName) async => pauseGame(),
-    onRequestFinalized: ({required isConfirmed, required playerName}) {
+    onRequestInitialized: (login) async => pauseGame(),
+    onRequestFinalized: ({required isConfirmed, required login}) {
       resumeGame();
-      if (isConfirmed) _performCongratulationFireworks(playerName: playerName);
+      if (isConfirmed) _performCongratulationFireworks(login: login);
       return Future.value();
     },
   );
@@ -265,15 +265,15 @@ class WordsTrainGameManager {
         roundTimer: _roundTimer.toSerializable(),
         players: players
             .asMap()
-            .map((_, player) => MapEntry(player.name, player.serialize())),
+            .map((_, player) => MapEntry(player.login, player.serialize())),
         letterProblem: serializableProblem,
         pardonRemaining: pardonRemaining,
         playersWhoCanPardon: lastStolenSolution == null
             ? []
-            : [lastStolenSolution!.stolenFrom.name],
+            : [lastStolenSolution!.stolenFrom.login],
         boostRemaining: remainingBoosts,
         boostStillNeeded: numberOfBoostStillNeeded,
-        boosters: requestedBoost.map((e) => e.name).toList(),
+        boosters: requestedBoost.map((e) => e.login).toList(),
         canChangeLane: canChangeLane,
         canRequestFireworks: canRequestCongratulationFireworks,
         canRequestTheBigHeist: canRequestTheBigHeist,
@@ -402,18 +402,18 @@ class WordsTrainGameManager {
   final onTrainGotBoosted = GenericListener<Function(int)>();
   final onTrainBoostEnded = GenericListener<Function()>();
   final onBigHeistIsBeingPrepared = GenericListener<
-      Function({required String playerName, required bool isActive})>();
+      Function({required String login, required bool isActive})>();
   final onAttemptingTheBigHeist =
-      GenericListener<Function({required String playerName})>();
+      GenericListener<Function({required String login})>();
   final onBigHeistSuccess = GenericListener<Function()>();
   final onBigHeistFailed = GenericListener<Function()>();
   final onChangingLane = GenericListener<Function()>();
   final onShowcaseSolutionsRequest = GenericListener<Function()>();
   final onPlayerUpdate = GenericListener<Function()>();
   final onCongratulationFireworksPreparing = GenericListener<
-      Function({required String playerName, required bool isActive})>();
+      Function({required String login, required bool isActive})>();
   final onCongratulationFireworks = GenericListener<
-      Function({required String playerName, required bool isActive})>();
+      Function({required String login, required bool isActive})>();
   Future<void> Function(String)? onShowTelegram;
 
   /// -------- ///
@@ -665,22 +665,29 @@ class WordsTrainGameManager {
   /// Initialize the callbacks from Twitch chat to [trySolution]
   Future<void> _initializeTrySolutionCallback() async =>
       Managers.instance.twitch.addChatListener(
-          (sender, message) => trySolution(playerName: sender, word: message));
+          (login, message) => trySolution(login: login, word: message));
 
   ///
   /// Try a solution proposed by a player. If the solution is valid, it updates
   /// the player score and notifies the listeners.
-  bool trySolution({required String playerName, required String word}) {
+  Future<bool> trySolution(
+      {required String login, required String word}) async {
     if (gameStatus != WordsTrainGameStatus.roundStarted || isRoundAMiniGame) {
       _logger.fine('Cannot try solution while not playing a round');
       return false;
     }
 
-    _logger.fine('Trying solution from $playerName: $word');
+    _logger.fine('Trying solution from $login: $word');
     final cm = Managers.instance.configuration;
 
     // Get the player from the players list
-    final player = players.firstWhereOrAdd(playerName);
+    late final Player player;
+    try {
+      player = await players.firstWhereOrAdd(login);
+    } catch (e) {
+      _logger.warning('Error while trying to get or add player: $e');
+      return false;
+    }
 
     // Can get a little help from the controller of the train
     if (cm.canUseControllerHelper) {
@@ -757,7 +764,7 @@ class WordsTrainGameManager {
 
     // Also plan for an call to the listeners of players on next game loop
     _hasAPlayerBeenUpdate = true;
-    _playersWasInCooldownLastFrame[player.name] = true;
+    _playersWasInCooldownLastFrame[player.login] = true;
 
     _logger.info('Solution found');
     return true;
@@ -799,8 +806,9 @@ class WordsTrainGameManager {
 
     onStealerPardoned.notifyListeners((callback) => callback(solution));
 
-    _logger.info('Stealer (${solution.foundBy.name}) has been pardoned by '
-        '${pardonner.name}');
+    _logger
+        .info('Stealer (${solution.foundBy.displayName}) has been pardoned by '
+            '${pardonner.displayName}');
     return true;
   }
 
@@ -839,7 +847,7 @@ class WordsTrainGameManager {
     return true;
   }
 
-  bool _attemptTheBigHeist({required String playerName}) {
+  bool _attemptTheBigHeist({required String login}) {
     _logger.info('Requesting the big heist...');
     if (!canRequestTheBigHeist) {
       _logger.warning('Big heist cannot be attempted');
@@ -849,7 +857,7 @@ class WordsTrainGameManager {
     _canAttemptTheBigHeist = false;
     _isAttemptingTheBigHeist = true;
     onAttemptingTheBigHeist
-        .notifyListeners((callback) => callback(playerName: playerName));
+        .notifyListeners((callback) => callback(login: login));
 
     _logger.info('Big heist is attempted');
     return true;
@@ -898,8 +906,7 @@ class WordsTrainGameManager {
 
   ///
   /// Request the actual firework process
-  Future<void> _performCongratulationFireworks(
-      {required String playerName}) async {
+  Future<void> _performCongratulationFireworks({required String login}) async {
     _logger.info('Performing congratulation fireworks...');
     if (!canRequestCongratulationFireworks) {
       _logger.warning('Cannot request congratulation fireworks at this time');
@@ -909,25 +916,25 @@ class WordsTrainGameManager {
     _areCongratulationFireworksFiring = true;
 
     // This is triggered if a user sends fireworks to the screen
-    onCongratulationFireworks.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: true));
+    onCongratulationFireworks
+        .notifyListeners((callback) => callback(login: login, isActive: true));
 
     pauseGame();
     await Future.delayed(Duration(seconds: 10));
     resumeGame();
 
     // This should be stopped before that, but just in case we call stop anyway
-    requestStopFireworks(playerName: playerName);
+    requestStopFireworks(login: login);
   }
 
   ///
   /// Request the stop of the fireworks
-  void requestStopFireworks({required String playerName}) {
+  void requestStopFireworks({required String login}) {
     if (!_areCongratulationFireworksFiring) return;
 
     _areCongratulationFireworksFiring = false;
-    onCongratulationFireworks.notifyListeners(
-        (callback) => callback(playerName: playerName, isActive: false));
+    onCongratulationFireworks
+        .notifyListeners((callback) => callback(login: login, isActive: false));
   }
 
   ///
@@ -1012,8 +1019,8 @@ class WordsTrainGameManager {
     for (final player in players) {
       if (player.isInCooldownPeriod) {
         _hasAPlayerBeenUpdate = true;
-      } else if (_playersWasInCooldownLastFrame[player.name] ?? false) {
-        _playersWasInCooldownLastFrame[player.name] = false;
+      } else if (_playersWasInCooldownLastFrame[player.login] ?? false) {
+        _playersWasInCooldownLastFrame[player.login] = false;
         _hasAPlayerBeenUpdate = true;
       }
     }
@@ -1355,7 +1362,7 @@ class WordsTrainGameManager {
         _random.nextInt(MiniGames.betweenRoundsGames.length)];
   }
 
-  void _miniGameEnded() {
+  Future<void> _miniGameEnded() async {
     _logger.info('Mini game ended');
     final mgm = Managers.instance.miniGames.manager;
     if (mgm == null) {
@@ -1384,7 +1391,7 @@ class WordsTrainGameManager {
         _roundSuccesses.add(RoundSuccess.miniGameWon);
 
         for (final playerName in playerPoints.keys) {
-          final player = players.firstWhereOrAdd(playerName);
+          final player = await players.firstWhereOrAdd(playerName);
           player.score += playerPoints[playerName]!;
         }
       }
@@ -1483,7 +1490,7 @@ class WordsTrainGameManagerMock extends WordsTrainGameManager {
 
     if (shouldAttemptTheBigHeist) {
       _canAttemptTheBigHeist = true;
-      _attemptTheBigHeist(playerName: 'Anonyme');
+      _attemptTheBigHeist(login: 'anonyme');
     }
 
     if (shouldChangeLane) {

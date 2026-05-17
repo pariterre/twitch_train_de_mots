@@ -135,7 +135,7 @@ class _LeaderBoardState extends State<LeaderBoard> {
     return SizedBox(
       width: 400,
       child: _buildGenericTile(
-        player: player.name,
+        player: player.displayName,
         roundScore: roundScore,
         totalScore: player.score.toString(),
         isTitle: false,

@@ -26,7 +26,7 @@ enum MessagesToApp {
 }
 
 enum MessagesToEbs {
-  opaqueToDisplayName,
+  opaqueToLogin,
   gameStateRequest,
   patchGameState,
   newLetterProblemRequest,

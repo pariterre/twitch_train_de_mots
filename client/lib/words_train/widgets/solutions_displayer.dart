@@ -370,7 +370,7 @@ class _SolutionTileState extends State<_SolutionTile> {
                         if (widget.solution.isFound)
                           Flexible(
                             child: Text(
-                              ' (${widget.solution.foundBy.name})',
+                              ' (${widget.solution.foundBy.displayName})',
                               style: TextStyle(
                                   fontSize: tm.textSize,
                                   color: tm.textSolvedColor),
@@ -487,7 +487,7 @@ class _SolutionTileState extends State<_SolutionTile> {
     final tm = ThemeManager.instance;
 
     final solvedByMvp =
-        widget.mvpPlayers!.contains(widget.solution.foundBy.name);
+        widget.mvpPlayers!.contains(widget.solution.foundBy.displayName);
 
     return LinearGradient(
       begin: Alignment.topCenter,

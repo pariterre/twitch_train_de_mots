@@ -244,7 +244,7 @@ class _ASolutionWasStolen extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${solution.foundBy.name} a volé le mot de ${solution.stolenFrom.name}',
+            '${solution.foundBy.displayName} a volé le mot de ${solution.stolenFrom.displayName}',
             style: tm.clientMainTextStyle.copyWith(
                 fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
           ),
@@ -306,9 +306,11 @@ class _AStealerWasPardoned extends StatelessWidget {
       text = 'Il n\'y a aucun vol à pardonner!';
     } else {
       if (solution!.isStolen) {
-        text = 'Seul ${solution!.stolenFrom.name} peut pardonner le vol...';
+        text =
+            'Seul ${solution!.stolenFrom.displayName} peut pardonner le vol...';
       } else {
-        text = 'Le joueur ${solution!.foundBy.name} a été pardonné de son vol!';
+        text =
+            'Le joueur ${solution!.foundBy.displayName} a été pardonné de son vol!';
       }
     }
 

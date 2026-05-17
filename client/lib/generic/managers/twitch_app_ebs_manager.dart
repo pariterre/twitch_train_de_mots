@@ -276,7 +276,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   ///
   /// Send a message to the EBS server to notify that a round has ended
   Future<void> _sendGameStateToEbsWithPlayerName(
-          {required String playerName}) async =>
+          {required String login}) async =>
       _sendGameStateToEbs();
 
   @override
@@ -356,8 +356,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     final gm = Managers.instance.train;
 
     final requestType = MessagesToApp.values.byName(message.data!['type']);
-    final playerName = message.data!['player_name'] as String;
-    final player = gm.players.firstWhereOrAdd(playerName);
+    final login = message.data!['player_login'] as String;
+    final player = await gm.players.firstWhereOrAdd(login);
 
     switch (requestType) {
       // Single-pass requests
@@ -365,8 +365,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
         final isSuccess = switch (requestType) {
-          MessagesToApp.tryWord => gm.trySolution(
-              playerName: playerName, word: message.data!['word'] as String),
+          MessagesToApp.tryWord => await gm.trySolution(
+              login: login, word: message.data!['word'] as String),
           MessagesToApp.pardonRequest =>
             gm.pardonLastStealer(pardonner: player),
           MessagesToApp.boostRequest => gm.boostTrain(player: player),
@@ -396,7 +396,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
               'Requester for $requestType is not implemented'),
         };
 
-        final canRequest = await requester.canRequest(playerName: playerName);
+        final canRequest = await requester.canRequest(login: login);
         sendResponseToEbs(message.copyWith(
             to: MessageTo.frontend,
             from: MessageFrom.app,
@@ -407,9 +407,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           // False if it is the first pass, true if the permission was granted and it is the second pass.
           final isRedeemed = message.data!['is_redeemed'] as bool? ?? false;
           if (isRedeemed) {
-            requester.confirmRequest(playerName: playerName, isConfirmed: true);
+            requester.confirmRequest(login: login, isConfirmed: true);
           } else {
-            requester.initiateRequest(playerName: playerName);
+            requester.initiateRequest(login: login);
           }
         }
 

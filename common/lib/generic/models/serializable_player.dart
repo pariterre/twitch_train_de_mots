@@ -1,7 +1,8 @@
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 
 class SerializablePlayer {
-  final String name;
+  final String login;
+  final String displayName;
   final int score;
   final int starsCollected;
   final int roundStealCount;
@@ -9,7 +10,8 @@ class SerializablePlayer {
   final SerializableControllableTimer cooldownTimer;
 
   SerializablePlayer({
-    required this.name,
+    required this.login,
+    required this.displayName,
     required this.score,
     required this.starsCollected,
     required this.roundStealCount,
@@ -19,7 +21,8 @@ class SerializablePlayer {
 
   Map<String, dynamic> serialize() {
     return {
-      'name': name,
+      'login': login,
+      'display_name': displayName,
       'score': score,
       'stars_collected': starsCollected,
       'round_steal_count': roundStealCount,
@@ -30,7 +33,8 @@ class SerializablePlayer {
 
   static SerializablePlayer deserialize(Map<String, dynamic> data) {
     return SerializablePlayer(
-      name: data['name'],
+      login: data['login'],
+      displayName: data['display_name'],
       score: data['score'],
       starsCollected: data['stars_collected'],
       roundStealCount: data['round_steal_count'],
@@ -42,8 +46,8 @@ class SerializablePlayer {
 
   @override
   int get hashCode {
-    return Object.hash(name, score, starsCollected, roundStealCount,
-        gameStealCount, cooldownTimer);
+    return Object.hash(login, displayName, score, starsCollected,
+        roundStealCount, gameStealCount, cooldownTimer);
   }
 
   @override
@@ -51,7 +55,8 @@ class SerializablePlayer {
     if (identical(this, other)) return true;
 
     return other is SerializablePlayer &&
-        other.name == name &&
+        other.login == login &&
+        other.displayName == displayName &&
         other.score == score &&
         other.starsCollected == starsCollected &&
         other.roundStealCount == roundStealCount &&

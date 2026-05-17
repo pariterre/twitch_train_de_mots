@@ -353,7 +353,7 @@ class DatabaseManager {
     _addAllToResults(
         teamResults.mvpScore,
         mvpScore.map((player) => PlayerResult(
-              name: player.name,
+              name: player.displayName,
               value: player.score,
               teamName: teamName!,
             )),
@@ -361,7 +361,7 @@ class DatabaseManager {
     _addAllToResults(
         teamResults.mvpStars,
         mvpStars.map((player) => PlayerResult(
-              name: player.name,
+              name: player.displayName,
               value: player.starsCollected,
               teamName: teamName!,
             )),
@@ -369,7 +369,7 @@ class DatabaseManager {
     _addAllToResults(
         teamResults.mvpSteals,
         mvpSteals.map((player) => PlayerResult(
-              name: player.name,
+              name: player.displayName,
               value: player.gameStealCount,
               teamName: teamName!,
             )),
@@ -465,7 +465,7 @@ class DatabaseManager {
           MvpType.steals => mvpPlayer.gameStealCount,
         };
         final currentResult = PlayerResult(
-            name: mvpPlayer.name, value: value, teamName: teamName!);
+            name: mvpPlayer.displayName, value: value, teamName: teamName!);
         _insertResultInList(currentResult, out);
       }
     }
@@ -485,7 +485,7 @@ class DatabaseManager {
         _limitNumberOfResults(
             top,
             PlayerResult(
-                name: mvpPlayer.name, value: value, teamName: teamName!),
+                name: mvpPlayer.displayName, value: value, teamName: teamName!),
             out);
       }
     }

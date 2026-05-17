@@ -66,7 +66,7 @@ class _CongratulationLayerState extends State<CongratulationLayer>
   }
 
   void _launchFireworks({
-    required String playerName,
+    required String login,
     required bool isActive,
   }) {
     if (!isActive) return;
@@ -74,7 +74,7 @@ class _CongratulationLayerState extends State<CongratulationLayer>
     setState(() => _isFiring = true);
 
     _congratulationMessageController
-        .triggerAnimation(_CongratulationMessage(congratulerName: playerName));
+        .triggerAnimation(_CongratulationMessage(congratulerName: login));
 
     final random = Random();
 
@@ -123,8 +123,7 @@ class _CongratulationLayerState extends State<CongratulationLayer>
 
             setState(() {
               _isFiring = false;
-              Managers.instance.train
-                  .requestStopFireworks(playerName: playerName);
+              Managers.instance.train.requestStopFireworks(login: login);
             });
           });
         }

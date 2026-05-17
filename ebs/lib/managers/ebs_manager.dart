@@ -106,7 +106,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
     await _handlePatchGameState(response, retryOnFail: false);
   }
 
-  void _sendDisplayNameFromOpaqueId(MessageProtocol message) async {
+  void _sendLoginFromOpaqueId(MessageProtocol message) async {
     final opaqueId = message.data?['opaque_id'] as String?;
     final user = registeredFrontendUsers.from(opaqueId: opaqueId);
     if (user == null) {
@@ -119,7 +119,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         from: MessageFrom.ebs,
         type: MessageTypes.response,
         isSuccess: true,
-        data: {'display_name': user.displayName}));
+        data: {'login': user.login}));
   }
 
   void _sendGameStateToFrontend(Map<String, dynamic> newGameStateSerialized,
@@ -166,9 +166,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   /// [word] the word that is being tried
   Future<bool> _frontendTryAWord(String userId, String word) async {
     _logger.info('Resquesting to try the word $word');
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -179,7 +178,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.tryWord.name,
-          'player_name': playerName,
+          'player_login': playerLogin,
           'word': word
         }));
     return response.isSuccess ?? false;
@@ -191,9 +190,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedToPardon(String userId) async {
     _logger.info('Resquesting to pardon last stealer');
 
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -204,7 +202,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.pardonRequest.name,
-          'player_name': playerName
+          'player_login': playerLogin
         }));
     return response.isSuccess ?? false;
   }
@@ -215,9 +213,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedBoosted(String userId) async {
     _logger.info('Resquesting to boost the train');
 
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -228,7 +225,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.boostRequest.name,
-          'player_name': playerName
+          'player_login': playerLogin
         }));
     return response.isSuccess ?? false;
   }
@@ -236,9 +233,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
   Future<bool> _frontendRequestedRevealTileAt(String userId, int index) async {
     _logger.info('Resquesting to reveal tile at $index');
 
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -249,7 +245,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.revealTileAt.name,
-          'player_name': playerName,
+          'player_login': playerLogin,
           'index': index
         }));
     return response.isSuccess ?? false;
@@ -259,9 +255,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
       {required String id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshot at $id');
 
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -272,7 +267,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.slingShotBlueberryWar.name,
-          'player_name': playerName,
+          'player_login': playerLogin,
           'id': id,
           'velocity': velocity.serialize()
         }));
@@ -283,9 +278,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
       {required String id, required Vector2 velocity}) async {
     _logger.info('Resquesting to slingshot at $id');
 
-    final playerName =
-        registeredFrontendUsers.from(userId: userId)?.displayName;
-    if (playerName == null) {
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
       _logger.severe('User $userId is not registered');
       return false;
     }
@@ -296,7 +290,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
         type: MessageTypes.get,
         data: {
           'type': MessagesToApp.slingShotAvatarWareHouse.name,
-          'player_name': playerName,
+          'player_login': playerLogin,
           'id': id,
           'velocity': velocity.serialize()
         }));
@@ -351,7 +345,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToEbs.patchGameState:
               await _handlePatchGameState(message);
               break;
-            case MessagesToEbs.opaqueToDisplayName:
+            case MessagesToEbs.opaqueToLogin:
             case MessagesToEbs.gameStateRequest:
               throw 'This request should not come from the app';
           }
@@ -396,8 +390,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
       switch (message.to) {
         case MessageTo.ebs:
           switch (MessagesToEbs.values.byName(message.data!['type'])) {
-            case MessagesToEbs.opaqueToDisplayName:
-              _sendDisplayNameFromOpaqueId(message);
+            case MessagesToEbs.opaqueToLogin:
+              _sendLoginFromOpaqueId(message);
               break;
             case MessagesToEbs.gameStateRequest:
               _sendGameStateToFrontend(_gameState,
@@ -485,8 +479,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToApp.attemptTheBigHeist:
             case MessagesToApp.changeLaneRequest:
             case MessagesToApp.fixTracksMiniGameRequest:
-              final playerName =
-                  registeredFrontendUsers.from(userId: userId)?.displayName;
+              final playerLogin =
+                  registeredFrontendUsers.from(userId: userId)?.login;
 
               final response = await communicator.sendQuestion(MessageProtocol(
                   to: MessageTo.app,
@@ -494,7 +488,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   type: MessageTypes.get,
                   data: {
                     'type': message.data!['type'],
-                    'player_name': playerName,
+                    'player_login': playerLogin,
                     'is_redeemed': false
                   }));
 
@@ -512,7 +506,10 @@ class EbsManager extends TwitchEbsManagerAbstract {
               }
 
               // Get the sku of the product
-              final playerName = message.transaction!.displayName;
+              // TODO Confirm this
+              final opaqueId = message.transaction!.userId;
+              final login =
+                  registeredFrontendUsers.from(opaqueId: opaqueId)?.login;
               final sku = Sku.fromString(transactionReceipt.product.sku);
 
               MessagesToApp type = switch (sku) {
@@ -528,7 +525,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   type: MessageTypes.get,
                   data: {
                     'type': type.name,
-                    'player_name': playerName,
+                    'player_login': login,
                     'is_redeemed': true
                   }));
 

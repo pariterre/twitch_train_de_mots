@@ -65,7 +65,7 @@ class _BetweenRoundsOverlayState extends State<BetweenRoundsOverlay> {
 
   void _refresh() => setState(() {});
 
-  void _showAttemptingTheBigHeist({required String playerName}) {
+  void _showAttemptingTheBigHeist({required String login}) {
     _attemptingTheBigHeist.triggerAnimation(const _AttemptingTheBigHeist());
   }
 
@@ -179,7 +179,7 @@ class _ContinueSectionState extends State<_ContinueSection> {
     super.dispose();
   }
 
-  void _toggleCanClick({required String playerName, required bool isActive}) {
+  void _toggleCanClick({required String login, required bool isActive}) {
     if (mounted) setState(() => _canClick = !isActive);
   }
 
@@ -311,10 +311,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     onPressed: _canClick && gm.canRequestCongratulationFireworks
                         ? () async {
                             gm.congratulationFireworksRequester
-                                .initiateRequest(playerName: 'Anonyme');
+                                .initiateRequest(login: 'anonyme');
                             await Future.delayed(Duration(milliseconds: 1));
                             gm.congratulationFireworksRequester.confirmRequest(
-                                playerName: 'Anonyme', isConfirmed: true);
+                                login: 'anonyme', isConfirmed: true);
                           }
                         : null,
                     buttonText: 'BOOM!'),
@@ -323,10 +323,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     onPressed: _canClick && gm.canRequestTheBigHeist
                         ? () async {
                             gm.attemptTheBigHeistRequester
-                                .initiateRequest(playerName: 'Anonyme');
+                                .initiateRequest(login: 'anonyme');
                             await Future.delayed(Duration(milliseconds: 1));
                             gm.attemptTheBigHeistRequester.confirmRequest(
-                                playerName: 'Anonyme', isConfirmed: true);
+                                login: 'anonyme', isConfirmed: true);
                           }
                         : null,
                     buttonText: 'Le grand coup'),
@@ -341,10 +341,10 @@ class _ContinueSectionState extends State<_ContinueSection> {
                     onPressed: _canClick && gm.canRequestFixTracksMiniGame
                         ? () async {
                             gm.fixTracksMiniGameRequester
-                                .initiateRequest(playerName: 'Anonyme');
+                                .initiateRequest(login: 'anonyme');
                             await Future.delayed(Duration(milliseconds: 5000));
                             gm.fixTracksMiniGameRequester.confirmRequest(
-                                playerName: 'Anonyme', isConfirmed: true);
+                                login: 'anonyme', isConfirmed: true);
                           }
                         : null,
                     buttonText: 'Track fix'),
@@ -499,7 +499,7 @@ class _LeaderBoard extends StatelessWidget {
                                 if (index == 0)
                                   _buildTitleTile('Meilleur·e cheminot·e'),
                                 _buildNamedTile(
-                                  player.name,
+                                  player.displayName,
                                   highlightColor: highlightColor,
                                   suffixIcon: suffixIcon,
                                   width: nameWidth,
@@ -721,7 +721,8 @@ class _LeaderBoard extends StatelessWidget {
       scoreFromResult: (result) => result.value,
       highlightBestTeamColor: (result) {
         return gm.players.bestPlayersByScore.any((e) =>
-                    (e.name == result.name && e.score == result.value)) ||
+                    (e.displayName == result.name &&
+                        e.score == result.value)) ||
                 (!gm.hasPlayedAtLeastOnce &&
                     (result as PlayerResult).teamName == dm.teamName)
             ? tm.leaderBoardBestScoreColor
@@ -749,7 +750,7 @@ class _LeaderBoard extends StatelessWidget {
       scoreFromResult: (result) => result.value,
       highlightBestTeamColor: (result) {
         return gm.players.bestPlayersByStars.any((e) =>
-                    (e.name == result.name &&
+                    (e.displayName == result.name &&
                         e.starsCollected == result.value)) ||
                 (!gm.hasPlayedAtLeastOnce &&
                     (result as PlayerResult).teamName == dm.teamName)
@@ -777,8 +778,9 @@ class _LeaderBoard extends StatelessWidget {
           '${result.name}${(result as PlayerResult).teamName.isNotEmpty ? ' (${result.teamName})' : ''}',
       scoreFromResult: (result) => result.value,
       highlightBestTeamColor: (result) {
-        return gm.players.biggestStealers.any((e) => (e.name == result.name &&
-                    e.gameStealCount == result.value)) ||
+        return gm.players.biggestStealers.any((e) =>
+                    (e.displayName == result.name &&
+                        e.gameStealCount == result.value)) ||
                 (!gm.hasPlayedAtLeastOnce &&
                     (result as PlayerResult).teamName == dm.teamName)
             ? tm.leaderBoardBestScoreColor

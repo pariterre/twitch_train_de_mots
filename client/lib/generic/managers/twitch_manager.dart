@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:common/generic/models/generic_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
@@ -35,25 +34,19 @@ class TwitchManager {
 
   ///
   /// Call all the listeners when a message is received
-  void addChatListener(Function(String sender, String message) callback) {
+  void addChatListener(Function(String login, String message) callback) {
     _logger.info('Adding chat listener');
     _chatListeners.listen(callback);
   }
 
-  Future<String?> loginFromDisplayName(String displayName) async {
+  Future<String?> displayNameFromLogin(String login) async {
     if (isNotConnected) {
       _logger.warning(
-          'Cannot login from display name because TwitchManager is not connected');
+          'Cannot get display name from login $login because TwitchManager is not connected');
       return null;
     }
-    final chatters = await _manager!.api.fetchChatters();
-    final chatter = chatters
-        ?.firstWhereOrNull((chatter) => chatter.displayName == displayName);
-    if (chatter == null) {
-      _logger.warning('No chatter found with display name $displayName');
-      return null;
-    }
-    return chatter.login;
+    final user = await _manager!.api.user(login: login);
+    return user?.displayName;
   }
 
   ///
@@ -138,9 +131,9 @@ class TwitchManager {
   ///
   /// Holds the callback to call when a message is received
   final _chatListeners =
-      TwitchListener<Function(String sender, String message)>();
-  void _onMessageReceived(String sender, String message) =>
-      _chatListeners.notifyListeners((callback) => callback(sender, message));
+      TwitchListener<Function(String login, String message)>();
+  void _onMessageReceived(String login, String message) =>
+      _chatListeners.notifyListeners((callback) => callback(login, message));
 }
 
 class TwitchManagerMocked extends TwitchManager {
