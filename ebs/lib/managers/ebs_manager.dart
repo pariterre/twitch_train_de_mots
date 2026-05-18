@@ -506,10 +506,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
               }
 
               // Get the sku of the product
-              // TODO Confirm this
-              final opaqueId = message.transaction!.userId;
-              final login =
-                  registeredFrontendUsers.from(opaqueId: opaqueId)?.login;
+              final userId = message.transaction!.userId;
+              final login = registeredFrontendUsers.from(userId: userId)?.login;
               final sku = Sku.fromString(transactionReceipt.product.sku);
 
               MessagesToApp type = switch (sku) {
