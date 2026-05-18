@@ -193,7 +193,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
     final avatarTile = tileFromPosition(avatars.first.position);
     avatarTile == null ? null : _grid!.revealAt(index: avatarTile.index);
 
-    _triesRemaining = 45;
+    _triesRemaining = 75;
     _playersPoints.clear();
 
     super.initialize();
