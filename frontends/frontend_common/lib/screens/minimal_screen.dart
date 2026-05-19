@@ -4,11 +4,13 @@ import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/widgets/header.dart';
 
-class DraggingScreen extends StatelessWidget {
-  const DraggingScreen({super.key});
+class MinimalScreen extends StatelessWidget {
+  const MinimalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final gm = GameManager.instance;
+
     return Stack(
       alignment: Alignment.topCenter,
       children: [
@@ -18,10 +20,11 @@ class DraggingScreen extends StatelessWidget {
           child: Center(
               child: Header(
             titleText: TwitchManager.instance.userHasGrantedIdAccess
-                ? switch (GameManager.instance.status) {
-                    WordsTrainGameStatus.roundStarted =>
-                      'Le train est en route!\n'
-                          'Prochaine station : ${GameManager.instance.currentRound + 1}!',
+                ? switch (gm.status) {
+                    WordsTrainGameStatus.roundStarted => gm.isMiniGameActive
+                        ? 'Le Train de mots'
+                        : ('Le train est en route!\n'
+                            'Prochaine station : ${gm.currentRound + 1}!'),
                     WordsTrainGameStatus.uninitialized => 'Le Train de mots!',
                     WordsTrainGameStatus.initializing => 'Le Train de mots!',
                     WordsTrainGameStatus.roundPreparing => 'Le Train de mots!',

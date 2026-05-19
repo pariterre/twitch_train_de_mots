@@ -32,7 +32,7 @@ class ResizedBox extends StatefulWidget {
     this.maxWidth,
     this.maxHeight,
     required this.child,
-    required this.draggingChild,
+    required this.minimizedChild,
     this.preserveAspectRatio = false,
     this.canMinimize = false,
   });
@@ -59,7 +59,7 @@ class ResizedBox extends StatefulWidget {
   final double? maxHeight;
 
   final Widget child;
-  final Widget draggingChild;
+  final Widget minimizedChild;
 
   final bool preserveAspectRatio;
   final bool canMinimize;
@@ -214,7 +214,7 @@ class _ResizedBoxState extends State<ResizedBox> {
 
   @override
   Widget build(BuildContext context) {
-    final realHeight = isMinimized ? 70.0 : height;
+    final realHeight = height * (isMinimized ? 0.1 : 1.0);
 
     final leftEdge = left;
     final topEdge = top;
@@ -226,18 +226,32 @@ class _ResizedBoxState extends State<ResizedBox> {
 
     final mainWidget = widget.canMinimize
         ? Stack(children: [
-            isMinimized ? widget.draggingChild : widget.child,
+            isMinimized ? widget.minimizedChild : widget.child,
+            MouseRegion(
+              cursor: SystemMouseCursors.move,
+              child: GestureDetector(
+                onPanUpdate: (details) => _onDragWindow(
+                    left + details.delta.dx, top + details.delta.dy),
+                child: Container(
+                  width: width,
+                  height: height * 0.03,
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withAlpha(150),
+                    border: Border(
+                      bottom: BorderSide(color: Colors.black, width: 0.5),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Align(
               alignment: Alignment.topRight,
-              child: LayoutBuilder(
-                  builder: (context, constraints) => IconButton(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      onPressed: () =>
-                          setState(() => isMinimized = !isMinimized),
-                      icon: Icon(Icons.minimize,
-                          color: Colors.white,
-                          size: constraints.maxWidth * 0.05))),
+              child: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  onPressed: () => setState(() => isMinimized = !isMinimized),
+                  icon: Icon(isMinimized ? Icons.fullscreen : Icons.minimize,
+                      color: Colors.white, size: height * 0.025)),
             )
           ])
         : widget.child;
@@ -257,22 +271,9 @@ class _ResizedBoxState extends State<ResizedBox> {
           Positioned(
             top: topEdge,
             left: leftEdge,
-            child: Draggable(
-              feedback: Opacity(
-                  opacity: 0.5,
-                  child: Material(
-                      child: ClipRect(
-                    child: SizedBox(
-                        width: width,
-                        height: realHeight,
-                        child: widget.draggingChild),
-                  ))),
-              onDragEnd: (details) =>
-                  _onDragWindow(details.offset.dx, details.offset.dy),
-              child: ClipRect(
-                  child: SizedBox(
-                      width: width, height: realHeight, child: mainWidget)),
-            ),
+            child: ClipRect(
+                child: SizedBox(
+                    width: width, height: realHeight, child: mainWidget)),
           ),
           // NON INTERACTABLE - top
           Positioned(

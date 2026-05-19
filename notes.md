@@ -1,11 +1,9 @@
 # Bugs
 ## To fix
 - Extension on bleuet war does not work for iPad
-- Golden appears too quick since the change in time management
 - The screen flashes sometimes https://www.twitch.tv/videos/2764596752 (7h30)
 - Treasure Hunt : when i click on the box, it will show the number 1, for example, then very, very briefly show the green box and then show the 1 again.
 - On mobile : text is white on white? and Cleaning works for some avatar then stops
-- Move the extension only on header 
 - Cleaning : if two persons throws the same avatar, it feels weird
 
 
@@ -18,6 +16,8 @@
 - Multiple minor bugs after playing the minigame (sound related)
 - Star was not lighting up at the right moment
 - ADDED Alien for epic_amylie
+- Golden appears too quick since the change in time management
+- Move the extension only on header 
 
 # Features
 ## To do

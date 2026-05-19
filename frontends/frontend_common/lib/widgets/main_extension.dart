@@ -8,13 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
 import 'package:frontend_common/screens/blueberry_war_play_screen.dart';
-import 'package:frontend_common/screens/dragging_screen.dart';
 import 'package:frontend_common/screens/fix_tracks_play_screen.dart';
+import 'package:frontend_common/screens/minimal_screen.dart';
 import 'package:frontend_common/screens/non_authorized_screen.dart';
 import 'package:frontend_common/screens/play_screen.dart';
 import 'package:frontend_common/screens/treasure_hunt_play_screen.dart';
-import 'package:frontend_common/screens/warehouse_cleaning_play_screen.dart';
 import 'package:frontend_common/screens/waiting_screen.dart';
+import 'package:frontend_common/screens/warehouse_cleaning_play_screen.dart';
 import 'package:frontend_common/widgets/opaque_on_hover.dart';
 import 'package:frontend_common/widgets/pause_overlay.dart';
 import 'package:frontend_common/widgets/resized_box.dart';
@@ -141,7 +141,7 @@ class _MainWindow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mainWidget = _MainContainer(child: child);
-    const draggingWidget = _MainContainer(child: DraggingScreen());
+    const draggingWidget = _MainContainer(child: MinimalScreen());
 
     return initialSize == null
         ? mainWidget
@@ -155,7 +155,7 @@ class _MainWindow extends StatelessWidget {
             initialWidth: initialSize!.width,
             initialHeight: initialSize!.height,
             borderWidth: 2,
-            draggingChild: draggingWidget,
+            minimizedChild: draggingWidget,
             preserveAspectRatio: true,
             decoration: const BoxDecoration(color: Colors.black),
             canMinimize: true,
