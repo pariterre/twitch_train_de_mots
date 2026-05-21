@@ -872,14 +872,14 @@ class TwitchManagerMock extends TwitchManager {
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: true,
+                isRoundAMiniGame: false,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
                     isInitialized: true,
                     startedAt: DateTime.now(),
                     endsAt: DateTime.now().add(const Duration(seconds: 83)),
-                    pausedAt: DateTime.now()),
+                    pausedAt: null),
                 players: {},
                 letterProblem: SerializableLetterProblem(
                   letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],

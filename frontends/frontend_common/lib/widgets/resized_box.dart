@@ -1,3 +1,4 @@
+import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -225,34 +226,11 @@ class _ResizedBoxState extends State<ResizedBox> {
     final draggableBorderWidth = widget.draggableBorderWidth;
 
     final mainWidget = widget.canMinimize
-        ? Stack(children: [
-            isMinimized ? widget.minimizedChild : widget.child,
-            MouseRegion(
-              cursor: SystemMouseCursors.move,
-              child: GestureDetector(
-                onPanUpdate: (details) => _onDragWindow(
-                    left + details.delta.dx, top + details.delta.dy),
-                child: Container(
-                  width: width,
-                  height: height * 0.03,
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withAlpha(150),
-                    border: Border(
-                      bottom: BorderSide(color: Colors.black, width: 0.5),
-                    ),
-                  ),
-                ),
-              ),
+        ? Column(children: [
+            _buildHeader(),
+            Expanded(
+              child: isMinimized ? widget.minimizedChild : widget.child,
             ),
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  onPressed: () => setState(() => isMinimized = !isMinimized),
-                  icon: Icon(isMinimized ? Icons.fullscreen : Icons.minimize,
-                      color: Colors.white, size: height * 0.025)),
-            )
           ])
         : widget.child;
 
@@ -405,6 +383,53 @@ class _ResizedBoxState extends State<ResizedBox> {
               borderWidth: draggableBorderWidth,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      width: width,
+      height: height * 0.04,
+      decoration: BoxDecoration(
+        color: ThemeManager.instance.backgroundColorDark,
+        border: Border(
+          bottom: BorderSide(color: Colors.black, width: 0.5),
+        ),
+      ),
+      child: Stack(
+        children: [
+          MouseRegion(
+            cursor: SystemMouseCursors.move,
+            child: GestureDetector(
+              onPanUpdate: (details) => _onDragWindow(
+                  left + details.delta.dx, top + details.delta.dy),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: EdgeInsets.only(right: width * 0.02),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => setState(() => isMinimized = !isMinimized),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white, width: 0.5),
+                    ),
+                    child: Icon(
+                        isMinimized
+                            ? Icons.keyboard_arrow_down
+                            : Icons.keyboard_arrow_up,
+                        color: Colors.white,
+                        size: height * 0.025),
+                  ),
+                ),
+              ),
+            ),
+          )
         ],
       ),
     );
