@@ -25,8 +25,6 @@ final _random = Random();
 
 enum Direction { up, down, left, right }
 
-// TODO: Finalize the text on screen when winning or losing
-
 ///
 /// Easy accessors translating index into row/col pair or row/col pair into
 /// index
@@ -103,12 +101,12 @@ class WarehouseCleaningGameManager extends MiniGameManager {
   bool get hasWon => letterFoundCount == problem.letters.length;
 
   @override
-  String? get instructions => null;
-  // TODO Reinstate instructions with the new game
-  // 'Le hangard oublié de cette station recèle de trésors! Partez à l\'aventure '
-  // 'avec vos collègues pour découvrir les lettres cachées.\n\n'
-  // 'Utilisez l\'extension pour déplacer l\'avatar de votre choix. '
-  // 'Mais attention, chaque mouvement vous coûtera un essai!\n\n';
+  String? get instructions =>
+      'Le hangard oublié de cette station recèle de trésors, mais quel désordre! '
+      'Partez à l\'aventure avec vos collègues pour retrouver les lettres cachées, '
+      'et en profiter pour faire le grand ménage!\n\n'
+      'Utilisez l\'extension pour déplacer l\'avatar de votre choix. '
+      'Mais attention, chaque mouvement vous coûtera un essai!\n\n';
 
   ///
   /// List of agents in the game (avatars and boxes)

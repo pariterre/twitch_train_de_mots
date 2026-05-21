@@ -133,7 +133,7 @@ class _WarehouseCleaningFoundWord extends StatelessWidget {
           const Icon(Icons.star, color: Colors.amber, size: 32),
           const SizedBox(width: 10),
           Text(
-            'Vous avez gagné!\n'
+            'Quel beau ménage vous avez fait!\n'
             '$sender a trouvé la solution, et\n'
             'remporte $wordValue points!',
             textAlign: TextAlign.center,
@@ -204,7 +204,7 @@ class _WarehouseCleaningFailed extends StatelessWidget {
           const Icon(Icons.star, color: textColor, size: 32),
           const SizedBox(width: 10),
           Text(
-            '${(Managers.instance.miniGames.warehouseCleaning.timeRemaining?.inSeconds ?? 0) <= 0 ? 'Vous n\'avez pas trouvé le mot à temps...\n' : 'Vous avez épuisez vos essais...\n'}'
+            '${(Managers.instance.miniGames.warehouseCleaning.timeRemaining?.inSeconds ?? 0) <= 0 ? 'Vous n\'avez pas réussi à nettoyer à temps...\n' : 'Vous vous êtes épuisé au travail...\n'}'
             'On retourne immédiatement au train!',
             textAlign: TextAlign.center,
             style: tm.clientMainTextStyle.copyWith(
