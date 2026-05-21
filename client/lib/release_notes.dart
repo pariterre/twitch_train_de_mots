@@ -568,4 +568,36 @@ const List<ReleaseNotes> releaseNotes = [
           userWhoRequested: 'epic_amylie'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.7.0',
+    codeName: 'Ménage du printemps',
+    notes:
+        'Le Train de mots est en développement depuis plus de deux ans maintenant. '
+        'Et comme tout projet de cette envergure, il a accumulé son lot de poussières et de problèmes. '
+        'Il était temps de faire un bon ménage du printemps. Cette version apporte donc '
+        'un nettoyage en profondeur du code pour une expérience plus fluide. '
+        'Un nouveau mini-jeu thématique est également disponible : Le ménage du hangar!\n'
+        '\n'
+        'J\'espère que vous apprécierez cette nouvelle version du Train de mots, et '
+        'n\'oubliez pas d\'installer l\'extension Twitch pour profiter pleinement de toutes les fonctionnalités!',
+    features: [
+      FeatureNotes(
+          description:
+              'Amélioration des performances du jeu grâce à un nettoyage du code'),
+      FeatureNotes(
+          description: 'Développement du mini-jeu du Ménage du hangar'),
+      FeatureNotes(
+          description: 'L\'extension a maintenant un en-tête pour la déplacer!',
+          userWhoRequested: 'nicolapinou2'),
+      FeatureNotes(
+          description:
+              'Ajout des lettres dans l\'extension lors des mini-jeux'),
+      FeatureNotes(
+          description:
+              'Réparatation de plusieurs bogues dans la communication entre le jeu et l\'extension Twitch'),
+      FeatureNotes(
+          description: 'Ajouté le mot ALIEN dans la liste des mots acceptés!',
+          userWhoRequested: 'epic_amylie'),
+    ],
+  ),
 ];
