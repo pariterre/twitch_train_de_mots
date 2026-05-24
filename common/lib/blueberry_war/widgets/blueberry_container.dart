@@ -23,11 +23,11 @@ class BlueberryContainer extends StatefulWidget {
 }
 
 class _BlueberryContainerState extends State<BlueberryContainer> {
-  vector_math.Vector2 previousPosition = vector_math.Vector2.zero();
   bool _isBeingDestroyed = false;
   bool _isDragging = false;
   Offset? _dragStartPosition;
   Offset? _dragCurrentPosition;
+  late vector_math.Vector2 _previousPosition = widget.blueberry.position;
 
   DateTime? _fadingStartTime;
   bool get _isFading => _fadingStartTime != null;
@@ -84,12 +84,15 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
       _fadingStartTime = null;
       _fadeAnimationProgress = 0.0;
     }
+    setState(() {});
   }
 
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     if (_isFading) _performFading();
-    setState(() {});
+    if (_previousPosition != widget.blueberry.position) {
+      setState(() {});
+    }
   }
 
   ///
@@ -135,11 +138,11 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
     });
   }
 
-  vector_math.Vector2 _getBlueberryPosition() {
+  vector_math.Vector2 _getPosition() {
     if (!_isFading || _fadeAnimationProgress >= 1.0) {
-      previousPosition = widget.blueberry.position - widget.blueberry.radius;
+      _previousPosition = widget.blueberry.position - widget.blueberry.radius;
     }
-    return previousPosition;
+    return _previousPosition;
   }
 
   int _computeAlpha() {
@@ -155,7 +158,7 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final position = _getBlueberryPosition();
+    final position = _getPosition();
     final alpha = _computeAlpha();
 
     final mainWidget = Container(

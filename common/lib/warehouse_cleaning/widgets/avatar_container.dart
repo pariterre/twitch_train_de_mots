@@ -25,10 +25,10 @@ class AvatarContainer extends StatefulWidget {
 }
 
 class _AvatarContainerState extends State<AvatarContainer> {
-  vector_math.Vector2 _previousPosition = vector_math.Vector2.zero();
   bool _isDragging = false;
   Offset? _dragStartPosition;
   Offset? _dragCurrentPosition;
+  late vector_math.Vector2 _previousPosition = widget.avatar.position;
 
   @override
   void initState() {
@@ -46,7 +46,9 @@ class _AvatarContainerState extends State<AvatarContainer> {
 
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
-    setState(() {});
+    if (_previousPosition != widget.avatar.position) {
+      setState(() {});
+    }
   }
 
   ///
@@ -88,14 +90,14 @@ class _AvatarContainerState extends State<AvatarContainer> {
     });
   }
 
-  vector_math.Vector2 _getAvatarPosition() {
+  vector_math.Vector2 _getPosition() {
     _previousPosition = widget.avatar.position;
     return _previousPosition;
   }
 
   @override
   Widget build(BuildContext context) {
-    final position = _getAvatarPosition();
+    final position = _getPosition();
 
     final mainWidget = Container(
       width: widget.avatar.radius.x * 4,

@@ -27,6 +27,10 @@ class _WarehouseCleaningGameScreenState
   void initState() {
     super.initState();
 
+    final gm = Managers.instance.train;
+    gm.onResumed.listen(_refresh);
+    gm.onPaused.listen(_refresh);
+
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onInitialized.listen(_refresh);
     whgm.onRoundStarted.listen(_refresh);
@@ -46,6 +50,10 @@ class _WarehouseCleaningGameScreenState
   // Dispose
   @override
   void dispose() {
+    final gm = Managers.instance.train;
+    gm.onResumed.cancel(_refresh);
+    gm.onPaused.cancel(_refresh);
+
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onInitialized.cancel(_refresh);
     whgm.onRoundStarted.cancel(_refresh);
@@ -104,7 +112,7 @@ class _WarehouseCleaningGameScreenState
             ],
           ),
         ),
-        WarehouseCleaningAnimatedTextOverlay(),
+        const WarehouseCleaningAnimatedTextOverlay(),
       ],
     );
   }

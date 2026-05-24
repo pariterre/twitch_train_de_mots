@@ -33,47 +33,63 @@ class _GlobalTickerState extends State<GlobalTicker>
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: Managers.initialize(
-        vsync: this,
-        twitchAppInfo: TwitchAppInfo(
-          appName: 'Train de mots',
-          twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
-          scope: const [
-            TwitchAppScope.chatRead,
-            TwitchAppScope.readFollowers,
-          ],
-          twitchRedirectUri: Uri.https(
-              'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
-          authenticationServerUri:
-              Uri.https('twitchserver.pariterre.net:3000', 'token'),
-          authenticationFlow: TwitchAuthenticationFlow.authorizationCode,
-          ebsUri: MocksConfiguration.useLocalEbs
-              ? Uri.parse('ws://localhost:3011')
-              : Uri.parse('wss://twitchserver.pariterre.net:3011'),
-        ),
-      ),
-      builder: (context, state) {
-        if (state.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ),
-          );
+    return MaterialApp(
+      supportedLocales: [Locale('fr', '')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        final images = [
+          'packages/common/assets/images/train.png',
+          'packages/common/assets/images/parchment.png',
+          'packages/common/assets/images/treasure_hunt/blueberries.png',
+          'packages/common/assets/images/treasure_hunt/grass.png',
+          'packages/common/assets/images/treasure_hunt/open_grass.png',
+          'packages/common/assets/images/blueberry_war/blueberries.png',
+          'packages/common/assets/images/warehouse_cleaning/box.png',
+          'packages/common/assets/images/warehouse_cleaning/floor.png',
+          'packages/common/assets/images/track_fix/grass.png',
+          'packages/common/assets/images/track_fix/open_grass.png',
+        ];
+
+        for (final image in images) {
+          precacheImage(AssetImage(image), context);
         }
 
-        return const MaterialApp(
-          home: MainScreen(),
-          supportedLocales: [Locale('fr', '')],
-          localizationsDelegates: [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-        );
+        return child!;
       },
+      home: FutureBuilder(
+        future: Managers.initialize(
+          vsync: this,
+          twitchAppInfo: TwitchAppInfo(
+            appName: 'Train de mots',
+            twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
+            scope: const [
+              TwitchAppScope.chatRead,
+              TwitchAppScope.readFollowers,
+            ],
+            twitchRedirectUri: Uri.https(
+                'twitchauthentication.pariterre.net', 'twitch_redirect.html'),
+            authenticationServerUri:
+                Uri.https('twitchserver.pariterre.net:3000', 'token'),
+            authenticationFlow: TwitchAuthenticationFlow.authorizationCode,
+            ebsUri: MocksConfiguration.useLocalEbs
+                ? Uri.parse('ws://localhost:3011')
+                : Uri.parse('wss://twitchserver.pariterre.net:3011'),
+          ),
+        ),
+        builder: (context, state) {
+          return state.connectionState != ConnectionState.done
+              ? Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : MainScreen();
+        },
+      ),
     );
   }
 }

@@ -22,6 +22,8 @@ class LetterContainer extends StatefulWidget {
 }
 
 class _LetterContainerState extends State<LetterContainer> {
+  bool _previousIsShown = true;
+
   @override
   void initState() {
     super.initState();
@@ -38,17 +40,29 @@ class _LetterContainerState extends State<LetterContainer> {
 
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
-    setState(() {});
+    if (_shouldBeShown != _previousIsShown) {
+      setState(() {});
+    }
+  }
+
+  bool get _shouldBeShown {
+    final tile = widget.getTileAt(index: widget.letter.tileIndex);
+    return !(widget.letter.isCollected ||
+        tile == null ||
+        tile.isConcealed ||
+        tile.isMysteryLetter);
+  }
+
+  bool _updateShouldBeShown() {
+    _previousIsShown = _shouldBeShown;
+    return _previousIsShown;
   }
 
   @override
   Widget build(BuildContext context) {
-    final tile = widget.getTileAt(index: widget.letter.tileIndex);
+    final shouldBeShown = _updateShouldBeShown();
 
-    return widget.letter.isCollected ||
-            tile == null ||
-            tile.isConcealed ||
-            tile.isMysteryLetter
+    return !shouldBeShown
         ? SizedBox.shrink()
         : Positioned(
             left: widget.letter.position.x,
