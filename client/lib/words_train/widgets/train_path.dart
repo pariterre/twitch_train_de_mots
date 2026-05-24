@@ -412,6 +412,8 @@ class _Train extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final padding = iconSize / 10;
+
     return AnimatedBuilder(
       animation: controller._animation,
       builder: (context, child) {
@@ -422,12 +424,13 @@ class _Train extends StatelessWidget {
               decoration: const BoxDecoration(shape: BoxShape.circle),
               width: iconSize,
               height: iconSize,
-              padding: EdgeInsets.all(iconSize / 10),
+              padding: EdgeInsets.all(padding),
               transform: Transform.flip(flipX: true).transform,
               child: GrowingWidget(
                 growingFactor: 0.97,
                 duration: const Duration(milliseconds: 1500),
                 child: Image.asset('packages/common/assets/images/train.png',
+                    cacheHeight: (iconSize - (2 * padding)).toInt(),
                     opacity: const AlwaysStoppedAnimation(0.9)),
               )),
         );

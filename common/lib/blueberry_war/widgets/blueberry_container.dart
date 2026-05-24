@@ -139,13 +139,14 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
   }
 
   bool _getPosition() {
-    bool isNew = false;
     if (!_isFading || _fadeAnimationProgress >= 1.0) {
       final newPosition = widget.blueberry.position - widget.blueberry.radius;
-      isNew = _previousPosition != newPosition;
-      _previousPosition = newPosition;
+      if (_previousPosition != newPosition) {
+        _previousPosition = newPosition;
+        return true;
+      }
     }
-    return isNew;
+    return false;
   }
 
   int _computeAlpha() {

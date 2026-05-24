@@ -20,18 +20,22 @@ class _BlueberryWarGameScreenState extends State<BlueberryWarGameScreen> {
   void initState() {
     super.initState();
 
-    Managers.instance.tickerManager.onClockTicked.listen(_clockTicked);
+    final gm = Managers.instance.train;
+    gm.onPaused.listen(_refresh);
+    gm.onResumed.listen(_refresh);
   }
 
   // Dispose
   @override
   void dispose() {
-    Managers.instance.tickerManager.onClockTicked.cancel(_clockTicked);
+    final gm = Managers.instance.train;
+    gm.onPaused.cancel(_refresh);
+    gm.onResumed.cancel(_refresh);
 
     super.dispose();
   }
 
-  void _clockTicked(Duration deltaTime) {
+  void _refresh() {
     if (!mounted) return;
     setState(() {});
   }

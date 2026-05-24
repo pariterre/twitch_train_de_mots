@@ -46,23 +46,23 @@ class TreasureHuntGameTile extends StatelessWidget {
   Widget build(BuildContext context) {
     // index is the number of treasure around the current tile
     final value = tile.value;
+    final imageSize = tileSize * 0.94;
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(width: tileSize * 0.03),
+        border: Border.all(width: imageSize * 0.03, color: Colors.black),
       ),
       child: GestureDetector(
         onTap: onTap,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                  // border: Border.all(width: tileSize * 0.02),
-                  ),
-              child: Image.asset(tile.isConcealed
+            Image.asset(
+              tile.isConcealed
                   ? 'packages/common/assets/images/treasure_hunt/grass.png'
-                  : 'packages/common/assets/images/treasure_hunt/open_grass.png'),
+                  : 'packages/common/assets/images/treasure_hunt/open_grass.png',
+              cacheWidth: imageSize.toInt(),
+              cacheHeight: imageSize.toInt(),
             ),
             tile.isRevealed && tile.hasReward
                 ? (tile.isLetter
@@ -118,7 +118,10 @@ class _TreasureTileState extends State<_TreasureTile> {
               height: _animation(value) * widget.size,
               width: _animation(value) * widget.size,
               child: Image.asset(
-                  'packages/common/assets/images/treasure_hunt/blueberries.png'));
+                'packages/common/assets/images/treasure_hunt/blueberries.png',
+                cacheHeight: widget.size.toInt(),
+                cacheWidth: widget.size.toInt(),
+              ));
         });
   }
 }

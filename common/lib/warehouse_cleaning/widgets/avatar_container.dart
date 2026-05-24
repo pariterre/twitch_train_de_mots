@@ -46,7 +46,7 @@ class _AvatarContainerState extends State<AvatarContainer> {
 
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
-    if (_previousPosition != widget.avatar.position) {
+    if (_getPosition()) {
       setState(() {});
     }
   }
@@ -90,31 +90,41 @@ class _AvatarContainerState extends State<AvatarContainer> {
     });
   }
 
-  vector_math.Vector2 _getPosition() {
-    _previousPosition = widget.avatar.position;
-    return _previousPosition;
+  bool _getPosition() {
+    final newPosition = widget.avatar.position;
+    if (_previousPosition != newPosition) {
+      _previousPosition = newPosition;
+      return true;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final position = _getPosition();
+    final avatarSize = widget.avatar.radius * 4;
 
     final mainWidget = Container(
-      width: widget.avatar.radius.x * 4,
-      height: widget.avatar.radius.y * 4,
+      width: avatarSize.x,
+      height: avatarSize.y,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.transparent,
       ),
       child: Image.asset(
         'packages/common/assets/images/blueberry_war/blueberries.png',
+        cacheWidth: avatarSize.x.toInt(),
+        cacheHeight: avatarSize.y.toInt(),
         fit: BoxFit.cover,
       ),
     );
 
     return Positioned(
-      left: position.x + widget.tileSize / 2 - 2 * widget.avatar.radius.x,
-      top: position.y + widget.tileSize / 2 - 2 * widget.avatar.radius.y,
+      left: _previousPosition.x +
+          widget.tileSize / 2 -
+          2 * widget.avatar.radius.x,
+      top: _previousPosition.y +
+          widget.tileSize / 2 -
+          2 * widget.avatar.radius.y,
       child: Stack(
         children: [
           _canBeDragged

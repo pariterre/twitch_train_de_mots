@@ -42,9 +42,12 @@ class _LetterContainerState extends State<LetterContainer> {
   }
 
   bool _getPosition() {
-    final isNew = _previousPosition != widget.letter.position;
-    _previousPosition = widget.letter.position;
-    return isNew;
+    final newPosition = widget.letter.position;
+    if (_previousPosition != newPosition) {
+      _previousPosition = newPosition;
+      return true;
+    }
+    return false;
   }
 
   @override
