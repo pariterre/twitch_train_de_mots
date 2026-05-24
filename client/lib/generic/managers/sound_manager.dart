@@ -1,10 +1,10 @@
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
 import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/generic/managers/audio_context/audio_context_stub.dart'
@@ -44,7 +44,7 @@ enum _SoundEffect {
   blueberryWarLetterKnock,
   blueberryWarLetterHit;
 
-  static final _soundsAssets = <_SoundEffect, AudioSource>{};
+  static final _soundsAssets = <_SoundEffect, Source>{};
 
   static void initializeAssets() {
     if (_soundsAssets.isNotEmpty) {
@@ -54,11 +54,11 @@ enum _SoundEffect {
 
     _logger.info('Initializing sound effects assets...');
     for (final sound in _SoundEffect.values) {
-      _soundsAssets[sound] = AudioSource.asset(sound._toFilePath());
+      _soundsAssets[sound] = AssetSource(sound._toFilePath());
     }
   }
 
-  AudioSource get audioSource {
+  Source get audioSource {
     final source = _soundsAssets[this];
     if (source == null) {
       _logger.severe('Sound effect asset not initialized: $this');
@@ -73,7 +73,7 @@ enum _SoundEffect {
   }
 
   String _toFilePath() {
-    const baseFolder = 'packages/common/assets/sounds';
+    const baseFolder = '../packages/common/assets/sounds';
     return switch (this) {
       _SoundEffect.gameStarted => '$baseFolder/GameStarted.mp3',
       _SoundEffect.lettersScrambling => '$baseFolder/LettersScrambling.mp3',
@@ -121,14 +121,14 @@ class _AudioPlayerManager {
 
   static final _audioContext = AudioContextWrapper();
 
-  Future<void> play(AudioSource source, double volume) async {
+  Future<void> play(Source source, double volume) async {
     if (_audioContext.state != "running") return;
 
     try {
       isAvailable = false;
-      await _audioPlayer.setVolume(volume);
-      await _audioPlayer.setAudioSource(source);
-      await _audioPlayer.play();
+      await _audioPlayer.play(source,
+          volume: volume, mode: PlayerMode.lowLatency);
+      await _audioPlayer.onPlayerComplete.first;
     } finally {
       await _audioPlayer.stop();
       await _audioPlayer.seek(Duration.zero);
@@ -139,6 +139,7 @@ class _AudioPlayerManager {
 
 class SoundManager {
   final _gameMusic = AudioPlayer();
+  bool _isMusicPlaying = false;
 
   // Play up to 5 sound effects at the same time
   final _soundEffectAudio = <_AudioPlayerManager>[];
@@ -261,8 +262,6 @@ class SoundManager {
         await Future.delayed(const Duration(milliseconds: 100));
       }
     }
-    _gameMusic.setLoopMode(LoopMode.all);
-    _gameMusic.setAsset('packages/common/assets/sounds/TheSwindler.mp3');
 
     _SoundEffect.initializeAssets();
 
@@ -274,11 +273,13 @@ class SoundManager {
     _logger.info('Managing game music...');
 
     // If we never prepared the game music, we do it now
-    if (!_gameMusic.playing) {
+    if (!_isMusicPlaying) {
       while (_AudioPlayerManager._audioContext.state != "running") {
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      _gameMusic.play();
+      _gameMusic.play(
+          AssetSource('../packages/common/assets/sounds/TheSwindler.mp3'));
+      _isMusicPlaying = true;
     }
 
     //  Set the volume
@@ -287,6 +288,7 @@ class SoundManager {
 
     if (cm.musicVolume == 0) {
       _gameMusic.pause();
+      _isMusicPlaying = false;
     }
 
     _logger.info('Game music managed');
