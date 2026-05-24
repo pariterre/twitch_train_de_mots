@@ -131,14 +131,13 @@ class _AudioPlayerManager {
       await _audioPlayer.onPlayerComplete.first;
     } finally {
       await _audioPlayer.stop();
-      await _audioPlayer.seek(Duration.zero);
       isAvailable = true;
     }
   }
 }
 
 class SoundManager {
-  final _gameMusic = AudioPlayer();
+  final _gameMusic = AudioPlayer()..setReleaseMode(ReleaseMode.loop);
   bool _isMusicPlaying = false;
 
   // Play up to 5 sound effects at the same time
@@ -164,7 +163,8 @@ class SoundManager {
           'All audio players are busy. Creating a new one to play sound effect: $soundEffect');
     }
 
-    await soundAudio.play(soundEffect.audioSource, cm.soundVolume);
+    await soundAudio.play(
+        soundEffect.audioSource, pow(cm.soundVolume, 2) as double);
 
     _logger.fine('Sound effect: $soundEffect played');
   }
@@ -284,7 +284,7 @@ class SoundManager {
 
     //  Set the volume
     final cm = Managers.instance.configuration;
-    await _gameMusic.setVolume(cm.musicVolume);
+    await _gameMusic.setVolume(pow(cm.musicVolume, 2) as double);
 
     if (cm.musicVolume == 0) {
       _gameMusic.pause();
