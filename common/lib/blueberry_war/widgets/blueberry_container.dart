@@ -90,7 +90,7 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
     if (_isFading) _performFading();
-    if (_previousPosition != widget.blueberry.position) {
+    if (_getPosition()) {
       setState(() {});
     }
   }
@@ -138,11 +138,14 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
     });
   }
 
-  vector_math.Vector2 _getPosition() {
+  bool _getPosition() {
+    bool isNew = false;
     if (!_isFading || _fadeAnimationProgress >= 1.0) {
-      _previousPosition = widget.blueberry.position - widget.blueberry.radius;
+      final newPosition = widget.blueberry.position - widget.blueberry.radius;
+      isNew = _previousPosition != newPosition;
+      _previousPosition = newPosition;
     }
-    return _previousPosition;
+    return isNew;
   }
 
   int _computeAlpha() {
@@ -158,13 +161,15 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
 
   @override
   Widget build(BuildContext context) {
-    final position = _getPosition();
     final alpha = _computeAlpha();
 
+    final width = (widget.blueberry.radius.x * 2).round();
+    final height = (widget.blueberry.radius.y * 2).round();
+
     final mainWidget = Container(
-      width: widget.blueberry.radius.x * 2,
-      height: widget.blueberry.radius.y * 2,
-      decoration: BoxDecoration(
+      width: width.toDouble(),
+      height: height.toDouble(),
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.transparent,
       ),
@@ -173,6 +178,8 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
           : Image.asset(
               'packages/common/assets/images/blueberry_war/blueberries.png',
               fit: BoxFit.cover,
+              cacheWidth: width,
+              cacheHeight: height,
               opacity: AlwaysStoppedAnimation<double>(
                 alpha / 255.0,
               ),
@@ -183,8 +190,8 @@ class _BlueberryContainerState extends State<BlueberryContainer> {
     );
 
     return Positioned(
-      left: position.x,
-      top: position.y,
+      left: _previousPosition.x,
+      top: _previousPosition.y,
       child: Stack(
         children: [
           _canBeDragged

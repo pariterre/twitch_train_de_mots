@@ -35,25 +35,25 @@ class _LetterContainerState extends State<LetterContainer> {
 
   void _clockTicked(Duration deltaTime) {
     if (!mounted) return;
-    if (_previousPosition != widget.letter.position) {
+    if (widget.letter.isDestroyed) return;
+    if (_getPosition()) {
       setState(() {});
     }
   }
 
-  vector_math.Vector2 _getPosition() {
+  bool _getPosition() {
+    final isNew = _previousPosition != widget.letter.position;
     _previousPosition = widget.letter.position;
-    return _previousPosition;
+    return isNew;
   }
 
   @override
   Widget build(BuildContext context) {
-    final position = _getPosition();
-
     return widget.letter.isDestroyed
         ? Container()
         : Positioned(
-            left: position.x - widget.letter.radius.x,
-            top: position.y - widget.letter.radius.y,
+            left: _previousPosition.x - widget.letter.radius.x,
+            top: _previousPosition.y - widget.letter.radius.y,
             child: Center(
               child: LetterWidget(
                 letter: widget.letter.letter,
