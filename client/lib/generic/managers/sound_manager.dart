@@ -4,7 +4,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
 import 'package:common/generic/models/exceptions.dart';
-import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart';
+import 'package:common/treasure_hunt/models/treasure_hunt_grid.dart'
+    as treasure_hunt_grid;
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
+import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart'
+    as warehouse_cleaning_grid;
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/fix_tracks/managers/fix_tracks_game_manager.dart';
 import 'package:train_de_mots/generic/managers/audio_context/audio_context_stub.dart'
@@ -42,7 +46,8 @@ enum _SoundEffect {
   treasureHuntPluckGrass4,
   treasureHuntPickingTreasure,
   blueberryWarLetterKnock,
-  blueberryWarLetterHit;
+  blueberryWarLetterHit,
+  warehouseCleaningAvatarLaunched;
 
   static final _soundsAssets = <_SoundEffect, Source>{};
 
@@ -111,6 +116,8 @@ enum _SoundEffect {
         '$baseFolder/blueberry_war/letter_knock.mp3',
       _SoundEffect.blueberryWarLetterHit =>
         '$baseFolder/blueberry_war/letter_hit.mp3',
+      _SoundEffect.warehouseCleaningAvatarLaunched =>
+        '$baseFolder/warehouse_cleaning/avatar_launched.mp3',
     };
   }
 }
@@ -231,6 +238,18 @@ class SoundManager {
         bwm.onBlueberryDestroyed.listen(_onBlueberryWarBlueberryDestroyed);
         bwm.onTrySolution.listen(_onBlueberrySolutionTried);
         bwm.onRoundEnded.listen(_onBlueberryWarGameIsOver);
+        break;
+      } on ManagerNotInitializedException {
+        // Retry until the manager is initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    while (true) {
+      try {
+        final wccm = Managers.instance.miniGames.warehouseCleaning;
+        wccm.onAvatarLaunched.listen(_onWareHouseCleaningAvatarLaunched);
+        wccm.onLetterFound.listen(_onWareHouseCleaningLetterFound);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -393,7 +412,7 @@ class SoundManager {
     _playSoundEffect(_SoundEffect.changingLane);
   }
 
-  void _onTreasureHuntPluckingGrass(Tile tile) {
+  void _onTreasureHuntPluckingGrass(treasure_hunt_grid.Tile tile) {
     // Choose one of the 4 sounds at random
     final fileNumber = Random().nextInt(4) + 1;
     switch (fileNumber) {
@@ -414,7 +433,7 @@ class SoundManager {
     }
   }
 
-  void _onTreasureHuntLetterFound(Tile tile) {
+  void _onTreasureHuntLetterFound(treasure_hunt_grid.Tile tile) {
     final tm = Managers.instance.miniGames.treasureHunt;
     if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
 
@@ -501,6 +520,20 @@ class SoundManager {
     } else {
       _playSoundEffect(_SoundEffect.roundIsOver);
     }
+  }
+
+  void _onWareHouseCleaningAvatarLaunched(AvatarAgent avatar) {
+    final tm = Managers.instance.miniGames.warehouseCleaning;
+    if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
+    // TODO: Add other sounds choosed randomly to avoid spamming the same sound effect
+    _playSoundEffect(_SoundEffect.warehouseCleaningAvatarLaunched);
+  }
+
+  void _onWareHouseCleaningLetterFound(warehouse_cleaning_grid.Tile tile) {
+    final tm = Managers.instance.miniGames.warehouseCleaning;
+    if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
+
+    _playSoundEffect(_SoundEffect.solutionFound);
   }
 
   void _onFixTracksSolutionTried(

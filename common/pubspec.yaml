@@ -69,6 +69,8 @@ flutter:
     - assets/sounds/blueberry_war/letter_hit.mp3
     - assets/sounds/blueberry_war/letter_knock.mp3
 
+    - assets/sounds/warehouse_cleaning/avatar_launched.mp3
+
   fonts:
     - family: BaskervvilleSC
       fonts:

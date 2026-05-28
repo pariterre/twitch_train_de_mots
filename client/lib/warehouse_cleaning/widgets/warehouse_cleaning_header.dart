@@ -1,4 +1,5 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -22,7 +23,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
 
     final gm = Managers.instance.miniGames.warehouseCleaning;
     gm.onRoundStarted.listen(_refresh);
-    gm.onAvatarMoved.listen(_refresh);
+    gm.onAvatarLaunched.listen(_avatarLaunched);
     gm.onLetterFound.listen(_onRewardFound);
 
     Managers.instance.tickerManager.onClockTicked.listen(_onClockTicked);
@@ -32,7 +33,7 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
   void dispose() {
     final gm = Managers.instance.miniGames.warehouseCleaning;
     gm.onRoundStarted.cancel(_refresh);
-    gm.onAvatarMoved.cancel(_refresh);
+    gm.onAvatarLaunched.cancel(_avatarLaunched);
     gm.onLetterFound.cancel(_onRewardFound);
 
     Managers.instance.tickerManager.onClockTicked.cancel(_onClockTicked);
@@ -52,6 +53,11 @@ class _WarehouseCleaningHeaderState extends State<WarehouseCleaningHeader> {
   }
 
   void _refresh() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _avatarLaunched(AvatarAgent avatar) {
     if (!mounted) return;
     setState(() {});
   }

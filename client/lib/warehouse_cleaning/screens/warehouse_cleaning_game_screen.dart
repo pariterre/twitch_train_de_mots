@@ -1,4 +1,5 @@
 import 'package:common/generic/managers/serializable_controllable_timer.dart';
+import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:common/warehouse_cleaning/widgets/warehouse_cleaning_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -34,6 +35,7 @@ class _WarehouseCleaningGameScreenState
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onInitialized.listen(_refresh);
     whgm.onRoundStarted.listen(_refresh);
+    whgm.onAvatarLaunched.listen(_avatarLaunched);
     whgm.onAvatarMoved.listen(_refresh);
     whgm.onTrySolution.listen(_solutionWasTried);
     whgm.onRoundEnded.listen(_refresh);
@@ -57,6 +59,7 @@ class _WarehouseCleaningGameScreenState
     final whgm = Managers.instance.miniGames.warehouseCleaning;
     whgm.onInitialized.cancel(_refresh);
     whgm.onRoundStarted.cancel(_refresh);
+    whgm.onAvatarLaunched.cancel(_avatarLaunched);
     whgm.onAvatarMoved.cancel(_refresh);
     whgm.onTrySolution.cancel(_solutionWasTried);
     whgm.onRoundEnded.cancel(_refresh);
@@ -68,6 +71,7 @@ class _WarehouseCleaningGameScreenState
   }
 
   void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
+  void _avatarLaunched(AvatarAgent avatar) => setState(() {});
   void _refresh() => setState(() {});
   void _solutionWasTried(
           {required String playerName,

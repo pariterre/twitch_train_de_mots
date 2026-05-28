@@ -79,13 +79,14 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
   // Listeners
   final onTrySolution = GenericListener<
-      Function(
+      void Function(
           {required String playerName,
           required String word,
           required bool isSolutionRight,
           required int pointsAwarded})>();
-  final onLetterFound = GenericListener<Function(Tile)>();
-  final onAvatarMoved = GenericListener<Function()>();
+  final onLetterFound = GenericListener<void Function(Tile)>();
+  final onAvatarLaunched = GenericListener<void Function(AvatarAgent)>();
+  final onAvatarMoved = GenericListener<void Function()>();
 
   WarehouseCleaningGrid? _grid;
   WarehouseCleaningGrid get grid => _grid!;
@@ -274,7 +275,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
       // Remove one try for sling shooting
       _triesRemaining--;
 
-      onAvatarMoved.notifyListeners((callback) => callback());
+      onAvatarLaunched.notifyListeners((callback) => callback(avatar));
       onGameUpdated.notifyListeners((callback) => callback());
     } else {
       _logger
