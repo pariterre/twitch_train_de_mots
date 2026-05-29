@@ -42,6 +42,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
                 ? TwitchEbsApiMocked.initialize
                 : TwitchEbsApi.initialize) {
     // Set up the logger
+    Logger.root.level = Level.ALL;
     Logger.root.onRecord.listen((record) => print(
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
