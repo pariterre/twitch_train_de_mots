@@ -165,7 +165,7 @@ TwitchEbsInfo getTwitchEbsInfo() {
   return TwitchEbsInfo(
     appName: 'Train de mots',
     twitchClientId: '539pzk7h6vavyzmklwy6msq6k3068x',
-    extensionVersion: '0.5.0',
+    extensionVersion: _acceptedExtensionVersions.first,
     extensionApiClientSecret: extensionApiClientSecret,
     extensionSharedSecret: extensionSharedSecret,
     isTwitchUserIdRequired: true,
