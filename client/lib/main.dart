@@ -3,8 +3,11 @@ import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/screens/main_screen.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
+import 'package:train_de_mots/release_notes.dart';
 import 'package:twitch_manager/twitch_app.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+final _logger = Logger('Main');
 
 void main() {
   Logger.root.level = Level.INFO;
@@ -14,6 +17,10 @@ void main() {
         '${record.time}: ${record.loggerName}: ${record.level.name}: ${record.message}';
     debugPrint(message);
   });
+
+  _logger.info('Bienvenue au Train de mots !');
+  _logger.info(
+      'La version utilisée est la suivante : ${releaseNotes.last.version}');
 
   // Initialize singleton
   WidgetsFlutterBinding.ensureInitialized();

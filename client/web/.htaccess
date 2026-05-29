@@ -1,19 +1,66 @@
-# Correct MIME types for Flutter Web with WASM renderer
+# ==========================================
+# Flutter Web .htaccess
+# Prevent stale app versions after deploy
+# ==========================================
+
+# ---------- MIME TYPES ----------
 AddType text/javascript .js
 AddType text/javascript .mjs
 AddType application/wasm .wasm
 AddType text/css .css
 AddType text/html .html
 
-# Enable compression (optional but good)
+# ---------- COMPRESSION ----------
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/wasm
+    AddOutputFilterByType DEFLATE \
+        text/html \
+        text/css \
+        text/javascript \
+        application/javascript \
+        application/wasm \
+        application/json
 </IfModule>
 
-# SPA routing support (important if you use Navigator 2.0)
+# ---------- CACHE CONTROL ----------
+<IfModule mod_headers.c>
+
+    # Never cache index.html
+    # Ensures browser checks for new Flutter version
+    <FilesMatch "^index\.html$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # Never cache Flutter service worker
+    # Critical for updates to be detected
+    <FilesMatch "^flutter_service_worker\.js$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # Optional: also avoid caching app bootstrap files
+    <FilesMatch "^(flutter\.js|manifest\.json|version\.json)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </FilesMatch>
+
+    # Cache static assets aggressively
+    # Flutter build files are content-hashed
+    <FilesMatch "\.(js|mjs|css|wasm|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+</IfModule>
+
+# ---------- SPA ROUTING ----------
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+    RewriteEngine On
+
+    # If request is not a real file/folder
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Serve Flutter app
+    RewriteRule . /index.html [L]
 </IfModule>
