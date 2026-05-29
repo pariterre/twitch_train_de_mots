@@ -246,7 +246,9 @@ class _MainScreenState extends State<_MainScreen> {
               isMobile: widget.isMobile, showTextInput: widget.showTextInput),
     };
 
-    return Stack(
-        children: [playScreen, gm.isPaused ? PauseOverlay() : Container()]);
+    return Stack(children: [
+      playScreen,
+      gm.isPaused ? const PauseOverlay() : Container()
+    ]);
   }
 }

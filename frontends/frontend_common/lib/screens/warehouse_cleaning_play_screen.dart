@@ -14,18 +14,18 @@ class WarehouseCleaningPlayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(vertical: 20.0),
             child: _Header(),
           ),
           Expanded(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: const _AvatarField(),
+                padding: EdgeInsets.only(bottom: 12.0),
+                child: _AvatarField(),
               ),
             ),
           ),

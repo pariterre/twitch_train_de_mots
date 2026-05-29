@@ -394,7 +394,7 @@ class _ResizedBoxState extends State<ResizedBox> {
       height: height * 0.04,
       decoration: BoxDecoration(
         color: ThemeManager.instance.backgroundColorDark,
-        border: Border(
+        border: const Border(
           bottom: BorderSide(color: Colors.black, width: 0.5),
         ),
       ),
