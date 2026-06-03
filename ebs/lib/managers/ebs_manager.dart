@@ -47,7 +47,8 @@ class EbsManager extends TwitchEbsManagerAbstract {
         '${record.time} - BroadcasterId: $broadcasterId - ${record.message}'));
 
     _logger.info('Sending welcome message');
-    TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!');
+    unawaited(
+      TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!'));
 
     // Send if the extension is active to the frontend
     _sendExtensionActiveStatus(acceptedExtensionVersions);
