@@ -650,8 +650,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
-        thresholdFactorOneStar: 0.35,
-        thresholdFactorTwoStars: 0.5,
+        thresholdFactorOneStar: 0.4,
+        thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.75,
         newBoostThreshold: 0.8,
         message: 'Ô malheur cheminot·e·s! Le carburant se raréfie et les '
@@ -673,7 +673,7 @@ class ConfigurationManager {
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.5,
-        thresholdFactorTwoStars: 0.65,
+        thresholdFactorTwoStars: 0.7,
         thresholdFactorThreeStars: 0.85,
         newBoostThreshold: 0.9,
         message: 'Nous commençons à ne plus pouvoir suivre votre rythme, '
@@ -693,7 +693,7 @@ class ConfigurationManager {
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
         thresholdFactorOneStar: 0.65,
-        thresholdFactorTwoStars: 0.75,
+        thresholdFactorTwoStars: 0.8,
         thresholdFactorThreeStars: 0.9,
         newBoostThreshold: 0.95,
         message: 'Cheminot·e·s, vou... atteignez maintenant la limit... '
