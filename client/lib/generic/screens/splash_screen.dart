@@ -91,6 +91,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (isSuccess) {
       _startSearchingForNextProblem();
     }
+    setState(() {});
   }
 
   void _refresh() => setState(() {});

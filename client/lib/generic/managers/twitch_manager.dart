@@ -17,10 +17,10 @@ class TwitchManager {
     _asyncInitializations();
   }
 
-  Future<void> _asyncInitializations() {
+  Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
     _isInitialized = true;
-    _tryAutomaticConnect();
+    await _tryAutomaticConnect();
     _logger.config('Ready');
     return Future.value();
   }
@@ -63,7 +63,7 @@ class TwitchManager {
         : TwitchAppManager.factory(appInfo: appInfo, reload: true));
 
     _isConnecting = false;
-    _finalizeConnexion();
+    await _finalizeConnexion();
   }
 
   ///
@@ -87,12 +87,12 @@ class TwitchManager {
       reload: reloadIfPossible,
     );
     _isConnecting = false;
-    _finalizeConnexion();
+    await _finalizeConnexion();
     return true;
   }
 
-  void _finalizeConnexion() {
-    onTwitchManagerHasTriedConnecting
+  Future<void> _finalizeConnexion() async {
+    await onTwitchManagerHasTriedConnecting
         .notifyListeners((callback) => callback(isSuccess: isConnected));
     if (isNotConnected) return;
 
