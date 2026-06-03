@@ -1230,7 +1230,6 @@ class WordsTrainGameManager {
       _currentMiniGame = null;
     }
 
-    _generateNextProblem(force: false);
     if (_successLevel == SuccessLevel.failed) {
       if (_fixTracksMiniGamesAttempted == 0) {
         _canAttemptFixTracksMiniGame = true;
@@ -1259,6 +1258,7 @@ class WordsTrainGameManager {
     _roundCount +=
         _successLevel.toInt(oneStationMaxPerRound: cm.oneStationMaxPerRound);
 
+    _generateNextProblem(force: false);
     _logger.info('Round ended');
   }
 
