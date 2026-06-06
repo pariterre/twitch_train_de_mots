@@ -218,7 +218,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
   @override
   Duration get initialRoundDuration =>
-      const Duration(seconds: 45) +
+      const Duration(seconds: 60) +
       Managers.instance.train.previousRoundTimeRemaining;
 
   void trySolution(String playerName, String message) {
