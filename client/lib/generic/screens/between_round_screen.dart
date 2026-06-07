@@ -687,7 +687,7 @@ class _LeaderBoard extends StatelessWidget {
       scoreTitle: 'Stations',
       width: width,
       results: dm.getBestTrainStationsReached(
-          top: 50,
+          top: 150,
           stationReached: gm.hasPlayedAtLeastOnce ? gm.roundCount : null),
       messageIfEmpty: 'Aucune équipe n\'a encore joué',
       nameFromResult: (result) => result.name,
@@ -712,7 +712,7 @@ class _LeaderBoard extends StatelessWidget {
       scoreTitle: 'Score',
       width: width,
       results: dm.getBestPlayers(
-          top: 50,
+          top: 150,
           mvp: gm.hasPlayedAtLeastOnce ? gm.players.bestPlayersByScore : null,
           mvpType: MvpType.score),
       messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
@@ -741,7 +741,7 @@ class _LeaderBoard extends StatelessWidget {
       scoreTitle: 'Étoiles',
       width: width,
       results: dm.getBestPlayers(
-          top: 50,
+          top: 150,
           mvp: gm.hasPlayedAtLeastOnce ? gm.players.bestPlayersByStars : null,
           mvpType: MvpType.stars),
       messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
@@ -770,7 +770,7 @@ class _LeaderBoard extends StatelessWidget {
       scoreTitle: 'Vols',
       width: width,
       results: Managers.instance.database.getBestPlayers(
-          top: 50,
+          top: 150,
           mvp: gm.hasPlayedAtLeastOnce ? gm.players.biggestStealers : null,
           mvpType: MvpType.steals),
       messageIfEmpty: 'Aucun·e cheminot·e n\'a joué',
