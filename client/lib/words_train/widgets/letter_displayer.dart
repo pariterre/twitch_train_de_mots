@@ -95,8 +95,9 @@ class _LetterDisplayerState extends State<LetterDisplayer> {
       width: LetterDisplayerCommon.baseWidth(problem.letters.length),
       child: LetterDisplayerCommon(
         letterProblem: problem,
-        letterBuilder: (index) =>
-            Fireworks(controller: _fireworksControllers[index]),
+        letterBuilder: (index) => index >= _fireworksControllers.length
+            ? SizedBox.shrink()
+            : Fireworks(controller: _fireworksControllers[index]),
       ),
     );
   }

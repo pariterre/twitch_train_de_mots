@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/widgets/background.dart';
+import 'package:common/generic/widgets/snowfall_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
@@ -124,7 +125,7 @@ class _MainScreenState extends State<MainScreen> {
           opacity: const AlwaysStoppedAnimation(0.05),
           fit: BoxFit.cover,
         ),
-        snowFlakeCount: min(10 * gm.roundCount * 4, 5000),
+        snowFlakeCount: 0,
         child: Stack(
           children: [
             dm.isLoggedOut ||
@@ -155,7 +156,12 @@ class _MainScreenState extends State<MainScreen> {
                       )),
                 ),
               );
-            })
+            }),
+            IgnorePointer(
+              child: SnowfallOverlay(
+                snowFlakeCount: min(10 * gm.roundCount * 4, 5000),
+              ),
+            )
           ],
         ),
       ),

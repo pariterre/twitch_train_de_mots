@@ -4,6 +4,7 @@ import 'package:common/generic/managers/global_ticker_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/mini_games.dart';
 import 'package:common/generic/widgets/background.dart';
+import 'package:common/generic/widgets/snowfall_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend_common/managers/game_manager.dart';
 import 'package:frontend_common/managers/twitch_manager.dart';
@@ -173,8 +174,6 @@ class _MainContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gm = GameManager.instance;
-
     return Background(
       backgroundLayer: Opacity(
         opacity: 0.05,
@@ -184,7 +183,7 @@ class _MainContainer extends StatelessWidget {
           fit: BoxFit.cover,
         ),
       ),
-      snowFlakeCount: min(10 * gm.currentRound * 4, 1000),
+      snowFlakeCount: 0,
       child: child,
     );
   }
@@ -248,7 +247,12 @@ class _MainScreenState extends State<_MainScreen> {
 
     return Stack(children: [
       playScreen,
-      gm.isPaused ? const PauseOverlay() : Container()
+      gm.isPaused ? const PauseOverlay() : Container(),
+      IgnorePointer(
+        child: SnowfallOverlay(
+          snowFlakeCount: min(10 * gm.currentRound * 4, 5000),
+        ),
+      )
     ]);
   }
 }
