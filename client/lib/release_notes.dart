@@ -600,4 +600,19 @@ const List<ReleaseNotes> releaseNotes = [
           userWhoRequested: 'epic_amylie'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.7.1',
+    codeName: 'Ménage du ménage',
+    notes:
+        'Le ménage du printemps était un bon début, mais il restait encore quelques poussières à faire voler! '
+        'Cette version est un second souffle de ménage pour régler les derniers problèmes.',
+    features: [
+      FeatureNotes(
+          description:
+              'La neige est maintenant devant le jeu pour le rendre plus difficile'),
+      FeatureNotes(
+          description:
+              'Plus de cheminot·e·s peuvent maintenant être affiché·e·s dans le tableau d\'honneur'),
+    ],
+  ),
 ];

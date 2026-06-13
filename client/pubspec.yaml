@@ -1,7 +1,7 @@
 name: train_de_mots
 description: Jeu de mots pour animer des soirées entre amis sur Twitch
 publish_to: 'none' 
-version: 0.3.3+1
+version: 1.7.1+1
 
 environment:
   sdk: '>=3.1.4 <4.0.0'
