@@ -556,22 +556,6 @@ class _GameDevConfigurationState extends State<_GameDevConfiguration> {
                       onChanged: (value) =>
                           cm.useCustomAdvancedOptions = value),
                 ),
-                _DoubleIntegerInputField(
-                  label: 'Nombre de mots à trouver',
-                  firstLabel: 'Minimum',
-                  firstInitialValue: cm.minimumWordsNumber.toString(),
-                  secondLabel: 'Maximum',
-                  secondInitialValue: cm.maximumWordsNumber.toString(),
-                  onChanged: (mininum, maximum) {
-                    cm.minimumWordsNumber = mininum;
-                    cm.maximumWordsNumber = maximum;
-                  },
-                  enabled: cm.useCustomAdvancedOptions && cm.canChangeProblem,
-                  disabledTooltip: cm.useCustomAdvancedOptions
-                      ? 'Le nombre de mots à trouver ne peut pas\n'
-                          'être changé en cours de partie ou lorsque le jeu cherche un mot'
-                      : '',
-                ),
                 const SizedBox(height: 12),
                 _IntegerInputField(
                   label: 'Durée d\'une manche (secondes)',

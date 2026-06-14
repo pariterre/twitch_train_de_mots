@@ -490,9 +490,8 @@ class WordsTrainGameManager {
         nbLetterInSmallestWord: difficulty.nbLettersOfShortestWord,
         minLetters: difficulty.nbLettersMinToDraw,
         maxLetters: difficulty.nbLettersMaxToDraw,
-        minimumNbOfWords:
-            cm.minimumWordsNumber, // TODO make it depend on the difficulty
-        maximumNbOfWords: cm.maximumWordsNumber,
+        minimumNbOfWords: difficulty.minimumWordsNumber,
+        maximumNbOfWords: difficulty.maximumWordsNumber,
         addUselessLetter: difficulty.hasUselessLetter,
       );
 

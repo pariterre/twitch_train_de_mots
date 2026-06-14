@@ -32,9 +32,6 @@ const _timeBeforeScramblingLettersDefault = 15;
 const _goldenSolutionProbabilityDefault = 0.005;
 const _goldenSolutionMinimumDurationDefault = 20;
 
-const _minimumWordsNumberDefault = 20;
-const _maximumWordsNumberDefault = 40;
-
 const _canStealDefault = true;
 const _oneStationMaxPerRoundDefault = false;
 
@@ -225,32 +222,6 @@ class ConfigurationManager {
     _saveConfiguration();
   }
 
-  int _minimumWordsNumber = _minimumWordsNumberDefault;
-  int get minimumWordsNumber => useCustomAdvancedOptions
-      ? _minimumWordsNumber
-      : _minimumWordsNumberDefault;
-  set minimumWordsNumber(int value) {
-    if (_minimumWordsNumber == value) return;
-    if (value > maximumWordsNumber) return;
-    _minimumWordsNumber = value;
-
-    _tellGameManagerToRepickProblem();
-    _saveConfiguration();
-  }
-
-  int _maximumWordsNumber = _maximumWordsNumberDefault;
-  int get maximumWordsNumber => useCustomAdvancedOptions
-      ? _maximumWordsNumber
-      : _maximumWordsNumberDefault;
-  set maximumWordsNumber(int value) {
-    if (_maximumWordsNumber == value) return;
-    if (value < minimumWordsNumber) return;
-    _maximumWordsNumber = value;
-
-    _tellGameManagerToRepickProblem();
-    _saveConfiguration();
-  }
-
   bool _canSteal = _canStealDefault;
   bool get canSteal => useCustomAdvancedOptions ? _canSteal : _canStealDefault;
   set canSteal(bool value) {
@@ -371,8 +342,6 @@ class ConfigurationManager {
         'goldenSolutionProbability': goldenSolutionProbability,
         'goldenSolutionMinimumDuration':
             goldenSolutionMinimumDuration.inSeconds,
-        'minimumWordsNumber': minimumWordsNumber,
-        'maximumWordsNumber': maximumWordsNumber,
         'canSteal': canSteal,
         'oneStationMaxPerRound': oneStationMaxPerRound,
         'canUseControllerHelper': canUseControllerHelper,
@@ -449,11 +418,6 @@ class ConfigurationManager {
           seconds: map['goldenSolutionMinimumDuration'] ??
               _goldenSolutionMinimumDurationDefault);
 
-      _minimumWordsNumber =
-          map['minimumWordsNumber'] ?? _minimumWordsNumberDefault;
-      _maximumWordsNumber =
-          map['maximumWordsNumber'] ?? _maximumWordsNumberDefault;
-
       _canSteal = map['canSteal'] ?? _canStealDefault;
       _oneStationMaxPerRound =
           map['oneStationMaxPerRound'] ?? _oneStationMaxPerRoundDefault;
@@ -508,9 +472,6 @@ class ConfigurationManager {
     if (advancedOptions) {
       _useCustomAdvancedOptions = _useCustomAdvancedOptionsDefault;
 
-      _minimumWordsNumber = _minimumWordsNumberDefault;
-      _maximumWordsNumber = _maximumWordsNumberDefault;
-
       _roundDuration = const Duration(seconds: _roundDurationDefault);
       _postRoundGracePeriodDuration =
           const Duration(seconds: _postRoundGracePeriodDurationDefault);
@@ -553,6 +514,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 7,
+        minimumWordsNumber: 20,
+        maximumWordsNumber: 25,
         thresholdFactorOneStar: 0.35,
         thresholdFactorTwoStars: 0.5,
         thresholdFactorThreeStars: 0.75,
@@ -568,6 +531,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 8,
+        minimumWordsNumber: 25,
+        maximumWordsNumber: 30,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -587,6 +552,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 10,
+        minimumWordsNumber: 25,
+        maximumWordsNumber: 35,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -607,6 +574,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 6,
         nbLettersMaxToDraw: 10,
+        minimumWordsNumber: 25,
+        maximumWordsNumber: 35,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.85,
@@ -628,6 +597,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 4,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 25,
+        maximumWordsNumber: 35,
         thresholdFactorOneStar: 0.55,
         thresholdFactorTwoStars: 0.70,
         thresholdFactorThreeStars: 0.85,
@@ -649,6 +620,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 30,
+        maximumWordsNumber: 35,
         thresholdFactorOneStar: 0.4,
         thresholdFactorTwoStars: 0.65,
         thresholdFactorThreeStars: 0.75,
@@ -671,6 +644,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 30,
+        maximumWordsNumber: 40,
         thresholdFactorOneStar: 0.5,
         thresholdFactorTwoStars: 0.7,
         thresholdFactorThreeStars: 0.85,
@@ -691,6 +666,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 30,
+        maximumWordsNumber: 40,
         thresholdFactorOneStar: 0.65,
         thresholdFactorTwoStars: 0.8,
         thresholdFactorThreeStars: 0.9,
@@ -711,6 +688,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 5,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 35,
+        maximumWordsNumber: 40,
         thresholdFactorOneStar: 0.7,
         thresholdFactorTwoStars: 0.85,
         thresholdFactorThreeStars: 0.95,
@@ -728,6 +707,8 @@ class ConfigurationManager {
         nbLettersOfShortestWord: 6,
         nbLettersMinToDraw: 7,
         nbLettersMaxToDraw: 12,
+        minimumWordsNumber: 35,
+        maximumWordsNumber: 45,
         thresholdFactorOneStar: 0.75,
         thresholdFactorTwoStars: 0.90,
         thresholdFactorThreeStars: 1.0,

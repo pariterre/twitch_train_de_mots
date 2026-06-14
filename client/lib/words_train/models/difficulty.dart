@@ -16,12 +16,17 @@ class Difficulty {
   final int nbLettersMinToDraw;
   final int nbLettersMaxToDraw;
 
+  final int minimumWordsNumber;
+  final int maximumWordsNumber;
+
   final String? message;
 
   const Difficulty({
     required this.nbLettersOfShortestWord,
     required this.nbLettersMinToDraw,
     required this.nbLettersMaxToDraw,
+    required this.minimumWordsNumber,
+    required this.maximumWordsNumber,
     required this.thresholdFactorOneStar,
     required this.thresholdFactorTwoStars,
     required this.thresholdFactorThreeStars,
