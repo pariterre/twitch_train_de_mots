@@ -18,6 +18,8 @@ import 'package:train_de_mots/words_train/models/word_solution.dart';
 
 final _logger = Logger('SoundManager');
 
+const _baseFolder = 'sounds';
+
 enum _SoundEffect {
   gameStarted,
   lettersScrambling,
@@ -47,7 +49,10 @@ enum _SoundEffect {
   treasureHuntPickingTreasure,
   blueberryWarLetterKnock,
   blueberryWarLetterHit,
-  warehouseCleaningAvatarLaunched;
+  warehouseCleaningAvatarLaunched1,
+  warehouseCleaningAvatarLaunched2,
+  warehouseCleaningAvatarLaunched3,
+  warehouseCleaningAvatarLaunched4;
 
   static final _soundsAssets = <_SoundEffect, Source>{};
 
@@ -78,46 +83,52 @@ enum _SoundEffect {
   }
 
   String _toFilePath() {
-    const baseFolder = '../packages/common/assets/sounds';
     return switch (this) {
-      _SoundEffect.gameStarted => '$baseFolder/GameStarted.mp3',
-      _SoundEffect.lettersScrambling => '$baseFolder/LettersScrambling.mp3',
-      _SoundEffect.roundIsOver => '$baseFolder/RoundIsOver.mp3',
-      _SoundEffect.bestSolutionFound => '$baseFolder/BestSolutionFound.mp3',
-      _SoundEffect.solutionFound => '$baseFolder/SolutionFound.mp3',
+      _SoundEffect.gameStarted => '$_baseFolder/GameStarted.mp3',
+      _SoundEffect.lettersScrambling => '$_baseFolder/LettersScrambling.mp3',
+      _SoundEffect.roundIsOver => '$_baseFolder/RoundIsOver.mp3',
+      _SoundEffect.bestSolutionFound => '$_baseFolder/BestSolutionFound.mp3',
+      _SoundEffect.solutionFound => '$_baseFolder/SolutionFound.mp3',
       _SoundEffect.goldenSolutionAppeared =>
-        '$baseFolder/GoldenSolutionAppeared.mp3',
-      _SoundEffect.solutionStolen => '$baseFolder/SolutionStolen.mp3',
-      _SoundEffect.newBoostGranted => '$baseFolder/NewBoostGranted.mp3',
-      _SoundEffect.telegramReceived => '$baseFolder/TelegramReceived.mp3',
-      _SoundEffect.trainReachedStation => '$baseFolder/TrainReachedStation.mp3',
-      _SoundEffect.trainLostStation => '$baseFolder/TrainLostStation.mp3',
-      _SoundEffect.fireworks1 => '$baseFolder/Fireworks1.mp3',
-      _SoundEffect.fireworks2 => '$baseFolder/Fireworks2.mp3',
-      _SoundEffect.fireworks3 => '$baseFolder/Fireworks3.mp3',
-      _SoundEffect.fireworks4 => '$baseFolder/Fireworks4.mp3',
-      _SoundEffect.fireworks5 => '$baseFolder/Fireworks5.mp3',
-      _SoundEffect.fireworks6 => '$baseFolder/Fireworks6.mp3',
-      _SoundEffect.theBigHeist => '$baseFolder/TheBigHeist.mp3',
-      _SoundEffect.theBigHeistSuccess => '$baseFolder/BigHeistSuccess.mp3',
-      _SoundEffect.theBigHeistFailed => '$baseFolder/BigHeistFailed.mp3',
-      _SoundEffect.changingLane => '$baseFolder/ChangingLane.mp3',
+        '$_baseFolder/GoldenSolutionAppeared.mp3',
+      _SoundEffect.solutionStolen => '$_baseFolder/SolutionStolen.mp3',
+      _SoundEffect.newBoostGranted => '$_baseFolder/NewBoostGranted.mp3',
+      _SoundEffect.telegramReceived => '$_baseFolder/TelegramReceived.mp3',
+      _SoundEffect.trainReachedStation =>
+        '$_baseFolder/TrainReachedStation.mp3',
+      _SoundEffect.trainLostStation => '$_baseFolder/TrainLostStation.mp3',
+      _SoundEffect.fireworks1 => '$_baseFolder/Fireworks1.mp3',
+      _SoundEffect.fireworks2 => '$_baseFolder/Fireworks2.mp3',
+      _SoundEffect.fireworks3 => '$_baseFolder/Fireworks3.mp3',
+      _SoundEffect.fireworks4 => '$_baseFolder/Fireworks4.mp3',
+      _SoundEffect.fireworks5 => '$_baseFolder/Fireworks5.mp3',
+      _SoundEffect.fireworks6 => '$_baseFolder/Fireworks6.mp3',
+      _SoundEffect.theBigHeist => '$_baseFolder/TheBigHeist.mp3',
+      _SoundEffect.theBigHeistSuccess => '$_baseFolder/BigHeistSuccess.mp3',
+      _SoundEffect.theBigHeistFailed => '$_baseFolder/BigHeistFailed.mp3',
+      _SoundEffect.changingLane => '$_baseFolder/ChangingLane.mp3',
       _SoundEffect.treasureHuntPluckGrass1 =>
-        '$baseFolder/treasure_hunt/pluck_grass1.mp3',
+        '$_baseFolder/treasure_hunt/pluck_grass1.mp3',
       _SoundEffect.treasureHuntPluckGrass2 =>
-        '$baseFolder/treasure_hunt/pluck_grass2.mp3',
+        '$_baseFolder/treasure_hunt/pluck_grass2.mp3',
       _SoundEffect.treasureHuntPluckGrass3 =>
-        '$baseFolder/treasure_hunt/pluck_grass3.mp3',
+        '$_baseFolder/treasure_hunt/pluck_grass3.mp3',
       _SoundEffect.treasureHuntPluckGrass4 =>
-        '$baseFolder/treasure_hunt/pluck_grass4.mp3',
+        '$_baseFolder/treasure_hunt/pluck_grass4.mp3',
       _SoundEffect.treasureHuntPickingTreasure =>
-        '$baseFolder/treasure_hunt/picking_treasure.mp3',
+        '$_baseFolder/treasure_hunt/picking_treasure.mp3',
       _SoundEffect.blueberryWarLetterKnock =>
-        '$baseFolder/blueberry_war/letter_knock.mp3',
+        '$_baseFolder/blueberry_war/letter_knock.mp3',
       _SoundEffect.blueberryWarLetterHit =>
-        '$baseFolder/blueberry_war/letter_hit.mp3',
-      _SoundEffect.warehouseCleaningAvatarLaunched =>
-        '$baseFolder/warehouse_cleaning/avatar_launched.mp3',
+        '$_baseFolder/blueberry_war/letter_hit.mp3',
+      _SoundEffect.warehouseCleaningAvatarLaunched1 =>
+        '$_baseFolder/warehouse_cleaning/avatar_launched1.mp3',
+      _SoundEffect.warehouseCleaningAvatarLaunched2 =>
+        '$_baseFolder/warehouse_cleaning/avatar_launched2.mp3',
+      _SoundEffect.warehouseCleaningAvatarLaunched3 =>
+        '$_baseFolder/warehouse_cleaning/avatar_launched3.mp3',
+      _SoundEffect.warehouseCleaningAvatarLaunched4 =>
+        '$_baseFolder/warehouse_cleaning/avatar_launched4.mp3',
     };
   }
 }
@@ -296,8 +307,7 @@ class SoundManager {
       while (_AudioPlayerManager._audioContext.state != "running") {
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      _gameMusic.play(
-          AssetSource('../packages/common/assets/sounds/TheSwindler.mp3'));
+      _gameMusic.play(AssetSource('$_baseFolder/TheSwindler.mp3'));
       _isMusicPlaying = true;
     }
 
@@ -372,28 +382,8 @@ class SoundManager {
 
   void playFireworks() {
     final fileNumber = Random().nextInt(6) + 1;
-    switch (fileNumber) {
-      case 1:
-        _playSoundEffect(_SoundEffect.fireworks1);
-        break;
-      case 2:
-        _playSoundEffect(_SoundEffect.fireworks2);
-        break;
-      case 3:
-        _playSoundEffect(_SoundEffect.fireworks3);
-        break;
-      case 4:
-        _playSoundEffect(_SoundEffect.fireworks4);
-        break;
-      case 5:
-        _playSoundEffect(_SoundEffect.fireworks5);
-        break;
-      case 6:
-        _playSoundEffect(_SoundEffect.fireworks6);
-        break;
-      default:
-        break;
-    }
+    _playSoundEffect(_SoundEffect.values
+        .firstWhere((e) => e.toString() == 'fireworks$fileNumber'));
   }
 
   void _onAttemptingTheBigHeist({required String login}) {
@@ -415,22 +405,8 @@ class SoundManager {
   void _onTreasureHuntPluckingGrass(treasure_hunt_grid.Tile tile) {
     // Choose one of the 4 sounds at random
     final fileNumber = Random().nextInt(4) + 1;
-    switch (fileNumber) {
-      case 1:
-        _playSoundEffect(_SoundEffect.treasureHuntPluckGrass1);
-        break;
-      case 2:
-        _playSoundEffect(_SoundEffect.treasureHuntPluckGrass2);
-        break;
-      case 3:
-        _playSoundEffect(_SoundEffect.treasureHuntPluckGrass3);
-        break;
-      case 4:
-        _playSoundEffect(_SoundEffect.treasureHuntPluckGrass4);
-        break;
-      default:
-        break;
-    }
+    _playSoundEffect(_SoundEffect.values.firstWhere(
+        (e) => e.toString() == 'treasureHuntPluckGrass$fileNumber'));
   }
 
   void _onTreasureHuntLetterFound(treasure_hunt_grid.Tile tile) {
@@ -525,8 +501,9 @@ class SoundManager {
   void _onWareHouseCleaningAvatarLaunched(AvatarAgent avatar) {
     final tm = Managers.instance.miniGames.warehouseCleaning;
     if (tm.roundStatus != ControllableTimerStatus.inProgress) return;
-    // TODO: Add other sounds choosed randomly to avoid spamming the same sound effect
-    _playSoundEffect(_SoundEffect.warehouseCleaningAvatarLaunched);
+    final fileNumber = Random().nextInt(4) + 1;
+    _playSoundEffect(_SoundEffect.values.firstWhere(
+        (e) => e.toString() == 'warehouseCleaningAvatarLaunched$fileNumber'));
   }
 
   void _onWareHouseCleaningLetterFound(warehouse_cleaning_grid.Tile tile) {

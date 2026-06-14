@@ -950,6 +950,7 @@ class WordsTrainGameManager {
 
     _pardonsRemaining = cm.numberOfPardons;
     _boostRemaining = cm.numberOfBoosts;
+    _boostWasGrantedThisRound = false;
 
     // We can never attempt the big heist at the start
     _canAttemptTheBigHeist = false;
@@ -1334,7 +1335,7 @@ class WordsTrainGameManager {
 
   void _checkForCollectingBoost() {
     // Just make sure we don't collect the boost twice
-    if (!boostWasGrantedThisRound || _boostWasCollectedThisRound) return;
+    if (!_boostWasGrantedThisRound || _boostWasCollectedThisRound) return;
 
     _boostRemaining += 1;
     _boostWasCollectedThisRound = true;

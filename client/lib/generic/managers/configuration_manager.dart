@@ -105,7 +105,6 @@ class ConfigurationManager {
   bool get useCustomAdvancedOptions => _useCustomAdvancedOptions;
   set useCustomAdvancedOptions(bool value) {
     _useCustomAdvancedOptions = value;
-
     _saveConfiguration();
   }
 
