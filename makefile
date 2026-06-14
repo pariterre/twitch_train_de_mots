@@ -1,6 +1,6 @@
 
 # List of available projects
-PROJECTS := client ebs extensions
+PROJECTS := client ebs extensions extensions_local
 
 # Folders to keep during web server cleanup
 FOLDER_TO_KEEP := .well-known cgi-bin
@@ -48,46 +48,34 @@ ebs:
 extensions:
 	@echo "Building EXTENSIONS project..."; \
 	CONFIGURATION_FOLDER=$(BASE_FOLDER)/configuration; \
-	FRONTENDS_FOLDER=$(BASE_FOLDER)/frontends; \
+	FRONTEND_FOLDER=$(BASE_FOLDER)/frontend; \
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
-	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
-	cd $${FRONTENDS_FOLDER}/panel		    && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
-	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
-	cd $${FRONTENDS_FOLDER}/video_overlay 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
-	cd $${FRONTENDS_FOLDER}/mobile		 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
+	cd $${CONFIGURATION_FOLDER} && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
+	cd $${FRONTEND_FOLDER}	    && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${BASE_FOLDER}; \
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
-	cp -r $${FRONTENDS_FOLDER}/panel/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/panel/; \
-	cp -r $${FRONTENDS_FOLDER}/video_component/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_component/; \
-	cp -r $${FRONTENDS_FOLDER}/video_overlay/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_overlay/; \
-	cp -r $${FRONTENDS_FOLDER}/mobile/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/mobile/; \
+	cp -r $${FRONTEND_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/frontend/; \
 	cd $${TARGET_FOLDER}; \
-	zip -r extensions.zip configuration panel video_component video_overlay mobile; \
+	zip -r extensions.zip configuration frontend; \
 	cd $(BASE_FOLDER);
 
 extensions_local:
 	@echo "Building EXTENSIONS project..."; \
 	CONFIGURATION_FOLDER=$(BASE_FOLDER)/configuration; \
-	FRONTENDS_FOLDER=$(BASE_FOLDER)/frontends; \
+	FRONTEND_FOLDER=$(BASE_FOLDER)/frontend; \
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
-	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
-	cd $${FRONTENDS_FOLDER}/panel 			&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
-	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
-	cd $${FRONTENDS_FOLDER}/video_overlay 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
-	cd $${FRONTENDS_FOLDER}/mobile		 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
+	cd $${CONFIGURATION_FOLDER}  && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
+	cd $${FRONTEND_FOLDER}       && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
 	cd $${BASE_FOLDER}; \
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
-	cp -r $${FRONTENDS_FOLDER}/panel/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/panel/; \
-	cp -r $${FRONTENDS_FOLDER}/video_component/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_component/; \
-	cp -r $${FRONTENDS_FOLDER}/video_overlay/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_overlay/; \
-	cp -r $${FRONTENDS_FOLDER}/mobile/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/mobile/; \
+	cp -r $${FRONTEND_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/frontend/; \
 	cd $${TARGET_FOLDER}; \
-	zip -r extensions.zip configuration panel video_component video_overlay mobile; \
+	zip -r extensions.zip configuration frontend; \
 	cd $(BASE_FOLDER);
 	

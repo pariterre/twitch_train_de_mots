@@ -8,6 +8,6 @@ This is a simple HTTPS server that serves can be used to test the `configuration
 4. Run the server using `python https_server.py`
 
 # What will happen
-1. A symlink to `../configuration/build/web/` to `./configuration/` and a symlink to `../frontends/panel/build/web/` to `./panel/` will be created. 
+1. A symlink to the `../xxxx/build/web/` of `./xxxx/`, where `xxxx` is `configuration` or `frontend`.
 2. A new self-signed certificate will be generated and saved in the `certs` directory.
-3. The server will then serve the content of the `panel` and `configuration` directories on `https://localhost:8080/configuration` and `https://localhost:8080/panel/` respectively.
+3. The server will then serve the content of the proper directories on `https://localhost:8080/xxxx`.
