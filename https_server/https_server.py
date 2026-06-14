@@ -10,12 +10,12 @@ CERT_FILE = "public.crt"
 KEY_FILE = "private.key"
 
 def create_symbolic_links():
-    # Create symbolic links to configuration and video_component built folder
+    # Create symbolic links to configuration and panel built folder
     if not os.path.exists("configuration"):
         os.makedirs("configuration")
         
-    if not os.path.exists("video_component"):
-        os.symlink("../frontends/video_component/build/web", "video_component")
+    if not os.path.exists("panel"):
+        os.symlink("../frontends/panel/build/web", "panel")
     
 
 def create_self_signed_cert(cert_dir):

@@ -52,6 +52,7 @@ extensions:
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
 	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
+	cd $${FRONTENDS_FOLDER}/panel		    && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/video_overlay 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
 	cd $${FRONTENDS_FOLDER}/mobile		 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
@@ -59,11 +60,12 @@ extensions:
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
+	cp -r $${FRONTENDS_FOLDER}/panel/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/panel/; \
 	cp -r $${FRONTENDS_FOLDER}/video_component/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_component/; \
 	cp -r $${FRONTENDS_FOLDER}/video_overlay/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_overlay/; \
 	cp -r $${FRONTENDS_FOLDER}/mobile/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/mobile/; \
 	cd $${TARGET_FOLDER}; \
-	zip -r extensions.zip configuration video_component video_overlay mobile; \
+	zip -r extensions.zip configuration panel video_component video_overlay mobile; \
 	cd $(BASE_FOLDER);
 
 extensions_local:
@@ -73,6 +75,7 @@ extensions_local:
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
 	cd $${CONFIGURATION_FOLDER}             && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
+	cd $${FRONTENDS_FOLDER}/panel 			&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
 	cd $${FRONTENDS_FOLDER}/video_component && flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
 	cd $${FRONTENDS_FOLDER}/video_overlay 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
 	cd $${FRONTENDS_FOLDER}/mobile		 	&& flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
@@ -80,10 +83,11 @@ extensions_local:
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
+	cp -r $${FRONTENDS_FOLDER}/panel/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/panel/; \
 	cp -r $${FRONTENDS_FOLDER}/video_component/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_component/; \
 	cp -r $${FRONTENDS_FOLDER}/video_overlay/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/video_overlay/; \
 	cp -r $${FRONTENDS_FOLDER}/mobile/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/mobile/; \
 	cd $${TARGET_FOLDER}; \
-	zip -r extensions.zip configuration video_component video_overlay mobile; \
+	zip -r extensions.zip configuration panel video_component video_overlay mobile; \
 	cd $(BASE_FOLDER);
 	

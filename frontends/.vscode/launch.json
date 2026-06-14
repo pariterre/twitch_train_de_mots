@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Panel",
+            "request": "launch",
+            "type": "dart",
+            "program": "panel/lib/main.dart",
+            "flutterMode": "debug",
+            "args": [
+                "--web-renderer",
+                "html",
+            ]
+        },
+        {
             "name": "Video component",
             "request": "launch",
             "type": "dart",

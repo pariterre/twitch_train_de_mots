@@ -3,5 +3,6 @@ certs/
 
 # Igore the symlink to the built folders
 configuration
+panel
 video_component
 video_overlay
