@@ -615,4 +615,21 @@ const List<ReleaseNotes> releaseNotes = [
               'Plus de cheminot·e·s peuvent maintenant être affiché·e·s dans le tableau d\'honneur'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.7.2',
+    codeName: 'Progression',
+    notes:
+        'Le voyage vers le Nord est long et semé d\'embûches, mais la difficulté se bâtit. '
+        'Elle avance progressivement pour que les cheminot·e·s puissent s\'adapter et continuer à progresser. '
+        'Cette version change le nombre de mots par station pour que la difficulté augmente plus graduellement',
+    features: [
+      FeatureNotes(
+          description:
+              'Le nombre de mots nécessaires pour avancer à la station suivante est maintenant ajusté pour que la difficulté '
+              'augmente plus graduellement'),
+      FeatureNotes(
+          description:
+              'Le mini-jeu du ménage a maintenant plusieurs sons lorsqu\'on lance les avatars'),
+    ],
+  ),
 ];
