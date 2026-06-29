@@ -632,4 +632,16 @@ const List<ReleaseNotes> releaseNotes = [
               'Le mini-jeu du ménage a maintenant plusieurs sons lorsqu\'on lance les avatars'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.7.3',
+    codeName: 'TooBig!',
+    notes:
+        'Un bogue majeur a été introduit dans l\'extension... Elle se sentait seule et trop petite... '
+        'mais elle n\'avait pas raison de l\'être. L\'extension a été corrigée, mais l\'équipe de '
+        'Twitch doit l\'approuver avant qu\'elle ne soit disponible pour tous les cheminot·e·s. ',
+    features: [
+      FeatureNotes(
+          description: 'Bogue de sur la dimension de l\'extension corrigé.'),
+    ],
+  ),
 ];
