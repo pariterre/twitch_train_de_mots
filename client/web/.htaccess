@@ -1,6 +1,6 @@
 # ==========================================
-# Flutter Web .htaccess
-# Prevent stale app versions after deploy
+# Flutter Web .htaccess (Production Safe)
+# Prevent stale builds + safe caching strategy
 # ==========================================
 
 # ---------- MIME TYPES ----------
@@ -9,6 +9,7 @@ AddType text/javascript .mjs
 AddType application/wasm .wasm
 AddType text/css .css
 AddType text/html .html
+AddType application/json .json
 
 # ---------- COMPRESSION ----------
 <IfModule mod_deflate.c>
@@ -17,50 +18,39 @@ AddType text/html .html
         text/css \
         text/javascript \
         application/javascript \
-        application/wasm \
-        application/json
+        application/json \
+        application/wasm
 </IfModule>
 
 # ---------- CACHE CONTROL ----------
 <IfModule mod_headers.c>
 
-    # Never cache index.html
-    # Ensures browser checks for new Flutter version
-    <FilesMatch "^index\.html$">
+    # --------------------------------------
+    # NEVER CACHE APP SHELL FILES
+    # --------------------------------------
+    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter\.js|flutter_build_config\.json|manifest\.json|flutter_service_worker\.js)$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"
         Header set Pragma "no-cache"
         Header set Expires "0"
     </FilesMatch>
 
-    # Never cache Flutter service worker
-    # Critical for updates to be detected
-    <FilesMatch "^flutter_service_worker\.js$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires "0"
-    </FilesMatch>
-
-    # Optional: also avoid caching app bootstrap files
-    <FilesMatch "^(flutter\.js|manifest\.json|version\.json)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-    </FilesMatch>
-
-    # Cache static assets aggressively
-    # Flutter build files are content-hashed
-    <FilesMatch "\.(js|mjs|css|wasm|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf)$">
+    # --------------------------------------
+    # CACHE STATIC ASSETS (SAFE TO CACHE)
+    # These are fingerprinted or immutable resources
+    # --------------------------------------
+    <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|wasm)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
 </IfModule>
 
-# ---------- SPA ROUTING ----------
+# ---------- SPA ROUTING (Flutter Web) ----------
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # If request is not a real file/folder
+    # If file/folder does not exist, fallback to index.html
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Serve Flutter app
     RewriteRule . /index.html [L]
 </IfModule>
