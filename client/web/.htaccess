@@ -25,32 +25,15 @@ AddType application/json .json
 # ---------- CACHE CONTROL ----------
 <IfModule mod_headers.c>
 
-    # --------------------------------------
-    # NEVER CACHE APP SHELL FILES
-    # --------------------------------------
-    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter\.js|flutter_build_config\.json|manifest\.json|flutter_service_worker\.js)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires "0"
-    </FilesMatch>
+    # Default: NEVER cache (Flutter app shell safety)
+    Header always set Cache-Control "no-cache, no-store, must-revalidate"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
 
-    # --------------------------------------
-    # CACHE STATIC ASSETS (SAFE TO CACHE)
-    # These are fingerprinted or immutable resources
-    # --------------------------------------
+    # Static assets: override default safely
     <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|wasm)$">
-        Header set Cache-Control "public, max-age=31536000, immutable"
+        Header always set Cache-Control "public, max-age=31536000, immutable"
+        Header always unset Pragma
+        Header always unset Expires
     </FilesMatch>
-
-</IfModule>
-
-# ---------- SPA ROUTING (Flutter Web) ----------
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # If file/folder does not exist, fallback to index.html
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-
-    RewriteRule . /index.html [L]
 </IfModule>
