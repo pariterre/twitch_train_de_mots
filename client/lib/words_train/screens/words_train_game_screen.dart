@@ -83,7 +83,7 @@ class _Header extends StatefulWidget {
 
 class _HeaderState extends State<_Header> {
   int _previousScore = 0;
-  final _trainPath = TrainPathController(millisecondsPerStep: 300);
+  final _trainPath = TrainPathController();
 
   @override
   void initState() {
@@ -94,6 +94,7 @@ class _HeaderState extends State<_Header> {
     gm.onStealerPardoned.listen(_onSolutionFound);
     gm.onRoundStarted.listen(_refresh);
     gm.onRoundStarted.listen(_setTrainPath);
+    gm.onRoundIsOver.listen(_setTrainFastSpeed);
     _setTrainPath();
 
     final tm = ThemeManager.instance;
@@ -110,6 +111,7 @@ class _HeaderState extends State<_Header> {
     gm.onStealerPardoned.cancel(_onSolutionFound);
     gm.onRoundStarted.cancel(_refresh);
     gm.onRoundStarted.cancel(_setTrainPath);
+    gm.onRoundIsOver.cancel(_setTrainFastSpeed);
 
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
@@ -153,6 +155,15 @@ class _HeaderState extends State<_Header> {
             gm.pointsToObtain(SuccessLevel.threeStars),
           ];
     _trainPath.boostHallMark = gm.pointsToObtainBoost();
+
+    _trainPath.durationToTraverseTrack = Duration(seconds: 30);
+  }
+
+  void _setTrainFastSpeed() {
+    final cm = Managers.instance.configuration;
+
+    _trainPath.durationToTraverseTrack =
+        Duration(seconds: cm.postRoundShowCaseDuration.inSeconds - 1);
   }
 
   @override

@@ -8,15 +8,17 @@ class TrainPathController {
   int _nbSteps = 1;
   final List<int> _starHallMarks = [];
   int _boostHallMarks = -1;
-  final int millisecondsPerStep;
 
-  // TODO Change this for a total travel time
-  TrainPathController({required this.millisecondsPerStep});
+  TrainPathController();
 
   set nbSteps(int nbSteps) {
     _currentStep = 0;
     _nbSteps = nbSteps;
     steps = List.generate(_nbSteps, (index) => index / _nbSteps);
+  }
+
+  set durationToTraverseTrack(Duration duration) {
+    _controller?.duration = duration ~/ _nbSteps;
   }
 
   set starHallMarks(List<int> hallMarks) {
@@ -163,8 +165,7 @@ class TrainPathController {
     TickerProvider provider, {
     required Function() refreshCallback,
   }) {
-    _controller = AnimationController(
-        vsync: provider, duration: Duration(milliseconds: millisecondsPerStep));
+    _controller = AnimationController(vsync: provider, duration: Duration.zero);
     _animation = CurvedAnimation(
       parent: _controller!,
       curve: Curves.linear,
