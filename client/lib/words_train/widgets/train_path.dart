@@ -165,7 +165,9 @@ class TrainPathController {
     TickerProvider provider, {
     required Function() refreshCallback,
   }) {
-    _controller = AnimationController(vsync: provider, duration: Duration.zero);
+    // We need to give a somewhat good guess for duration since web-based won't work properly for the first time otherwise
+    _controller = AnimationController(
+        vsync: provider, duration: Duration(milliseconds: 300));
     _animation = CurvedAnimation(
       parent: _controller!,
       curve: Curves.linear,
