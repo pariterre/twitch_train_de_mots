@@ -286,11 +286,21 @@ class _GameConfigurationState extends State<_GameConfiguration> {
                     onChanged: (value) => cm.showExtension = value),
                 const SizedBox(height: 12),
                 if (cm.useDebugOptions)
-                  _BooleanInputField(
-                      label: 'Montrer les réponses au survol\nde la souris',
-                      value: cm.showAnswersTooltip,
-                      onChanged: (value) => cm.showAnswersTooltip = value),
-                const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _BooleanInputField(
+                        label: 'Montrer les réponses au survol\nde la souris',
+                        value: cm.showAnswersTooltip,
+                        onChanged: (value) => cm.showAnswersTooltip = value),
+                  ),
+                if (cm.useDebugOptions)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _BooleanInputField(
+                        label: 'Révéler les mots au click\nde la souris',
+                        value: cm.revealWordOnClick,
+                        onChanged: (value) => cm.revealWordOnClick = value),
+                  ),
                 Text('Volumes', style: subtitleStyle),
                 _SliderInputField(
                   label: 'Volume de la musique',

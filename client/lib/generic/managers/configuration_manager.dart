@@ -20,6 +20,7 @@ const _autoplayDurationDefault = 25;
 const _autoplayFailedDurationDefault = 50;
 
 const _showAnswersTooltipDefault = false;
+const _revealWordOnClickDefault = false;
 const _showLeaderBoardDefault = false;
 
 const _roundDurationDefault = 120;
@@ -139,6 +140,13 @@ class ConfigurationManager {
   bool get showAnswersTooltip => _showAnswersTooltip;
   set showAnswersTooltip(bool value) {
     _showAnswersTooltip = value;
+    _saveConfiguration();
+  }
+
+  bool _revealWordOnClick = _revealWordOnClickDefault;
+  bool get revealWordOnClick => _revealWordOnClick;
+  set revealWordOnClick(bool value) {
+    _revealWordOnClick = value;
     _saveConfiguration();
   }
 
@@ -393,6 +401,7 @@ class ConfigurationManager {
               map['autoplayFailedDuration'] ?? _autoplayFailedDurationDefault);
 
       _showAnswersTooltip = false;
+      _revealWordOnClick = false;
       _showLeaderBoard = map['showLeaderBoard'] ?? _showLeaderBoardDefault;
 
       _roundDuration =
@@ -458,6 +467,7 @@ class ConfigurationManager {
           const Duration(seconds: _autoplayFailedDurationDefault);
 
       _showAnswersTooltip = _showAnswersTooltipDefault;
+      _revealWordOnClick = _revealWordOnClickDefault;
       _showLeaderBoard = _showLeaderBoardDefault;
 
       _musicVolume = _musicVolumeDefault;

@@ -318,18 +318,36 @@ class _SolutionTileState extends State<_SolutionTile> {
     final cm = Managers.instance.configuration;
     final tm = ThemeManager.instance;
 
+    if (widget.fireworks != null && cm.revealWordOnClick) {
+      // Fireworks are preventing clicks to pass through, so we don't show them
+      // when we want to be able to click on the tile to reveal the word. This
+      // is correct since revealWordOnClick is only for debugging purposes.
+      return SizedBox.shrink();
+    }
+
+    Widget tile = _buildTile();
+    if (cm.showAnswersTooltip && widget.fireworks != null) {
+      tile = Tooltip(
+        message: widget.solution.isFound ? '' : widget.solution.word,
+        verticalOffset: -5,
+        textStyle: TextStyle(fontSize: tm.textSize, color: Colors.white),
+        child: tile,
+      );
+    }
+    if (cm.revealWordOnClick) {
+      tile = InkWell(
+        onTap: () {
+          final gm = Managers.instance.train;
+          setState(() {
+            gm.trySolution(login: 'login', word: widget.solution.word);
+          });
+        },
+        child: tile,
+      );
+    }
+
     return SizedBox(
-      width: widget.tileHeight * 7,
-      height: widget.tileHeight,
-      child: cm.showAnswersTooltip
-          ? Tooltip(
-              message: widget.solution.isFound ? '' : widget.solution.word,
-              verticalOffset: -5,
-              textStyle: TextStyle(fontSize: tm.textSize, color: Colors.white),
-              child: _buildTile(),
-            )
-          : _buildTile(),
-    );
+        width: widget.tileHeight * 7, height: widget.tileHeight, child: tile);
   }
 
   Widget _buildTile() {
@@ -346,7 +364,7 @@ class _SolutionTileState extends State<_SolutionTile> {
     final cooldownTimer =
         showCooldown ? widget.solution.foundBy.cooldownTimer : null;
 
-    final tile = Container(
+    Widget tile = Container(
         decoration: _boxDecoration,
         padding: EdgeInsets.symmetric(horizontal: tm.textSize / 2),
         child: widget.solution.isFound ||
