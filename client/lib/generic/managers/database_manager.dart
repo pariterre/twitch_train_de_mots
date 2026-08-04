@@ -193,7 +193,7 @@ class DatabaseManager {
   //// COMMUNICATION RELATED FUNCTIONS ////
   /////////////////////////////////////////
 
-  final _currentDatabaseVersion = 'v1.0.4';
+  final _currentDatabaseVersion = 'v1.0.5';
 
   ///
   /// Returns the collection of results

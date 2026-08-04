@@ -10,6 +10,7 @@ class TrainPathController {
   int _boostHallMarks = -1;
   final int millisecondsPerStep;
 
+  // TODO Change this for a total travel time
   TrainPathController({required this.millisecondsPerStep});
 
   set nbSteps(int nbSteps) {
