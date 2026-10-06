@@ -45,8 +45,7 @@ class _MainExtensionState extends State<MainExtension>
   late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
-    TwitchManager.instance.frontendManager.authenticator.onHasConnected
-        .cancel(_reloadOnConnection);
+    TwitchManager.instance.onHasConnected.cancel(_reloadOnConnection);
     setState(() {});
   }
 
@@ -101,8 +100,7 @@ class _MainExtensionState extends State<MainExtension>
 
             if (!TwitchManager.instance.userHasGrantedIdAccess) {
               if (TwitchManager.instance is! TwitchManagerMock) {
-                TwitchManager
-                    .instance.frontendManager.authenticator.onHasConnected
+                TwitchManager.instance.onHasConnected
                     .listen(_reloadOnConnection);
               }
               return const NonAuthorizedScreen();

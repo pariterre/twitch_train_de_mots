@@ -161,7 +161,6 @@ class _BlueberryFieldState extends State<_BlueberryField> {
   Widget build(BuildContext context) {
     final gm = GameManager.instance;
     final mgm = gm.miniGameState as SerializableBlueberryWarGameState;
-    final twitchManager = TwitchManager.instance;
 
     return BlueberryWarPlayingField(
       blueberries: mgm.blueberries,
@@ -170,7 +169,7 @@ class _BlueberryFieldState extends State<_BlueberryField> {
           mgm.roundTimer.status == ControllableTimerStatus.inProgress,
       clockTicker: gm.tickerManager.onClockTicked,
       onBlueberrySlingShot: (blueberry, newVelocity) {
-        twitchManager.slingShotBlueberryWar(
+        TwitchManager.instance.slingShotBlueberryWar(
             blueberry: blueberry, requestedVelocity: newVelocity);
       },
       drawBlueberryFieldOnly: true,

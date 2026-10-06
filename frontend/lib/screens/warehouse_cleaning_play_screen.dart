@@ -185,7 +185,6 @@ class _AvatarFieldState extends State<_AvatarField> {
     final gm = GameManager.instance;
     final mgm = GameManager.instance.miniGameState
         as SerializableWarehouseCleaningGameState;
-    final twitchManager = TwitchManager.instance;
 
     return WarehouseCleaningGameGrid(
       rowCount: mgm.grid.rowCount,
@@ -197,7 +196,7 @@ class _AvatarFieldState extends State<_AvatarField> {
       isRoundInProgress: gm.status == WordsTrainGameStatus.roundStarted,
       clockTicker: gm.tickerManager.onClockTicked,
       onAvatarSlingShot: (avatar, newVelocity) {
-        twitchManager.slingShotAvatarWareHouse(
+        TwitchManager.instance.slingShotAvatarWareHouse(
             avatar: avatar, requestedVelocity: newVelocity);
       },
     );

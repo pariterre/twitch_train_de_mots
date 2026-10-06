@@ -5,6 +5,7 @@
 - Treasure Hunt : when i click on the box, it will show the number 1, for example, then very, very briefly show the green box and then show the 1 again.
 - On mobile : text is white on white? and Cleaning works for some avatar then stops
 - Cleaning : if two persons throws the same avatar, it feels weird
+- Ajouter un max au nombre de pardon et boost, mais permettre de choisir quand on gagne un minijeu (étoile, boost, pardon), réduire le nombre d'étoile à mesure qu'on avance
 
 
 ## Fixed

@@ -46,16 +46,16 @@ class TwitchManager {
   ///
   /// Interface reference to the TwitchFrontendManager.
   tm.TwitchFrontendManager? _frontendManager;
-  tm.TwitchFrontendManager get frontendManager {
+  tm.TwitchListener<Function()> get onHasConnected {
     if (_frontendManager == null) {
       _logger.severe('TwitchFrontendManager is not ready yet');
       throw Exception('TwitchFrontendManager is not ready yet');
     }
 
-    return _frontendManager!;
+    return _frontendManager!.authenticator.onHasConnected;
   }
 
-  final bool useLocalEbs;
+  final Uri ebsUri;
   final bool useTwitchAuthenticatorMock;
 
   Map<String, dynamic> _previousGameState = {};
@@ -67,14 +67,14 @@ class TwitchManager {
   static Future<void> initialize({
     bool useEbsMock = false,
     bool useTwitchAuthenticatorMock = false,
-    bool useLocalEbs = false,
+    required Uri ebsUri,
   }) async =>
       useEbsMock
           ? _instance = TwitchManagerMock(
-              useLocalEbs: useLocalEbs,
+              ebsUri: ebsUri,
               useTwitchAuthenticatorMock: useTwitchAuthenticatorMock)
           : _instance = TwitchManager._(
-              useLocalEbs: useLocalEbs,
+              ebsUri: ebsUri,
               useTwitchAuthenticatorMock: useTwitchAuthenticatorMock);
 
   ///
@@ -310,7 +310,7 @@ class TwitchManager {
   }
 
   TwitchManager._(
-      {required this.useLocalEbs, required this.useTwitchAuthenticatorMock}) {
+      {required this.ebsUri, required this.useTwitchAuthenticatorMock}) {
     _callTwitchFrontendManagerFactory();
   }
 
@@ -318,9 +318,7 @@ class TwitchManager {
     _frontendManager = await tm.TwitchFrontendManager.factory(
       appInfo: tm.TwitchFrontendInfo(
         appName: 'Train de mots',
-        ebsUri: Uri.parse(useLocalEbs
-            ? 'ws://localhost:3011'
-            : 'wss://twitchserver.pariterre.net:3011'),
+        ebsUri: ebsUri,
       ),
       isTwitchUserIdRequired: true,
       mockedAuthenticatorInitializer: useTwitchAuthenticatorMock
@@ -369,7 +367,7 @@ class TwitchManager {
   /// Use bits cannot be blocking as it does not confirm anything. If successful
   /// the onTransactionCompleted callback will be automatically called.
   bool _useBits(Sku sku) {
-    TwitchManager.instance.frontendManager.bits.useBits(sku.toString());
+    _frontendManager!.bits.useBits(sku.toString());
 
     if (_frontendManager!.authenticator is MockedTwitchJwtAuthenticator) {
       // Simulate a successful transaction after 1000 milliseconds
@@ -512,7 +510,7 @@ class TwitchManager {
 
 class TwitchManagerMock extends TwitchManager {
   TwitchManagerMock(
-      {required super.useLocalEbs, required super.useTwitchAuthenticatorMock})
+      {required super.ebsUri, required super.useTwitchAuthenticatorMock})
       : super._() {
     _logger.info('WARNING: Using TwitchManagerMock');
     _onFinishedInitializing();
