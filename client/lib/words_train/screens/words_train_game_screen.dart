@@ -30,7 +30,7 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.listen(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+    Managers.instance.integrationManager.onHasTriedConnecting
         .listen(_hasTriedConnecting);
   }
 
@@ -39,7 +39,7 @@ class _WordsTrainGameScreenState extends State<WordsTrainGameScreen> {
     final tm = ThemeManager.instance;
     tm.onChanged.cancel(_refresh);
 
-    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+    Managers.instance.integrationManager.onHasTriedConnecting
         .cancel(_hasTriedConnecting);
 
     super.dispose();

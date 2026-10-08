@@ -740,6 +740,7 @@ class TwitchManagerMock extends TwitchManager {
             data: jsonDecode(jsonEncode({
               'type': MessagesToFrontend.gameStateResponse.name,
               'game_state': SerializableGameState(
+                integrationManagerType: IntegrationManagerType.twitch,
                 hasPlayedAtLeastOnce: true,
                 roundCount: 11,
                 gameStatus: WordsTrainGameStatus.roundStarted,

@@ -48,7 +48,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
 
     _logger.info('Sending welcome message');
     unawaited(
-      TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!'));
+        TwitchEbsApi.instance.sendChatMessage('Bienvenue au Train de mots!'));
 
     // Send if the extension is active to the frontend
     _sendExtensionActiveStatus(acceptedExtensionVersions);

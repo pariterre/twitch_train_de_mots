@@ -39,8 +39,7 @@ class WarehouseCleaningGameManager extends MiniGameManager {
 
     while (true) {
       try {
-        final tm = Managers.instance.twitch;
-        tm.addChatListener(trySolution);
+        Managers.instance.integrationManager.addChatListener(trySolution);
         break;
       } on ManagerNotInitializedException {
         // Wait and repeat

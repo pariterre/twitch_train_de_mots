@@ -13,14 +13,14 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final twitchManager = Managers.instance.twitch;
+    final im = Managers.instance.integrationManager;
     final tm = Managers.instance.train;
 
-    return twitchManager.isNotConnected
+    return im.isNotConnected
         ? Center(
             child: CircularProgressIndicator(
                 color: ThemeManager.instance.mainColor))
-        : twitchManager.debugOverlay(
+        : im.debugOverlay(
             child: tm.isRoundAMiniGame
                 ? switch (Managers.instance.miniGames.currentOrPrevious) {
                     MiniGames.none =>

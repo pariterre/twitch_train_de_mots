@@ -15,12 +15,6 @@ class FixTracksGameScreen extends StatefulWidget {
 }
 
 class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
-  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
-    await Managers.instance.twitch
-        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
@@ -29,14 +23,6 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
     fgm.onInitialized.listen(_refresh);
     fgm.onRoundStarted.listen(_refresh);
     fgm.onTrySolution.listen(_solutionWasTried);
-
-    final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
-
-    if (tm.isNotConnected) {
-      WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _setTwitchManager(reloadIfPossible: true));
-    }
   }
 
   // Dispose
@@ -47,13 +33,9 @@ class _FixTracksGameScreenState extends State<FixTracksGameScreen> {
     fgm.onRoundStarted.cancel(_refresh);
     fgm.onTrySolution.cancel(_solutionWasTried);
 
-    final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
-
     super.dispose();
   }
 
-  void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _refresh() => setState(() {});
   void _solutionWasTried(
       {required String playerName,

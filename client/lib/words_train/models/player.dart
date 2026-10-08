@@ -84,8 +84,8 @@ class Players extends DelegatingList<Player> {
   Future<Player> firstWhereOrAdd(String login) async {
     Player? player = firstWhereOrNull((element) => element.login == login);
     if (player == null) {
-      final displayName =
-          await Managers.instance.twitch.displayNameFromLogin(login);
+      final displayName = await Managers.instance.integrationManager
+          .displayNameFromLogin(login);
       if (displayName == null) {
         _logger.warning(
             'No display name found for login $login, using login as display name');

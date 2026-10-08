@@ -6,6 +6,12 @@ import 'package:common/generic/models/serializable_mini_game_state.dart';
 import 'package:common/generic/models/serializable_player.dart';
 import 'package:common/generic/models/success_level.dart';
 
+enum IntegrationManagerType {
+  twitch,
+  noIntegration,
+  none,
+}
+
 enum LetterStatus {
   normal,
   hidden,
@@ -132,6 +138,7 @@ class SerializableLetterProblem {
 }
 
 class SerializableGameState {
+  final IntegrationManagerType integrationManagerType;
   final Map<String, SerializablePlayer> players;
 
   final WordsTrainGameStatus gameStatus;
@@ -160,6 +167,7 @@ class SerializableGameState {
   final SerializableMiniGameState miniGameState;
 
   SerializableGameState({
+    required this.integrationManagerType,
     required this.hasPlayedAtLeastOnce,
     required this.roundCount,
     required this.gameStatus,
@@ -185,7 +193,8 @@ class SerializableGameState {
   });
 
   SerializableGameState.empty()
-      : hasPlayedAtLeastOnce = false,
+      : integrationManagerType = IntegrationManagerType.none,
+        hasPlayedAtLeastOnce = false,
         roundCount = 0,
         gameStatus = WordsTrainGameStatus.uninitialized,
         isRoundAMiniGame = false,
@@ -209,6 +218,7 @@ class SerializableGameState {
         miniGameState = SerializableMiniGameStateNone();
 
   SerializableGameState copyWith({
+    IntegrationManagerType? integrationManagerType,
     bool? hasPlayedAtLeastOnce,
     int? roundCount,
     WordsTrainGameStatus? gameStatus,
@@ -233,6 +243,8 @@ class SerializableGameState {
     SerializableMiniGameState? miniGameState,
   }) =>
       SerializableGameState(
+        integrationManagerType:
+            integrationManagerType ?? this.integrationManagerType,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce ?? this.hasPlayedAtLeastOnce,
         roundCount: roundCount ?? this.roundCount,
         gameStatus: gameStatus ?? this.gameStatus,
@@ -263,6 +275,7 @@ class SerializableGameState {
 
   Map<String, dynamic> serialize() {
     return {
+      'integration_manager_type': integrationManagerType.index,
       'has_played_at_least_once': hasPlayedAtLeastOnce,
       'players': players.map((key, value) => MapEntry(key, value.serialize())),
       'round': roundCount,
@@ -291,6 +304,8 @@ class SerializableGameState {
 
   static SerializableGameState deserialize(Map<String, dynamic> data) {
     return SerializableGameState(
+      integrationManagerType: IntegrationManagerType
+          .values[data['integration_manager_type'] as int],
       hasPlayedAtLeastOnce: data['has_played_at_least_once'] as bool,
       players: (data['players'] as Map<String, dynamic>).map((key, value) =>
           MapEntry(key,

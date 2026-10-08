@@ -2,6 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/managers/twitch_manager.dart';
 import 'package:train_de_mots/generic/models/exceptions.dart';
 import 'package:train_de_mots/generic/widgets/word_train_about_dialog.dart';
 import 'package:train_de_mots/release_notes.dart';
@@ -18,8 +19,19 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
     await Managers.instance.twitch
-        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
+        .connect(context: context, reloadIfPossible: reloadIfPossible);
+    _setIntegrationManager(Managers.instance.twitch);
     setState(() {});
+  }
+
+  Future<void> _setNoIntegrationManager() async {
+    await Managers.instance.noIntegration.connect(context: context);
+    _setIntegrationManager(Managers.instance.noIntegration);
+    setState(() {});
+  }
+
+  void _setIntegrationManager(IntegrationManager manager) {
+    Managers.instance.integrationManager = manager;
   }
 
   void _reconnectedAfterDisconnect() => Managers.instance.database.isLoggedIn
@@ -49,9 +61,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _prepareReleaseNotesIfNeeded();
 
-    final twitch = Managers.instance.twitch;
-    twitch.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
-    twitch.onTwitchManagerHasDisconnected.listen(_reconnectedAfterDisconnect);
+    final im = Managers.instance.integrationManager;
+    im.onHasTriedConnecting.listen(_hasTriedConnecting);
+    im.onHasDisconnected.listen(_reconnectedAfterDisconnect);
   }
 
   @override
@@ -66,9 +78,9 @@ class _SplashScreenState extends State<SplashScreen> {
     dm.onLoggedIn.cancel(_startSearchingForNextProblem);
     dm.onLoggedOut.cancel(_refresh);
 
-    final twitch = Managers.instance.twitch;
-    twitch.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
-    twitch.onTwitchManagerHasDisconnected.cancel(_reconnectedAfterDisconnect);
+    final im = Managers.instance.integrationManager;
+    im.onHasTriedConnecting.cancel(_hasTriedConnecting);
+    im.onHasDisconnected.cancel(_reconnectedAfterDisconnect);
 
     super.dispose();
   }
@@ -79,7 +91,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _startSearchingForNextProblem() {
-    if (Managers.instance.twitch.isNotConnected) return;
+    if (Managers.instance.integrationManager.isNotConnected) return;
     if (Managers.instance.database.isLoggedOut) return;
 
     Managers.instance.train.requestSearchForNextProblem();
@@ -120,80 +132,91 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
     final dm = Managers.instance.database;
-    final twitchManager = Managers.instance.twitch;
+    final im = Managers.instance.integrationManager;
 
     return SizedBox(
       height: MediaQuery.of(context).size.height,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Train de mots',
-              style: tm.clientMainTextStyle.copyWith(
-                fontSize: 48.0,
-                color: tm.textColor,
-                fontWeight: FontWeight.bold,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Train de mots',
+                style: tm.clientMainTextStyle.copyWith(
+                  fontSize: 48.0,
+                  color: tm.textColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 30.0),
-            SizedBox(
-              width: 700,
-              child: Text(
-                  'Chères cheminots et cheminotes${dm.teamName == null ? '' : ' de ${dm.teamName}'}, bienvenue à bord!\n'
-                  '\n'
-                  'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
-                  'Trouvez le plus de mots possibles pour emmener le train à destination. '
-                  'Le ou la meilleure cheminot·e sera couronné·e de gloire!\n'
-                  '\n'
-                  'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
-                  'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
-                  'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
-                  style: tm.clientMainTextStyle.copyWith(
-                    fontSize: 24.0,
-                    color: tm.textColor,
-                  ),
-                  textAlign: TextAlign.justify),
-            ),
-            const SizedBox(height: 30.0),
-            Text(
-              twitchManager.isConnected && dm.isLoggedIn
-                  ? 'C\'est un départ! Tchou Tchou!!'
-                  : 'Mais avant de partir, vous devez vous connecter',
-              style: tm.clientMainTextStyle.copyWith(
-                fontSize: 24.0,
-                color: tm.textColor,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 30.0),
+              SizedBox(
+                width: 700,
+                child: Text(
+                    'Chères cheminots et cheminotes${dm.teamName == null ? '' : ' de ${dm.teamName}'}, bienvenue à bord!\n'
+                    '\n'
+                    'Nous avons besoin de vous pour énergiser le Petit Train du Nord! '
+                    'Trouvez le plus de mots possibles pour emmener le train à destination. '
+                    'Le ou la meilleure cheminot·e sera couronné·e de gloire!\n'
+                    '\n'
+                    'Mais attention, bien que vous devez travailler ensemble pour arriver à bon port, '
+                    'vos collègues sans scrupules peuvent vous voler vos mots et faire reculer le train! '
+                    'Heureusement pour vous, les voleurs seront ralentit dans leur travail. ',
+                    style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 24.0,
+                      color: tm.textColor,
+                    ),
+                    textAlign: TextAlign.justify),
               ),
-            ),
-            const SizedBox(height: 30.0),
-            if (dm.isLoggedOut ||
-                (dm.isLoggedIn && !dm.isEmailVerified) ||
-                !dm.hasTeamName)
-              ThemedElevatedButton(
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (ctx) => const _ConnexionDialog());
-                },
-                buttonText: 'Connexion à votre compte',
-              )
-            else if (twitchManager.isNotConnected)
-              ThemedElevatedButton(
-                onPressed: twitchManager.isConnecting
-                    ? null
-                    : () => _setTwitchManager(reloadIfPossible: true),
-                buttonText: 'Connexion à Twitch',
-              )
-            else
-              ThemedElevatedButton(
-                onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
-                buttonText: _isGameReadyToPlay
-                    ? 'Direction première station!'
-                    : 'Préparation du train...',
+              const SizedBox(height: 30.0),
+              Text(
+                im.isConnected && dm.isLoggedIn
+                    ? 'C\'est un départ! Tchou Tchou!!'
+                    : 'Mais avant de partir, vous devez vous connecter',
+                style: tm.clientMainTextStyle.copyWith(
+                  fontSize: 24.0,
+                  color: tm.textColor,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-          ],
+              const SizedBox(height: 30.0),
+              if (dm.isLoggedOut ||
+                  (dm.isLoggedIn && !dm.isEmailVerified) ||
+                  !dm.hasTeamName)
+                ThemedElevatedButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (ctx) => const _ConnexionDialog());
+                  },
+                  buttonText: 'Connexion à votre compte',
+                )
+              else if (im.isNotConnected)
+                Column(
+                  children: [
+                    ThemedElevatedButton(
+                      onPressed: Managers.instance.twitch.isConnecting
+                          ? null
+                          : () => _setTwitchManager(reloadIfPossible: true),
+                      buttonText: 'Connexion à Twitch',
+                    ),
+                    SizedBox(height: 12.0),
+                    ThemedElevatedButton(
+                      onPressed: _setNoIntegrationManager,
+                      buttonText: 'Connexion sans intégration',
+                    ),
+                  ],
+                )
+              else
+                ThemedElevatedButton(
+                  onPressed: _isGameReadyToPlay ? widget.onClickStart : null,
+                  buttonText: _isGameReadyToPlay
+                      ? 'Direction première station!'
+                      : 'Préparation du train...',
+                ),
+            ],
+          ),
         ),
       ),
     );

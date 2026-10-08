@@ -55,10 +55,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
     while (true) {
       try {
-        final tm = Managers.instance.twitch;
-        tm.onTwitchManagerHasTriedConnecting
-            .listen(_twitchManagerHasTriedConnecting);
-        _twitchManagerHasTriedConnecting(isSuccess: tm.isConnected);
+        final im = Managers.instance.integrationManager;
+        im.onHasTriedConnecting.listen(_twitchManagerHasTriedConnecting);
+        _twitchManagerHasTriedConnecting(isSuccess: im.isConnected);
         break;
       } on ManagerNotInitializedException {
         // Retry until the manager is initialized
@@ -75,9 +74,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   void _twitchManagerHasTriedConnecting({required bool isSuccess}) {
     if (!isSuccess) return;
 
-    Managers.instance.twitch.onTwitchManagerHasTriedConnecting
+    Managers.instance.integrationManager.onHasTriedConnecting
         .cancel(_twitchManagerHasTriedConnecting);
-    connect(Managers.instance.twitch.broadcasterId);
+    connect(Managers.instance.integrationManager.broadcasterId);
   }
 
   void _listenToGameManagerCallbacks() {
@@ -326,8 +325,10 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         final activeVersion = message.data!['active_version'] as String?;
         final acceptedExtensionVersions =
             (message.data!['accepted_versions'] as List).cast<String>();
-        isExtensionActive = activeVersion != null &&
-            acceptedExtensionVersions.contains(activeVersion);
+        isExtensionActive = Managers.instance.integrationManager.type ==
+                IntegrationManagerType.noIntegration ||
+            (activeVersion != null &&
+                acceptedExtensionVersions.contains(activeVersion));
         _logger.info(
             'Extension is now ${isExtensionActive ? 'active' : 'inactive'}');
         break;

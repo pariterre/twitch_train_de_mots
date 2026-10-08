@@ -18,12 +18,6 @@ class WarehouseCleaningGameScreen extends StatefulWidget {
 
 class _WarehouseCleaningGameScreenState
     extends State<WarehouseCleaningGameScreen> {
-  Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
-    await Managers.instance.twitch
-        .showConnectManagerDialog(context, reloadIfPossible: reloadIfPossible);
-    setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
@@ -39,14 +33,6 @@ class _WarehouseCleaningGameScreenState
     whgm.onAvatarMoved.listen(_refresh);
     whgm.onTrySolution.listen(_solutionWasTried);
     whgm.onRoundEnded.listen(_refresh);
-
-    final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasTriedConnecting.listen(_hasTriedConnecting);
-
-    if (tm.isNotConnected) {
-      WidgetsBinding.instance.addPostFrameCallback(
-          (_) => _setTwitchManager(reloadIfPossible: true));
-    }
   }
 
   // Dispose
@@ -64,13 +50,9 @@ class _WarehouseCleaningGameScreenState
     whgm.onTrySolution.cancel(_solutionWasTried);
     whgm.onRoundEnded.cancel(_refresh);
 
-    final tm = Managers.instance.twitch;
-    tm.onTwitchManagerHasTriedConnecting.cancel(_hasTriedConnecting);
-
     super.dispose();
   }
 
-  void _hasTriedConnecting({required bool isSuccess}) => setState(() {});
   void _avatarLaunched(AvatarAgent avatar) => setState(() {});
   void _refresh() => setState(() {});
   void _solutionWasTried(

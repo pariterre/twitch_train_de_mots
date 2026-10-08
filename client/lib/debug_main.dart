@@ -54,14 +54,14 @@ class DebugScreen extends StatefulWidget {
 
 class _DebugScreenState extends State<DebugScreen> {
   Future<void> _setTwitchManager() async {
-    await Managers.instance.twitch.showConnectManagerDialog(context);
+    await Managers.instance.twitch.connect(context: context);
     setState(() {});
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (Managers.instance.twitch.isNotConnected) {
+    if (Managers.instance.integrationManager.isNotConnected) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _setTwitchManager());
     }
   }
@@ -76,7 +76,7 @@ class _DebugScreenState extends State<DebugScreen> {
         opacity: const AlwaysStoppedAnimation(0.05),
         fit: BoxFit.cover,
       ),
-      child: Managers.instance.twitch.debugOverlay(
+      child: Managers.instance.integrationManager.debugOverlay(
         child: const Center(child: Text('Coucou')),
       ),
     ));

@@ -23,6 +23,7 @@ class Managers {
       _miniGames != null &&
       _sound != null &&
       _twitch != null &&
+      _noIntegration != null &&
       _ebs != null;
 
   static final Managers _instance = Managers._();
@@ -65,8 +66,12 @@ class Managers {
 
     // Initialize the Twitch manager
     _instance._twitch = MocksConfiguration.useTwitchManagerMock
-        ? TwitchManagerMocked(appInfo: twitchAppInfo)
-        : TwitchManager(appInfo: twitchAppInfo);
+        ? TwitchIntegrationManagerMocked(appInfo: twitchAppInfo)
+        : TwitchIntegrationManager(appInfo: twitchAppInfo);
+
+    // Initialize the no integration manager
+    _instance._noIntegration = NoIntegrationManager();
+    _instance._integrationManager = _instance._noIntegration!;
 
     // Initialize the configuration manager
     _instance._configuration = ConfigurationManager();
@@ -94,6 +99,7 @@ class Managers {
         !(_instance._miniGames?.isInitialized ?? false) ||
         !(_instance._sound?.isInitialized ?? false) ||
         !(_instance._twitch?.isInitialized ?? false) ||
+        !(_instance._noIntegration?.isInitialized ?? false) ||
         !(_instance._ebs?.isInitialized ?? false)) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
@@ -153,13 +159,35 @@ class Managers {
     return _sound!;
   }
 
-  TwitchManager? _twitch;
-  TwitchManager get twitch {
+  IntegrationManager? _integrationManager;
+  IntegrationManager get integrationManager {
+    if (_integrationManager == null) {
+      throw ManagerNotInitializedException(
+          'IntegrationManager is not initialized. Please call Managers.initialize() before using it.');
+    }
+    return _integrationManager!;
+  }
+
+  set integrationManager(IntegrationManager? manager) {
+    _integrationManager = manager ?? _instance._noIntegration!;
+  }
+
+  TwitchIntegrationManager? _twitch;
+  TwitchIntegrationManager get twitch {
     if (_twitch == null) {
       throw ManagerNotInitializedException(
-          'TwitchManager is not initialized. Please call Managers.initialize() before using it.');
+          'TwitchIntegrationManager is not initialized. Please call Managers.initialize() before using it.');
     }
     return _twitch!;
+  }
+
+  NoIntegrationManager? _noIntegration;
+  NoIntegrationManager get noIntegration {
+    if (_noIntegration == null) {
+      throw ManagerNotInitializedException(
+          'NoIntegrationManager is not initialized. Please call Managers.initialize() before using it.');
+    }
+    return _noIntegration!;
   }
 
   TwitchAppEbsManager? _ebs;

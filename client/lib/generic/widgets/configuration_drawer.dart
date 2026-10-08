@@ -180,7 +180,8 @@ class _ConfigurationDrawerState extends State<ConfigurationDrawer> {
                           if (context.mounted) Navigator.pop(context);
 
                           await dm.logOut();
-                          Managers.instance.twitch.disconnect();
+                          Managers.instance.integrationManager.disconnect();
+                          Managers.instance.integrationManager = null;
                         }),
                   ],
                 ),

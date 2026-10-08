@@ -256,6 +256,7 @@ class WordsTrainGameManager {
         );
 
   SerializableGameState get toSerializable => SerializableGameState(
+        integrationManagerType: Managers.instance.integrationManager.type,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
         roundCount: roundCount,
         gameStatus: gameStatus,
@@ -662,9 +663,9 @@ class WordsTrainGameManager {
   }
 
   ///
-  /// Initialize the callbacks from Twitch chat to [trySolution]
+  /// Initialize the callbacks from chat to [trySolution]
   Future<void> _initializeTrySolutionCallback() async =>
-      Managers.instance.twitch.addChatListener(
+      Managers.instance.integrationManager.addChatListener(
           (login, message) => trySolution(login: login, word: message));
 
   ///
