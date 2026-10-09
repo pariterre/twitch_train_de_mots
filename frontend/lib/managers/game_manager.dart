@@ -247,7 +247,7 @@ class GameManager {
 
   final onPardonGranted = GenericListener<Function(bool)>();
   Future<bool> pardonStealer() async {
-    final isSuccess = await TwitchManager.instance.pardonStealer();
+    final isSuccess = await IntegrationManager.instance.pardonStealer();
     onPardonGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
   }
@@ -259,7 +259,7 @@ class GameManager {
 
   final onBoostGranted = GenericListener<Function(bool)>();
   Future<bool> boostTrain() async {
-    final isSuccess = await TwitchManager.instance.boostTrain();
+    final isSuccess = await IntegrationManager.instance.boostTrain();
     onBoostGranted.notifyListeners((callback) => callback(isSuccess));
     return isSuccess;
   }
@@ -270,7 +270,7 @@ class GameManager {
   /// Boost availability
   final onChangeLaneGranted = GenericListener<Function()>();
   Future<bool> requestChangeLane() async {
-    final isSuccess = await TwitchManager.instance.changeLane();
+    final isSuccess = await IntegrationManager.instance.changeLane();
     return isSuccess;
   }
 

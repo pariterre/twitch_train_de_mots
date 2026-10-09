@@ -3,7 +3,7 @@
 PROJECTS := client ebs extensions extensions_local
 
 # Folders to keep during web server cleanup
-FOLDER_TO_KEEP := .well-known cgi-bin
+FOLDER_TO_KEEP := .well-known cgi-bin players
 
 # Internal variables
 BASE_FOLDER := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -45,14 +45,31 @@ ebs:
 	dart compile exe bin/train_de_mots_ebs.dart; \
 	cd $(BASE_FOLDER); 
 
+players:
+	@echo "Building PLAYERS project..."; \
+	PROJECT_FOLDER=$(BASE_FOLDER)/frontend; \
+	cd $${PROJECT_FOLDER}; \
+	flutter clean; \
+	flutter pub get; \
+	flutter build web --release --dart-define=USE_TWITCH_PROVIDER=false; \
+	cd $(BASE_FOLDER); \
+	# Make sure the authentication are provided (TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, TRAIN_DE_MOTS_SSH_FOLDER_CLIENT) \
+	if [ -z "$${TRAIN_DE_MOTS_SSH_USER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_SERVER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}" ]; then \
+		echo "ERROR -- TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, or TRAIN_DE_MOTS_SSH_FOLDER_CLIENT is not set. Please set them before building."; \
+		exit 1; \
+	fi; \
+	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/players && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
+	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/players; \
+	echo "Project built and sent successfully."
+
 extensions:
 	@echo "Building EXTENSIONS project..."; \
 	CONFIGURATION_FOLDER=$(BASE_FOLDER)/configuration; \
 	FRONTEND_FOLDER=$(BASE_FOLDER)/frontend; \
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
-	cd $${CONFIGURATION_FOLDER} && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
-	cd $${FRONTEND_FOLDER}	    && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release; \
+	cd $${CONFIGURATION_FOLDER} && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release --dart-define=USE_TWITCH_PROVIDER=true; \
+	cd $${FRONTEND_FOLDER}	    && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --release --dart-define=USE_TWITCH_PROVIDER=true; \
 	cd $${BASE_FOLDER}; \
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
@@ -68,8 +85,8 @@ extensions_local:
 	FRONTEND_FOLDER=$(BASE_FOLDER)/frontend; \
 	TARGET_FOLDER=$(BASE_FOLDER)/build; \
 	echo "Building extensions..."; \
-	cd $${CONFIGURATION_FOLDER}  && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
-	cd $${FRONTEND_FOLDER}       && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_LOCAL_EBS=true; \
+	cd $${CONFIGURATION_FOLDER}  && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_TWITCH_PROVIDER=true --dart-define=USE_LOCAL_EBS=true; \
+	cd $${FRONTEND_FOLDER}       && fvm flutter clean && fvm flutter pub get && fvm flutter build web --no-web-resources-cdn --web-renderer html --profile --dart-define=USE_TWITCH_PROVIDER=true --dart-define=USE_LOCAL_EBS=true; \
 	cd $${BASE_FOLDER}; \
 	rm -rf $${TARGET_FOLDER}; \
 	mkdir $${TARGET_FOLDER}; \
@@ -78,4 +95,3 @@ extensions_local:
 	cd $${TARGET_FOLDER}; \
 	zip -r extensions.zip configuration frontend; \
 	cd $(BASE_FOLDER);
-	

@@ -156,7 +156,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                   ),
                                   const SizedBox(height: 8.0),
                                   ElevatedButton(
-                                      onPressed: TwitchManager
+                                      onPressed: IntegrationManager
                                           .instance.attemptTheBigHeist,
                                       child:
                                           const Text('Frapper le Grand Coup!')),
@@ -206,7 +206,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                     child: ElevatedButton(
                                         onPressed:
                                             gm.canRequestFixTracksMiniGame
-                                                ? TwitchManager.instance
+                                                ? IntegrationManager.instance
                                                     .attemptFixTracksMiniGame
                                                 : null,
                                         child: const Text(
@@ -230,7 +230,8 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                 ),
                                 const SizedBox(height: 8.0),
                                 ElevatedButton(
-                                    onPressed: TwitchManager.instance.celebrate,
+                                    onPressed:
+                                        IntegrationManager.instance.celebrate,
                                     child: const Text('Feux d\'artifice!')),
                               ],
                             ),

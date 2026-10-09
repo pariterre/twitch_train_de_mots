@@ -35,7 +35,9 @@ class NonAuthorizedScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                      onPressed: () => TwitchManager.instance.requestIdShare(),
+                      onPressed: () => (IntegrationManager.instance
+                              as TwitchIntegrationManager)
+                          .requestIdShare(),
                       child: const Text('Ouvrir l\'autorisation')),
                 ],
               ),

@@ -45,7 +45,9 @@ class _MainExtensionState extends State<MainExtension>
   late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
-    TwitchManager.instance.onHasConnected.cancel(_reloadOnConnection);
+    (IntegrationManager.instance as TwitchIntegrationManager)
+        .onHasConnected
+        .cancel(_reloadOnConnection);
     setState(() {});
   }
 
@@ -92,15 +94,16 @@ class _MainExtensionState extends State<MainExtension>
           : Size(MediaQuery.of(context).size.width * 0.20,
               MediaQuery.of(context).size.width * 0.30),
       child: FutureBuilder(
-          future: TwitchManager.instance.onHasInitialized,
+          future: IntegrationManager.instance.onHasInitialized,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (!TwitchManager.instance.userHasGrantedIdAccess) {
-              if (TwitchManager.instance is! TwitchManagerMock) {
-                TwitchManager.instance.onHasConnected
+            if (!IntegrationManager.instance.userHasGrantedIdAccess) {
+              if (IntegrationManager.instance is TwitchIntegrationManager) {
+                (IntegrationManager.instance as TwitchIntegrationManager)
+                    .onHasConnected
                     .listen(_reloadOnConnection);
               }
               return const NonAuthorizedScreen();

@@ -17,6 +17,21 @@
       }
     },
     {
+      "label": "Build Players release",
+      "type": "shell",
+      "command": "make",
+      "args": [ "players" ],
+      "problemMatcher": [ ],
+      "isBackground": false,
+      "options": {
+        "env": {
+          "TRAIN_DE_MOTS_SSH_USER": "USER_FOR_SSH_SERVICE",
+          "TRAIN_DE_MOTS_SSH_SERVER": "SERVER_URL",
+          "TRAIN_DE_MOTS_SSH_FOLDER_CLIENT": "FOLDER_IN_SERVER"
+        }
+      }
+    },
+    {
       "label": "Build Extensions release",
       "type": "shell",
       "command": "make",

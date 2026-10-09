@@ -196,7 +196,7 @@ class _AvatarFieldState extends State<_AvatarField> {
       isRoundInProgress: gm.status == WordsTrainGameStatus.roundStarted,
       clockTicker: gm.tickerManager.onClockTicked,
       onAvatarSlingShot: (avatar, newVelocity) {
-        TwitchManager.instance.slingShotAvatarWareHouse(
+        IntegrationManager.instance.slingShotAvatarWareHouse(
             avatar: avatar, requestedVelocity: newVelocity);
       },
     );

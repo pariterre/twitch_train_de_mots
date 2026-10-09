@@ -169,7 +169,7 @@ class _BlueberryFieldState extends State<_BlueberryField> {
           mgm.roundTimer.status == ControllableTimerStatus.inProgress,
       clockTicker: gm.tickerManager.onClockTicked,
       onBlueberrySlingShot: (blueberry, newVelocity) {
-        TwitchManager.instance.slingShotBlueberryWar(
+        IntegrationManager.instance.slingShotBlueberryWar(
             blueberry: blueberry, requestedVelocity: newVelocity);
       },
       drawBlueberryFieldOnly: true,

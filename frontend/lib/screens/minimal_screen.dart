@@ -19,7 +19,7 @@ class MinimalScreen extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Center(
               child: Header(
-            titleText: TwitchManager.instance.userHasGrantedIdAccess
+            titleText: IntegrationManager.instance.userHasGrantedIdAccess
                 ? switch (gm.status) {
                     WordsTrainGameStatus.roundStarted => gm.isMiniGameActive
                         ? 'Le Train de mots'

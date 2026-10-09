@@ -231,7 +231,7 @@ class _TextInputState extends State<_TextInput> {
     final text = _controller.text;
     _controller.clear();
 
-    TwitchManager.instance.tryWord(text);
+    IntegrationManager.instance.tryWord(text);
   }
 
   @override
@@ -329,8 +329,8 @@ class _PardonRequestState extends State<_PardonRequest> {
 
     final pardonners = gm.pardonners;
     _logger.info('Update current pardonners to: $pardonners');
-    _canPlayerPardon =
-        gm.pardonCount > 0 && pardonners.contains(TwitchManager.instance.login);
+    _canPlayerPardon = gm.pardonCount > 0 &&
+        pardonners.contains(IntegrationManager.instance.login);
     setState(() {});
   }
 
@@ -393,7 +393,7 @@ class _BoostRequestState extends State<_BoostRequest> {
   void _updateBoostAvailability() {
     final gm = GameManager.instance;
     _canPlayerBoost = gm.boostCount > 0 &&
-        !gm.boosters.contains(TwitchManager.instance.login);
+        !gm.boosters.contains(IntegrationManager.instance.login);
     _logger.info(_canPlayerBoost
         ? 'The player can boost the train'
         : 'The player cannot boost the train');
@@ -488,9 +488,9 @@ class _CooldownClockState extends State<_CooldownClock> {
 
   void _updateCooldownTimer() {
     final players = GameManager.instance.players;
-    if (!players.keys.contains(TwitchManager.instance.login)) return;
+    if (!players.keys.contains(IntegrationManager.instance.login)) return;
 
-    final cooldown = players[TwitchManager.instance.login]!.cooldownTimer;
+    final cooldown = players[IntegrationManager.instance.login]!.cooldownTimer;
     if (cooldown.endsAt != _cooldownEndsAt) {
       _logger.info('Updating the player cooldown timer');
       final now = DateTime.now();

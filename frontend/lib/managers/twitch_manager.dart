@@ -40,68 +40,40 @@ export 'package:twitch_manager/twitch_frontend.dart';
 
 final _logger = Logger('TwitchManager');
 
-TwitchManager? _instance;
+IntegrationManager? _instance;
 
-class TwitchManager {
+abstract class IntegrationManager {
+  String? get login;
+
+  bool get userHasGrantedIdAccess;
+
   ///
-  /// Interface reference to the TwitchFrontendManager.
-  tm.TwitchFrontendManager? _frontendManager;
-  tm.TwitchListener<Function()> get onHasConnected {
-    if (_frontendManager == null) {
-      _logger.severe('TwitchFrontendManager is not ready yet');
-      throw Exception('TwitchFrontendManager is not ready yet');
-    }
-
-    return _frontendManager!.authenticator.onHasConnected;
+  /// Callback to know when the IntegrationManager has connected to the
+  /// backend services.
+  bool get isInitialized => _onHasInitialized.isCompleted;
+  Future<bool> get onHasInitialized => _onHasInitialized.future;
+  final _onHasInitialized = Completer<bool>();
+  void _onFinishedInitializing() {
+    _logger.info('Connected to Integration service');
+    _onHasInitialized.complete(true);
   }
-
-  final Uri ebsUri;
-  final bool useTwitchAuthenticatorMock;
 
   Map<String, dynamic> _previousGameState = {};
-  String? _login;
-  String? get login => _login;
 
   ///
-  /// Initialize the TwitchManager
-  static Future<void> initialize({
-    bool useEbsMock = false,
-    bool useTwitchAuthenticatorMock = false,
-    required Uri ebsUri,
-  }) async =>
-      useEbsMock
-          ? _instance = TwitchManagerMock(
-              ebsUri: ebsUri,
-              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock)
-          : _instance = TwitchManager._(
-              ebsUri: ebsUri,
-              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock);
+  /// Declare the singleton instance of the IntegrationManager, calling this method
+  /// automatically initializes the TwitchManager. However, ones is encouraged
+  /// to call [TwitchManager.initialize()] before using the TwitchManager to make
+  /// sure that the TwitchManager is configured correctly.
 
-  ///
-  /// Get the opaque user ID of the current user. This is the ID that is used
-  /// to identify the user in the game even though it is impossible to identify
-  /// the user with this. The EBS is well aware of this opcaity and can use it
-  /// to identify the user even if it is opaque (if the extension requested such
-  /// permissions).
-  String get userId {
-    if (_frontendManager == null) {
-      _logger.severe('TwitchFrontendManager is not ready yet');
-      throw Exception('TwitchFrontendManager is not ready yet');
+  static IntegrationManager get instance {
+    if (_instance == null) {
+      _logger.severe('IntegrationManager is not initialized, please call '
+          'IntegrationManager.initialize() before using the instance');
+      throw Exception('IntegrationManager is not initialized, please call '
+          'IntegrationManager.initialize() before using the instance');
     }
-
-    return _frontendManager!.authenticator.opaqueUserId;
-  }
-
-  bool get userHasGrantedIdAccess =>
-      _frontendManager?.authenticator.userId != null;
-
-  void requestIdShare() {
-    if (_frontendManager == null) {
-      _logger.severe('TwitchFrontendManager is not ready yet');
-      throw Exception('TwitchFrontendManager is not ready yet');
-    }
-
-    _frontendManager!.authenticator.requestIdShare();
+    return _instance!;
   }
 
   Future<bool> tryWord(String word) async {
@@ -163,7 +135,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    return _useBits(Sku.changeLane);
+    return await _usePaidPerk(Sku.changeLane);
   }
 
   ///
@@ -181,7 +153,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    return _useBits(Sku.bigHeist);
+    return await _usePaidPerk(Sku.bigHeist);
   }
 
   ///
@@ -199,7 +171,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    return _useBits(Sku.fixTracks);
+    return await _usePaidPerk(Sku.fixTracks);
   }
 
   ///
@@ -217,7 +189,7 @@ class TwitchManager {
     );
     if (!(response.isSuccess ?? false)) return false;
 
-    return _useBits(Sku.celebrate);
+    return await _usePaidPerk(Sku.celebrate);
   }
 
   ///
@@ -269,82 +241,12 @@ class TwitchManager {
     return response.isSuccess ?? false;
   }
 
-  Future<bool> _redeemBitsTransaction(
-      tm.BitsTransactionObject transaction) async {
-    final response = await _sendMessageToApp(MessagesToApp.bitsRedeemed,
-            transaction: transaction)
-        .timeout(const Duration(seconds: 5),
-            onTimeout: () => tm.MessageProtocol(
-                to: tm.MessageTo.frontend,
-                from: tm.MessageFrom.ebs,
-                type: tm.MessageTypes.response,
-                isSuccess: false));
-    return response.isSuccess ?? false;
-  }
+  Future<tm.MessageProtocol> _sendMessageToApp(MessagesToApp request,
+      {Map<String, dynamic>? data});
 
-  ///
-  /// Callback to know when the TwitchManager has connected to the Twitch
-  /// backend services.
-  bool get isInitialized => _onHasInitialized.isCompleted;
-  Future<bool> get onHasInitialized => _onHasInitialized.future;
-  final _onHasInitialized = Completer<bool>();
-  void _onFinishedInitializing() {
-    _logger.info('Connected to Twitch service');
-    _onHasInitialized.complete(true);
-  }
+  Future<tm.MessageProtocol> _sendMessageToEbs(MessagesToEbs request);
 
-  ///
-  /// Declare the singleton instance of the TwitchManager, calling this method
-  /// automatically initializes the TwitchManager. However, ones is encouraged
-  /// to call [TwitchManager.initialize()] before using the TwitchManager to make
-  /// sure that the TwitchManager is configured correctly.
-
-  static TwitchManager get instance {
-    if (_instance == null) {
-      _logger.severe('TwitchManager is not initialized, please call '
-          'TwitchManager.initialize() before using the instance');
-      throw Exception('TwitchManager is not initialized, please call '
-          'TwitchManager.initialize() before using the instance');
-    }
-    return _instance!;
-  }
-
-  TwitchManager._(
-      {required this.ebsUri, required this.useTwitchAuthenticatorMock}) {
-    _callTwitchFrontendManagerFactory();
-  }
-
-  Future<void> _callTwitchFrontendManagerFactory() async {
-    _frontendManager = await tm.TwitchFrontendManager.factory(
-      appInfo: tm.TwitchFrontendInfo(
-        appName: 'Train de mots',
-        ebsUri: ebsUri,
-      ),
-      isTwitchUserIdRequired: true,
-      mockedAuthenticatorInitializer: useTwitchAuthenticatorMock
-          ? () => MockedTwitchJwtAuthenticator()
-          : null,
-    );
-
-    _onFinishedInitializing();
-
-    _frontendManager!.onMessageReceived.listen(_onMessageReceived);
-    _frontendManager!.onStreamerHasConnected.listen(() {
-      GameManager.instance.startGame();
-      _requestCurrentLogin();
-      _requestGameStatus();
-    });
-    _frontendManager!.onStreamerHasDisconnected
-        .listen(GameManager.instance.stopGame);
-
-    _frontendManager!.bits.onTransactionCompleted
-        .listen(_onBitsTransactionCompleted);
-
-    _logger.info('TwitchFrontendManager is ready');
-  }
-
-  TwitchPlatform get platform => _frontendManager!.queryParameters.platform;
-  TwitchAnchor get anchor => _frontendManager!.queryParameters.anchor;
+  Future<bool> _usePaidPerk(Sku sku);
 
   void _onMessageReceived(tm.MessageProtocol message) {
     try {
@@ -360,65 +262,6 @@ class TwitchManager {
       }
     } catch (e) {
       // The message is not a valid JSON, ignore it
-    }
-  }
-
-  ///
-  /// Use bits cannot be blocking as it does not confirm anything. If successful
-  /// the onTransactionCompleted callback will be automatically called.
-  bool _useBits(Sku sku) {
-    _frontendManager!.bits.useBits(sku.toString());
-
-    if (_frontendManager!.authenticator is MockedTwitchJwtAuthenticator) {
-      // Simulate a successful transaction after 1000 milliseconds
-      Future.delayed(const Duration(milliseconds: 1000)).then((_) {
-        _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
-            userId: _frontendManager!.authenticator.userId!,
-            sku: sku.toString(),
-            sharedSecret: mockedSharedSecret));
-      });
-    }
-    return true;
-  }
-
-  Future<void> _onBitsTransactionCompleted(
-      tm.BitsTransactionObject transaction) async {
-    _logger.info('Bits transaction completed');
-    final isSuccess = await _redeemBitsTransaction(transaction);
-    if (!isSuccess) return;
-
-    // Tell the GameManager that bits were used
-    switch (
-        Sku.fromString(transaction.extractedUnverifiedReceipt.product.sku)) {
-      case Sku.changeLane:
-        GameManager.instance.changeLaneGranted();
-        break;
-      case Sku.bigHeist:
-      case Sku.fixTracks:
-      case Sku.celebrate:
-        break;
-    }
-  }
-
-  Future<void> _requestCurrentLogin() async {
-    while (_login == null) {
-      final response = await _sendMessageToEbs(MessagesToEbs.opaqueToLogin)
-          .timeout(const Duration(seconds: 5),
-              onTimeout: () => tm.MessageProtocol(
-                  to: tm.MessageTo.frontend,
-                  from: tm.MessageFrom.ebs,
-                  type: tm.MessageTypes.response,
-                  isSuccess: false))
-          .onError((e, st) => tm.MessageProtocol(
-              to: tm.MessageTo.frontend,
-              from: tm.MessageFrom.ebs,
-              type: tm.MessageTypes.response,
-              isSuccess: false));
-      if (response.isSuccess ?? false) {
-        _login = response.data?['login'] as String?;
-      }
-
-      await Future.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -464,9 +307,61 @@ class TwitchManager {
         .updateGameState(SerializableGameState.deserialize(newGameState));
     _previousGameState = newGameState;
   }
+}
+
+class NoIntegrationManager extends IntegrationManager {
+  tm.TwitchFrontendManager? _frontendManager;
+
+  final Uri ebsUri;
+
+  @override
+  String? get login => _frontendManager?.authenticator.userId;
+
+  @override
+  bool get userHasGrantedIdAccess => true;
+
+  ///
+  /// Initialize the TwitchManager
+  static Future<void> initialize({
+    bool useEbsMock = false,
+    required Uri ebsUri,
+  }) async =>
+      _instance = useEbsMock
+          ? _instance = TwitchIntegrationManagerMock(
+              ebsUri: ebsUri, useTwitchAuthenticatorMock: true)
+          : _instance = NoIntegrationManager._(ebsUri: ebsUri);
+
+  NoIntegrationManager._({required this.ebsUri}) {
+    _prepareFrontendManagerFactory();
+  }
+
+  Future<void> _prepareFrontendManagerFactory() async {
+    _frontendManager = await tm.TwitchFrontendManager.factory(
+      appInfo: tm.TwitchFrontendInfo(
+        appName: 'Train de mots',
+        ebsUri: ebsUri,
+      ),
+      isTwitchUserIdRequired: true,
+      // TODO, provide a proper mocked authenticator
+      mockedAuthenticatorInitializer: () => MockedTwitchJwtAuthenticator(),
+    );
+
+    _onFinishedInitializing();
+
+    _frontendManager!.onMessageReceived.listen(_onMessageReceived);
+    _frontendManager!.onStreamerHasConnected.listen(() {
+      GameManager.instance.startGame();
+      _requestGameStatus();
+    });
+    _frontendManager!.onStreamerHasDisconnected
+        .listen(GameManager.instance.stopGame);
+
+    _logger.info('TwitchFrontendManager is ready');
+  }
 
   ///
   /// Send a message to the App based on the [type] of message.
+  @override
   Future<tm.MessageProtocol> _sendMessageToApp(
     MessagesToApp request, {
     Map<String, dynamic>? data,
@@ -488,6 +383,252 @@ class TwitchManager {
 
   ///
   /// Send a message to the App based on the [type] of message.
+  @override
+  Future<tm.MessageProtocol> _sendMessageToEbs(
+    MessagesToEbs request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
+    if (!isInitialized) {
+      _logger.severe('TwitchManager is not initialized');
+      throw Exception('TwitchManager is not initialized');
+    }
+
+    return await _frontendManager!.sendMessageToEbs(
+        tm.MessageProtocol(
+            to: tm.MessageTo.ebs,
+            from: tm.MessageFrom.frontend,
+            type: tm.MessageTypes.get,
+            data: {'type': request.name}..addAll(data ?? {})),
+        transaction: transaction);
+  }
+
+  @override
+  Future<bool> _usePaidPerk(Sku sku) async {
+    final response = await _sendMessageToApp(MessagesToApp.bitsRedeemed,
+            transaction: tm.BitsTransactionObject.generateMocked(
+                userId: _frontendManager!.authenticator.userId!,
+                sku: sku.toString(),
+                sharedSecret: mockedSharedSecret))
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
+                isSuccess: false));
+
+    // Tell the GameManager that bits were used
+    switch (sku) {
+      case Sku.changeLane:
+        GameManager.instance.changeLaneGranted();
+        break;
+      case Sku.bigHeist:
+      case Sku.fixTracks:
+      case Sku.celebrate:
+        break;
+    }
+
+    return response.isSuccess ?? false;
+  }
+}
+
+class TwitchIntegrationManager extends IntegrationManager {
+  ///
+  /// Interface reference to the TwitchFrontendManager.
+  tm.TwitchFrontendManager? _frontendManager;
+  tm.TwitchListener<Function()> get onHasConnected {
+    if (_frontendManager == null) {
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
+    }
+
+    return _frontendManager!.authenticator.onHasConnected;
+  }
+
+  final Uri ebsUri;
+  final bool useTwitchAuthenticatorMock;
+
+  String? _login;
+  @override
+  String? get login => _login;
+
+  ///
+  /// Initialize the TwitchManager
+  static Future<void> initialize({
+    bool useEbsMock = false,
+    bool useTwitchAuthenticatorMock = false,
+    required Uri ebsUri,
+  }) async =>
+      useEbsMock
+          ? _instance = TwitchIntegrationManagerMock(
+              ebsUri: ebsUri,
+              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock)
+          : _instance = TwitchIntegrationManager._(
+              ebsUri: ebsUri,
+              useTwitchAuthenticatorMock: useTwitchAuthenticatorMock);
+
+  ///
+  /// Get the opaque user ID of the current user. This is the ID that is used
+  /// to identify the user in the game even though it is impossible to identify
+  /// the user with this. The EBS is well aware of this opcaity and can use it
+  /// to identify the user even if it is opaque (if the extension requested such
+  /// permissions).
+  String get userId {
+    if (_frontendManager == null) {
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
+    }
+
+    return _frontendManager!.authenticator.opaqueUserId;
+  }
+
+  @override
+  bool get userHasGrantedIdAccess =>
+      _frontendManager?.authenticator.userId != null;
+
+  void requestIdShare() {
+    if (_frontendManager == null) {
+      _logger.severe('TwitchFrontendManager is not ready yet');
+      throw Exception('TwitchFrontendManager is not ready yet');
+    }
+
+    _frontendManager!.authenticator.requestIdShare();
+  }
+
+  Future<bool> _redeemBitsTransaction(
+      tm.BitsTransactionObject transaction) async {
+    final response = await _sendMessageToApp(MessagesToApp.bitsRedeemed,
+            transaction: transaction)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
+  TwitchIntegrationManager._(
+      {required this.ebsUri, required this.useTwitchAuthenticatorMock}) {
+    _callTwitchFrontendManagerFactory();
+  }
+
+  Future<void> _callTwitchFrontendManagerFactory() async {
+    _frontendManager = await tm.TwitchFrontendManager.factory(
+      appInfo: tm.TwitchFrontendInfo(
+        appName: 'Train de mots',
+        ebsUri: ebsUri,
+      ),
+      isTwitchUserIdRequired: true,
+      mockedAuthenticatorInitializer: useTwitchAuthenticatorMock
+          ? () => MockedTwitchJwtAuthenticator()
+          : null,
+    );
+    _onFinishedInitializing();
+
+    _frontendManager!.onMessageReceived.listen(_onMessageReceived);
+    _frontendManager!.onStreamerHasConnected.listen(() {
+      GameManager.instance.startGame();
+      _requestCurrentLogin();
+      _requestGameStatus();
+    });
+    _frontendManager!.onStreamerHasDisconnected
+        .listen(GameManager.instance.stopGame);
+
+    _frontendManager!.bits.onTransactionCompleted
+        .listen(_onBitsTransactionCompleted);
+
+    _logger.info('TwitchFrontendManager is ready');
+  }
+
+  TwitchPlatform get platform => _frontendManager!.queryParameters.platform;
+  TwitchAnchor get anchor => _frontendManager!.queryParameters.anchor;
+
+  ///
+  /// Use bits cannot be blocking as it does not confirm anything. If successful
+  /// the onTransactionCompleted callback will be automatically called.
+  @override
+  Future<bool> _usePaidPerk(Sku sku) {
+    _frontendManager!.bits.useBits(sku.toString());
+
+    if (_frontendManager!.authenticator is MockedTwitchJwtAuthenticator) {
+      // Simulate a successful transaction after 1000 milliseconds
+      Future.delayed(const Duration(milliseconds: 1000)).then((_) {
+        _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
+            userId: _frontendManager!.authenticator.userId!,
+            sku: sku.toString(),
+            sharedSecret: mockedSharedSecret));
+      });
+    }
+    return Future.value(true);
+  }
+
+  Future<void> _onBitsTransactionCompleted(
+      tm.BitsTransactionObject transaction) async {
+    _logger.info('Bits transaction completed');
+    final isSuccess = await _redeemBitsTransaction(transaction);
+    if (!isSuccess) return;
+
+    // Tell the GameManager that bits were used
+    switch (
+        Sku.fromString(transaction.extractedUnverifiedReceipt.product.sku)) {
+      case Sku.changeLane:
+        GameManager.instance.changeLaneGranted();
+        break;
+      case Sku.bigHeist:
+      case Sku.fixTracks:
+      case Sku.celebrate:
+        break;
+    }
+  }
+
+  Future<void> _requestCurrentLogin() async {
+    while (_login == null) {
+      final response = await _sendMessageToEbs(MessagesToEbs.opaqueToLogin)
+          .timeout(const Duration(seconds: 5),
+              onTimeout: () => tm.MessageProtocol(
+                  to: tm.MessageTo.frontend,
+                  from: tm.MessageFrom.ebs,
+                  type: tm.MessageTypes.response,
+                  isSuccess: false))
+          .onError((e, st) => tm.MessageProtocol(
+              to: tm.MessageTo.frontend,
+              from: tm.MessageFrom.ebs,
+              type: tm.MessageTypes.response,
+              isSuccess: false));
+      if (response.isSuccess ?? false) {
+        _login = response.data?['login'] as String?;
+      }
+
+      await Future.delayed(const Duration(seconds: 5));
+    }
+  }
+
+  ///
+  /// Send a message to the App based on the [type] of message.
+  @override
+  Future<tm.MessageProtocol> _sendMessageToApp(
+    MessagesToApp request, {
+    Map<String, dynamic>? data,
+    tm.BitsTransactionObject? transaction,
+  }) async {
+    if (!isInitialized) {
+      _logger.severe('TwitchManager is not initialized');
+      throw Exception('TwitchManager is not initialized');
+    }
+
+    return await _frontendManager!.sendMessageToApp(
+        tm.MessageProtocol(
+            to: tm.MessageTo.app,
+            from: tm.MessageFrom.frontend,
+            type: tm.MessageTypes.get,
+            data: {'type': request.name}..addAll(data ?? {})),
+        transaction: transaction);
+  }
+
+  ///
+  /// Send a message to the App based on the [type] of message.
+  @override
   Future<tm.MessageProtocol> _sendMessageToEbs(
     MessagesToEbs request, {
     Map<String, dynamic>? data,
@@ -508,11 +649,11 @@ class TwitchManager {
   }
 }
 
-class TwitchManagerMock extends TwitchManager {
-  TwitchManagerMock(
+class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
+  TwitchIntegrationManagerMock(
       {required super.ebsUri, required super.useTwitchAuthenticatorMock})
       : super._() {
-    _logger.info('WARNING: Using TwitchManagerMock');
+    _logger.info('WARNING: Using TwitchIntegrationManagerMock');
     _onFinishedInitializing();
   }
 
@@ -718,7 +859,7 @@ class TwitchManagerMock extends TwitchManager {
   }
 
   @override
-  bool _useBits(Sku sku) {
+  Future<bool> _usePaidPerk(Sku sku) {
     switch (sku) {
       case Sku.changeLane:
       case Sku.fixTracks:
@@ -730,7 +871,7 @@ class TwitchManagerMock extends TwitchManager {
               sku: sku.toString(),
               sharedSecret: mockedSharedSecret));
         });
-        return true;
+        return Future.value(true);
       case Sku.bigHeist:
         _onMessageReceived(tm.MessageProtocol(
             to: tm.MessageTo.frontend,
@@ -782,7 +923,7 @@ class TwitchManagerMock extends TwitchManager {
                 miniGameState: SerializableMiniGameStateNone(),
               ).serialize(),
             }))));
-        return true;
+        return Future.value(true);
     }
   }
 
@@ -1135,7 +1276,7 @@ class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   ///
   /// The id of the channel that the frontend is connected to
   @override
-  String get channelId => '1234567890';
+  String get channelId => 'W4VESM';
 
   ///
   /// The obfuscted user id of the frontend

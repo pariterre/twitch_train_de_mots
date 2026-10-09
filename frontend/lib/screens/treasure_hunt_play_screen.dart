@@ -86,7 +86,7 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
             .copyWith(endsAt: mgm.roundTimer.endsAt?.add(bonusTime)),
         triesRemaining: triesRemaining));
 
-    TwitchManager.instance.revealTileAt(index: tile.index);
+    IntegrationManager.instance.revealTileAt(index: tile.index);
     setState(() {});
   }
 }
