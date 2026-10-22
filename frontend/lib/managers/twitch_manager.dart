@@ -356,15 +356,19 @@ class NoIntegrationManager extends IntegrationManager {
       _logger.info('Generated new userId: $userId');
     }
 
+    final appInfo = tm.TwitchFrontendInfo(
+      appName: 'Train de mots',
+      ebsUri: ebsUri,
+    );
+    final authenticator = NoIntegrationJwtAuthenticator(
+        appInfo: appInfo, userName: userId, channelId: channelId);
+    await authenticator.initialize();
+
     _frontendManager = await tm.TwitchFrontendManager.factory(
-      appInfo: tm.TwitchFrontendInfo(
-        appName: 'Train de mots',
-        ebsUri: ebsUri,
-      ),
+      appInfo: appInfo,
       onHasConnected: _notifyOnHasConnected,
       isTwitchUserIdRequired: true,
-      mockedAuthenticatorInitializer: () => NoIntegrationJwtAuthenticator(
-          userName: userId!, channelId: channelId),
+      mockedAuthenticatorInitializer: () => authenticator,
     );
 
     _frontendManager!.onMessageReceived.listen(_onMessageReceived);
@@ -1276,28 +1280,43 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
 /// The JWT key is for the Frontend of a Twitch extension.
 class NoIntegrationJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   NoIntegrationJwtAuthenticator(
-      {required String userName, required String channelId})
+      {required String userName,
+      required String channelId,
+      required this.appInfo})
       : _userId = userName,
         _channelId = channelId;
 
+  final tm.TwitchFrontendInfo appInfo;
+
+  Future<void> initialize() async {
+    final signedInnerToken = await tm.TwitchFrontendHelpers.getSelfSignedJwt(
+        appInfo: appInfo,
+        data: {
+          'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600,
+          'channel_id': channelId,
+          'user_id': userId,
+          'opaque_user_id': opaqueUserId,
+          'role': 'external',
+          'is_unlinked': false,
+        });
+    final signedOuterToken = await tm.TwitchFrontendHelpers.getSelfSignedJwt(
+        appInfo: appInfo,
+        data: {
+          'twitch_access_token': signedInnerToken,
+          'channel_id': channelId,
+          'opaque_user_id': opaqueUserId,
+          'user_id': userId
+        });
+    _ebsToken = signedOuterToken;
+  }
+
   ///
   /// ebsToken is the token that is used to authenticate the EBS to the Twitch API
+  String? _ebsToken;
   @override
   tm.AppToken? get ebsToken {
-    return tm.AppToken.fromSerialized(JWT({
-      'twitch_access_token': JWT({
-        'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600,
-        'channel_id': channelId,
-        'user_id': userId,
-        'opaque_user_id': opaqueUserId,
-        'role': 'external',
-        'is_unlinked': false,
-      }).sign(SecretKey('no_secret')),
-      'channel_id': channelId,
-      'opaque_user_id': opaqueUserId,
-      'user_id': userId
-    }).sign(SecretKey('no_secret')));
+    return tm.AppToken.fromSerialized(_ebsToken!);
   }
 
   ///
