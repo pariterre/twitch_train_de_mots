@@ -9,9 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/screens/blueberry_war_play_screen.dart';
+import 'package:frontend/screens/connect_no_integration_screen.dart';
 import 'package:frontend/screens/fix_tracks_play_screen.dart';
 import 'package:frontend/screens/minimal_screen.dart';
-import 'package:frontend/screens/non_authorized_screen.dart';
+import 'package:frontend/screens/non_authorized_twitch_screen.dart';
 import 'package:frontend/screens/play_screen.dart';
 import 'package:frontend/screens/treasure_hunt_play_screen.dart';
 import 'package:frontend/screens/waiting_screen.dart';
@@ -45,9 +46,15 @@ class _MainExtensionState extends State<MainExtension>
   late bool _shouldHide = widget.canBeHidden;
 
   void _reloadOnConnection() {
-    (IntegrationManager.instance as TwitchIntegrationManager)
-        .onHasConnected
-        .cancel(_reloadOnConnection);
+    if (IntegrationManager.instance is TwitchIntegrationManager) {
+      (IntegrationManager.instance as TwitchIntegrationManager)
+          .onHasConnected
+          .cancel(_reloadOnConnection);
+    } else if (IntegrationManager.instance is NoIntegrationManager) {
+      (IntegrationManager.instance as NoIntegrationManager)
+          .onHasConnected
+          .cancel(_reloadOnConnection);
+    }
     setState(() {});
   }
 
@@ -100,13 +107,18 @@ class _MainExtensionState extends State<MainExtension>
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (!IntegrationManager.instance.userHasGrantedIdAccess) {
-              if (IntegrationManager.instance is TwitchIntegrationManager) {
-                (IntegrationManager.instance as TwitchIntegrationManager)
-                    .onHasConnected
-                    .listen(_reloadOnConnection);
+            final im = IntegrationManager.instance;
+
+            if (!im.userHasGrantedIdAccess) {
+              if (im is TwitchIntegrationManager) {
+                im.onHasConnected.listen(_reloadOnConnection);
               }
-              return const NonAuthorizedScreen();
+              return const NonAuthorizedTwitchScreen();
+            }
+
+            if (im is NoIntegrationManager && im.isNotConnected) {
+              im.onHasConnected.listen(_reloadOnConnection);
+              return const ConnectNoIntegrationScreen();
             }
 
             return _MainScreen(

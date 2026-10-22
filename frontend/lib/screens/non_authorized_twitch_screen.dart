@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
 
-class NonAuthorizedScreen extends StatelessWidget {
-  const NonAuthorizedScreen({super.key});
+class NonAuthorizedTwitchScreen extends StatelessWidget {
+  const NonAuthorizedTwitchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +26,8 @@ class NonAuthorizedScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Bonjour cheminot·e,\n'
-                    'Afin de profiter d\'embarquer\n'
-                    'dans le train, vous devez\n'
+                    'Afin d\'embarquer dans\n'
+                    'le train, vous devez\n'
                     'autoriser l\'accès à votre\n'
                     'identifiant Twitch.',
                     textAlign: TextAlign.left,
