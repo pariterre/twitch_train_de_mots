@@ -169,6 +169,8 @@ class Managers {
   }
 
   set integrationManager(IntegrationManager? manager) {
+    if (_integrationManager == manager) return;
+
     // Move the listeners to the new manager
     if (_integrationManager != null) {
       manager?.onHasTriedConnecting
