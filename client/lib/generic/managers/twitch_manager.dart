@@ -116,7 +116,6 @@ class TwitchIntegrationManager extends IntegrationManager {
   Future<void> _asyncInitializations() async {
     _logger.config('Initializing...');
     _isInitialized = true;
-    await _tryAutomaticConnect();
     _logger.config('Ready');
     return Future.value();
   }
@@ -152,18 +151,6 @@ class TwitchIntegrationManager extends IntegrationManager {
   @override
   Widget debugOverlay({required Widget child}) =>
       TwitchAppDebugOverlay(manager: _manager!, child: child);
-
-  Future<void> _tryAutomaticConnect() async {
-    _isConnecting = true;
-    _manager = await (_useMocker
-        ? TwitchAppManagerMock.factory(
-            appInfo: appInfo,
-            debugPanelOptions: MocksConfiguration.twitchDebugPanelOptions)
-        : TwitchAppManager.factory(appInfo: appInfo, reload: true));
-
-    _isConnecting = false;
-    await _finalizeConnexion();
-  }
 
   ///
   /// Provide an easy access to the TwitchManager connect dialog

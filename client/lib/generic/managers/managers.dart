@@ -169,6 +169,17 @@ class Managers {
   }
 
   set integrationManager(IntegrationManager? manager) {
+    // Move the listeners to the new manager
+    if (_integrationManager != null) {
+      manager?.onHasTriedConnecting
+          .copyListenersFrom(_integrationManager!.onHasTriedConnecting);
+      manager?.onHasDisconnected
+          .copyListenersFrom(_integrationManager!.onHasDisconnected);
+
+      _integrationManager?.onHasTriedConnecting.cancelAll();
+      _integrationManager!.onHasDisconnected.cancelAll();
+    }
+
     _integrationManager = manager ?? _instance._noIntegration!;
   }
 

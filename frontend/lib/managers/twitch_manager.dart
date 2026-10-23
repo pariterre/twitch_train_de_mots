@@ -30,12 +30,10 @@ import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart'
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_manager/common/communication_protocols.dart';
 import 'package:twitch_manager/frontend/twitch_js_extension/twitch_js_extension_enum.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
 import 'package:twitch_manager/utils/twitch_listener.dart';
-import 'package:uuid/uuid.dart';
 import 'package:vector_math/vector_math.dart' as vector_math;
 import 'package:vector_math/vector_math.dart';
 
@@ -347,21 +345,14 @@ class NoIntegrationManager extends IntegrationManager {
     _onHasConnected.notifyListeners((callback) => callback());
   }
 
-  Future<void> connectToStreamer({required String channelId}) async {
-    final sharedPreferences = await SharedPreferences.getInstance();
-    String? userId = sharedPreferences.getString('userId');
-    if (userId == null) {
-      userId = const Uuid().v4();
-      await sharedPreferences.setString('userId', userId);
-      _logger.info('Generated new userId: $userId');
-    }
-
+  Future<void> connectToStreamer(
+      {required String login, required String channelId}) async {
     final appInfo = tm.TwitchFrontendInfo(
       appName: 'Train de mots',
       ebsUri: ebsUri,
     );
-    final authenticator = NoIntegrationJwtAuthenticator(
-        appInfo: appInfo, userName: userId, channelId: channelId);
+    final authenticator = await tm.NoIntegrationJwtAuthenticator.factory(
+        appInfo: appInfo, login: login, channelId: channelId);
     await authenticator.initialize();
 
     _frontendManager = await tm.TwitchFrontendManager.factory(
@@ -1278,92 +1269,6 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
 
 ///
 /// The JWT key is for the Frontend of a Twitch extension.
-class NoIntegrationJwtAuthenticator extends tm.TwitchJwtAuthenticator {
-  NoIntegrationJwtAuthenticator(
-      {required String userName,
-      required String channelId,
-      required this.appInfo})
-      : _userId = userName,
-        _channelId = channelId;
-
-  final tm.TwitchFrontendInfo appInfo;
-
-  Future<void> initialize() async {
-    final signedInnerToken = await tm.TwitchFrontendHelpers.getSelfSignedJwt(
-        appInfo: appInfo,
-        data: {
-          'iat': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          'exp': (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600,
-          'channel_id': channelId,
-          'user_id': userId,
-          'opaque_user_id': opaqueUserId,
-          'role': 'external',
-          'is_unlinked': false,
-        });
-    final signedOuterToken = await tm.TwitchFrontendHelpers.getSelfSignedJwt(
-        appInfo: appInfo,
-        data: {
-          'twitch_access_token': signedInnerToken,
-          'channel_id': channelId,
-          'opaque_user_id': opaqueUserId,
-          'user_id': userId
-        });
-    _ebsToken = signedOuterToken;
-  }
-
-  ///
-  /// ebsToken is the token that is used to authenticate the EBS to the Twitch API
-  String? _ebsToken;
-  @override
-  tm.AppToken? get ebsToken {
-    return tm.AppToken.fromSerialized(_ebsToken!);
-  }
-
-  ///
-  /// The id of the channel that the frontend is connected to
-  final String _channelId;
-  @override
-  String get channelId => _channelId;
-
-  ///
-  /// The obfuscted user id of the frontend
-  @override
-  String get opaqueUserId => userId;
-
-  ///
-  /// The non-obfuscated user id of the frontend. This required [isTwitchUserIdRequired]
-  /// to be true when calling the [connect] method
-  final String _userId;
-  @override
-  String get userId => _userId;
-
-  @override
-  void requestIdShare() {
-    // Do nothing
-  }
-
-  bool _isConnected = false;
-  @override
-  bool get isConnected => _isConnected;
-  @override
-  Future<void> connect({
-    required tm.TwitchFrontendInfo appInfo,
-    bool isTwitchUserIdRequired = false,
-  }) async {
-    // Do nothing as there is no third party to connect to
-    _isConnected = true;
-    onHasConnected.notifyListeners((callback) => callback());
-  }
-
-  @override
-  Future<void> listenToPubSub(
-      String target, Function(tm.MessageProtocol message) callback) async {
-    // There is no PubSub
-  }
-}
-
-///
-/// The JWT key is for the Frontend of a Twitch extension.
 class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   MockedTwitchJwtAuthenticator();
 
@@ -1390,7 +1295,7 @@ class MockedTwitchJwtAuthenticator extends tm.TwitchJwtAuthenticator {
   ///
   /// The id of the channel that the frontend is connected to
   @override
-  String get channelId => 'W4VESM';
+  String get channelId => '1234567890';
 
   ///
   /// The obfuscted user id of the frontend

@@ -18,15 +18,15 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   Future<void> _setTwitchManager({required bool reloadIfPossible}) async {
+    _setIntegrationManager(Managers.instance.twitch);
     await Managers.instance.twitch
         .connect(context: context, reloadIfPossible: reloadIfPossible);
-    _setIntegrationManager(Managers.instance.twitch);
     setState(() {});
   }
 
   Future<void> _setNoIntegrationManager() async {
-    await Managers.instance.noIntegration.connect(context: context);
     _setIntegrationManager(Managers.instance.noIntegration);
+    await Managers.instance.noIntegration.connect(context: context);
     setState(() {});
   }
 
