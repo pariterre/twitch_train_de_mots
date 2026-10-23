@@ -4,3 +4,6 @@
 
 # VScode stuff
 .vscode/launch.json
+
+
+.flutter-plugins*

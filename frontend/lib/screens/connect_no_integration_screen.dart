@@ -13,6 +13,10 @@ class ConnectNoIntegrationScreen extends StatefulWidget {
 
 class _ConnectNoIntegrationScreenState
     extends State<ConnectNoIntegrationScreen> {
+  late final _loginController = TextEditingController()
+    ..addListener(() {
+      setState(() {});
+    });
   late final _codeController = TextEditingController()
     ..addListener(() {
       setState(() {});
@@ -53,6 +57,17 @@ class _ConnectNoIntegrationScreenState
                   SizedBox(
                     width: 200,
                     child: TextField(
+                      controller: _loginController,
+                      enabled: !_isConnecting,
+                      decoration: const InputDecoration(
+                        labelText: 'Pseudonyme',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
                       controller: _codeController,
                       enabled: !_isConnecting,
                       decoration: const InputDecoration(
@@ -63,19 +78,19 @@ class _ConnectNoIntegrationScreenState
                   const SizedBox(height: 10),
                   if (_isConnecting)
                     ElevatedButton(
-                        onPressed: _codeController.text.isNotEmpty
-                            ? () async {
-                                setState(() => _isConnecting = false);
-                                await im.disconnectFromStreamer();
-                              }
-                            : null,
+                        onPressed: () async {
+                          setState(() => _isConnecting = false);
+                          await im.disconnectFromStreamer();
+                        },
                         child: const Text('Annuler'))
                   else
                     ElevatedButton(
-                        onPressed: _codeController.text.isNotEmpty
+                        onPressed: _loginController.text.isNotEmpty &&
+                                _codeController.text.isNotEmpty
                             ? () async {
                                 setState(() => _isConnecting = true);
                                 await im.connectToStreamer(
+                                    login: _loginController.text,
                                     channelId: _codeController.text);
                               }
                             : null,
