@@ -1037,7 +1037,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: false,
+                isRoundAMiniGame: true,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(
@@ -1072,7 +1072,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
                 canRequestFixTracksMiniGame: true,
                 isAttemptingFixTracksMiniGame: false,
                 configuration: SerializableConfiguration(showExtension: true),
-                miniGameState: warehouseCleaningDummyMiniGame(isPaused: false),
+                miniGameState: treasureHuntDummyMiniGame(isPaused: false),
               )
               .serialize();
 

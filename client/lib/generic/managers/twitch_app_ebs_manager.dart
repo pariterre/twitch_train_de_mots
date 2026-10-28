@@ -12,6 +12,7 @@ import 'package:common/warehouse_cleaning/models/avatar_agent.dart';
 import 'package:logging/logging.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/mocks_configuration.dart';
+import 'package:train_de_mots/words_train/models/player.dart';
 import 'package:train_de_mots/words_train/models/word_solution.dart';
 import 'package:twitch_manager/twitch_app.dart';
 
@@ -366,8 +367,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
         final isSuccess = switch (requestType) {
-          MessagesToApp.tryWord => await gm.trySolution(
-              login: login, word: message.data!['word'] as String),
+          MessagesToApp.tryWord => await _trySolution(
+              player: player, word: message.data!['word'] as String),
           MessagesToApp.pardonRequest =>
             gm.pardonLastStealer(pardonner: player),
           MessagesToApp.boostRequest => gm.boostTrain(player: player),
@@ -426,6 +427,18 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         // These requests are not handled in this method
         throw UnimplementedError(
             'This is not a main game request and should be handled in the main handler');
+    }
+  }
+
+  Future<bool> _trySolution(
+      {required Player player, required String word}) async {
+    final gm = Managers.instance.train;
+
+    if (gm.isRoundAMiniGame) {
+      final mgm = Managers.instance.miniGames.manager;
+      return await mgm?.trySolution(player.login, word) ?? false;
+    } else {
+      return await gm.trySolution(login: player.login, word: word);
     }
   }
 

@@ -9,15 +9,38 @@ import 'package:common/generic/widgets/letter_displayer_common.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/frontend_text_input.dart';
 
 class BlueberryWarPlayScreen extends StatelessWidget {
-  const BlueberryWarPlayScreen({super.key});
+  const BlueberryWarPlayScreen({super.key, required this.showTextInput});
+
+  final bool showTextInput;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Align(alignment: Alignment.topCenter, child: _Header()),
+        Align(
+          alignment: Alignment.topCenter,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.0),
+              child: Column(
+                children: [
+                  _Header(),
+                  if (showTextInput)
+                    FrontendTextInput(
+                      onWordSubmitted: GameManager
+                              .instance.miniGameState.isGameOver
+                          ? null
+                          : (text) => IntegrationManager.instance.tryWord(text),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
         Expanded(
           child: Stack(
             children: [

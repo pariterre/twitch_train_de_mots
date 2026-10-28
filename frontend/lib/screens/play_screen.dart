@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/animations_overlay.dart';
+import 'package:frontend/widgets/frontend_text_input.dart';
 import 'package:frontend/widgets/header.dart';
 import 'package:logging/logging.dart';
 
@@ -68,7 +69,10 @@ class _PlayScreenState extends State<PlayScreen> {
                           child: const _LetterDisplayer()),
                       const SizedBox(height: 20),
                       if (widget.showTextInput)
-                        _TextInput(
+                        FrontendTextInput(
+                          suffix: const _CooldownClock(withTitle: false),
+                          onWordSubmitted: (text) =>
+                              IntegrationManager.instance.tryWord(text),
                           onFocusChanged: (hasFocus) =>
                               setState(() => _textFieldHasFocus = hasFocus),
                         ),
@@ -202,95 +206,6 @@ class _LetterDisplayerState extends State<_LetterDisplayer> {
     return GameManager.instance.problem == null
         ? Container()
         : LetterDisplayerCommon(letterProblem: GameManager.instance.problem!);
-  }
-}
-
-class _TextInput extends StatefulWidget {
-  const _TextInput({required this.onFocusChanged});
-
-  final ValueChanged<bool> onFocusChanged;
-
-  @override
-  State<_TextInput> createState() => _TextInputState();
-}
-
-class _TextInputState extends State<_TextInput> {
-  late final FocusNode _focusNode = FocusNode()
-    ..addListener(() => widget.onFocusChanged(_focusNode.hasFocus));
-  late final TextEditingController _controller = TextEditingController()
-    ..addListener(() {
-      _controller.value = _controller.value.copyWith(
-        text: _controller.text.toUpperCase(),
-        selection: _controller.selection,
-        composing: TextRange.empty,
-      );
-      setState(() {});
-    });
-
-  void _onSendPressed() {
-    final text = _controller.text;
-    _controller.clear();
-
-    IntegrationManager.instance.tryWord(text);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _focusNode.dispose();
-
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tm = ThemeManager.instance;
-
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            decoration: InputDecoration(
-              enabledBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white)),
-              focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white)),
-              fillColor: Colors.white,
-              labelText: 'Tenter une réponse',
-              labelStyle: tm.textFrontendSc,
-            ),
-            onSubmitted: (value) => _onSendPressed(),
-            cursorColor: Colors.white,
-            style: tm.textInputFrontend.copyWith(letterSpacing: 5.0),
-          ),
-        ),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
-              child: IconButton(
-                  onPressed:
-                      _controller.text.isNotEmpty ? _onSendPressed : null,
-                  icon: Icon(
-                    Icons.send,
-                    color: _controller.text.isNotEmpty
-                        ? Colors.white
-                        : Colors.grey,
-                  )),
-            ),
-            const _CooldownClock(withTitle: false),
-          ],
-        ),
-      ],
-    );
   }
 }
 

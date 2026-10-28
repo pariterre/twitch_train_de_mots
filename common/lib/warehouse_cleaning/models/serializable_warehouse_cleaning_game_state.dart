@@ -23,6 +23,11 @@ class SerializableWarehouseCleaningGameState
 
   @override
   final SerializableControllableTimer roundTimer;
+  @override
+  bool get isGameOver =>
+      triesRemaining <= 0 ||
+      (roundTimer.timeRemaining ?? Duration.zero) <= Duration.zero;
+
   final WarehouseCleaningGrid grid;
   final int triesRemaining;
   final Map<String, Agent> allAgents;

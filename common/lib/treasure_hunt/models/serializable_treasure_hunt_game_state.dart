@@ -17,6 +17,12 @@ class SerializableTreasureHuntGameState implements SerializableMiniGameState {
 
   @override
   final SerializableControllableTimer roundTimer;
+
+  @override
+  bool get isGameOver =>
+      triesRemaining <= 0 ||
+      (roundTimer.timeRemaining ?? Duration.zero) <= Duration.zero;
+
   final TreasureHuntGrid grid;
   final int triesRemaining;
   final SerializableLetterProblem problem;

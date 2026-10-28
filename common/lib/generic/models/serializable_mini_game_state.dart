@@ -9,6 +9,7 @@ abstract class SerializableMiniGameState {
   MiniGames get type;
 
   SerializableControllableTimer get roundTimer;
+  bool get isGameOver;
 
   Map<String, dynamic> serialize();
 
@@ -34,6 +35,9 @@ class SerializableMiniGameStateNone implements SerializableMiniGameState {
   @override
   final SerializableControllableTimer roundTimer =
       SerializableControllableTimer.empty();
+
+  @override
+  bool get isGameOver => true;
 
   @override
   SerializableMiniGameState copyWith() => this;

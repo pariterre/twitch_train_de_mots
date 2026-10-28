@@ -5,18 +5,40 @@ import 'package:common/fix_tracks/widgets/fix_tracks_game_grid.dart';
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
+import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/frontend_text_input.dart';
 
 class FixTracksPlayScreen extends StatelessWidget {
-  const FixTracksPlayScreen({super.key});
+  const FixTracksPlayScreen({super.key, required this.showTextInput});
+
+  final bool showTextInput;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(vertical: 20.0),
-            child: _Header(),
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 600),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                child: Column(
+                  children: [
+                    _Header(),
+                    if (showTextInput)
+                      FrontendTextInput(
+                        onWordSubmitted:
+                            GameManager.instance.miniGameState.isGameOver
+                                ? null
+                                : (text) =>
+                                    IntegrationManager.instance.tryWord(text),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ),
           Expanded(
               child: Padding(

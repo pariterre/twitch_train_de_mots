@@ -82,6 +82,11 @@ abstract class MiniGameManager {
   }
 
   ///
+  /// Call the trySolution method. Typically, it will be automatically called by
+  /// the Twitch chat, but it can be used to be called by the EBS
+  Future<bool> trySolution(String playerName, String message);
+
+  ///
   /// Callback when the Minigame initialized
   final onInitialized = GenericListener<Function()>();
 

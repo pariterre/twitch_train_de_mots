@@ -14,6 +14,11 @@ class SerializableFixTracksGameState implements SerializableMiniGameState {
 
   @override
   final SerializableControllableTimer roundTimer;
+
+  @override
+  bool get isGameOver =>
+      (roundTimer.timeRemaining ?? Duration.zero) <= Duration.zero;
+
   final FixTracksGrid grid;
 
   @override

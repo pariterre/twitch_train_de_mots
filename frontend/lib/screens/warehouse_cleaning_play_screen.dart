@@ -8,18 +8,35 @@ import 'package:common/warehouse_cleaning/widgets/warehouse_cleaning_game_grid.d
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/frontend_text_input.dart';
 
 class WarehouseCleaningPlayScreen extends StatelessWidget {
-  const WarehouseCleaningPlayScreen({super.key});
+  const WarehouseCleaningPlayScreen({super.key, required this.showTextInput});
+  final bool showTextInput;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final mgm = GameManager.instance.miniGameState;
+
+    return Center(
       child: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
-            child: _Header(),
+          Container(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.0),
+              child: Column(
+                children: [
+                  _Header(),
+                  if (showTextInput)
+                    FrontendTextInput(
+                      onWordSubmitted: mgm.isGameOver
+                          ? null
+                          : (text) => IntegrationManager.instance.tryWord(text),
+                    ),
+                ],
+              ),
+            ),
           ),
           Expanded(
             child: Center(

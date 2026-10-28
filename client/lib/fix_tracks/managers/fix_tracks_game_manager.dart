@@ -139,16 +139,19 @@ class FixTracksGameManager extends MiniGameManager {
   @override
   Duration get initialRoundDuration => const Duration(minutes: 1);
 
-  void trySolution(String playerName, String message) {
-    if (roundStatus != ControllableTimerStatus.inProgress) return;
+  @override
+  Future<bool> trySolution(String playerName, String message) async {
+    if (roundStatus != ControllableTimerStatus.inProgress) return false;
 
     // Transform the message so it is only the first word all in uppercase
     final words = message.split(' ');
-    if (words.isEmpty || words.length > 1 || words.first[0] == '!') return;
+    if (words.isEmpty || words.length > 1 || words.first[0] == '!') {
+      return false;
+    }
 
     final word = removeDiacritics(words.first.toUpperCase());
     // Refuse any word that contains non-letter characters
-    if (!RegExp(r'^[A-Z]+$').hasMatch(word)) return;
+    if (!RegExp(r'^[A-Z]+$').hasMatch(word)) return false;
 
     final wordValue = 3 *
         word
@@ -167,6 +170,8 @@ class FixTracksGameManager extends MiniGameManager {
         word: word,
         solutionStatus: solutionStatus,
         pointsAwarded: wordValue));
+
+    return solutionStatus == FixTracksSolutionStatus.isValid;
   }
 
   @override

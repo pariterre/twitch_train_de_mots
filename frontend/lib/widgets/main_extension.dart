@@ -248,11 +248,16 @@ class _MainScreenState extends State<_MainScreen> {
       WordsTrainGameStatus.roundStarted => gm.isRoundAMiniGame
           ? switch (GameManager.instance.currentMiniGameType!) {
               MiniGames.none => throw Exception('Invalid mini game: none'),
-              MiniGames.treasureHunt => const TreasureHuntPlayScreen(),
-              MiniGames.blueberryWar => const BlueberryWarPlayScreen(),
-              MiniGames.warehouseCleaning =>
-                const WarehouseCleaningPlayScreen(),
-              MiniGames.fixTracks => const FixTracksPlayScreen(),
+              MiniGames.treasureHunt =>
+                TreasureHuntPlayScreen(showTextInput: widget.showTextInput),
+              MiniGames.blueberryWar => BlueberryWarPlayScreen(
+                  showTextInput: widget.showTextInput,
+                ),
+              MiniGames.warehouseCleaning => WarehouseCleaningPlayScreen(
+                  showTextInput: widget.showTextInput),
+              MiniGames.fixTracks => FixTracksPlayScreen(
+                  showTextInput: widget.showTextInput,
+                ),
             }
           : PlayScreen(
               isMobile: widget.isMobile, showTextInput: widget.showTextInput),

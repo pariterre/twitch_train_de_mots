@@ -18,6 +18,11 @@ class SerializableBlueberryWarGameState implements SerializableMiniGameState {
 
   @override
   final SerializableControllableTimer roundTimer;
+
+  @override
+  bool get isGameOver =>
+      (roundTimer.timeRemaining ?? Duration.zero) <= Duration.zero;
+
   final Map<String, Agent> allAgents;
   List<BlueberryAgent> get blueberries =>
       allAgents.values.whereType<BlueberryAgent>().toList();

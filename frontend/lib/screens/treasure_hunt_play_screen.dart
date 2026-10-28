@@ -7,9 +7,12 @@ import 'package:common/treasure_hunt/widgets/treasure_hunt_game_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
+import 'package:frontend/widgets/frontend_text_input.dart';
 
 class TreasureHuntPlayScreen extends StatefulWidget {
-  const TreasureHuntPlayScreen({super.key});
+  const TreasureHuntPlayScreen({super.key, required this.showTextInput});
+
+  final bool showTextInput;
 
   @override
   State<TreasureHuntPlayScreen> createState() => _TreasureHuntPlayScreenState();
@@ -42,9 +45,22 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
     return Center(
       child: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
-            child: _Header(),
+          Container(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.0),
+              child: Column(
+                children: [
+                  _Header(),
+                  if (widget.showTextInput)
+                    FrontendTextInput(
+                      onWordSubmitted: mgm.isGameOver
+                          ? null
+                          : (text) => IntegrationManager.instance.tryWord(text),
+                    ),
+                ],
+              ),
+            ),
           ),
           Expanded(
             child: Center(
