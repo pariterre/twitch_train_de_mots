@@ -30,7 +30,6 @@ import 'package:common/warehouse_cleaning/models/warehouse_cleaning_grid.dart'
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:logging/logging.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_manager/common/communication_protocols.dart';
 import 'package:twitch_manager/frontend/twitch_js_extension/twitch_js_extension_enum.dart';
 import 'package:twitch_manager/twitch_frontend.dart' as tm;
@@ -353,17 +352,7 @@ class NoIntegrationManager extends IntegrationManager {
       ebsUri: ebsUri,
     );
     final authenticator = await tm.NoIntegrationJwtAuthenticator.factory(
-        appInfo: appInfo,
-        login: login,
-        channelId: channelId,
-        getCachedUserId: () async {
-          final sharedPreferences = await SharedPreferences.getInstance();
-          return sharedPreferences.getString('userId');
-        },
-        setCachedUserId: (String userId) async {
-          final sharedPreferences = await SharedPreferences.getInstance();
-          await sharedPreferences.setString('userId', userId);
-        });
+        appInfo: appInfo, login: login, channelId: channelId);
     await authenticator.initialize();
 
     _frontendManager = await tm.TwitchFrontendManager.factory(
