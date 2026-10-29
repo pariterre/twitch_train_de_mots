@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
 import 'package:train_de_mots/generic/managers/twitch_manager.dart';
 import 'package:train_de_mots/generic/models/exceptions.dart';
+import 'package:train_de_mots/generic/widgets/parchment_dialog.dart';
 import 'package:train_de_mots/generic/widgets/word_train_about_dialog.dart';
 import 'package:train_de_mots/release_notes.dart';
 
@@ -169,15 +170,52 @@ class _SplashScreenState extends State<SplashScreen> {
                     textAlign: TextAlign.justify),
               ),
               const SizedBox(height: 30.0),
-              Text(
-                im.isConnected && dm.isLoggedIn
-                    ? 'C\'est un départ! Tchou Tchou!!'
-                    : 'Mais avant de partir, vous devez vous connecter',
-                style: tm.clientMainTextStyle.copyWith(
-                  fontSize: 24.0,
-                  color: tm.textColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    im.isConnected && dm.isLoggedIn
+                        ? 'C\'est un départ! Tchou Tchou!!'
+                        : 'Mais avant de partir, vous devez vous connecter',
+                    style: tm.clientMainTextStyle.copyWith(
+                      fontSize: 24.0,
+                      color: tm.textColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.info, color: tm.textColor),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) => ParchmentDialog(
+                          title: 'Méthodes de connexion',
+                          content: const Text(
+                              'Il existe deux façon de se connecter à Train de mots.\n'
+                              '\n'
+                              'La première est de vous connecter à votre compte Twitch. '
+                              'L\'intégration Twitch permet à vos spectateurs·trices de '
+                              'jouer en utilisant le clavardage de Twitch. '
+                              'Si vous activez l\'extension (voir l\'onglet "Extension Twitch" '
+                              'dans la barre de menu), ceci ajoutera une boite interactive Train de mots à votre stream. '
+                              'Ceci permet aux spectateurs·trices de jouer aux mini-jeux et de vous envoyer des bits.\n'
+                              '\n'
+                              'L\'autre méthode est par l\'utilisation d\'un code de connexion. '
+                              'Naviguez premièrement à l\'adresse \n'
+                              'https://traindemots.pariterre.net/cheminots/\n'
+                              'Vous pourrez ensuite rejoindre la partie en entrant le code qui '
+                              'apparait au bas de l\'écran de jeu. '
+                              'Alternativement, scannez le QR code.'),
+                          acceptButtonTitle: 'OK',
+                          width: 500,
+                          height: 480,
+                          padding: const EdgeInsets.symmetric(horizontal: 50.0),
+                          onAccept: () => Navigator.of(context).pop(),
+                        ),
+                      );
+                    },
+                  )
+                ],
               ),
               const SizedBox(height: 30.0),
               if (dm.isLoggedOut ||
@@ -199,12 +237,12 @@ class _SplashScreenState extends State<SplashScreen> {
                       onPressed: Managers.instance.twitch.isConnecting
                           ? null
                           : () => _setTwitchManager(reloadIfPossible: true),
-                      buttonText: 'Connexion à Twitch',
+                      buttonText: 'Connexion par Twitch',
                     ),
                     SizedBox(height: 12.0),
                     ThemedElevatedButton(
                       onPressed: _setNoIntegrationManager,
-                      buttonText: 'Connexion sans intégration',
+                      buttonText: 'Code de connexion',
                     ),
                   ],
                 )

@@ -49,6 +49,8 @@ class NoIntegrationManager extends IntegrationManager {
     return _broadcasterId!;
   }
 
+  String get connexionCode => broadcasterId;
+
   @override
   bool get isInitialized => true;
 

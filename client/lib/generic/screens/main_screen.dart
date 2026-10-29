@@ -7,11 +7,13 @@ import 'package:common/generic/widgets/snowfall_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/managers/twitch_manager.dart';
 import 'package:train_de_mots/generic/screens/between_round_screen.dart';
 import 'package:train_de_mots/generic/screens/congratulation_layer.dart';
 import 'package:train_de_mots/generic/screens/game_screen.dart';
 import 'package:train_de_mots/generic/screens/splash_screen.dart';
 import 'package:train_de_mots/generic/widgets/configuration_drawer.dart';
+import 'package:train_de_mots/generic/widgets/connexion_code_sticker.dart';
 import 'package:train_de_mots/generic/widgets/parchment_dialog.dart';
 
 class MainScreen extends StatefulWidget {
@@ -157,6 +159,12 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               );
             }),
+            if ((gm.gameStatus == WordsTrainGameStatus.initializing ||
+                    gm.gameStatus == WordsTrainGameStatus.roundPreparing ||
+                    gm.gameStatus == WordsTrainGameStatus.roundReady) &&
+                im.isConnected &&
+                im is NoIntegrationManager)
+              ConnexionCodeSticker(code: im.connexionCode),
             IgnorePointer(
               child: SnowfallOverlay(
                 snowFlakeCount: min(10 * gm.roundCount * 4, 5000),
