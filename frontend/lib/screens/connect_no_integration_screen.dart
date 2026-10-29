@@ -18,7 +18,12 @@ class _ConnectNoIntegrationScreenState
     ..addListener(() {
       setState(() {});
     });
-  late final _codeController = TextEditingController()
+  late final _codeController = TextEditingController(
+      text: _UpperCaseAlphanumericFormatter(
+              maxCharacters: 6, forceCapitalize: true)
+          .formatEditUpdate(TextEditingValue.empty,
+              TextEditingValue(text: Uri.base.queryParameters['code'] ?? ''))
+          .text)
     ..addListener(() {
       setState(() {});
     });

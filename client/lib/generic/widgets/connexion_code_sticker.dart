@@ -56,7 +56,8 @@ class ConnexionCodeSticker extends StatelessWidget {
                     ],
                   ),
                   QrImageView(
-                    data: 'https://traindemots.pariterre.net/cheminots/$code',
+                    data:
+                        'https://traindemots.pariterre.net/cheminots/?code=$code',
                     version: QrVersions.auto,
                     size: 100,
                     gapless: false,
