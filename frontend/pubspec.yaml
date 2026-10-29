@@ -17,6 +17,7 @@ dependencies:
     path: ../common/plugins/twitch_manager
   vector_math: ^2.1.4
   dart_jsonwebtoken: ^3.3.1
+  shared_preferences: ^2.2.0
 
 dependency_overrides:
   common:

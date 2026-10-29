@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ConnectNoIntegrationScreen extends StatefulWidget {
   const ConnectNoIntegrationScreen({super.key});
@@ -29,6 +30,26 @@ class _ConnectNoIntegrationScreenState
     });
 
   bool _isConnecting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLogin();
+  }
+
+  Future<void> _fetchLogin() async {
+    final pref = await SharedPreferences.getInstance();
+
+    final login = pref.getString('login');
+    if (login == null) return;
+
+    _loginController.text = login;
+  }
+
+  Future<void> _saveLogin() async {
+    final pref = await SharedPreferences.getInstance();
+    pref.setString('login', _loginController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +106,7 @@ class _ConnectNoIntegrationScreenState
                     width: 250,
                     child: TextField(
                       controller: _codeController,
+                      enabled: !_isConnecting,
                       decoration: InputDecoration(
                           labelText: 'Code de connexion',
                           labelStyle: tm.clientMainTextStyle,
@@ -114,6 +136,7 @@ class _ConnectNoIntegrationScreenState
                                 _codeController.text.isNotEmpty
                             ? () async {
                                 setState(() => _isConnecting = true);
+                                await _saveLogin();
                                 await im.connectToStreamer(
                                     login: _loginController.text,
                                     channelId: _codeController.text);
