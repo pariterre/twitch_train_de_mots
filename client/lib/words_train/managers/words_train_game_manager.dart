@@ -627,7 +627,7 @@ class WordsTrainGameManager {
 
     _roundHasGoldenSolution = false;
     // In case the boost was granted but did not have time to be collected
-    _checkForCollectingBoost();
+    _tryCollectBoost();
     _boostWasGrantedThisRound = false;
     _boostWasCollectedThisRound = false;
     _currentNewBoostThreshold = _currentDifficulty.newBoostThreshold +
@@ -1125,12 +1125,7 @@ class WordsTrainGameManager {
     // Manage if the train got to a new boost
     _logger.fine('Managing if the train got to a new boost...');
     if (!_boostWasGrantedThisRound && _trainHasReachedNewBoost()) {
-      _logger.info('Train got a new boost');
-      _boostWasGrantedThisRound = true;
-      // Do not collect now since visually the train is still behind. The
-      // visual layer calls the "[onTrainCollectedBoost]" callback when the
-      // train reaches the boost on track, and that is when we collect the boost.
-      _boostWasCollectedThisRound = false;
+      _grantBoost();
     }
 
     // Manage if the train is boosted
@@ -1330,10 +1325,22 @@ class WordsTrainGameManager {
   void _manageTrainMovedOnTrack(int step) {
     _logger.fine('Train moved on track by $step steps');
 
-    if (step > pointsToObtainBoost()) _checkForCollectingBoost();
+    if (step >= pointsToObtainBoost()) {
+      _grantBoost();
+      _tryCollectBoost();
+    }
   }
 
-  void _checkForCollectingBoost() {
+  void _grantBoost() {
+    _logger.info('Train got a new boost');
+    _boostWasGrantedThisRound = true;
+    // Do not collect now since visually the train is still behind. The
+    // visual layer calls the "[onTrainCollectedBoost]" callback when the
+    // train reaches the boost on track, and that is when we collect the boost.
+    _boostWasCollectedThisRound = false;
+  }
+
+  void _tryCollectBoost() {
     // Just make sure we don't collect the boost twice
     if (!_boostWasGrantedThisRound || _boostWasCollectedThisRound) return;
 
