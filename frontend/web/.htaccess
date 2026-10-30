@@ -1,0 +1,39 @@
+# ==========================================
+# Flutter Web .htaccess (Production Safe)
+# Prevent stale builds + safe caching strategy
+# ==========================================
+
+# ---------- MIME TYPES ----------
+AddType text/javascript .js
+AddType text/javascript .mjs
+AddType application/wasm .wasm
+AddType text/css .css
+AddType text/html .html
+AddType application/json .json
+
+# ---------- COMPRESSION ----------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE \
+        text/html \
+        text/css \
+        text/javascript \
+        application/javascript \
+        application/json \
+        application/wasm
+</IfModule>
+
+# ---------- CACHE CONTROL ----------
+<IfModule mod_headers.c>
+
+    # Default: NEVER cache (Flutter app shell safety)
+    Header always set Cache-Control "no-cache, no-store, must-revalidate"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+
+    # Static assets: override default safely
+    <FilesMatch "\.(png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|wasm)$">
+        Header always set Cache-Control "public, max-age=31536000, immutable"
+        Header always unset Pragma
+        Header always unset Expires
+    </FilesMatch>
+</IfModule>
