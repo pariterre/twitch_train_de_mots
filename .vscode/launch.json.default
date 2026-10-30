@@ -85,6 +85,12 @@
             "preLaunchTask": "Build Client release",
         },
         {
+            "name": "Release Players",
+            "type": "dart",
+            "request": "launch",
+            "preLaunchTask": "Build Players release",
+        },
+        {
             "name": "Release extensions",
             "type": "dart",
             "request": "launch",

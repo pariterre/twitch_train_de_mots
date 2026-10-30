@@ -644,4 +644,27 @@ const List<ReleaseNotes> releaseNotes = [
           description: 'Bogue de sur la dimension de l\'extension corrigé.'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.8.0',
+    codeName: 'Explore le monde',
+    notes:
+        'L\'univers Twitch est bien. Il est riche et varié! Cependant pour nous, pauvres cheminot·e·s, '
+        'il est parfois limitant... Pourquoi un train devrait-il être un TrainTwitch?\n'
+        '\n'
+        'Ne rêvez plus, le jour est enfin arrivé où vous pouvez jouer à Train de mots, sans utiliser Twitch! '
+        'Il vous suffit de sélection "Code de connexion" sur la page d\'accueil et vos cheminot·e·s pourront '
+        'vous rejoindre avec un simple code de connexion!\n'
+        'Pour les ceuzes d\'entre vous qui veulent Twitcher, évidemment, cela demeure possible en sélection '
+        '"Connexion par Twitch"!',
+    features: [
+      FeatureNotes(
+          description: 'Création de la connexion par code de connexion'),
+      FeatureNotes(
+          description:
+              'Réparation d\'un bogue d\'affichage lors de la collecte du boost'),
+      FeatureNotes(
+          description:
+              'Le train rejoint sa station plus rapidement à la fin de la ronde pour diminuer le suspence'),
+    ],
+  ),
 ];

@@ -3,7 +3,7 @@
 PROJECTS := client ebs extensions extensions_local
 
 # Folders to keep during web server cleanup
-FOLDER_TO_KEEP := .well-known cgi-bin players
+FOLDER_TO_KEEP := .well-known cgi-bin cheminots
 
 # Internal variables
 BASE_FOLDER := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -51,7 +51,7 @@ players:
 	cd $${PROJECT_FOLDER}; \
 	flutter clean; \
 	flutter pub get; \
-	flutter build web --release --dart-define=USE_TWITCH_PROVIDER=false; \
+	flutter build web --wasm --release --base-href "/cheminots/" --dart-define=USE_TWITCH_PROVIDER=false TODO:DARTEFINE; \
 	cd $(BASE_FOLDER); \
 	# Make sure the authentication are provided (TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, TRAIN_DE_MOTS_SSH_FOLDER_CLIENT) \
 	if [ -z "$${TRAIN_DE_MOTS_SSH_USER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_SERVER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}" ]; then \
@@ -59,7 +59,7 @@ players:
 		exit 1; \
 	fi; \
 	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/players && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
-	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/players; \
+	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/cheminots; \
 	echo "Project built and sent successfully."
 
 extensions:
