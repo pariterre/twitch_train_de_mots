@@ -316,7 +316,9 @@ class NoIntegrationManager extends IntegrationManager {
   final Uri ebsUri;
 
   @override
-  String? get login => _frontendManager?.authenticator.userId;
+  String? get login =>
+      (_frontendManager?.authenticator as tm.NoIntegrationJwtAuthenticator)
+          .login;
 
   bool get isConnected => _frontendManager?.apiToEbs.isConnected ?? false;
   bool get isNotConnected => !isConnected;
@@ -1037,7 +1039,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: true,
+                isRoundAMiniGame: false,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(

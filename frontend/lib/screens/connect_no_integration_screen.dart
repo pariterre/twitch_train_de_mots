@@ -1,4 +1,5 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/managers/twitch_manager.dart';
@@ -51,6 +52,18 @@ class _ConnectNoIntegrationScreenState
     pref.setString('login', _loginController.text);
   }
 
+  void _connect() async {
+    if (_loginController.text.isEmpty || _codeController.text.isEmpty) {
+      return;
+    }
+
+    final im = IntegrationManager.instance as NoIntegrationManager;
+    setState(() => _isConnecting = true);
+    await _saveLogin();
+    await im.connectToStreamer(
+        login: _loginController.text, channelId: _codeController.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
@@ -82,18 +95,19 @@ class _ConnectNoIntegrationScreenState
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    width: 250,
+                    width: 350,
                     child: TextField(
                       controller: _loginController,
                       enabled: !_isConnecting,
+                      onSubmitted: (value) => _connect(),
                       decoration: InputDecoration(
                           labelText: 'Pseudonyme',
-                          labelStyle: tm.clientMainTextStyle,
+                          labelStyle: tm.textFrontendSc,
                           border: OutlineInputBorder(
                               borderSide: BorderSide(color: tm.textColor)),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: tm.textColor))),
-                      style: tm.clientMainTextStyle,
+                      style: tm.textFrontendSc,
                       cursorColor: tm.textColor,
                       inputFormatters: [
                         _UpperCaseAlphanumericFormatter(
@@ -103,18 +117,19 @@ class _ConnectNoIntegrationScreenState
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    width: 250,
+                    width: 350,
                     child: TextField(
                       controller: _codeController,
                       enabled: !_isConnecting,
+                      onSubmitted: (value) => _connect(),
                       decoration: InputDecoration(
                           labelText: 'Code de connexion',
-                          labelStyle: tm.clientMainTextStyle,
+                          labelStyle: tm.textFrontendSc,
                           border: OutlineInputBorder(
                               borderSide: BorderSide(color: tm.textColor)),
                           focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: tm.textColor))),
-                      style: tm.clientMainTextStyle,
+                      style: tm.textFrontendSc,
                       cursorColor: tm.textColor,
                       inputFormatters: [
                         _UpperCaseAlphanumericFormatter(
@@ -124,25 +139,19 @@ class _ConnectNoIntegrationScreenState
                   ),
                   const SizedBox(height: 10),
                   if (_isConnecting)
-                    ElevatedButton(
+                    ThemedElevatedButton(
                         onPressed: () async {
                           setState(() => _isConnecting = false);
                           await im.disconnectFromStreamer();
                         },
-                        child: const Text('Annuler'))
+                        buttonText: 'Annuler')
                   else
-                    ElevatedButton(
+                    ThemedElevatedButton(
                         onPressed: _loginController.text.isNotEmpty &&
                                 _codeController.text.isNotEmpty
-                            ? () async {
-                                setState(() => _isConnecting = true);
-                                await _saveLogin();
-                                await im.connectToStreamer(
-                                    login: _loginController.text,
-                                    channelId: _codeController.text);
-                              }
+                            ? _connect
                             : null,
-                        child: const Text('Connexion')),
+                        buttonText: 'Connexion'),
                 ],
               ),
             ),

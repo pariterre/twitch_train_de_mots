@@ -36,12 +36,12 @@ class ThemeManager {
       fontFamily: 'BaskervvilleSC',
       fontFeatures: [FontFeature.enable('smcp')],
       color: textColor,
-      fontSize: 20.0,
+      fontSize: 26.0,
       package: 'common');
   late final textInputFrontend = TextStyle().copyWith(
       fontFamily: 'MedievalSharp',
       color: textColor,
-      fontSize: 20.0,
+      fontSize: 26.0,
       package: 'common');
 
   final titleSize = 32.0;

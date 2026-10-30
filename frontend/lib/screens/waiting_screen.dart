@@ -2,6 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:common/generic/models/game_status.dart';
 import 'package:common/generic/models/success_level.dart';
 import 'package:common/generic/widgets/growing_widget.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
@@ -155,11 +156,10 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                     style: tm.textFrontendSc,
                                   ),
                                   const SizedBox(height: 8.0),
-                                  ElevatedButton(
+                                  ThemedElevatedButton(
                                       onPressed: IntegrationManager
                                           .instance.attemptTheBigHeist,
-                                      child:
-                                          const Text('Frapper le Grand Coup!')),
+                                      buttonText: 'Frapper le Grand Coup!'),
                                 ],
                               ),
                             ),
@@ -203,15 +203,13 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                   GrowingWidget(
                                     growingFactor: 1.02,
                                     duration: const Duration(milliseconds: 750),
-                                    child: ElevatedButton(
-                                        onPressed:
-                                            gm.canRequestFixTracksMiniGame
-                                                ? IntegrationManager.instance
-                                                    .attemptFixTracksMiniGame
-                                                : null,
-                                        child: const Text(
-                                          'Sauvons le train!',
-                                        )),
+                                    child: ThemedElevatedButton(
+                                      onPressed: gm.canRequestFixTracksMiniGame
+                                          ? IntegrationManager
+                                              .instance.attemptFixTracksMiniGame
+                                          : null,
+                                      buttonText: 'Sauvons le train!',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -229,10 +227,10 @@ class _WaitingScreenState extends State<WaitingScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 8.0),
-                                ElevatedButton(
+                                ThemedElevatedButton(
                                     onPressed:
                                         IntegrationManager.instance.celebrate,
-                                    child: const Text('Feux d\'artifice!')),
+                                    buttonText: 'Feux d\'artifice!'),
                               ],
                             ),
                           ),

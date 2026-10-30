@@ -6,11 +6,13 @@ class ThemedElevatedButton extends StatefulWidget {
     super.key,
     required this.onPressed,
     required this.buttonText,
+    this.textSize,
     this.reversedStyle = false,
   });
 
   final Function()? onPressed;
   final String buttonText;
+  final double? textSize;
   final bool reversedStyle;
 
   @override
@@ -43,6 +45,7 @@ class _ThemedElevatedButtonState extends State<ThemedElevatedButton> {
     late TextStyle textStyle;
     if (widget.reversedStyle) {
       textStyle = tm.buttonTextStyle.copyWith(
+          fontSize: widget.textSize,
           color: tm.elevatedButtonStyle.backgroundColor!
               .resolve({WidgetState.focused}));
     } else {

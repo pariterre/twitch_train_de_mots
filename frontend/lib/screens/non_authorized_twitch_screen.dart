@@ -1,4 +1,5 @@
 import 'package:common/generic/managers/theme_manager.dart';
+import 'package:common/generic/widgets/themed_elevated_button.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
@@ -34,11 +35,11 @@ class NonAuthorizedTwitchScreen extends StatelessWidget {
                     style: tm.textFrontendSc,
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
+                  ThemedElevatedButton(
                       onPressed: () => (IntegrationManager.instance
                               as TwitchIntegrationManager)
                           .requestIdShare(),
-                      child: const Text('Ouvrir l\'autorisation')),
+                      buttonText: 'Ouvrir l\'autorisation'),
                 ],
               ),
             ),

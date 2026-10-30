@@ -51,14 +51,14 @@ players:
 	cd $${PROJECT_FOLDER}; \
 	flutter clean; \
 	flutter pub get; \
-	flutter build web --wasm --release --base-href "/cheminots/" --dart-define=USE_TWITCH_PROVIDER=false TODO:DARTEFINE; \
+	flutter build web --wasm --release --base-href "/cheminots/" --dart-define=USE_TWITCH_PROVIDER=false --dart-define=USE_SHOW_TEXT_INPUT=true; \
 	cd $(BASE_FOLDER); \
 	# Make sure the authentication are provided (TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, TRAIN_DE_MOTS_SSH_FOLDER_CLIENT) \
 	if [ -z "$${TRAIN_DE_MOTS_SSH_USER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_SERVER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}" ]; then \
 		echo "ERROR -- TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, or TRAIN_DE_MOTS_SSH_FOLDER_CLIENT is not set. Please set them before building."; \
 		exit 1; \
 	fi; \
-	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/players && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
+	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/cheminots && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
 	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/cheminots; \
 	echo "Project built and sent successfully."
 

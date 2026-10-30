@@ -52,7 +52,7 @@ class _PlayScreenState extends State<PlayScreen> {
             child: FittedBox(
               fit: BoxFit.contain,
               child: SizedBox(
-                width: 380,
+                width: 600,
                 child: Padding(
                   padding: const EdgeInsets.only(
                       left: 20.0, right: 20.0, bottom: 20.0),
@@ -262,7 +262,7 @@ class _PardonRequestState extends State<_PardonRequest> {
     return FittedBox(
       fit: BoxFit.fitWidth,
       child: SizedBox(
-        height: 40,
+        height: 50,
         child: FittedBox(
           fit: BoxFit.fitHeight,
           child: ThemedElevatedButton(
@@ -328,7 +328,7 @@ class _BoostRequestState extends State<_BoostRequest> {
     return FittedBox(
       fit: BoxFit.fitWidth,
       child: SizedBox(
-        height: 40,
+        height: 50,
         child: FittedBox(
           fit: BoxFit.fitHeight,
           child: ThemedElevatedButton(
@@ -352,7 +352,7 @@ class _ChangeLaneRequest extends StatelessWidget {
     return FittedBox(
       fit: BoxFit.fitWidth,
       child: SizedBox(
-        height: 40,
+        height: 50,
         child: FittedBox(
           fit: BoxFit.fitHeight,
           child: ThemedElevatedButton(
