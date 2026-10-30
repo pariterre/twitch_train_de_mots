@@ -30,7 +30,7 @@ class _FrontendTextInputState extends State<FrontendTextInput> {
     });
 
   void _onSendPressed() {
-    final text = _controller.text;
+    final text = _controller.text.trim();
     _controller.clear();
 
     widget.onWordSubmitted!(text);
