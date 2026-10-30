@@ -1332,6 +1332,8 @@ class WordsTrainGameManager {
   }
 
   void _grantBoost() {
+    if (_boostWasGrantedThisRound) return;
+
     _logger.info('Train got a new boost');
     _boostWasGrantedThisRound = true;
     // Do not collect now since visually the train is still behind. The
