@@ -10,6 +10,7 @@ import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/animations_overlay.dart';
 import 'package:frontend/widgets/frontend_text_input.dart';
 import 'package:frontend/widgets/header.dart';
+import 'package:frontend/widgets/scaled_screen.dart';
 import 'package:logging/logging.dart';
 
 final _logger = Logger('PlayScreen');
@@ -29,126 +30,94 @@ class _PlayScreenState extends State<PlayScreen> {
   bool _textFieldHasFocus = false;
   bool get _showReducedUi => widget.isMobile && _textFieldHasFocus;
 
+  static const _designWidth = 450.0;
+  static const _horizontalPadding = 20.0;
+
   @override
   Widget build(BuildContext context) {
+    final tm = ThemeManager.instance;
+
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Column(
-          children: [
-            // The header keeps its size (only shrinking if it is too wide) and
-            // the content takes the remaining space underneath it
-            if (!_showReducedUi)
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Header(
-                    titleText: 'Le train est en route!\n'
-                        'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
-              ),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final tm = ThemeManager.instance;
-                  // The layout is computed on a fixed virtual canvas and then
-                  // scaled by the FittedBox, so everything keeps the same
-                  // proportions regardless of the screen size
-                  const designWidth = 450.0;
-                  const horizontalPadding = 20.0;
-
-                  // The FittedBox must be given tight constraints, otherwise it
-                  // only shrinks its child and never enlarges it
-                  return SizedBox(
-                    width: constraints.maxWidth,
-                    height: constraints.maxHeight,
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      alignment: _showReducedUi
-                          ? Alignment.topCenter
-                          : Alignment.center,
-                      child: SizedBox(
-                        width: designWidth,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: horizontalPadding,
-                              right: horizontalPadding,
-                              bottom: 20.0),
-                          child: Column(
+        ScaledScreen(
+          designWidth: _designWidth,
+          alignment: _showReducedUi ? Alignment.topCenter : Alignment.center,
+          header: _showReducedUi
+              ? null
+              : Header(
+                  titleText: 'Le train est en route!\n'
+                      'Prochaine station : ${GameManager.instance.currentRound + 1}!'),
+          child: Padding(
+            padding: const EdgeInsets.only(
+                left: _horizontalPadding,
+                right: _horizontalPadding,
+                bottom: 20.0),
+            child: Column(
+              children: [
+                const _TimeDisplayer(),
+                const SizedBox(height: 10),
+                SizedBox(
+                    width: _designWidth - 2 * _horizontalPadding,
+                    child: const _LetterDisplayer()),
+                const SizedBox(height: 20),
+                if (widget.showTextInput)
+                  FrontendTextInput(
+                    suffix: const _CooldownClock(withTitle: false),
+                    onWordSubmitted: (text) =>
+                        IntegrationManager.instance.tryWord(text),
+                    onFocusChanged: (hasFocus) =>
+                        setState(() => _textFieldHasFocus = hasFocus),
+                  ),
+                const SizedBox(height: 20),
+                Visibility(
+                  maintainState: true,
+                  visible: !_showReducedUi,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Aides du contrôleur :',
+                              style: tm.textFrontendSc),
+                          const SizedBox(height: 4),
+                          const Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const _TimeDisplayer(),
-                              const SizedBox(height: 10),
-                              SizedBox(
-                                  width: designWidth - 2 * horizontalPadding,
-                                  child: const _LetterDisplayer()),
-                              const SizedBox(height: 20),
-                              if (widget.showTextInput)
-                                FrontendTextInput(
-                                  suffix:
-                                      const _CooldownClock(withTitle: false),
-                                  onWordSubmitted: (text) =>
-                                      IntegrationManager.instance.tryWord(text),
-                                  onFocusChanged: (hasFocus) => setState(
-                                      () => _textFieldHasFocus = hasFocus),
-                                ),
-                              const SizedBox(height: 20),
-                              Visibility(
-                                maintainState: true,
-                                visible: !_showReducedUi,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Aides du contrôleur :',
-                                            style: tm.textFrontendSc),
-                                        const SizedBox(height: 4),
-                                        const Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            _PardonRequest(),
-                                            SizedBox(width: 8),
-                                            _BoostRequest(),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 30),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text('Soudoyer le contrôleur (bits) :',
-                                            style: tm.textFrontendSc),
-                                        const SizedBox(height: 4),
-                                        const Row(
-                                          mainAxisSize: MainAxisSize.max,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            _ChangeLaneRequest(),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-                                    if (!widget.showTextInput)
-                                      const _CooldownClock(withTitle: true),
-                                  ],
-                                ),
-                              ),
+                              _PardonRequest(),
+                              SizedBox(width: 8),
+                              _BoostRequest(),
                             ],
                           ),
-                        ),
+                        ],
                       ),
-                    ),
-                  );
-                },
-              ),
+                      const SizedBox(height: 30),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Soudoyer le contrôleur (bits) :',
+                              style: tm.textFrontendSc),
+                          const SizedBox(height: 4),
+                          const Row(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _ChangeLaneRequest(),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      if (!widget.showTextInput)
+                        const _CooldownClock(withTitle: true),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         const AnimationOverlay(),
       ],

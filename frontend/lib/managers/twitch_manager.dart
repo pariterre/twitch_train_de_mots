@@ -1051,8 +1051,8 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
               .copyWith(
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
-                gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: true,
+                gameStatus: WordsTrainGameStatus.roundPreparing,
+                isRoundAMiniGame: false,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(

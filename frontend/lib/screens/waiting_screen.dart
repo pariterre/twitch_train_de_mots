@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/managers/game_manager.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
+import 'package:frontend/widgets/scaled_screen.dart';
 
 class WaitingScreen extends StatefulWidget {
   const WaitingScreen({super.key});
@@ -94,154 +95,141 @@ class _WaitingScreenState extends State<WaitingScreen> {
         break;
     }
 
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        const FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Header(titleText: 'Le Train de mots!')),
-        Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding:
-                  const EdgeInsets.only(left: 20.0, top: 30.0, right: 20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (showStar)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10.0),
-                          child: _starWidget(
-                              gm.successLevel != SuccessLevel.failed ||
-                                  gm.isAttemptingFixTracksMiniGame),
-                        ),
-                      Text(mainText,
-                          textAlign: TextAlign.left, style: tm.textFrontendSc),
-                      if (showStar)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: _starWidget(
-                              gm.successLevel != SuccessLevel.failed ||
-                                  gm.isAttemptingFixTracksMiniGame),
-                        ),
-                    ],
+    return ScaledScreen(
+      header: const Header(titleText: 'Le Train de mots!'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showStar)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: _starWidget(gm.successLevel != SuccessLevel.failed ||
+                        gm.isAttemptingFixTracksMiniGame),
                   ),
-                  if (gm.status != WordsTrainGameStatus.uninitialized)
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 10),
-                        if (gm.canRequestTheBigHeist)
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.white.withAlpha(50),
-                            ),
-                            child: GrowingWidget(
-                              growingFactor: 1.02,
-                              duration: const Duration(milliseconds: 2000),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Un train est immobilisé sur les\n'
-                                    'rails. Tenter un braquage pour\n'
-                                    'doubler vos stations!',
-                                    style: tm.textFrontendSc,
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  ThemedElevatedButton(
-                                      onPressed: IntegrationManager
-                                          .instance.attemptTheBigHeist,
-                                      buttonText: 'Frapper le Grand Coup!'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        if (gm.isAttemptingTheBigHeist)
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: Colors.white.withAlpha(50),
-                            ),
-                            child: GrowingWidget(
-                              growingFactor: 1.02,
-                              duration: const Duration(milliseconds: 2000),
-                              child: Text(
-                                'Un des cheminot·e·s\n'
-                                'a préparé un braquage!\n'
-                                'Bonne chance, et ne\n'
-                                'vous faites pas attraper!',
-                                style: tm.textFrontendSc,
-                              ),
-                            ),
-                          ),
-                        if (gm.canRequestFixTracksMiniGame)
-                          Container(
-                            decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(50),
-                                borderRadius: BorderRadius.circular(15)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Le contrôleur vous offres \n'
-                                    'une deuxième chance si vous\n'
-                                    'réparez le rail!',
-                                    style: tm.textFrontendSc,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  GrowingWidget(
-                                    growingFactor: 1.02,
-                                    duration: const Duration(milliseconds: 750),
-                                    child: ThemedElevatedButton(
-                                      onPressed: gm.canRequestFixTracksMiniGame
-                                          ? IntegrationManager
-                                              .instance.attemptFixTracksMiniGame
-                                          : null,
-                                      buttonText: 'Sauvons le train!',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        if (gm.canRequestFireworks)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 20.0),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Félicitez vos collègues\n'
-                                  'cheminot·e·s avec un',
-                                  style: tm.textFrontendSc,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8.0),
-                                ThemedElevatedButton(
-                                    onPressed:
-                                        IntegrationManager.instance.celebrate,
-                                    buttonText: 'Feux d\'artifice!'),
-                              ],
-                            ),
-                          ),
-                      ],
-                    )
-                ],
-              ),
+                Text(mainText,
+                    textAlign: TextAlign.left, style: tm.textFrontendSc),
+                if (showStar)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0),
+                    child: _starWidget(gm.successLevel != SuccessLevel.failed ||
+                        gm.isAttemptingFixTracksMiniGame),
+                  ),
+              ],
             ),
-          ),
-        )
-      ],
+            if (gm.status != WordsTrainGameStatus.uninitialized)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  if (gm.canRequestTheBigHeist)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white.withAlpha(50),
+                      ),
+                      child: GrowingWidget(
+                        growingFactor: 1.02,
+                        duration: const Duration(milliseconds: 2000),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Un train est immobilisé sur les\n'
+                              'rails. Tenter un braquage pour\n'
+                              'doubler vos stations!',
+                              style: tm.textFrontendSc,
+                            ),
+                            const SizedBox(height: 8.0),
+                            ThemedElevatedButton(
+                                onPressed: IntegrationManager
+                                    .instance.attemptTheBigHeist,
+                                buttonText: 'Frapper le Grand Coup!'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (gm.isAttemptingTheBigHeist)
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white.withAlpha(50),
+                      ),
+                      child: GrowingWidget(
+                        growingFactor: 1.02,
+                        duration: const Duration(milliseconds: 2000),
+                        child: Text(
+                          'Un des cheminot·e·s\n'
+                          'a préparé un braquage!\n'
+                          'Bonne chance, et ne\n'
+                          'vous faites pas attraper!',
+                          style: tm.textFrontendSc,
+                        ),
+                      ),
+                    ),
+                  if (gm.canRequestFixTracksMiniGame)
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(50),
+                          borderRadius: BorderRadius.circular(15)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Le contrôleur vous offres \n'
+                              'une deuxième chance si vous\n'
+                              'réparez le rail!',
+                              style: tm.textFrontendSc,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8.0),
+                            GrowingWidget(
+                              growingFactor: 1.02,
+                              duration: const Duration(milliseconds: 750),
+                              child: ThemedElevatedButton(
+                                onPressed: gm.canRequestFixTracksMiniGame
+                                    ? IntegrationManager
+                                        .instance.attemptFixTracksMiniGame
+                                    : null,
+                                buttonText: 'Sauvons le train!',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (gm.canRequestFireworks)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Félicitez vos collègues\n'
+                            'cheminot·e·s avec un',
+                            style: tm.textFrontendSc,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8.0),
+                          ThemedElevatedButton(
+                              onPressed: IntegrationManager.instance.celebrate,
+                              buttonText: 'Feux d\'artifice!'),
+                        ],
+                      ),
+                    ),
+                ],
+              )
+          ],
+        ),
+      ),
     );
   }
 }

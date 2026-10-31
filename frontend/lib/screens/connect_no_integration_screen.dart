@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/managers/twitch_manager.dart';
 import 'package:frontend/widgets/header.dart';
+import 'package:frontend/widgets/scaled_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ConnectNoIntegrationScreen extends StatefulWidget {
@@ -69,95 +70,85 @@ class _ConnectNoIntegrationScreenState
     final tm = ThemeManager.instance;
     final im = IntegrationManager.instance as NoIntegrationManager;
 
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        const FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Header(titleText: 'Le Train de mots!')),
-        Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Bonjour cheminot·e,\n'
-                    'Afin d\'embarquer\n'
-                    'dans le train, vous devez\n'
-                    'choisir un identifiant et\n'
-                    'fournir le code de connexion\n'
-                    'de votre cheminot·e en chef',
-                    textAlign: TextAlign.left,
-                    style: tm.textFrontendSc,
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: 350,
-                    child: TextField(
-                      controller: _loginController,
-                      enabled: !_isConnecting,
-                      onSubmitted: (value) => _connect(),
-                      decoration: InputDecoration(
-                          labelText: 'Pseudonyme',
-                          labelStyle: tm.textFrontendSc,
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: tm.textColor)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: tm.textColor))),
-                      style: tm.textFrontendSc,
-                      cursorColor: tm.textColor,
-                      inputFormatters: [
-                        _UpperCaseAlphanumericFormatter(
-                            maxCharacters: 16, allowExtendedCharacters: true),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: 350,
-                    child: TextField(
-                      controller: _codeController,
-                      enabled: !_isConnecting,
-                      onSubmitted: (value) => _connect(),
-                      decoration: InputDecoration(
-                          labelText: 'Code de connexion',
-                          labelStyle: tm.textFrontendSc,
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(color: tm.textColor)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: tm.textColor))),
-                      style: tm.textFrontendSc,
-                      cursorColor: tm.textColor,
-                      inputFormatters: [
-                        _UpperCaseAlphanumericFormatter(
-                            maxCharacters: 6, forceCapitalize: true),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  if (_isConnecting)
-                    ThemedElevatedButton(
-                        onPressed: () async {
-                          setState(() => _isConnecting = false);
-                          await im.disconnectFromStreamer();
-                        },
-                        buttonText: 'Annuler')
-                  else
-                    ThemedElevatedButton(
-                        onPressed: _loginController.text.isNotEmpty &&
-                                _codeController.text.isNotEmpty
-                            ? _connect
-                            : null,
-                        buttonText: 'Connexion'),
+    return ScaledScreen(
+      header: const Header(titleText: 'Le Train de mots!'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Bonjour cheminot·e,\n'
+              'Afin d\'embarquer\n'
+              'dans le train, vous devez\n'
+              'choisir un identifiant et\n'
+              'fournir le code de connexion\n'
+              'de votre cheminot·e en chef',
+              textAlign: TextAlign.left,
+              style: tm.textFrontendSc,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: 350,
+              child: TextField(
+                controller: _loginController,
+                enabled: !_isConnecting,
+                onSubmitted: (value) => _connect(),
+                decoration: InputDecoration(
+                    labelText: 'Pseudonyme',
+                    labelStyle: tm.textFrontendSc,
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: tm.textColor)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: tm.textColor))),
+                style: tm.textFrontendSc,
+                cursorColor: tm.textColor,
+                inputFormatters: [
+                  _UpperCaseAlphanumericFormatter(
+                      maxCharacters: 16, allowExtendedCharacters: true),
                 ],
               ),
             ),
-          ),
-        )
-      ],
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 350,
+              child: TextField(
+                controller: _codeController,
+                enabled: !_isConnecting,
+                onSubmitted: (value) => _connect(),
+                decoration: InputDecoration(
+                    labelText: 'Code de connexion',
+                    labelStyle: tm.textFrontendSc,
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: tm.textColor)),
+                    focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: tm.textColor))),
+                style: tm.textFrontendSc,
+                cursorColor: tm.textColor,
+                inputFormatters: [
+                  _UpperCaseAlphanumericFormatter(
+                      maxCharacters: 6, forceCapitalize: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (_isConnecting)
+              ThemedElevatedButton(
+                  onPressed: () async {
+                    setState(() => _isConnecting = false);
+                    await im.disconnectFromStreamer();
+                  },
+                  buttonText: 'Annuler')
+            else
+              ThemedElevatedButton(
+                  onPressed: _loginController.text.isNotEmpty &&
+                          _codeController.text.isNotEmpty
+                      ? _connect
+                      : null,
+                  buttonText: 'Connexion'),
+          ],
+        ),
+      ),
     );
   }
 }
