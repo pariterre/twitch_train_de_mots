@@ -14,7 +14,7 @@ class Header extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
         child: Text(
           titleText,
-          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 26),
+          style: ThemeManager.instance.textFrontendSc.copyWith(fontSize: 30),
           textAlign: TextAlign.center,
         ),
       ),

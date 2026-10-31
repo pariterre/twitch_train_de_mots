@@ -48,15 +48,19 @@ class _TreasureHuntPlayScreenState extends State<TreasureHuntPlayScreen> {
           Container(
             constraints: BoxConstraints(maxWidth: 600),
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
+              padding: EdgeInsets.only(bottom: 20.0),
               child: Column(
                 children: [
                   _Header(),
                   if (widget.showTextInput)
-                    FrontendTextInput(
-                      onWordSubmitted: mgm.isGameOver
-                          ? null
-                          : (text) => IntegrationManager.instance.tryWord(text),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: FrontendTextInput(
+                        onWordSubmitted: mgm.isGameOver
+                            ? null
+                            : (text) =>
+                                IntegrationManager.instance.tryWord(text),
+                      ),
                     ),
                 ],
               ),

@@ -25,16 +25,20 @@ class BlueberryWarPlayScreen extends StatelessWidget {
           child: Container(
             constraints: BoxConstraints(maxWidth: 600),
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
+              padding: EdgeInsets.only(bottom: 20.0),
               child: Column(
                 children: [
                   _Header(),
                   if (showTextInput)
-                    FrontendTextInput(
-                      onWordSubmitted: GameManager
-                              .instance.miniGameState.isGameOver
-                          ? null
-                          : (text) => IntegrationManager.instance.tryWord(text),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: FrontendTextInput(
+                        onWordSubmitted:
+                            GameManager.instance.miniGameState.isGameOver
+                                ? null
+                                : (text) =>
+                                    IntegrationManager.instance.tryWord(text),
+                      ),
                     ),
                 ],
               ),

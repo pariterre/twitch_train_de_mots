@@ -869,6 +869,19 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
   }
 
   @override
+  TwitchPlatform get platform =>
+      const bool.fromEnvironment('USE_IS_MOBILE', defaultValue: false)
+          ? TwitchPlatform.mobile
+          : TwitchPlatform.web;
+
+  @override
+  TwitchAnchor get anchor => platform == TwitchPlatform.mobile
+      ? TwitchAnchor.unknown
+      : TwitchAnchor.values.firstWhere((e) =>
+          e.name ==
+          const String.fromEnvironment('USE_ANCHOR', defaultValue: ""));
+
+  @override
   String get userId => 'U0123456789';
 
   @override
@@ -1039,7 +1052,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundStarted,
-                isRoundAMiniGame: false,
+                isRoundAMiniGame: true,
                 successLevel: SuccessLevel.failed,
                 roundSuccesses: [],
                 roundTimer: SerializableControllableTimer(

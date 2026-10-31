@@ -50,33 +50,21 @@ TwitchIntegrationManager get _twitchIntegrationManager =>
     IntegrationManager.instance as TwitchIntegrationManager;
 
 bool get _isFullScreen => _useTwitchProvider
-    ? switch (_twitchIntegrationManager.anchor) {
-        TwitchAnchor.overlay => false,
-        _ => true
-      }
-    : const bool.fromEnvironment('USE_IS_FULLSCREEN', defaultValue: true);
+    ? _twitchIntegrationManager.anchor != TwitchAnchor.overlay
+    : true;
 
 bool get _isMobile => _useTwitchProvider
-    ? switch (_twitchIntegrationManager.platform) {
-        TwitchPlatform.mobile => true,
-        _ => false,
-      }
-    : const bool.fromEnvironment('USE_IS_MOBILE', defaultValue: false);
+    ? _twitchIntegrationManager.platform == TwitchPlatform.mobile
+    : false;
 
 bool get _showTextInput => _useTwitchProvider
-    ? _isMobile
-    : const bool.fromEnvironment('USE_SHOW_TEXT_INPUT', defaultValue: false);
+    ? _twitchIntegrationManager.platform == TwitchPlatform.mobile
+    : true;
 
 bool get _alwaysOpaque => _useTwitchProvider
-    ? switch (_twitchIntegrationManager.anchor) {
-        TwitchAnchor.component => false,
-        _ => true
-      }
-    : const bool.fromEnvironment('USE_ALWAYS_OPAQUE', defaultValue: true);
+    ? _twitchIntegrationManager.anchor != TwitchAnchor.component
+    : true;
 
 bool get _canBeHidden => _useTwitchProvider
-    ? switch (_twitchIntegrationManager.anchor) {
-        TwitchAnchor.overlay => true,
-        _ => false
-      }
-    : const bool.fromEnvironment('USE_CAN_BE_HIDDEN', defaultValue: false);
+    ? _twitchIntegrationManager.anchor == TwitchAnchor.overlay
+    : false;
