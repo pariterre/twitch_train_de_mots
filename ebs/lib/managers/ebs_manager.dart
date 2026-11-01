@@ -481,8 +481,7 @@ class EbsManager extends TwitchEbsManagerAbstract {
             case MessagesToApp.attemptTheBigHeist:
             case MessagesToApp.changeLaneRequest:
             case MessagesToApp.fixTracksMiniGameRequest:
-              final playerLogin =
-                  registeredFrontendUsers.from(userId: userId)?.login;
+              final player = registeredFrontendUsers.from(userId: userId);
 
               final response = await communicator.sendQuestion(MessageProtocol(
                   to: MessageTo.app,
@@ -490,15 +489,34 @@ class EbsManager extends TwitchEbsManagerAbstract {
                   type: MessageTypes.get,
                   data: {
                     'type': message.data!['type'],
-                    'player_login': playerLogin,
-                    'is_redeemed': false
+                    'player_login': player?.login,
+                    'is_redeemed': false,
                   }));
+              bool isSuccess = response.isSuccess ?? false;
+
+              if (isSuccess && !(player?.canAccessTwitchResources ?? true)) {
+                final messageToApp =
+                    MessagesToApp.values.byName(message.data!['type']);
+                _handleMessageFromFrontend(
+                    message.copyWith(
+                        to: message.to,
+                        from: message.from,
+                        type: message.type,
+                        data: (message.data ?? {})
+                          ..addAll({'type': MessagesToApp.bitsRedeemed.name})),
+                    ExtractedTransactionReceipt(
+                        userId: player!.userId,
+                        product: BitsProduct(
+                            sku: Sku.fromMessageToApp(messageToApp).toString(),
+                            displayName: player.displayName,
+                            cost: Cost(amount: 0, type: 'simulated'))));
+              }
 
               communicator.sendResponse(message.copyWith(
                   to: MessageTo.frontend,
                   from: MessageFrom.ebs,
                   type: MessageTypes.response,
-                  isSuccess: response.isSuccess ?? false));
+                  isSuccess: isSuccess));
               break;
 
             case MessagesToApp.bitsRedeemed:
@@ -508,7 +526,6 @@ class EbsManager extends TwitchEbsManagerAbstract {
               }
 
               // Get the sku of the product
-              final userId = message.transaction!.userId;
               final login = registeredFrontendUsers.from(userId: userId)?.login;
               final sku = Sku.fromString(transactionReceipt.product.sku);
 

@@ -66,4 +66,19 @@ enum Sku {
         throw Exception('Unknown Sku value: $value');
     }
   }
+
+  static Sku fromMessageToApp(MessagesToApp message) {
+    switch (message) {
+      case MessagesToApp.fireworksRequest:
+        return Sku.celebrate;
+      case MessagesToApp.attemptTheBigHeist:
+        return Sku.bigHeist;
+      case MessagesToApp.changeLaneRequest:
+        return Sku.changeLane;
+      case MessagesToApp.fixTracksMiniGameRequest:
+        return Sku.fixTracks;
+      case _:
+        throw Exception('Unknown Sku value: $message');
+    }
+  }
 }

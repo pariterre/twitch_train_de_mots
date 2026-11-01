@@ -438,15 +438,17 @@ class NoIntegrationManager extends IntegrationManager {
                 type: tm.MessageTypes.response,
                 isSuccess: false));
 
-    // Tell the GameManager that bits were used
-    switch (sku) {
-      case Sku.changeLane:
-        GameManager.instance.changeLaneGranted();
-        break;
-      case Sku.bigHeist:
-      case Sku.fixTracks:
-      case Sku.celebrate:
-        break;
+    if (response.isSuccess == true) {
+      // Tell the GameManager that bits were used
+      switch (sku) {
+        case Sku.changeLane:
+          GameManager.instance.changeLaneGranted();
+          break;
+        case Sku.bigHeist:
+        case Sku.fixTracks:
+        case Sku.celebrate:
+          break;
+      }
     }
 
     return response.isSuccess ?? false;
