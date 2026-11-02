@@ -52,6 +52,8 @@ players:
 	flutter clean; \
 	flutter pub get; \
 	flutter build web --wasm --release --base-href "/cheminots/" --dart-define=USE_TWITCH_PROVIDER=false; \
+	# The Twitch extension helper is only needed when running as an extension \
+	sed -i '/extension-files.twitch.tv/d' $(WEB_BUILD_FOLDER)/index.html; \
 	cd $(BASE_FOLDER); \
 	# Make sure the authentication are provided (TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, TRAIN_DE_MOTS_SSH_FOLDER_CLIENT) \
 	if [ -z "$${TRAIN_DE_MOTS_SSH_USER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_SERVER}" ] || [ -z "$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}" ]; then \
@@ -75,6 +77,8 @@ extensions:
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
 	cp -r $${FRONTEND_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/frontend/; \
+	# Twitch serves extensions from a relative path, so the <base> tag must be removed \
+	sed -i '/<base href=/d' $${TARGET_FOLDER}/frontend/index.html; \
 	cd $${TARGET_FOLDER}; \
 	zip -r extensions.zip configuration frontend; \
 	cd $(BASE_FOLDER);
@@ -92,6 +96,8 @@ extensions_local:
 	mkdir $${TARGET_FOLDER}; \
 	cp -r $${CONFIGURATION_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/configuration/; \
 	cp -r $${FRONTEND_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TARGET_FOLDER}/frontend/; \
+	# Twitch serves extensions from a relative path, so the <base> tag must be removed \
+	sed -i '/<base href=/d' $${TARGET_FOLDER}/frontend/index.html; \
 	cd $${TARGET_FOLDER}; \
 	zip -r extensions.zip configuration frontend; \
 	cd $(BASE_FOLDER);
