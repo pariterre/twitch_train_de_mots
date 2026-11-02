@@ -948,7 +948,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
             data: jsonDecode(jsonEncode({
               'type': MessagesToFrontend.gameStateResponse.name,
               'game_state': SerializableGameState(
-                gameManagerUserId: '',
+                adminLogins: [],
                 integrationManagerType: IntegrationManagerType.twitch,
                 hasPlayedAtLeastOnce: true,
                 roundCount: 11,
@@ -1095,7 +1095,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
         {
           final gameState = SerializableGameState.empty()
               .copyWith(
-                gameManagerUserId: userId,
+                adminLogins: [userId!],
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundPreparing,

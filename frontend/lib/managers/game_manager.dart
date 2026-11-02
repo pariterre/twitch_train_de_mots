@@ -44,8 +44,8 @@ class GameManager {
     _tickerManager.onFixedClockTicked.listen(_tickGame);
   }
 
-  bool get isGameManager =>
-      _gameState.gameManagerUserId == IntegrationManager.instance.userId;
+  bool get isAdmin =>
+      _gameState.adminLogins.contains(IntegrationManager.instance.userId);
 
   ///
   /// Callback to know when a round has started or ended
@@ -76,8 +76,10 @@ class GameManager {
       SerializableGameState.deserialize(_gameState.serialize());
 
   void updateGameState(SerializableGameState newGameState) {
-    if (_gameState.gameManagerUserId != newGameState.gameManagerUserId) {
-      _logger.fine('Game manager changed to ${newGameState.gameManagerUserId}');
+    if (!listEquality(_gameState.adminLogins, newGameState.adminLogins)) {
+      _logger.fine('Game admins changed to ${newGameState.adminLogins}');
+      _gameState.adminLogins.clear();
+      _gameState.adminLogins.addAll(newGameState.adminLogins);
       onGameStatusUpdated.notifyListeners((callback) => callback());
     }
 

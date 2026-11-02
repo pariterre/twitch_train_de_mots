@@ -2,6 +2,7 @@ import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:train_de_mots/generic/managers/managers.dart';
+import 'package:train_de_mots/generic/widgets/parchment_dialog.dart';
 
 class ConnexionCodeSticker extends StatelessWidget {
   const ConnexionCodeSticker({super.key, required this.code});
@@ -57,46 +58,14 @@ class ConnexionCodeSticker extends StatelessWidget {
                       Row(
                         children: [
                           InkWell(
-                            onTap: () async {
-                              // TODO Do a better showDialog
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) {
-                                  return const AlertDialog(
-                                    content: Row(
-                                      children: [
-                                        Text(
-                                            'Connecter le ou la cheminot·e en chef·fe maintenant!'),
-                                        CircularProgressIndicator(),
-                                        SizedBox(width: 20),
-                                        Text('Please wait...'),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-
-                              try {
-                                final userId = await Managers.instance.ebs
-                                    .waitForGameManagerUserId();
-                                Managers.instance.train.gameManagerUserId =
-                                    userId ?? '';
-                              } finally {
-                                // Close dialog when Future completes
-                                if (context.mounted) {
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pop();
-                                }
-                              }
-                            },
+                            onTap: () => _showAdminDialog(context),
                             child: Text('Cliquer ici',
                                 style: tm.clientMainTextStyle.copyWith(
                                     fontSize: 16,
                                     color: Colors.black,
                                     decoration: TextDecoration.underline)),
                           ),
-                          Text(' pour connecter le cheminot en chef',
+                          Text(' pour gérer vos chef·fe·s',
                               style: tm.clientMainTextStyle
                                   .copyWith(fontSize: 16, color: Colors.black)),
                         ],
@@ -115,5 +84,93 @@ class ConnexionCodeSticker extends StatelessWidget {
             ],
           ),
         ));
+  }
+}
+
+void _showAdminDialog(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return ParchmentDialog(
+        title: 'Choisir les cheminot·te·s en chef·fe·s',
+        width: 500,
+        height: 700,
+        acceptButtonTitle: 'Terminer',
+        onAccept: () {
+          Navigator.of(context).pop();
+        },
+        content: SizedBox(
+          height: 450,
+          child: const _AdminCheckboxes(),
+        ),
+      );
+    },
+  );
+}
+
+class _AdminCheckboxes extends StatefulWidget {
+  const _AdminCheckboxes();
+
+  @override
+  State<_AdminCheckboxes> createState() => _AdminCheckboxesState();
+}
+
+class _AdminCheckboxesState extends State<_AdminCheckboxes> {
+  final tm = ThemeManager.instance;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Managers.instance.train.onConfigurationUpdated.listen(_refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    Managers.instance.train.onConfigurationUpdated.cancel(_refresh);
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          if (Managers.instance.ebs.connectedPlayers.isEmpty)
+            Center(
+                child: Text('Aucun cheminot·e n\'est encore connecté·e',
+                    style:
+                        tm.clientMainTextStyle.copyWith(color: Colors.black)))
+          else
+            ...Managers.instance.ebs.connectedPlayers.entries.map((entry) {
+              final player = entry.key;
+              final userId = entry.value;
+
+              return CheckboxListTile(
+                  fillColor: WidgetStateProperty.resolveWith((state) {
+                    return state.contains(WidgetState.selected)
+                        ? tm.mainColor
+                        : Colors.transparent;
+                  }),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: Text(
+                    player.displayName,
+                    style: tm.clientMainTextStyle.copyWith(color: Colors.black),
+                  ),
+                  value: Managers.instance.train.adminIds.contains(userId),
+                  onChanged: (value) {
+                    if (value!) {
+                      Managers.instance.train.addAdmin(userId);
+                    } else {
+                      Managers.instance.train.removeAdmin(userId);
+                    }
+                    setState(() {});
+                  });
+            })
+        ],
+      ),
+    );
   }
 }

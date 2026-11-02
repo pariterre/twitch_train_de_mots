@@ -39,7 +39,7 @@ class WordsTrainGameManager {
   ///
   /// All the players currently registered in the game.
   final Players players = Players();
-  String _gameManagerUserId = '';
+  final List<String> _adminIds = [];
 
   WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
   WordsTrainGameStatus get gameStatus {
@@ -247,9 +247,14 @@ class WordsTrainGameManager {
     Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
   }
 
-  String get gameManagerUserId => _gameManagerUserId;
-  set gameManagerUserId(String value) {
-    _gameManagerUserId = value;
+  List<String> get adminIds => List.from(_adminIds, growable: false);
+  void addAdmin(String userId) {
+    _adminIds.add(userId);
+    onConfigurationUpdated.notifyListeners((callback) => callback());
+  }
+
+  void removeAdmin(String userId) {
+    _adminIds.remove(userId);
     onConfigurationUpdated.notifyListeners((callback) => callback());
   }
 
@@ -263,7 +268,7 @@ class WordsTrainGameManager {
         );
 
   SerializableGameState get toSerializable => SerializableGameState(
-        gameManagerUserId: _gameManagerUserId,
+        adminLogins: List.from(_adminIds),
         integrationManagerType: Managers.instance.integrationManager.type,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
         roundCount: roundCount,

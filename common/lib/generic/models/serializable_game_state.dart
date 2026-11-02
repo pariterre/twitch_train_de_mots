@@ -138,9 +138,9 @@ class SerializableLetterProblem {
 }
 
 class SerializableGameState {
-  final String gameManagerUserId;
   final IntegrationManagerType integrationManagerType;
   final Map<String, SerializablePlayer> players;
+  final List<String> adminLogins;
 
   final WordsTrainGameStatus gameStatus;
   final bool isRoundAMiniGame;
@@ -168,7 +168,6 @@ class SerializableGameState {
   final SerializableMiniGameState miniGameState;
 
   SerializableGameState({
-    required this.gameManagerUserId,
     required this.integrationManagerType,
     required this.hasPlayedAtLeastOnce,
     required this.roundCount,
@@ -178,6 +177,7 @@ class SerializableGameState {
     required this.successLevel,
     required this.roundSuccesses,
     required this.players,
+    required this.adminLogins,
     required this.letterProblem,
     required this.pardonRemaining,
     required this.playersWhoCanPardon,
@@ -195,8 +195,7 @@ class SerializableGameState {
   });
 
   SerializableGameState.empty()
-      : gameManagerUserId = '',
-        integrationManagerType = IntegrationManagerType.none,
+      : integrationManagerType = IntegrationManagerType.none,
         hasPlayedAtLeastOnce = false,
         roundCount = 0,
         gameStatus = WordsTrainGameStatus.uninitialized,
@@ -205,6 +204,7 @@ class SerializableGameState {
         roundSuccesses = [],
         roundTimer = SerializableControllableTimer.empty(),
         players = {},
+        adminLogins = [],
         letterProblem = SerializableLetterProblem.empty(),
         pardonRemaining = 0,
         playersWhoCanPardon = [],
@@ -221,7 +221,6 @@ class SerializableGameState {
         miniGameState = SerializableMiniGameStateNone();
 
   SerializableGameState copyWith({
-    String? gameManagerUserId,
     IntegrationManagerType? integrationManagerType,
     bool? hasPlayedAtLeastOnce,
     int? roundCount,
@@ -231,6 +230,7 @@ class SerializableGameState {
     List<RoundSuccess>? roundSuccesses,
     SerializableControllableTimer? roundTimer,
     Map<String, SerializablePlayer>? players,
+    List<String>? adminLogins,
     SerializableLetterProblem? letterProblem,
     int? pardonRemaining,
     List<String>? playersWhoCanPardon,
@@ -247,7 +247,6 @@ class SerializableGameState {
     SerializableMiniGameState? miniGameState,
   }) =>
       SerializableGameState(
-        gameManagerUserId: gameManagerUserId ?? this.gameManagerUserId,
         integrationManagerType:
             integrationManagerType ?? this.integrationManagerType,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce ?? this.hasPlayedAtLeastOnce,
@@ -258,6 +257,7 @@ class SerializableGameState {
         roundSuccesses: roundSuccesses ?? this.roundSuccesses,
         roundTimer: roundTimer ?? this.roundTimer,
         players: players ?? this.players,
+        adminLogins: adminLogins ?? this.adminLogins,
         letterProblem: letterProblem ?? this.letterProblem,
         pardonRemaining: pardonRemaining ?? this.pardonRemaining,
         playersWhoCanPardon: playersWhoCanPardon ?? this.playersWhoCanPardon,
@@ -280,10 +280,10 @@ class SerializableGameState {
 
   Map<String, dynamic> serialize() {
     return {
-      'game_manager_user_id': gameManagerUserId,
       'integration_manager_type': integrationManagerType.index,
       'has_played_at_least_once': hasPlayedAtLeastOnce,
       'players': players.map((key, value) => MapEntry(key, value.serialize())),
+      'admin_logins': adminLogins,
       'round': roundCount,
       'game_status': gameStatus.index,
       'is_round_a_mini_game': isRoundAMiniGame,
@@ -310,13 +310,15 @@ class SerializableGameState {
 
   static SerializableGameState deserialize(Map<String, dynamic> data) {
     return SerializableGameState(
-      gameManagerUserId: data['game_manager_user_id'],
       integrationManagerType: IntegrationManagerType
           .values[data['integration_manager_type'] as int],
       hasPlayedAtLeastOnce: data['has_played_at_least_once'] as bool,
       players: (data['players'] as Map<String, dynamic>).map((key, value) =>
           MapEntry(key,
               SerializablePlayer.deserialize(value as Map<String, dynamic>))),
+      adminLogins: (data['admin_logins'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       roundCount: data['round'] as int,
       gameStatus: WordsTrainGameStatus.values[data['game_status'] as int],
       isRoundAMiniGame: data['is_round_a_mini_game'] as bool,

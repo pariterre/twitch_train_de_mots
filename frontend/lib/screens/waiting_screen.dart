@@ -227,14 +227,24 @@ class _WaitingScreenState extends State<WaitingScreen> {
                     ),
                 ],
               ),
-            if (gm.isGameManager)
+            if (gm.isAdmin)
               Padding(
                 padding: const EdgeInsets.only(top: 20.0),
-                child: ThemedElevatedButton(
-                    onPressed: () {
-                      IntegrationManager.instance.proceedToNextRound();
-                    },
-                    buttonText: 'Lancer le train'),
+                child: Column(
+                  children: [
+                    Text('Administration du train',
+                        style: tm.textFrontendSc
+                            .copyWith(fontWeight: FontWeight.bold)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: ThemedElevatedButton(
+                          onPressed: () {
+                            IntegrationManager.instance.proceedToNextRound();
+                          },
+                          buttonText: 'Lancer le train'),
+                    ),
+                  ],
+                ),
               )
           ],
         ),

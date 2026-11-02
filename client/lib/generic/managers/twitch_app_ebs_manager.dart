@@ -24,6 +24,11 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   bool _gameStateIsBeingSent = false;
 
   ///
+  /// User who has sent an handshake
+  final Map<Player, String> _connectedPlayers = {};
+  Map<Player, String> get connectedPlayers => Map.of(_connectedPlayers);
+
+  ///
   /// Initialize the EbsServerManager establishing a connection with the
   /// EBS server if [ebsUri] is provided.
   bool _isInitialized = false;
@@ -146,17 +151,6 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
     mgm?.onRoundEnded.cancel(_sendGameStateToEbs);
   }
-
-  Completer<String?>? _gameManagerUserIdCompleter;
-  Future<String?> waitForGameManagerUserId() async {
-    _gameManagerUserIdCompleter = Completer();
-    final gameManagerUserId = await _gameManagerUserIdCompleter!.future;
-    _gameManagerUserIdCompleter = null;
-    return gameManagerUserId;
-  }
-
-  void cancelWaitForGameManagerUserId() =>
-      _gameManagerUserIdCompleter?.complete(null);
 
   ///
   /// Request a new letter problem, it will return a completer that will complete
@@ -374,6 +368,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     final gm = Managers.instance.train;
 
     final requestType = MessagesToApp.values.byName(message.data!['type']);
+    final userId = message.data!['user_id'] as String;
     final login = message.data!['player_login'] as String;
     final player = await gm.players.firstWhereOrAdd(login);
 
@@ -381,11 +376,11 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       // Single-pass requests
       case MessagesToApp.handshakeUser:
         {
-          // TODO Instead of storing current manager in game state, it could be requested (more safe?)
-          final userId = message.data!['user_id'] as String;
-          // If the game is currently expecting a game manager user handshake, log it as such
-          _gameManagerUserIdCompleter?.complete(userId);
-
+          if (!_connectedPlayers.keys.contains(player)) {
+            _connectedPlayers[player] = userId;
+          }
+          Managers.instance.train.onConfigurationUpdated
+              .notifyListeners((callback) => callback());
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
@@ -395,14 +390,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         }
       case MessagesToApp.proceedToNextRound:
         {
-          final userId = message.data!['user_id'] as String;
-          late bool isSuccess;
-          if (userId == gm.gameManagerUserId && gm.canProceedToNextRound) {
-            gm.requestStartNewRound();
-            isSuccess = true;
-          } else {
-            isSuccess = false;
-          }
+          final isSuccess =
+              gm.adminIds.contains(userId) && gm.canProceedToNextRound;
+          if (isSuccess) gm.requestStartNewRound();
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
