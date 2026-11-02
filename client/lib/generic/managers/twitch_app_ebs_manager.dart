@@ -368,7 +368,6 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     final gm = Managers.instance.train;
 
     final requestType = MessagesToApp.values.byName(message.data!['type']);
-    final userId = message.data!['user_id'] as String;
     final login = message.data!['player_login'] as String;
     final player = await gm.players.firstWhereOrAdd(login);
 
@@ -376,7 +375,9 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       // Single-pass requests
       case MessagesToApp.handshakeUser:
         {
-          if (!_connectedPlayers.keys.contains(player)) {
+          final userId = message.data!['user_id'] as String?;
+          final isSuccess = userId != null;
+          if (isSuccess && !_connectedPlayers.keys.contains(player)) {
             _connectedPlayers[player] = userId;
           }
           Managers.instance.train.onConfigurationUpdated
@@ -385,11 +386,12 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: true));
+              isSuccess: isSuccess));
           break;
         }
       case MessagesToApp.proceedToNextRound:
         {
+          final userId = message.data!['user_id'] as String?;
           final isSuccess =
               gm.adminIds.contains(userId) && gm.canProceedToNextRound;
           if (isSuccess) gm.requestStartNewRound();
