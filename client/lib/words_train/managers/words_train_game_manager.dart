@@ -39,6 +39,7 @@ class WordsTrainGameManager {
   ///
   /// All the players currently registered in the game.
   final Players players = Players();
+  String _gameManagerUserId = '';
 
   WordsTrainGameStatus _gameStatus = WordsTrainGameStatus.initializing;
   WordsTrainGameStatus get gameStatus {
@@ -246,6 +247,12 @@ class WordsTrainGameManager {
     Managers.instance.tickerManager.onFixedClockTicked.listen(_gameLoop);
   }
 
+  String get gameManagerUserId => _gameManagerUserId;
+  set gameManagerUserId(String value) {
+    _gameManagerUserId = value;
+    onConfigurationUpdated.notifyListeners((callback) => callback());
+  }
+
   SerializableLetterProblem get serializableProblem => problem == null
       ? SerializableLetterProblem.empty()
       : SerializableLetterProblem(
@@ -256,6 +263,7 @@ class WordsTrainGameManager {
         );
 
   SerializableGameState get toSerializable => SerializableGameState(
+        gameManagerUserId: _gameManagerUserId,
         integrationManagerType: Managers.instance.integrationManager.type,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce,
         roundCount: roundCount,
@@ -381,6 +389,7 @@ class WordsTrainGameManager {
 
   /// Callbacks for that tells listeners that the round is preparing
   final onGameIsInitializing = GenericListener<Function()>();
+  final onConfigurationUpdated = GenericListener<Function()>();
   final onPaused = GenericListener<Function()>();
   final onResumed = GenericListener<Function()>();
   final onRoundIsPreparing = GenericListener<Function()>();

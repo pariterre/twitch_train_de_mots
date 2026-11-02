@@ -1,6 +1,7 @@
 import 'package:common/generic/managers/theme_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:train_de_mots/generic/managers/managers.dart';
 
 class ConnexionCodeSticker extends StatelessWidget {
   const ConnexionCodeSticker({super.key, required this.code});
@@ -20,8 +21,8 @@ class ConnexionCodeSticker extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 500,
-                height: 120,
+                width: 530,
+                height: 130,
                 child: Image.asset(
                     'packages/common/assets/images/parchment.png',
                     fit: BoxFit.fill),
@@ -51,6 +52,53 @@ class ConnexionCodeSticker extends StatelessWidget {
                               style: tm.clientMainTextStyle.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () async {
+                              // TODO Do a better showDialog
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) {
+                                  return const AlertDialog(
+                                    content: Row(
+                                      children: [
+                                        Text(
+                                            'Connecter le ou la cheminot·e en chef·fe maintenant!'),
+                                        CircularProgressIndicator(),
+                                        SizedBox(width: 20),
+                                        Text('Please wait...'),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+
+                              try {
+                                final userId = await Managers.instance.ebs
+                                    .waitForGameManagerUserId();
+                                Managers.instance.train.gameManagerUserId =
+                                    userId ?? '';
+                              } finally {
+                                // Close dialog when Future completes
+                                if (context.mounted) {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pop();
+                                }
+                              }
+                            },
+                            child: Text('Cliquer ici',
+                                style: tm.clientMainTextStyle.copyWith(
+                                    fontSize: 16,
+                                    color: Colors.black,
+                                    decoration: TextDecoration.underline)),
+                          ),
+                          Text(' pour connecter le cheminot en chef',
+                              style: tm.clientMainTextStyle
+                                  .copyWith(fontSize: 16, color: Colors.black)),
                         ],
                       ),
                     ],

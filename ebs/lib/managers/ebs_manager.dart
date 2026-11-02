@@ -163,6 +163,52 @@ class EbsManager extends TwitchEbsManagerAbstract {
   }
 
   ///
+  /// Relay the handshake to the app
+  /// [userId] the id of the user that is trying the word
+  Future<bool> _frontendHandshake(String userId) async {
+    _logger.info('Resquesting to handshake');
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': MessagesToApp.handshakeUser.name,
+          'player_login': playerLogin,
+          'user_id': userId,
+        }));
+    return response.isSuccess ?? false;
+  }
+
+  ///
+  /// Relay the proceed to next round request to the app
+  /// [userId] the id of the user that is trying the word
+  Future<bool> _requestProceedToNextRound(String userId) async {
+    _logger.info('Resquesting to proceed to next round');
+    final playerLogin = registeredFrontendUsers.from(userId: userId)?.login;
+    if (playerLogin == null) {
+      _logger.severe('User $userId is not registered');
+      return false;
+    }
+
+    final response = await communicator.sendQuestion(MessageProtocol(
+        to: MessageTo.app,
+        from: MessageFrom.ebs,
+        type: MessageTypes.get,
+        data: {
+          'type': MessagesToApp.proceedToNextRound.name,
+          'player_login': playerLogin,
+          'user_id': userId,
+        }));
+    return response.isSuccess ?? false;
+  }
+
+  ///
   /// Relay the try a word request from the frontend to the app
   /// [userId] the id of the user that is trying the word
   /// [word] the word that is being tried
@@ -409,6 +455,30 @@ class EbsManager extends TwitchEbsManagerAbstract {
         case MessageTo.frontend:
         case MessageTo.app:
           switch (MessagesToApp.values.byName(message.data!['type'])) {
+            case MessagesToApp.handshakeUser:
+              {
+                final isSuccess = await _frontendHandshake(userId);
+                communicator.sendResponse(message.copyWith(
+                    from: MessageFrom.ebs,
+                    to: MessageTo.frontend,
+                    type: MessageTypes.response,
+                    isSuccess: isSuccess));
+
+                break;
+              }
+
+            case MessagesToApp.proceedToNextRound:
+              {
+                final isSuccess = await _requestProceedToNextRound(userId);
+                communicator.sendResponse(message.copyWith(
+                    from: MessageFrom.ebs,
+                    to: MessageTo.frontend,
+                    type: MessageTypes.response,
+                    isSuccess: isSuccess));
+
+                break;
+              }
+
             case MessagesToApp.tryWord:
               {
                 final isSuccess = await _frontendTryAWord(

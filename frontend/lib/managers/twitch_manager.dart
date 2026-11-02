@@ -45,6 +45,7 @@ IntegrationManager? _instance;
 
 abstract class IntegrationManager {
   String? get login;
+  String? get userId;
 
   bool get userHasGrantedIdAccess;
 
@@ -57,6 +58,12 @@ abstract class IntegrationManager {
   void _onFinishedInitializing() {
     _logger.info('Connected to Integration service');
     _onHasInitialized.complete(true);
+  }
+
+  void _onConnectedToStreamer() {
+    GameManager.instance.startGame();
+    _sendHandShake();
+    _requestGameStatus();
   }
 
   Map<String, dynamic> _previousGameState = {};
@@ -75,6 +82,28 @@ abstract class IntegrationManager {
           'IntegrationManager.initialize() before using the instance');
     }
     return _instance!;
+  }
+
+  Future<bool> _sendHandShake() async {
+    final response = await _sendMessageToApp(MessagesToApp.handshakeUser)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
+  }
+
+  Future<bool> proceedToNextRound() async {
+    final response = await _sendMessageToApp(MessagesToApp.proceedToNextRound)
+        .timeout(const Duration(seconds: 5),
+            onTimeout: () => tm.MessageProtocol(
+                to: tm.MessageTo.frontend,
+                from: tm.MessageFrom.ebs,
+                type: tm.MessageTypes.response,
+                isSuccess: false));
+    return response.isSuccess ?? false;
   }
 
   Future<bool> tryWord(String word) async {
@@ -320,6 +349,9 @@ class NoIntegrationManager extends IntegrationManager {
       (_frontendManager?.authenticator as tm.NoIntegrationJwtAuthenticator)
           .login;
 
+  @override
+  String? get userId => _frontendManager?.authenticator.userId;
+
   bool get isConnected => _frontendManager?.apiToEbs.isConnected ?? false;
   bool get isNotConnected => !isConnected;
 
@@ -366,8 +398,7 @@ class NoIntegrationManager extends IntegrationManager {
 
     _frontendManager!.onMessageReceived.listen(_onMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
-      GameManager.instance.startGame();
-      _requestGameStatus();
+      _onConnectedToStreamer();
     });
     _frontendManager!.onStreamerHasDisconnected
         .listen(GameManager.instance.stopGame);
@@ -493,10 +524,11 @@ class TwitchIntegrationManager extends IntegrationManager {
   ///
   /// Get the opaque user ID of the current user. This is the ID that is used
   /// to identify the user in the game even though it is impossible to identify
-  /// the user with this. The EBS is well aware of this opcaity and can use it
+  /// the user with this. The EBS is well aware of this opacity and can use it
   /// to identify the user even if it is opaque (if the extension requested such
   /// permissions).
-  String get userId {
+  @override
+  String? get userId {
     if (_frontendManager == null) {
       _logger.severe('TwitchFrontendManager is not ready yet');
       throw Exception('TwitchFrontendManager is not ready yet');
@@ -551,9 +583,8 @@ class TwitchIntegrationManager extends IntegrationManager {
 
     _frontendManager!.onMessageReceived.listen(_onMessageReceived);
     _frontendManager!.onStreamerHasConnected.listen(() {
-      GameManager.instance.startGame();
       _requestCurrentLogin();
-      _requestGameStatus();
+      _onConnectedToStreamer();
     });
     _frontendManager!.onStreamerHasDisconnected
         .listen(GameManager.instance.stopGame);
@@ -884,7 +915,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
           const String.fromEnvironment('USE_ANCHOR', defaultValue: ""));
 
   @override
-  String get userId => 'U0123456789';
+  String? get userId => 'U0123456789';
 
   @override
   bool get userHasGrantedIdAccess => true;
@@ -903,7 +934,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
         // Simulate a successful transaction after 1000 milliseconds
         Future.delayed(const Duration(milliseconds: 1000)).then((_) {
           _onBitsTransactionCompleted(tm.BitsTransactionObject.generateMocked(
-              userId: userId,
+              userId: userId!,
               sku: sku.toString(),
               sharedSecret: mockedSharedSecret));
         });
@@ -917,6 +948,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
             data: jsonDecode(jsonEncode({
               'type': MessagesToFrontend.gameStateResponse.name,
               'game_state': SerializableGameState(
+                gameManagerUserId: '',
                 integrationManagerType: IntegrationManagerType.twitch,
                 hasPlayedAtLeastOnce: true,
                 roundCount: 11,
@@ -945,7 +977,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
                           : LetterStatus.normal),
                 ),
                 pardonRemaining: 1,
-                playersWhoCanPardon: [userId],
+                playersWhoCanPardon: [userId!],
                 boostRemaining: 1,
                 boostStillNeeded: 0,
                 boosters: [],
@@ -970,6 +1002,18 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
     tm.BitsTransactionObject? transaction,
   }) async {
     switch (request) {
+      case MessagesToApp.handshakeUser:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
+      case MessagesToApp.proceedToNextRound:
+        return tm.MessageProtocol(
+            to: tm.MessageTo.frontend,
+            from: tm.MessageFrom.app,
+            type: tm.MessageTypes.response,
+            isSuccess: true);
       case MessagesToApp.pardonRequest:
         return tm.MessageProtocol(
             to: tm.MessageTo.frontend,
@@ -1051,6 +1095,7 @@ class TwitchIntegrationManagerMock extends TwitchIntegrationManager {
         {
           final gameState = SerializableGameState.empty()
               .copyWith(
+                gameManagerUserId: userId,
                 hasPlayedAtLeastOnce: true,
                 roundCount: 13,
                 gameStatus: WordsTrainGameStatus.roundPreparing,

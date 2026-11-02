@@ -10,6 +10,8 @@ enum MessagesToFrontend {
 }
 
 enum MessagesToApp {
+  handshakeUser,
+  proceedToNextRound,
   fullGameStateRequest,
   isExtensionActive,
   tryWord,

@@ -44,6 +44,9 @@ class GameManager {
     _tickerManager.onFixedClockTicked.listen(_tickGame);
   }
 
+  bool get isGameManager =>
+      _gameState.gameManagerUserId == IntegrationManager.instance.userId;
+
   ///
   /// Callback to know when a round has started or ended
   int get currentRound => _gameState.roundCount;
@@ -73,6 +76,11 @@ class GameManager {
       SerializableGameState.deserialize(_gameState.serialize());
 
   void updateGameState(SerializableGameState newGameState) {
+    if (_gameState.gameManagerUserId != newGameState.gameManagerUserId) {
+      _logger.fine('Game manager changed to ${newGameState.gameManagerUserId}');
+      onGameStatusUpdated.notifyListeners((callback) => callback());
+    }
+
     if (_gameState.gameStatus != newGameState.gameStatus) {
       _logger.fine('Game status changed to ${newGameState.gameStatus}');
       onGameStatusUpdated.notifyListeners((callback) => callback());

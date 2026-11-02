@@ -226,6 +226,15 @@ class _WaitingScreenState extends State<WaitingScreen> {
                       ),
                     ),
                 ],
+              ),
+            if (gm.isGameManager)
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: ThemedElevatedButton(
+                    onPressed: () {
+                      IntegrationManager.instance.proceedToNextRound();
+                    },
+                    buttonText: 'Lancer le train'),
               )
           ],
         ),

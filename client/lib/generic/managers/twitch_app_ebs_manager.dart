@@ -83,6 +83,7 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
   void _listenToGameManagerCallbacks() {
     // Connect the listeners to the GameManager
     final gm = Managers.instance.train;
+    gm.onConfigurationUpdated.listen(_sendGameStateToEbs);
     gm.onPaused.listen(_sendGameStateToEbs);
     gm.onResumed.listen(_sendGameStateToEbs);
     gm.onRoundStarted.listen(_sendGameStateToEbs);
@@ -145,6 +146,17 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
     mgm?.onGameUpdated.cancel(_sendGameStateToEbs);
     mgm?.onRoundEnded.cancel(_sendGameStateToEbs);
   }
+
+  Completer<String?>? _gameManagerUserIdCompleter;
+  Future<String?> waitForGameManagerUserId() async {
+    _gameManagerUserIdCompleter = Completer();
+    final gameManagerUserId = await _gameManagerUserIdCompleter!.future;
+    _gameManagerUserIdCompleter = null;
+    return gameManagerUserId;
+  }
+
+  void cancelWaitForGameManagerUserId() =>
+      _gameManagerUserIdCompleter?.complete(null);
 
   ///
   /// Request a new letter problem, it will return a completer that will complete
@@ -290,6 +302,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
           return await _handleGeneralRequests(message);
 
         // Main game requests
+        case MessagesToApp.handshakeUser:
+        case MessagesToApp.proceedToNextRound:
         case MessagesToApp.tryWord:
         case MessagesToApp.pardonRequest:
         case MessagesToApp.boostRequest:
@@ -338,6 +352,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
         break;
 
       // Non-general requests
+      case MessagesToApp.handshakeUser:
+      case MessagesToApp.proceedToNextRound:
       case MessagesToApp.tryWord:
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
@@ -363,6 +379,38 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
 
     switch (requestType) {
       // Single-pass requests
+      case MessagesToApp.handshakeUser:
+        {
+          // TODO Instead of storing current manager in game state, it could be requested (more safe?)
+          final userId = message.data!['user_id'] as String;
+          // If the game is currently expecting a game manager user handshake, log it as such
+          _gameManagerUserIdCompleter?.complete(userId);
+
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: true));
+          break;
+        }
+      case MessagesToApp.proceedToNextRound:
+        {
+          final userId = message.data!['user_id'] as String;
+          late bool isSuccess;
+          if (userId == gm.gameManagerUserId && gm.canProceedToNextRound) {
+            gm.requestStartNewRound();
+            isSuccess = true;
+          } else {
+            isSuccess = false;
+          }
+
+          sendResponseToEbs(message.copyWith(
+              to: MessageTo.frontend,
+              from: MessageFrom.app,
+              type: MessageTypes.response,
+              isSuccess: isSuccess));
+          break;
+        }
       case MessagesToApp.tryWord:
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:
@@ -476,6 +524,8 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       // Non-mini-game requests
       case MessagesToApp.isExtensionActive:
       case MessagesToApp.fullGameStateRequest:
+      case MessagesToApp.handshakeUser:
+      case MessagesToApp.proceedToNextRound:
       case MessagesToApp.tryWord:
       case MessagesToApp.pardonRequest:
       case MessagesToApp.boostRequest:

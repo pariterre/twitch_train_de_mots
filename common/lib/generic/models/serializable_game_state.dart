@@ -138,6 +138,7 @@ class SerializableLetterProblem {
 }
 
 class SerializableGameState {
+  final String gameManagerUserId;
   final IntegrationManagerType integrationManagerType;
   final Map<String, SerializablePlayer> players;
 
@@ -167,6 +168,7 @@ class SerializableGameState {
   final SerializableMiniGameState miniGameState;
 
   SerializableGameState({
+    required this.gameManagerUserId,
     required this.integrationManagerType,
     required this.hasPlayedAtLeastOnce,
     required this.roundCount,
@@ -193,7 +195,8 @@ class SerializableGameState {
   });
 
   SerializableGameState.empty()
-      : integrationManagerType = IntegrationManagerType.none,
+      : gameManagerUserId = '',
+        integrationManagerType = IntegrationManagerType.none,
         hasPlayedAtLeastOnce = false,
         roundCount = 0,
         gameStatus = WordsTrainGameStatus.uninitialized,
@@ -218,6 +221,7 @@ class SerializableGameState {
         miniGameState = SerializableMiniGameStateNone();
 
   SerializableGameState copyWith({
+    String? gameManagerUserId,
     IntegrationManagerType? integrationManagerType,
     bool? hasPlayedAtLeastOnce,
     int? roundCount,
@@ -243,6 +247,7 @@ class SerializableGameState {
     SerializableMiniGameState? miniGameState,
   }) =>
       SerializableGameState(
+        gameManagerUserId: gameManagerUserId ?? this.gameManagerUserId,
         integrationManagerType:
             integrationManagerType ?? this.integrationManagerType,
         hasPlayedAtLeastOnce: hasPlayedAtLeastOnce ?? this.hasPlayedAtLeastOnce,
@@ -275,6 +280,7 @@ class SerializableGameState {
 
   Map<String, dynamic> serialize() {
     return {
+      'game_manager_user_id': gameManagerUserId,
       'integration_manager_type': integrationManagerType.index,
       'has_played_at_least_once': hasPlayedAtLeastOnce,
       'players': players.map((key, value) => MapEntry(key, value.serialize())),
@@ -304,6 +310,7 @@ class SerializableGameState {
 
   static SerializableGameState deserialize(Map<String, dynamic> data) {
     return SerializableGameState(
+      gameManagerUserId: data['game_manager_user_id'],
       integrationManagerType: IntegrationManagerType
           .values[data['integration_manager_type'] as int],
       hasPlayedAtLeastOnce: data['has_played_at_least_once'] as bool,
