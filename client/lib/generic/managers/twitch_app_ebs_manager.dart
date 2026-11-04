@@ -392,15 +392,18 @@ class TwitchAppEbsManager extends TwitchAppEbsManagerAbstract {
       case MessagesToApp.proceedToNextRound:
         {
           final userId = message.data!['user_id'] as String?;
-          final isSuccess =
-              gm.adminIds.contains(userId) && gm.canProceedToNextRound;
-          if (isSuccess) gm.requestStartNewRound();
+          bool canProceed = gm.adminIds.contains(userId) &&
+              (gm.isShowingTelegram || gm.canProceedToNextRound);
+          if (canProceed) {
+            if (gm.isShowingTelegram) gm.requestCloseTelegram();
+            if (gm.canProceedToNextRound) gm.requestStartNewRound();
+          }
 
           sendResponseToEbs(message.copyWith(
               to: MessageTo.frontend,
               from: MessageFrom.app,
               type: MessageTypes.response,
-              isSuccess: isSuccess));
+              isSuccess: canProceed));
           break;
         }
       case MessagesToApp.tryWord:

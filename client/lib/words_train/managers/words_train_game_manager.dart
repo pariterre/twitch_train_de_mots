@@ -216,6 +216,9 @@ class WordsTrainGameManager {
   Duration? get timeRemainingBeforeAutoStart => _autoStart.timeRemaining;
   void cancelAutoStart() => _autoStart.dispose();
 
+  bool _isShowingTelegram = false;
+  bool get isShowingTelegram => _isShowingTelegram;
+
   /// ----------- ///
   /// CONSTRUCTOR ///
   /// ----------- ///
@@ -429,7 +432,7 @@ class WordsTrainGameManager {
       Function({required String login, required bool isActive})>();
   final onCongratulationFireworks = GenericListener<
       Function({required String login, required bool isActive})>();
-  Future<void> Function(String)? onShowTelegram;
+  Future<void> Function(String message)? onShowTelegram;
 
   /// -------- ///
   /// INTERNAL ///
@@ -624,9 +627,15 @@ class WordsTrainGameManager {
     _messagesToPlayers.add(message);
     _logger.info('Sending telegram to players...');
     pauseGame();
+    _isShowingTelegram = true;
     await onShowTelegram!(message);
+    _isShowingTelegram = false;
     resumeGame();
     _logger.info('Telegram sent to players');
+  }
+
+  void requestCloseTelegram() {
+    _isShowingTelegram = false;
   }
 
   void _setValuesAtStartRound() {

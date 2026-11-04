@@ -88,13 +88,28 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _showMessageDialog(String message,
       {bool allowAutoplay = true}) async {
+    final gm = Managers.instance.train;
     final cm = Managers.instance.configuration;
     final tm = ThemeManager.instance;
+    final timeManager = Managers.instance.tickerManager;
 
-    await showDialog(
+    bool dialogIsClosed = false;
+
+    void checkShouldCloseTelegram(Duration duration) {
+      if (!gm.isShowingTelegram && !dialogIsClosed) {
+        dialogIsClosed = true;
+        Navigator.of(context).pop();
+      }
+    }
+
+    timeManager.onClockTicked.listen(checkShouldCloseTelegram);
+
+    try {
+      await showDialog(
         context: context,
         builder: (context) {
           Managers.instance.sound.playTelegramReceived();
+
           return ParchmentDialog(
             title: 'Un télégramme pour vous!',
             content: Text(message, style: TextStyle(fontSize: tm.textSize)),
@@ -104,9 +119,14 @@ class _MainScreenState extends State<MainScreen> {
             autoAcceptDuration: allowAutoplay && cm.autoplay
                 ? const Duration(seconds: 10)
                 : null,
-            onAccept: () => Navigator.of(context).pop(),
+            onAccept: gm.requestCloseTelegram,
           );
-        });
+        },
+      );
+    } finally {
+      dialogIsClosed = true;
+      timeManager.onClockTicked.cancel(checkShouldCloseTelegram);
+    }
   }
 
   void _refresh() => setState(() {});
