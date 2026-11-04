@@ -1,9 +1,12 @@
 
 # List of available projects
-PROJECTS := client ebs extensions extensions_local
+PROJECTS := client ebs players extensions extensions_local
+
+# Folder in which the player interface is sent
+PLAYERS_SUBFOLER := cheminots
 
 # Folders to keep during web server cleanup
-FOLDER_TO_KEEP := .well-known cgi-bin cheminots
+FOLDER_TO_KEEP := .well-known cgi-bin $(PLAYERS_SUBFOLER)
 
 # Internal variables
 BASE_FOLDER := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
@@ -33,7 +36,7 @@ client:
 		echo "ERROR -- TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, or TRAIN_DE_MOTS_SSH_FOLDER_CLIENT is not set. Please set them before building."; \
 		exit 1; \
 	fi; \
-	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT} && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
+	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT} && find . -mindepth 1 -maxdepth 1 $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -exec rm -rf {} +"; \
 	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}; \
 	echo "Project built and sent successfully."
 
@@ -60,8 +63,8 @@ players:
 		echo "ERROR -- TRAIN_DE_MOTS_SSH_USER, TRAIN_DE_MOTS_SSH_SERVER, or TRAIN_DE_MOTS_SSH_FOLDER_CLIENT is not set. Please set them before building."; \
 		exit 1; \
 	fi; \
-	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/cheminots && find . $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -delete"; \
-	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/cheminots; \
+	ssh $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER} "cd $${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/$(PLAYERS_SUBFOLER) && find . -mindepth 1 -maxdepth 1 $(addprefix ! -name ,$(FOLDER_TO_KEEP)) -exec rm -rf {} +"; \
+	rsync -azvP $${PROJECT_FOLDER}/$(WEB_BUILD_FOLDER)/ $${TRAIN_DE_MOTS_SSH_USER}@$${TRAIN_DE_MOTS_SSH_SERVER}:$${TRAIN_DE_MOTS_SSH_FOLDER_CLIENT}/$(PLAYERS_SUBFOLER); \
 	echo "Project built and sent successfully."
 
 extensions:
