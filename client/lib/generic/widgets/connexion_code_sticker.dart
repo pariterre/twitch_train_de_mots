@@ -13,6 +13,8 @@ class ConnexionCodeSticker extends StatelessWidget {
   Widget build(BuildContext context) {
     final tm = ThemeManager.instance;
 
+    final qrMessage = 'https://traindemots.pariterre.net/cheminots/?code=$code';
+
     return Positioned(
         top: 40,
         left: 10,
@@ -22,8 +24,8 @@ class ConnexionCodeSticker extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               SizedBox(
-                width: 530,
-                height: 130,
+                width: 540,
+                height: 150,
                 child: Image.asset(
                     'packages/common/assets/images/parchment.png',
                     fit: BoxFit.fill),
@@ -62,6 +64,7 @@ class ConnexionCodeSticker extends StatelessWidget {
                             child: Text('Cliquer ici',
                                 style: tm.clientMainTextStyle.copyWith(
                                     fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                     decoration: TextDecoration.underline)),
                           ),
@@ -72,12 +75,28 @@ class ConnexionCodeSticker extends StatelessWidget {
                       ),
                     ],
                   ),
-                  QrImageView(
-                    data:
-                        'https://traindemots.pariterre.net/cheminots/?code=$code',
-                    version: QrVersions.auto,
-                    size: 100,
-                    gapless: false,
+                  InkWell(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => ParchmentDialog(
+                                width: 450,
+                                height: 450,
+                                content: Center(
+                                  child: QrImageView(
+                                    data: qrMessage,
+                                    version: QrVersions.auto,
+                                    gapless: false,
+                                  ),
+                                ),
+                              ));
+                    },
+                    child: QrImageView(
+                      data: qrMessage,
+                      version: QrVersions.auto,
+                      size: 140,
+                      gapless: false,
+                    ),
                   )
                 ],
               ),

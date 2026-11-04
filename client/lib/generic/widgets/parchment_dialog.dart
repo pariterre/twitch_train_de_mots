@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class ParchmentDialog extends StatefulWidget {
   const ParchmentDialog({
     super.key,
-    required this.title,
+    this.title,
     required this.width,
     required this.height,
     this.padding,
@@ -19,7 +19,7 @@ class ParchmentDialog extends StatefulWidget {
     this.cancelButtonDisabledTooltip = '',
   });
 
-  final String title;
+  final String? title;
   final double width;
   final double height;
   final EdgeInsets? padding;
@@ -87,11 +87,12 @@ class _ParchmentDialogState extends State<ParchmentDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title,
-                      style: tm.clientMainTextStyle.copyWith(
-                          color: Colors.black,
-                          fontSize: 24.0,
-                          fontWeight: FontWeight.bold)),
+                  if (widget.title != null)
+                    Text(widget.title!,
+                        style: tm.clientMainTextStyle.copyWith(
+                            color: Colors.black,
+                            fontSize: 24.0,
+                            fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8.0),
                   widget.content,
                   Align(
