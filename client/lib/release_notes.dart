@@ -667,4 +667,16 @@ const List<ReleaseNotes> releaseNotes = [
               'Le train rejoint sa station plus rapidement à la fin de la ronde pour diminuer le suspence'),
     ],
   ),
+  ReleaseNotes(
+    version: '1.8.1',
+    codeName: 'Écoute-moi!',
+    notes:
+        'À travers les dernières modifications, Twitch a été oublié au point que les mini-jeux n\'écoutaient même plus les réponses de Twitch! '
+        'Ceci est maintenant corrigé et tout est rentré dans l\'ordre.',
+    features: [
+      FeatureNotes(
+          description:
+              'Réparation du bogue où Twitch ne prenait plus les réponses des cheminot·e·s lors des mini-jeux'),
+    ],
+  ),
 ];
