@@ -688,8 +688,8 @@ class WordsTrainGameManager {
   ///
   /// Initialize the callbacks from chat to [trySolution]
   Future<void> _initializeTrySolutionCallback() async =>
-      Managers.instance.integrationManager.addChatListener(
-          (login, message) => trySolution(login: login, word: message));
+      Managers.instance.integrationManager.onMessageReceived
+          .listen((login, message) => trySolution(login: login, word: message));
 
   ///
   /// Try a solution proposed by a player. If the solution is valid, it updates

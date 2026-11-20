@@ -31,6 +31,11 @@ abstract class Agent with NetworkSynchronizable {
 
   final onTeleport = GenericListener<Function(Vector2 from, Vector2 to)>();
   final onDestroyed = GenericListener<Function>();
+  void copyListeners({required Agent from}) {
+    onTeleport.copyListenerFrom(from.onTeleport);
+    onDestroyed.copyListenerFrom(from.onDestroyed);
+  }
+
   bool get isDestroyed;
 
   Agent({

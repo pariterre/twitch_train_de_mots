@@ -183,8 +183,7 @@ class GameManager {
             }
           }
 
-          newAgent.onTeleport.copyListenersFrom(oldAgent.onTeleport);
-          newAgent.onDestroyed.copyListenersFrom(oldAgent.onDestroyed);
+          newAgent.copyListeners(from: oldAgent);
         }
       } else if (_gameState.miniGameState
               is SerializableWarehouseCleaningGameState &&

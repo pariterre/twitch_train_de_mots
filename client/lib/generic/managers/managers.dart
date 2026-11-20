@@ -173,13 +173,8 @@ class Managers {
 
     // Move the listeners to the new manager
     if (_integrationManager != null) {
-      manager?.onHasTriedConnecting
-          .copyListenersFrom(_integrationManager!.onHasTriedConnecting);
-      manager?.onHasDisconnected
-          .copyListenersFrom(_integrationManager!.onHasDisconnected);
-
-      _integrationManager?.onHasTriedConnecting.cancelAll();
-      _integrationManager!.onHasDisconnected.cancelAll();
+      manager?.copyListeners(from: _integrationManager!);
+      _integrationManager?.cancelListeners();
     }
 
     _integrationManager = manager ?? _instance._noIntegration!;

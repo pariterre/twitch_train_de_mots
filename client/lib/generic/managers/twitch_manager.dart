@@ -17,6 +17,19 @@ abstract class IntegrationManager {
   final onHasTriedConnecting =
       GenericListener<Function({required bool isSuccess})>();
   final onHasDisconnected = GenericListener();
+  final onMessageReceived =
+      GenericListener<Function(String login, String message)>();
+  void copyListeners({required IntegrationManager from}) {
+    onHasTriedConnecting.copyListenerFrom(from.onHasTriedConnecting);
+    onHasDisconnected.copyListenerFrom(from.onHasDisconnected);
+    onMessageReceived.copyListenerFrom(from.onMessageReceived);
+  }
+
+  void cancelListeners() {
+    onHasTriedConnecting.cancelAll();
+    onHasDisconnected.cancelAll();
+    onMessageReceived.cancelAll();
+  }
 
   bool get isInitialized;
 
@@ -28,8 +41,6 @@ abstract class IntegrationManager {
   Future<bool> disconnect();
 
   Widget debugOverlay({required Widget child});
-
-  void addChatListener(Function(String login, String message) callback);
 
   Future<String?> displayNameFromLogin(String login);
 }
@@ -94,11 +105,6 @@ class NoIntegrationManager extends IntegrationManager {
   }
 
   @override
-  void addChatListener(Function(String login, String message) callback) {
-    // No integration, so no chat to listen to
-  }
-
-  @override
   Future<String?> displayNameFromLogin(String login) async {
     return login;
   }
@@ -128,14 +134,6 @@ class TwitchIntegrationManager extends IntegrationManager {
   bool get isConnected => _manager != null && _manager!.isConnected;
   bool _isConnecting = false;
   bool get isConnecting => _isConnecting;
-
-  ///
-  /// Call all the listeners when a message is received
-  @override
-  void addChatListener(Function(String login, String message) callback) {
-    _logger.info('Adding chat listener');
-    _chatListeners.listen(callback);
-  }
 
   @override
   Future<String?> displayNameFromLogin(String login) async {
@@ -224,10 +222,8 @@ class TwitchIntegrationManager extends IntegrationManager {
 
   ///
   /// Holds the callback to call when a message is received
-  final _chatListeners =
-      TwitchListener<Function(String login, String message)>();
   void _onMessageReceived(String login, String message) =>
-      _chatListeners.notifyListeners((callback) => callback(login, message));
+      onMessageReceived.notifyListeners((callback) => callback(login, message));
 }
 
 class TwitchIntegrationManagerMocked extends TwitchIntegrationManager {

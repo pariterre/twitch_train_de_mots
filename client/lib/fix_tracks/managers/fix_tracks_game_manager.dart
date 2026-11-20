@@ -49,7 +49,8 @@ class FixTracksGameManager extends MiniGameManager {
 
     while (true) {
       try {
-        Managers.instance.integrationManager.addChatListener(trySolution);
+        Managers.instance.integrationManager.onMessageReceived
+            .listen(trySolution);
         break;
       } on ManagerNotInitializedException {
         // Wait and repeat

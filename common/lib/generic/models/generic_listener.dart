@@ -60,7 +60,7 @@ class GenericListener<T extends Function> {
 
   ///
   /// Copy the listeners from another GenericListener.
-  void copyListenersFrom(GenericListener<T> other) {
+  void copyListenerFrom(GenericListener<T> other) {
     _listeners.clear();
     _listeners.addAll(other._listeners);
   }
